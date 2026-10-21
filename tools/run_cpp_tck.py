@@ -712,6 +712,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml")),
             "extendable-hlaother-invalid="
             + str(default_path("packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml")),
+            "enumerated-value-collision-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-value-collision-first-tck.xml")),
+            "enumerated-value-collision-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml")),
+            "nonextendable-variant-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml")),
+            "nonextendable-variant-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

@@ -111,6 +111,10 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "named-variant-alternative-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/named-variant-alternative-second-tck.xml"
   "extendable-hlaother-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml"
   "extendable-hlaother-invalid=${_repository_root}/packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml"
+  "enumerated-value-collision-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-collision-first-tck.xml"
+  "enumerated-value-collision-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml"
+  "nonextendable-variant-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml"
+  "nonextendable-variant-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

@@ -173,6 +173,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_class_dimension_merge.cpp
   src/tck_fom_named_variant_alternative_merge.cpp
   src/tck_fom_extendable_variant_hlaother.cpp
+  src/tck_fom_enumerated_variant_conflicts.cpp
   src/tck_timestamped_attribute_scenarios.cpp
   src/tck_timestamped_attribute_reflect_region_snapshot.cpp
   src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp

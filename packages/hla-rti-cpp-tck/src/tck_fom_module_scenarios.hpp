@@ -54,5 +54,9 @@ void scenarioFomNamedVariantAlternativeMerge(Options const&, rti::CallbackModel)
 void scenarioFomNamedVariantAlternativeMergeContract(Options const&, rti::CallbackModel);
 void scenarioFomExtendableVariantHlaOther(Options const&, rti::CallbackModel);
 void scenarioFomExtendableVariantHlaOtherContract(Options const&, rti::CallbackModel);
+void scenarioFomEnumeratedValueCollision(Options const&, rti::CallbackModel);
+void scenarioFomEnumeratedValueCollisionContract(Options const&, rti::CallbackModel);
+void scenarioFomNonextendableVariantAlternativeConflict(Options const&, rti::CallbackModel);
+void scenarioFomNonextendableVariantAlternativeConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

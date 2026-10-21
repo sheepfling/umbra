@@ -8494,6 +8494,38 @@
       "exclusion": "Configure hla.rti.tck.extendableHlaOtherValidFom and extendableHlaOtherInvalidFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-enumerated-value-collision",
+      "category": "fom-composition",
+      "title": "Reject one enumerated value assigned to different names across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l86-19"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l86-19", "standard_section": "hla-1516.2-2025:clause-C.3"}],
+      "mapping_note": "Standard Java API parity for a same-value/different-name enumerator collision and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-enumerated-variant-conflicts-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomEnumeratedValueCollision",
+      "parity": "cpp-tck.fom-enumerated-value-collision",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.enumeratedCollisionFirstFom and enumeratedCollisionSecondFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-nonextendable-variant-alternative-conflict",
+      "category": "fom-composition",
+      "title": "Reject different alternative sets on one named HLAvariantRecord",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3"}],
+      "mapping_note": "Standard Java API parity for a non-extendable variant's different alternative sets and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-enumerated-variant-conflicts-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomNonextendableVariantAlternativeConflict",
+      "parity": "cpp-tck.fom-nonextendable-variant-alternative-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

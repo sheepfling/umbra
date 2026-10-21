@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Nonextendable Variant First</name><type>FOM</type></modelIdentification>
+  <dataTypes>
+    <enumeratedDataTypes><enumeratedData>
+      <name>TckNonextendableSelections</name><representation>HLAinteger32BE</representation>
+      <enumerator><name>TckNonextendableFirstChoice</name><value>1</value></enumerator>
+      <enumerator><name>TckNonextendableSecondChoice</name><value>2</value></enumerator>
+    </enumeratedData></enumeratedDataTypes>
+    <variantRecordDataTypes><variantRecordData>
+      <name>TckNonextendableVariant</name>
+      <discriminant>TckSelection</discriminant><dataType>TckNonextendableSelections</dataType>
+      <alternative>
+        <enumerator>TckNonextendableFirstChoice</enumerator>
+        <name>TckNonextendableFirstAlternative</name><dataType>HLAboolean</dataType>
+      </alternative>
+      <encoding>HLAvariantRecord</encoding>
+    </variantRecordData></variantRecordDataTypes>
+  </dataTypes>
+</objectModel>

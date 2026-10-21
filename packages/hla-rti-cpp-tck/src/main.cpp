@@ -19429,6 +19429,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-interaction-class-dimension-merge-contract",
       "cpp-tck.fom-named-variant-alternative-merge-contract",
       "cpp-tck.fom-extendable-variant-hlaother-contract",
+      "cpp-tck.fom-enumerated-value-collision-contract",
+      "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20127,6 +20129,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-interaction-class-dimension-merge",
       "cpp-tck.fom-named-variant-alternative-merge",
       "cpp-tck.fom-extendable-variant-hlaother",
+      "cpp-tck.fom-enumerated-value-collision",
+      "cpp-tck.fom-nonextendable-variant-alternative-conflict",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20949,6 +20953,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-extendable-variant-hlaother-contract") {
     return scenarioFomExtendableVariantHlaOtherContract;
+  }
+  if (id == "cpp-tck.fom-enumerated-value-collision-contract") {
+    return scenarioFomEnumeratedValueCollisionContract;
+  }
+  if (id == "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract") {
+    return scenarioFomNonextendableVariantAlternativeConflictContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23178,6 +23188,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-extendable-variant-hlaother") {
     return scenarioFomExtendableVariantHlaOther;
   }
+  if (id == "cpp-tck.fom-enumerated-value-collision") {
+    return scenarioFomEnumeratedValueCollision;
+  }
+  if (id == "cpp-tck.fom-nonextendable-variant-alternative-conflict") {
+    return scenarioFomNonextendableVariantAlternativeConflict;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23616,6 +23632,18 @@ int run(Options const& options) {
                   options.scenarioFoms.count("extendable-hlaother-invalid") == 0U)) {
         result.status = "skipped";
         result.message = "requires valid and HLAother adapter-supplied FOM modules";
+      } else if ((scenario == "cpp-tck.fom-enumerated-value-collision" ||
+                  scenario == "cpp-tck.fom-enumerated-value-collision-contract") &&
+                 (options.scenarioFoms.count("enumerated-value-collision-first") == 0U ||
+                  options.scenarioFoms.count("enumerated-value-collision-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires two adapter-supplied enumerated-collision FOM modules";
+      } else if ((scenario == "cpp-tck.fom-nonextendable-variant-alternative-conflict" ||
+                  scenario == "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract") &&
+                 (options.scenarioFoms.count("nonextendable-variant-first") == 0U ||
+                  options.scenarioFoms.count("nonextendable-variant-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires two adapter-supplied nonextendable-variant FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

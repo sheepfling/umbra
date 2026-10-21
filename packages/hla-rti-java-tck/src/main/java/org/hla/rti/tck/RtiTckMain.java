@@ -96,6 +96,14 @@ public final class RtiTckMain {
       "hla.rti.tck.extendableHlaOtherValidFom";
    private static final String EXTENDABLE_HLAOTHER_INVALID_FOM_PROPERTY =
       "hla.rti.tck.extendableHlaOtherInvalidFom";
+   private static final String ENUMERATED_COLLISION_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.enumeratedCollisionFirstFom";
+   private static final String ENUMERATED_COLLISION_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.enumeratedCollisionSecondFom";
+   private static final String NONEXTENDABLE_VARIANT_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.nonextendableVariantFirstFom";
+   private static final String NONEXTENDABLE_VARIANT_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.nonextendableVariantSecondFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1662,6 +1670,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomExtendableVariantHlaOther);
+      run(new Scenario("java-tck.fom-enumerated-value-collision",
+            "Reject one enumerated value assigned to different names across FOM modules",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomEnumeratedValueCollision);
+      run(new Scenario("java-tck.fom-nonextendable-variant-alternative-conflict",
+            "Reject different alternative sets on one named HLAvariantRecord",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomNonextendableVariantAlternativeConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11354,6 +11374,10 @@ public final class RtiTckMain {
             method = "fomNamedVariantAlternativeMerge"; break;
          case "java-tck.fom-extendable-variant-hlaother":
             method = "fomExtendableVariantHlaOther"; break;
+         case "java-tck.fom-enumerated-value-collision":
+            method = "fomEnumeratedValueCollision"; break;
+         case "java-tck.fom-nonextendable-variant-alternative-conflict":
+            method = "fomNonextendableVariantAlternativeConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12908,6 +12932,20 @@ public final class RtiTckMain {
          requireAdapterFile(EXTENDABLE_HLAOTHER_VALID_FOM_PROPERTY),
          requireAdapterFile(EXTENDABLE_HLAOTHER_INVALID_FOM_PROPERTY),
          timeImplementation(), callbackModel());
+   }
+
+   private static void fomEnumeratedValueCollision() throws Exception {
+      FomEnumeratedVariantConflictsTck.run(factory(),
+         requireAdapterFile(ENUMERATED_COLLISION_FIRST_FOM_PROPERTY),
+         requireAdapterFile(ENUMERATED_COLLISION_SECOND_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomNonextendableVariantAlternativeConflict() throws Exception {
+      FomEnumeratedVariantConflictsTck.run(factory(),
+         requireAdapterFile(NONEXTENDABLE_VARIANT_FIRST_FOM_PROPERTY),
+         requireAdapterFile(NONEXTENDABLE_VARIANT_SECOND_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {
