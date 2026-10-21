@@ -14040,7 +14040,7 @@
         "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"
       ],
       "test_case": "The FOM composition preflight requires table-defined data types for dimension inputs",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1713",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1442",
       "tags": [
         "unit",
         "fom",

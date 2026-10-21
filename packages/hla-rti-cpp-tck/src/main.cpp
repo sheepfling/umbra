@@ -19435,6 +19435,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-cardinality-rejections-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
+      "cpp-tck.fom-dimension-input-type-contract",
       "cpp-tck.fom-synchronization-duplicate-equal-contract",
       "cpp-tck.fom-synchronization-duplicate-note-conflict-contract",
       "cpp-tck.fom-transportation-duplicate-equal-contract",
@@ -20155,6 +20156,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-cardinality-rejections",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
+      "cpp-tck.fom-dimension-input-type",
       "cpp-tck.fom-synchronization-duplicate-equal",
       "cpp-tck.fom-synchronization-duplicate-note-conflict",
       "cpp-tck.fom-transportation-duplicate-equal",
@@ -21007,6 +21009,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-dimension-duplicate-conflict-contract") {
     return scenarioFomDimensionDuplicateConflictContract;
+  }
+  if (id == "cpp-tck.fom-dimension-input-type-contract") {
+    return scenarioFomDimensionInputTypeContract;
   }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal-contract") {
     return scenarioFomSynchronizationDuplicateEqualContract;
@@ -23302,6 +23307,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-dimension-duplicate-conflict") {
     return scenarioFomDimensionDuplicateConflict;
   }
+  if (id == "cpp-tck.fom-dimension-input-type") {
+    return scenarioFomDimensionInputType;
+  }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal") {
     return scenarioFomSynchronizationDuplicateEqual;
   }
@@ -23888,6 +23896,14 @@ int run(Options const& options) {
                    options.scenarioFoms.count("advisory-switch-duplicate-omitted") == 0U))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied advisory-switch-duplicate FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dimension-input-type" ||
+                  scenario == "cpp-tck.fom-dimension-input-type-contract") &&
+                 (options.mimFom.empty() ||
+                  options.scenarioFoms.count("dimension-input-raw-basic") == 0U ||
+                  options.scenarioFoms.count("dimension-input-na") == 0U ||
+                  options.scenarioFoms.count("dimension-input-table-type") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and dimension input FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

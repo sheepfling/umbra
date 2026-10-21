@@ -734,6 +734,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml")),
             "dimension-duplicate-conflicting-upper-bound="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml")),
+            "dimension-input-raw-basic="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-raw-basic-tck.xml")),
+            "dimension-input-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-na-tck.xml")),
+            "dimension-input-table-type="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "synchronization-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml")),
             "synchronization-duplicate-equal="

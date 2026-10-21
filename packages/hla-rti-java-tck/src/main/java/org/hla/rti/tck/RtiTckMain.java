@@ -118,6 +118,12 @@ public final class RtiTckMain {
       "hla.rti.tck.dimensionDuplicateEqualUniqueFom";
    private static final String DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateConflictFom";
+   private static final String DIMENSION_INPUT_RAW_BASIC_FOM_PROPERTY =
+      "hla.rti.tck.dimensionInputRawBasicFom";
+   private static final String DIMENSION_INPUT_NA_FOM_PROPERTY =
+      "hla.rti.tck.dimensionInputNaFom";
+   private static final String DIMENSION_INPUT_TABLE_TYPE_FOM_PROPERTY =
+      "hla.rti.tck.dimensionInputTableTypeFom";
    private static final String SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.synchronizationDuplicateBaseFom";
    private static final String SYNCHRONIZATION_DUPLICATE_EQUAL_FOM_PROPERTY =
@@ -1762,6 +1768,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDimensionDuplicateConflict);
+      run(new Scenario("java-tck.fom-dimension-input-type",
+            "Reject raw basic dimension inputs while accepting NA and table-defined types",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDimensionInputType);
       run(new Scenario("java-tck.fom-synchronization-duplicate-equal",
             "Accept identical same-label synchronization declarations",
             "fom-composition",
@@ -11550,6 +11562,8 @@ public final class RtiTckMain {
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
             method = "fomDimensionDuplicateConflict"; break;
+         case "java-tck.fom-dimension-input-type":
+            method = "fomDimensionInputType"; break;
          case "java-tck.fom-synchronization-duplicate-equal":
             method = "fomSynchronizationDuplicateEqual"; break;
          case "java-tck.fom-synchronization-duplicate-note-conflict":
@@ -13176,6 +13190,14 @@ public final class RtiTckMain {
          requireAdapterFile(DIMENSION_DUPLICATE_BASE_FOM_PROPERTY),
          requireAdapterFile(DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomDimensionInputType() throws Exception {
+      FomDimensionInputTypeTck.run(factory(),
+         requireAdapterFile(DIMENSION_INPUT_RAW_BASIC_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_INPUT_NA_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_INPUT_TABLE_TYPE_FOM_PROPERTY),
+         requireMim(), timeImplementation(), callbackModel());
    }
 
    private static void fomSynchronizationDuplicateEqual() throws Exception {

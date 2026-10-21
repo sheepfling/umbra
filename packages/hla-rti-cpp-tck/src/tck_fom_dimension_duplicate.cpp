@@ -7,7 +7,7 @@ std::filesystem::path const& requiredFom(Options const& options,
                                          std::string const& name) {
   auto const found = options.scenarioFoms.find(name);
   require(found != options.scenarioFoms.end(),
-          "Dimension duplicate requires adapter-supplied FOM modules");
+          "Dimension FOM testing requires adapter-supplied modules");
   return found->second;
 }
 
@@ -85,6 +85,52 @@ void scenarioFomDimensionDuplicateConflict(Options const& options,
 void scenarioFomDimensionDuplicateConflictContract(Options const& options,
                                                     rti::CallbackModel model) {
   scenarioFomDimensionDuplicateConflict(options, model);
+}
+
+void scenarioFomDimensionInputType(Options const& options,
+                                   rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Dimension input-type testing requires adapter-supplied MIM and logical time");
+  auto const& rawBasic = requiredFom(options, "dimension-input-raw-basic");
+  auto const& na = requiredFom(options, "dimension-input-na");
+  auto const& tableType = requiredFom(options, "dimension-input-table-type");
+  Session creator(options, model, "dimension-input-type-creator");
+  Session member(options, model, "dimension-input-type-member");
+  auto const federation = federationName(options, "fom-dimension-input-type");
+  creator.connect();
+  member.connect();
+  auto createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(rawBasic); }, L"InconsistentFOM",
+                   "a raw basic representation used as a dimension input type");
+
+  auto const checkAccepted = [&](std::filesystem::path const& module,
+                                 std::wstring const& dimensionName) {
+    // Reusing the rejected federation name also checks failed-create cleanup.
+    createWithMim(module);
+    member.join(options.memberFederateName, options.federateType, federation);
+    auto& rti = member.rtiAmbassador();
+    auto const dimension = rti.getDimensionHandle(dimensionName);
+    require(dimension.isValid() &&
+                rti.getDimensionName(dimension) == dimensionName &&
+                rti.getDimensionUpperBound(dimension) == 100U,
+            "an accepted dimension input type was not publicly queryable");
+    member.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  };
+  checkAccepted(na, L"TckNoTypeDimensionInput");
+  checkAccepted(tableType, L"TckTableDimensionInput");
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomDimensionInputTypeContract(Options const& options,
+                                           rti::CallbackModel model) {
+  scenarioFomDimensionInputType(options, model);
 }
 
 }  // namespace hla_rti_cpp_tck::detail
