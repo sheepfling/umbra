@@ -2562,12 +2562,13 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
             }, false), RtiTckMain::interactionFddPreferredOrderDefault);
        run(new Scenario("java-tck.attribute-fdd-preferred-order-default",
-            "use each object attribute's FDD-preferred order for timestamped Update Attribute Values without changing the default",
+            "optional timestamp and FDD-preferred order for attribute updates",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.registerObjectInstance;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.getTransportationTypeName;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(LogicalTime)",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.registerObjectInstance;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.getTransportationTypeName;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.reflectAttributeValues(LogicalTime)",
             new String[] {
                "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
-               "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+               "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l114-35"
             }, false), RtiTckMain::attributeFddPreferredOrderDefault);
        run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
             "timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA", "time",

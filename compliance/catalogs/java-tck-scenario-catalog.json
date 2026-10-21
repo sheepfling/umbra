@@ -14242,7 +14242,7 @@
     {
       "id": "java-tck.attribute-fdd-preferred-order-default",
       "category": "time-management",
-      "title": "Timestamped attribute updates preserve each attribute's FDD-preferred order by default",
+      "title": "Optional timestamp and FDD-preferred order for attribute updates",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -14257,6 +14257,7 @@
         "RTIambassador.queryLogicalTime",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.updateAttributeValues",
         "RTIambassador.updateAttributeValues(LogicalTime)",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.disableTimeRegulation",
@@ -14267,19 +14268,22 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.reflectAttributeValues(LogicalTime)"
       ],
-      "requirement_ids": ["java-1516.1-timestamped-attribute-update", "java-1516.1-timestamped-attribute-reflect"],
+      "requirement_ids": ["java-1516.1-timestamped-attribute-update", "java-1516.1-timestamped-attribute-reflect", "requirement-candidate-content-clauses-08-time-management-page-180-l114-35"],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
-        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l114-35"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l114-35", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
-      "mapping_note": "Uses only the official IEEE 1516.1-2025 Java API and JDK. Provider, FOM, endpoint, callback model, logical-time implementation, class name, and attribute names are adapter supplied. No order-change service is called; only these two FDD defaults are asserted, not the full order matrix or conformance.",
+      "mapping_note": "API-only Java parity now checks §8.1.4 page-180-l114-35: the regulating publisher omits a timestamp for an adapter-FOM TimeStamp-preferred attribute, and the receiver obtains an ordinary receive-order reflection before the existing timestamped FDD-default checks. Provider, FOM, endpoint, callback model, logical-time implementation, class name, and attribute names are adapter supplied. No order-change service, full order matrix, Java provider runtime, or conformance is claimed.",
       "contract_refs": [
         "attribute-update-order-classification-api-contract.json",
         "timestamped-attribute-update-requirements-contract.json"

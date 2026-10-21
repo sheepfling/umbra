@@ -116,6 +116,29 @@ final class AttributeFddPreferredOrderDefaultTck {
          await(sender, callbackModel, () -> senderCallbacks.timeRegulationEnabled,
             "FDD-default attribute sender regulation callback");
 
+         byte[] optionalTimestampValue = {0x4f, 0x50, 0x54};
+         byte[] optionalTimestampTag = {0x52, 0x4f};
+         AttributeHandleValueMap optionalTimestampValues =
+            sender.getAttributeHandleValueMapFactory().create(1);
+         optionalTimestampValues.put(
+            senderTimestampAttribute, optionalTimestampValue.clone());
+         // This attribute is TimeStamp-preferred in the adapter FOM and the
+         // publisher is regulating, but the timestamp argument is optional.
+         sender.updateAttributeValues(
+            object, optionalTimestampValues, optionalTimestampTag.clone());
+         await(receiver, callbackModel, () -> receiverCallbacks.receiveOrder.size() == 1,
+            "no-time update for a TimeStamp-preferred FDD attribute");
+         OrdinaryReflection ordinary = receiverCallbacks.receiveOrder.get(0);
+         JavaTckSupport.check(receiverCallbacks.timestamped.isEmpty()
+               && object.equals(ordinary.object) && ordinary.values.size() == 1
+               && Arrays.equals(optionalTimestampValue,
+                  ordinary.values.get(receiverTimestampAttribute))
+               && Arrays.equals(optionalTimestampTag, ordinary.tag)
+               && producer.equals(ordinary.producer) && ordinary.regionsEmpty
+               && ordinary.transportation != null
+               && !receiver.getTransportationTypeName(ordinary.transportation).isEmpty(),
+            "no-time TimeStamp-preferred update did not produce an ordinary reflection");
+
          byte[] timestampValue = {0x46, 0x44, 0x44, 0x54};
          byte[] receiveValue = {0x46, 0x44, 0x44, 0x52};
          byte[] timestampTag = {0x54, 0x53};
@@ -143,19 +166,19 @@ final class AttributeFddPreferredOrderDefaultTck {
             "both FDD-preferred timestamp-bearing reflections");
          Reflection timestampDelivery = receiverCallbacks.forAttribute(receiverTimestampAttribute);
          Reflection receiveDelivery = receiverCallbacks.forAttribute(receiverReceiveAttribute);
-         JavaTckSupport.check(receiverCallbacks.receiveOrder.isEmpty()
+         JavaTckSupport.check(receiverCallbacks.receiveOrder.size() == 1
                && receiverCallbacks.timestamped.size() == 2
                && timestampDelivery != null && receiveDelivery != null,
-            "FDD-preferred updates did not produce exactly two timestamp-bearing reflections");
+            "FDD-preferred updates did not preserve the ordinary/timestamped split");
          checkDelivery(receiver, timestampDelivery, object, receiverTimestampAttribute, producer,
             timestampTime, OrderType.TIMESTAMP, timestampValue, timestampTag,
             timestampRetraction.handle, "timestamp-preferred object attribute");
          checkDelivery(receiver, receiveDelivery, object, receiverReceiveAttribute, producer,
             receiveTime, OrderType.RECEIVE, receiveValue, receiveTag, null,
             "receive-preferred object attribute");
-         JavaTckSupport.check(receiverCallbacks.sequence.size() == 2
+         JavaTckSupport.check(receiverCallbacks.sequence.size() == 3
                && receiverCallbacks.sequence.stream().allMatch("reflect"::equals),
-            "FDD-preferred updates did not produce exactly two reflection callbacks");
+            "FDD-preferred updates did not produce exactly three reflection callbacks");
       } finally {
          if (regulating && senderJoined) {
             try { sender.disableTimeRegulation(); } catch (Exception ignored) { }
@@ -252,9 +275,27 @@ final class AttributeFddPreferredOrderDefaultTck {
       }
    }
 
+   private static final class OrdinaryReflection {
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleValueMap values;
+      private final byte[] tag;
+      private final TransportationTypeHandle transportation;
+      private final FederateHandle producer;
+      private final boolean regionsEmpty;
+
+      private OrdinaryReflection(Object[] arguments) {
+         object = (ObjectInstanceHandle) arguments[0];
+         values = ((AttributeHandleValueMap) arguments[1]).clone();
+         tag = ((byte[]) arguments[2]).clone();
+         transportation = (TransportationTypeHandle) arguments[3];
+         producer = (FederateHandle) arguments[4];
+         regionsEmpty = ((RegionHandleSet) arguments[5]).isEmpty();
+      }
+   }
+
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
-      private final List<Boolean> receiveOrder = new CopyOnWriteArrayList<>();
+      private final List<OrdinaryReflection> receiveOrder = new CopyOnWriteArrayList<>();
       private final List<Reflection> timestamped = new CopyOnWriteArrayList<>();
       private final List<String> sequence = new CopyOnWriteArrayList<>();
       private volatile boolean timeRegulationEnabled;
@@ -281,7 +322,7 @@ final class AttributeFddPreferredOrderDefaultTck {
                   sequence.add("reflect");
                } else if ("reflectAttributeValues".equals(name) && arguments != null
                      && arguments.length == 6) {
-                  receiveOrder.add(Boolean.TRUE);
+                  receiveOrder.add(new OrdinaryReflection(arguments));
                   sequence.add("reflect");
                }
                if (method.getDeclaringClass() == Object.class) {
