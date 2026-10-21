@@ -60929,14 +60929,16 @@
         "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
         "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
         "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
         "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
         "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
         "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
       "requirement_mappings": [
@@ -60944,9 +60946,10 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l25-6", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l28-7", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l79-24", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
-        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l148-46", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
       ],
-      "mapping_note": "The official-API native equivalent is umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration. A sent grandchild interaction is delivered once with the base callback class when only base is subscribed, once with the middle callback class when base and middle are subscribed, and once with the exact sent class when all three are subscribed. This directly witnesses the scoped §6.1.9 candidate/received-class selection rules; empty parameters isolate class selection and do not claim parameter filtering, DDM, directed delivery, or interoperability.",
+      "mapping_note": "The official-API native equivalent is umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration. A sent grandchild interaction is delivered once with the base callback class when only base is subscribed, once with the middle callback class when base and middle are subscribed, and once with the exact sent class when all three are subscribed. The received callback class equals the inferred candidate class at each stage (§6.1.9 page-109-l148-46). Empty parameters isolate class selection and do not claim parameter filtering, DDM, directed delivery, or interoperability.",
       "contract_refs": ["standard-interaction-closest-ancestor-transition-contract.json"],
       "native_equivalent_runner_ids": ["umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration"],
       "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInteractionClosestAncestorTransition",
@@ -60971,14 +60974,16 @@
         "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
         "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
         "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
         "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
         "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
         "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
       "requirement_mappings": [
@@ -60986,9 +60991,10 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l25-6", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l28-7", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l79-24", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
-        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l148-46", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
       ],
-      "mapping_note": "This contract twin runs the same public-API three-step closest-ancestor/exact-class assertions as the primary. It makes no claim about parameter filtering or provider-independent conformance.",
+      "mapping_note": "This contract twin runs the same public-API three-step closest-ancestor/exact-class assertions as the primary, including equality of callback received class and the inferred candidate class (§6.1.9 page-109-l148-46). It makes no claim about parameter filtering or provider-independent conformance.",
       "contract_refs": ["standard-interaction-closest-ancestor-transition-contract.json"],
       "native_equivalent_runner_ids": ["umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration"],
       "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInteractionClosestAncestorTransitionContract",

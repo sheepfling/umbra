@@ -86407,13 +86407,14 @@
         "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
         "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
         "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.1.9"
       ],
       "test_case": "Embedded interaction receipt reports the subscribed candidate class",
-      "source_location": "cpp/tests/inherited_interaction_receipt_catch2.cpp:71",
+      "source_location": "cpp/tests/inherited_interaction_receipt_catch2.cpp:73",
       "assertions": 17,
       "callback_models": [
         "HLA_EVOKED"
@@ -86431,7 +86432,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "requirements_lab_api_surface_status": "This two-federate public C++ API case publishes a three-level interaction hierarchy. It verifies one descendant receive callback reports the sole subscribed superclass, then reports the closest of two subscribed superclasses, and finally prefers the exact sent-class subscription; each send yields exactly one callback. At receipt, the callback's received-class handle equals the selected candidate class. It directly maps requirement candidates requirement-candidate-content-clauses-06-object-management-page-109-l10-1, requirement-candidate-content-clauses-06-object-management-page-109-l25-6, requirement-candidate-content-clauses-06-object-management-page-109-l28-7, requirement-candidate-content-clauses-06-object-management-page-109-l79-24, and requirement-candidate-content-clauses-06-object-management-page-109-l82-25 to canonical 2025 §6.1.9. The local embedded transport, fixture, setup/cleanup, and callback pumping remain development-profile/internal evidence; this is not Requirements Lab validation, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "This two-federate public C++ API case publishes a three-level interaction hierarchy. It verifies one descendant receive callback reports the sole subscribed superclass, then reports the closest of two subscribed superclasses, and finally prefers the exact sent-class subscription; each send yields exactly one callback. At receipt, the callback's received-class handle equals the selected candidate class. It directly maps requirement candidates page-109-l10-1, l25-6, l28-7, l79-24, l82-25, and l148-46 to canonical IEEE 1516.1-2025 §6.1.9. The local embedded transport, fixture, setup/cleanup, and callback pumping remain development-profile/internal evidence; this is not Requirements Lab validation, interoperability, or conformance.",
       "ctest_target": "umbra_inherited_interaction_receipt_catch2",
       "ctest_filter": "^umbra\\.inherited_interaction_receipt\\.catch2\\.Embedded interaction receipt reports the subscribed candidate class$",
       "next_action": "Keep superclass receipt and candidate-class reporting distinct from directed interactions and DDM. Add a child-only negative receipt case only if it is selected as a separate exact 2025 requirement boundary."
@@ -86475,7 +86476,7 @@
         "hla-1516.1-2025:clause-8"
       ],
       "test_case": "Embedded directed receipt selects an ancestor subscription at the known target class",
-      "source_location": "cpp/tests/directed_interaction_inherited_receipt_catch2.cpp:127",
+      "source_location": "cpp/tests/directed_interaction_inherited_receipt_catch2.cpp:131",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED"
@@ -86502,7 +86503,7 @@
       "requirements_lab_api_surface_status": "This public two-federate C++ API case publishes a target object at a child class while the receiver discovers and knows it only at the base class. The receiver subscribes to the base directed interaction at that known class and adds a deeper child-object/child-interaction subscription that must not match. It sends the child interaction in both receive-order and timestamped order; each path yields exactly one callback reporting the base interaction class. Both callbacks include the base-class parameter and omit the descendant-only parameter, confirming the selected received-class projection; the timestamped callback also reports logical time 5, matching the sent time. It directly maps requirement-candidate-content-clauses-06-object-management-page-109-l88-26 to canonical IEEE 1516.1-2025 §6.1.9 and requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26 to canonical clause 8. No separate normative requirement mapping is claimed for parameter filtering. Local embedded delivery, FOM fixtures, setup/cleanup, time-management scaffolding, and callback pumping are development-profile evidence, not Requirements Lab validation, interoperability, or conformance.",
       "ctest_target": "umbra_directed_interaction_inherited_receipt_catch2",
       "ctest_filter": "^umbra\\.directed_interaction_inherited_receipt\\.catch2\\.Embedded directed receipt selects an ancestor subscription at the known target class$",
-      "next_action": "Retain this directed-receipt case as the focused evidence for receiver-known object-class fallback, timestamp preservation, and superclass parameter projection. Take the next case from a distinct uncovered global 2025 requirement; do not infer an additional normative mapping for parameter projection without exact clause evidence."
+      "next_action": "Current exact MinGW CTest is red (2026-10-21): the receive-order discovery and projected directed callback pass, but timeAdvanceRequest(HLAinteger64Time(5)) throws at source line 262, before the timestamped assertions run. Do not treat this combined native case as green or promote its timestamped behavior to portable TCK coverage. Diagnose the time-advance sequencing or split a separately green receive-order native case first; keep the §6.1.9 page-109-l88-26 portable gap open until its exact public-API behavior is independently verified."
     },
     {
       "id": "umbra-cpp-standard-service-exception-precedence-unit",

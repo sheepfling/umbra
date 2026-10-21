@@ -4886,7 +4886,8 @@ public final class RtiTckMain {
                  "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
                  "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
                  "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
-                 "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l82-25",
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l148-46"
               }, false), RtiTckMain::interactionClosestAncestorTransition);
        run(new Scenario("java-tck.timestamped-inherited-interaction-class-delivery",
              "project timestamped derived interactions through base and derived subscriptions",
