@@ -159,6 +159,7 @@ def run_tck(
     time_implementation: str = "HLAinteger64Time",
     capability_profile: Path | None = None,
     scenario: str = "",
+    run_unverified: bool = False,
     results_path: Path | None = None,
     junit_path: Path | None = None,
     provider_id: str = "",
@@ -203,6 +204,8 @@ def run_tck(
         str(capability_profile) if capability_profile else None,
     )
     add_property(command, "hla.rti.tck.scenario", scenario)
+    if run_unverified:
+        add_property(command, "hla.rti.tck.runUnverified", "true")
     add_property(command, "hla.rti.tck.results", str(results_path) if results_path else None)
     add_property(command, "hla.rti.tck.junit", str(junit_path) if junit_path else None)
     add_property(command, "hla.rti.tck.provider", provider_id)
@@ -235,6 +238,11 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--time-implementation", default="HLAinteger64Time")
     parser.add_argument("--capability-profile", default="")
     parser.add_argument("--scenario", default="", help="run only this catalog scenario ID")
+    parser.add_argument(
+        "--run-unverified",
+        action="store_true",
+        help="attempt default-disabled scenarios; explicit profile exclusions still apply",
+    )
     parser.add_argument(
         "--classes-directory",
         default=str(DEFAULT_CLASSES),
@@ -332,7 +340,6 @@ def matrix_configurations(path: Path) -> list[tuple[dict[str, Any], Path]]:
             "providerJar",
             "factoryName",
             "fomPath",
-            "capabilityProfile",
         ):
             required_matrix_value(item, required, index)
         identifier = required_matrix_value(item, "id", index)
@@ -408,11 +415,19 @@ def run_matrix(arguments: argparse.Namespace) -> int:
             base=base,
             label=f"matrix entry {identifier} FOM module",
         )
-        profile = resolve_path(
-            required_matrix_value(configuration, "capabilityProfile", index),
-            base=base,
-            label=f"matrix entry {identifier} capability profile",
+        profile_value = configuration.get("capabilityProfile", "")
+        profile = (
+            resolve_path(
+                profile_value,
+                base=base,
+                label=f"matrix entry {identifier} capability profile",
+            )
+            if profile_value
+            else None
         )
+        run_unverified = configuration.get("runUnverified", False)
+        if not isinstance(run_unverified, bool):
+            raise RunnerError(f"matrix entry {identifier} runUnverified must be a boolean")
         mim_value = configuration.get("mimPath", "")
         mim = (
             resolve_path(mim_value, base=base, label=f"matrix entry {identifier} MIM module")
@@ -440,6 +455,7 @@ def run_matrix(arguments: argparse.Namespace) -> int:
                 configuration.get("timeImplementation", "HLAinteger64Time")
             ),
             capability_profile=profile,
+            run_unverified=run_unverified,
             results_path=result_path,
             junit_path=junit_path,
             provider_id=identifier,
@@ -497,6 +513,7 @@ def run_single(arguments: argparse.Namespace) -> int:
         time_implementation=arguments.time_implementation,
         capability_profile=profile,
         scenario=arguments.scenario,
+        run_unverified=arguments.run_unverified,
         results_path=results,
         junit_path=junit,
         provider_id=arguments.provider_id,

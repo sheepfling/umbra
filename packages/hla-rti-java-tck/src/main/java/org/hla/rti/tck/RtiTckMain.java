@@ -171,6 +171,7 @@ public final class RtiTckMain {
    private static final String DIMENSION_PROPERTY = "hla.rti.tck.dimension";
    private static final String PROFILE_PROPERTY = "hla.rti.tck.capabilityProfile";
    private static final String SCENARIO_PROPERTY = "hla.rti.tck.scenario";
+   private static final String RUN_UNVERIFIED_PROPERTY = "hla.rti.tck.runUnverified";
    private static final String STACKTRACE_PROPERTY = "hla.rti.tck.stacktrace";
    private static final String RESULTS_PROPERTY = "hla.rti.tck.results";
    private static final String JUNIT_PROPERTY = "hla.rti.tck.junit";
@@ -10465,7 +10466,8 @@ public final class RtiTckMain {
       Properties profile = capabilityProfile();
       String configured = profile.getProperty("scenario." + scenario.id);
       if (configured == null || configured.trim().isEmpty()) {
-         return scenario.defaultEnabled ? "run" : "unsupported";
+         return scenario.defaultEnabled || Boolean.getBoolean(RUN_UNVERIFIED_PROPERTY)
+            ? "run" : "unsupported";
       }
       String normalized = configured.trim().toLowerCase();
       if ("pass".equals(normalized) || "run".equals(normalized)) {

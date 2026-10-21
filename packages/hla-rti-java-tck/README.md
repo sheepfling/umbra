@@ -10,7 +10,7 @@ the evidence model and provider-matrix workflow.
 
 ## Scope
 
-The catalog currently contains 514 scenarios. The default lane covers factory discovery,
+The catalog covers factory discovery,
 basic and composite standard encoding, federation creation/join/resign/destroy/query, ordinary
 publication/subscription, named and unnamed object registration and discovery,
 single and multiple name-reservation callbacks, released-name reuse after object
@@ -1572,12 +1572,11 @@ unverified until run against an installed Java 1516.1-2025 provider.
 
 ## Build
 
-From the repository root, use the shell-free Python runner:
+From the repository root, use the shell-free Python runner. These commands are
+single lines so they work in any shell:
 
 ```text
-python tools/run_java_tck.py build \
-  --api-jar C:/path/to/hla-1516.1-2025-api.jar \
-  --output-directory out/java-tck/classes
+python tools/run_java_tck.py build --api-jar PATH/TO/hla-1516.1-2025-api.jar --output-directory out/java-tck/classes
 ```
 
 Only the API JAR is needed at compile time.
@@ -1588,32 +1587,29 @@ At runtime, place the provider JAR and any provider dependencies on the class
 path. The FOM module is required for lifecycle and ordinary data scenarios.
 
 ```text
-python tools/run_java_tck.py run \
-  --api-jar C:/path/to/hla-1516.1-2025-api.jar \
-  --provider-jar C:/path/to/provider-rti.jar \
-  --factory-name "Provider RTI" \
-  --fom-path C:/path/to/RestaurantFOMmodule-2025.xml \
-  --capability-profile packages/hla-rti-java-tck/profiles/provider.properties \
-  --classes-directory out/java-tck/classes \
-  --results-path out/java-tck/provider.results.json \
-  --junit-path out/java-tck/provider.junit.xml
+python tools/run_java_tck.py run --api-jar PATH/TO/hla-1516.1-2025-api.jar --provider-jar PATH/TO/provider-rti.jar --fom-path PATH/TO/fom.xml --classes-directory out/java-tck/classes --results-path out/java-tck/provider.results.json --junit-path out/java-tck/provider.junit.xml
 ```
 
 Use `--dependency-jar` for additional provider dependencies and
 `--jvm-argument` for provider-owned JVM flags. The reusable runner does not
-interpret those flags. Add `--scenario java-tck.<id>` to focus a run on one
-catalog scenario; other entries are marked `filtered` in the result report.
+interpret those flags. By default, scenarios without Java provider-runtime
+evidence remain `unsupported`, even when selected with `--scenario`.
+Add `--run-unverified` to attempt those cases against the supplied provider;
+this is an execution opt-in, not a conformance or promotion claim. An explicit
+`unsupported` or `not_applicable` entry in an optional `--capability-profile`
+still wins. Add `--scenario java-tck.<id>` to focus a run on one catalog
+scenario; other entries are marked `filtered` in the result report.
 For diagnostic exception stacks, pass
 `--jvm-argument=-Dhla.rti.tck.stacktrace=true`.
 
 `matrix` runs the same compiled classes against two or more provider
-configurations. `matrix.example.json` shows the portable configuration shape:
+configurations. `matrix.example.json` shows the portable configuration shape;
+its paths are placeholders relative to that JSON file. Each entry may set
+`runUnverified: true` and may omit `capabilityProfile`, or point to a provider
+profile whose explicit exclusions take precedence:
 
 ```text
-python tools/run_java_tck.py matrix \
-  --configuration packages/hla-rti-java-tck/matrix.example.json \
-  --classes-directory out/java-tck/classes \
-  --output-directory out/java-tck/matrix
+python tools/run_java_tck.py matrix --configuration packages/hla-rti-java-tck/matrix.example.json --classes-directory out/java-tck/classes --output-directory out/java-tck/matrix
 ```
 
 The optional JPype handoff is available directly as
