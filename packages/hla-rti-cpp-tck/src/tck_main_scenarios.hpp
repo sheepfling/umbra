@@ -659,6 +659,8 @@ void scenarioTimeConstrainedEnableRetainsQueuedTso(Options const&, rti::Callback
 void scenarioTimeConstrainedEnableRetainsQueuedTsoContract(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableReceiveOrderBoundary(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableReceiveOrderBoundaryContract(Options const&, rti::CallbackModel);
+void scenarioTimeRegulationEnableActualLookaheadTsoSend(Options const&, rti::CallbackModel);
+void scenarioTimeRegulationEnableActualLookaheadTsoSendContract(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvance(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvanceContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationAfterRestore(Options const&, rti::CallbackModel);

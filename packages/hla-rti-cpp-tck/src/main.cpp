@@ -19772,6 +19772,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.time-constrained-enable-galt-equality-contract",
       "cpp-tck.time-constrained-enable-regulating-federate-current-time",
       "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract",
+      "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
+      "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso",
       "cpp-tck.time-constrained-enable-retains-queued-tso-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso-attribute",
@@ -21974,6 +21976,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract") {
     return scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContract;
   }
+  if (id == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send") {
+    return scenarioTimeRegulationEnableActualLookaheadTsoSend;
+  }
+  if (id == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract") {
+    return scenarioTimeRegulationEnableActualLookaheadTsoSendContract;
+  }
   if (id == "cpp-tck.time-constrained-enable-retains-queued-tso") {
     return scenarioTimeConstrainedEnableRetainsQueuedTso;
   }
@@ -23538,6 +23546,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.time-constrained-enable-galt-equality-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-regulating-federate-current-time" ||
                   scenario == "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract" ||
+                  scenario == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send" ||
+                  scenario == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute" ||

@@ -25296,6 +25296,71 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
+      "category": "time-management",
+      "title": "Enable Time Regulation assigns actual lookahead and admits timestamped sends at its floor",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+        "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+        "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.3.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l64-15", "standard_section": "hla-1516.1-2025:clause-8.3.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l67-16", "standard_section": "hla-1516.1-2025:clause-8.3.4"}
+      ],
+      "mapping_note": "The pinned Lab exports these page-190 statements under §8.4.3; the source-backed time-role contract crosswalk identifies canonical §8.3.4 (RL-342). After Time Regulation Enabled at the initial assigned time, Query Lookahead equals the requested two-epsilon interval; a timestamped Send Interaction below that floor is rejected, and a send at the floor is accepted. This directly witnesses the actual-lookahead and post-enable TSO-send eligibility clauses for interaction sends only. Installed-package evidence: out/mgw/tck-regulation-enable-20261021/results.json (4/4 evoked/immediate integer-time direct), float-results.json (4/4 float-time direct), and 4/4 focused CTests. Java parity is API-only. Other timestamped producer services, time-constrained delivery, and provider conformance are not claimed.",
+      "contract_refs": ["time-role-api-contract.json", "time-role-requirements-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimeRegulationEnableActualLookaheadTsoSendPortable",
+      "runner_id": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
+      "parity": "java-tck.time-regulation-enable-actual-lookahead-tso-send",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract",
+      "category": "time-management",
+      "title": "Contract twin for Time Regulation actual-lookahead TSO-send floor",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+        "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+        "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.3.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l64-15", "standard_section": "hla-1516.1-2025:clause-8.3.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l67-16", "standard_section": "hla-1516.1-2025:clause-8.3.4"}
+      ],
+      "mapping_note": "The contract twin repeats the two narrow §8.3.4 witnesses: the actual lookahead equals the requested value after Time Regulation Enabled, and timestamped interaction sends are rejected below, but admitted at, the resulting floor. The page-190 §8.4.3 export is crosswalked to canonical §8.3.4 by the existing time-role contract. It passed the same installed-package integer/float and both-callback gates as the primary at out/mgw/tck-regulation-enable-20261021/results.json and float-results.json; Java parity is API-only. No other producer or provider conformance is inferred.",
+      "contract_refs": ["time-role-api-contract.json", "time-role-requirements-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimeRegulationEnableActualLookaheadTsoSendContractPortable",
+      "runner_id": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract",
+      "parity": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.time-constrained-enable-retains-queued-tso",
       "category": "time-management",
       "title": "Preserve queued timestamp-order delivery across pending Time Constrained enablement",

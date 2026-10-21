@@ -2363,6 +2363,14 @@ public final class RtiTckMain {
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled",
             new String[] {"cpp-1516.1-time-role-callbacks"}, false),
          RtiTckMain::timeConstrainedEnableRegulatingFederateCurrentTime);
+      run(new Scenario("java-tck.time-regulation-enable-actual-lookahead-tso-send",
+            "assign actual lookahead and admit timestamped interactions at the post-enable floor",
+            "time-management",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.queryLogicalTime;RTIambassador.sendInteraction(LogicalTime);RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+               "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
+            }, false), RtiTckMain::timeRegulationEnableActualLookaheadTsoSend);
       run(new Scenario("java-tck.time-constrained-enable-retains-queued-tso",
             "retain a queued timestamped interaction across pending Time Constrained enablement",
             "time-management",
@@ -8381,6 +8389,13 @@ public final class RtiTckMain {
          factory(), requireFom(), timeImplementation(), callbackModel());
    }
 
+   private static void timeRegulationEnableActualLookaheadTsoSend()
+         throws Exception {
+      TimeRegulationEnableActualLookaheadTsoSendTck.run(
+         factory(), requireFom(), timeImplementation(),
+         interactionClassName(), parameterName(), callbackModel());
+   }
+
    private static void timeConstrainedEnableRetainsQueuedTso() throws Exception {
       TimeConstrainedQueuedTsoTck.run(factory(), requireFom(), timeImplementation(),
          interactionClassName(), parameterName(), callbackModel());
@@ -11151,6 +11166,8 @@ public final class RtiTckMain {
             method = "timeConstrainedEnableGaltEquality"; break;
          case "java-tck.time-constrained-enable-regulating-federate-current-time":
             method = "timeConstrainedEnableRegulatingFederateCurrentTime"; break;
+         case "java-tck.time-regulation-enable-actual-lookahead-tso-send":
+            method = "timeRegulationEnableActualLookaheadTsoSend"; break;
          case "java-tck.time-constrained-enable-retains-queued-tso":
             method = "timeConstrainedEnableRetainsQueuedTso"; break;
          case "java-tck.time-constrained-enable-retains-queued-tso-attribute":

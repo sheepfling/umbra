@@ -1598,6 +1598,10 @@ constexpr char timeConstrainedEnableRegulatingFederateCurrentTimeScenario[] =
     "cpp-tck.time-constrained-enable-regulating-federate-current-time";
 constexpr char timeConstrainedEnableRegulatingFederateCurrentTimeContractId[] =
     "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract";
+constexpr char timeRegulationEnableActualLookaheadTsoSendScenario[] =
+    "cpp-tck.time-regulation-enable-actual-lookahead-tso-send";
+constexpr char timeRegulationEnableActualLookaheadTsoSendContractId[] =
+    "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract";
 constexpr char timeConstrainedEnableRetainsQueuedTsoScenario[] =
     "cpp-tck.time-constrained-enable-retains-queued-tso";
 constexpr char timeConstrainedEnableRetainsQueuedTsoContractId[] =
@@ -4318,6 +4322,18 @@ void scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContract(options, model);
+}
+
+void scenarioTimeRegulationEnableActualLookaheadTsoSendPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationEnableActualLookaheadTsoSend(options, model);
+}
+
+void scenarioTimeRegulationEnableActualLookaheadTsoSendContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationEnableActualLookaheadTsoSendContract(options, model);
 }
 
 void scenarioTimeConstrainedEnableRetainsQueuedTsoPortable(
@@ -17850,6 +17866,18 @@ int runTimeConstrainedEnableRegulatingFederateCurrentTimeScenarios(
       scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContractPortable);
 }
 
+int runTimeRegulationEnableActualLookaheadTsoSendScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeRegulationEnableActualLookaheadTsoSendScenario,
+      timeRegulationEnableActualLookaheadTsoSendContractId,
+      scenarioTimeRegulationEnableActualLookaheadTsoSendPortable,
+      scenarioTimeRegulationEnableActualLookaheadTsoSendContractPortable);
+}
+
 int runTimeConstrainedEnableRetainsQueuedTsoScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -21999,6 +22027,22 @@ bool hasTimeConstrainedEnableRegulatingFederateCurrentTimeScenario(
     auto const selected = std::string(argv[index + 1]);
     if (selected == timeConstrainedEnableRegulatingFederateCurrentTimeScenario ||
         selected == timeConstrainedEnableRegulatingFederateCurrentTimeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeRegulationEnableActualLookaheadTsoSendScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeRegulationEnableActualLookaheadTsoSendScenario ||
+        selected == timeRegulationEnableActualLookaheadTsoSendContractId) {
       return true;
     }
   }
@@ -26229,6 +26273,9 @@ int main(int argc, char** argv) {
       return runTimeConstrainedEnableRegulatingFederateCurrentTimeScenarios(
           argc,
           argv);
+    }
+    if (hasTimeRegulationEnableActualLookaheadTsoSendScenario(argc, argv)) {
+      return runTimeRegulationEnableActualLookaheadTsoSendScenarios(argc, argv);
     }
     if (hasTimeConstrainedEnableRetainsQueuedTsoScenario(argc, argv)) {
       return runTimeConstrainedEnableRetainsQueuedTsoScenarios(argc, argv);
