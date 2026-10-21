@@ -73,6 +73,23 @@ class FederationFlushQueueGrantCalculator final {
   [[nodiscard]] FederationFlushQueueGrantCalculation calculate(
       FederationTimeExecutionSnapshot const& execution,
       std::uint64_t requestingFederateId) const;
+
+  // Calculate the callback-time grant after the TSO delivery set has been
+  // resolved. Only callbacks that actually began contribute a delivered
+  // timestamp; an empty pointer means no TSO callback began.
+  [[nodiscard]] FederationFlushQueueGrantCalculation
+  calculateAfterTsoCallbacks(
+      FederationTimeExecutionSnapshot const& execution,
+      std::uint64_t requestingFederateId,
+      std::shared_ptr<rti1516_2025::LogicalTime const>
+          earliestDeliveredTsoTimestamp) const;
+
+ private:
+  [[nodiscard]] FederationFlushQueueGrantCalculation calculateImpl(
+      FederationTimeExecutionSnapshot const& execution,
+      std::uint64_t requestingFederateId,
+      std::shared_ptr<rti1516_2025::LogicalTime const> deliveredTsoFrontier,
+      bool useDeliveredTsoFrontier) const;
 };
 
 }  // namespace umbra::detail

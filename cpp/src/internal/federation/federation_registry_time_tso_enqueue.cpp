@@ -888,7 +888,6 @@ EmbeddedFederationRegistry::enqueueTsoObjectDeletion(
   // reconstitution from colliding with a newly registered instance.
   if (recipients.empty()) {
     instance->second.deleteAccepted = true;
-    instance->second.knownObjectClassHandlesByFederate.erase(producingFederateId);
     instance->second.pendingTimestampedRemovalFederates.clear();
   }
 

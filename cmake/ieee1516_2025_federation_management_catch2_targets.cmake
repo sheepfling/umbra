@@ -909,6 +909,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_flush_queue_request_optimistic_time_catch2
     SOURCES
     cpp/tests/flush_queue_request_optimistic_time_catch2.cpp
+    cpp/tests/flush_queue_request_delivered_callbacks_catch2.cpp
   )
 
   # Keep the terminal timestamped-deletion tombstone case independently

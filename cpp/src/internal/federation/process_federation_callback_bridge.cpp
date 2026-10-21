@@ -1245,7 +1245,9 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
         bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
-          if (retractionState->retractionRequested) {
+          if (retractionState->recipientResigned) {
+            suppressCallback = true;
+          } else if (retractionState->retractionRequested) {
             suppressCallback = true;
             if (!retractionState->deliveryAcknowledged) {
               retractionState->deliveryAcknowledged = true;
@@ -1466,6 +1468,24 @@ void ProcessFederationCallbackBridge::setDeferredAttributeUpdateHandler(
 
 void ProcessFederationCallbackBridge::cancelDeferredAttributeUpdates() noexcept {
   deferredAttributeUpdate_->cancel(false);
+}
+
+void ProcessFederationCallbackBridge::discardPendingCallbacks() noexcept {
+  {
+    std::scoped_lock lock(retractionMutex_);
+    for (auto const& [messageId, state] : retractionStates_) {
+      static_cast<void>(messageId);
+      if (!state) {
+        continue;
+      }
+      std::scoped_lock stateLock(state->mutex);
+      state->recipientResigned = true;
+    }
+    retractionStates_.clear();
+  }
+  if (dispatcher_) {
+    dispatcher_->reset();
+  }
 }
 
 void ProcessFederationCallbackBridge::submitAttributeValueUpdateRequest(

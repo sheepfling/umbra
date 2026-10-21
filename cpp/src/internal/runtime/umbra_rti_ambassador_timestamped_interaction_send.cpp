@@ -49,6 +49,7 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
     std::wstring federationName;
     std::uint64_t producingFederateId = 0U;
     umbra::detail::ProcessFederationClient* processClient = nullptr;
+    std::shared_ptr<umbra::detail::FederateTimeState> localTimeState;
     {
       std::scoped_lock lock(mutex_);
       requireConnectedForFederationManagement(lifecycle_);
@@ -62,6 +63,10 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
         throw RTIinternalError(
             L"The configured process endpoint has no active federation client.");
       }
+      // Process-mode temporal state lives at the authoritative service. Only
+      // embedded ambassadors have a local FederateTimeState snapshot to use
+      // for caller-side TSO floor validation.
+      localTimeState = federateTimeState_;
       federationName = *joinedFederationName_;
       producingFederateId = *joinedFederateId_;
     }
@@ -85,6 +90,9 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
     if (timestamp->isInitial() || timestamp->isFinal()) {
       throw InvalidLogicalTime(
           L"A timestamped service requires a finite logical timestamp.");
+    }
+    if (localTimeState) {
+      validateAmbassadorTsoTimestamp(localTimeState->snapshot(), *timestamp);
     }
     auto const encodedTimestamp = timestamp->encode();
     auto processTimestampBytes =
@@ -122,6 +130,11 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
     } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const& error) {
+      if (error.status() ==
+          umbra::detail::TransportServiceStatus::invalid_logical_time) {
+        throw InvalidLogicalTime(
+            L"The process federation rejected a timestamp earlier than the sender's applicable logical-time-plus-lookahead floor.");
+      }
       throw RTIinternalError(wideAscii(error.what()));
     }
 

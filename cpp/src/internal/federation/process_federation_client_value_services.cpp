@@ -29,7 +29,7 @@ ProcessFederationSendInteractionResult ProcessFederationClient::sendInteraction(
               std::move(timestamp)}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
-        requestFailure(response.operation, response.status));
+        requestFailure(response.operation, response.status), response.status);
   }
   return decodeProcessFederationSendInteractionResult(response.payload);
 }
@@ -56,7 +56,7 @@ ProcessFederationClient::sendInteractionWithRegions(
               std::move(sentRegionHandles)}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
-        requestFailure(response.operation, response.status));
+        requestFailure(response.operation, response.status), response.status);
   }
   return decodeProcessFederationSendInteractionResult(response.payload);
 }

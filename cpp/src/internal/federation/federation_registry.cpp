@@ -1223,6 +1223,98 @@ bool EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant(
   }
 }
 
+void EmbeddedFederationRegistry::applyTsoObjectDeletionProducerTimeBoundary(
+    std::wstring const& federationName,
+    std::uint64_t producingFederateId,
+    rti1516_2025::LogicalTime const& grantedTime) {
+  if (producingFederateId == 0U) {
+    return;
+  }
+
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.members.contains(producingFederateId)) {
+    return;
+  }
+
+  std::vector<std::uint64_t> reachedDeletionMessages;
+  for (auto& [objectInstanceHandle, instance] : federation->second.objectInstances) {
+    static_cast<void>(objectInstanceHandle);
+    if (instance.producingFederateId != producingFederateId ||
+        !instance.pendingTimestampedDeletionMessageId) {
+      continue;
+    }
+    auto const messageId = *instance.pendingTimestampedDeletionMessageId;
+    auto const deletion = federation->second.tsoObjectDeletionMessages.find(messageId);
+    if (deletion == federation->second.tsoObjectDeletionMessages.end() ||
+        deletion->second.producingFederateId != producingFederateId ||
+        !deletion->second.timestamp ||
+        grantedTime.implementationName() !=
+            deletion->second.timestamp->implementationName()) {
+      continue;
+    }
+
+    bool reachedBoundary = false;
+    try {
+      reachedBoundary = grantedTime >= *deletion->second.timestamp;
+    } catch (rti1516_2025::Exception const&) {
+      continue;
+    }
+    if (!reachedBoundary) {
+      continue;
+    }
+
+    instance.deleteAccepted = true;
+    instance.knownObjectClassHandlesByFederate.erase(producingFederateId);
+    reachedDeletionMessages.push_back(messageId);
+  }
+
+  for (std::uint64_t const messageId : reachedDeletionMessages) {
+    reclaimTsoMessagePayload(federation->second, messageId);
+  }
+}
+
+void EmbeddedFederationRegistry::applyTsoObjectDeletionProducerRegulationDisabled(
+    std::wstring const& federationName,
+    std::uint64_t producingFederateId) {
+  if (producingFederateId == 0U) {
+    return;
+  }
+
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.members.contains(producingFederateId)) {
+    return;
+  }
+
+  std::vector<std::uint64_t> affectedMessages;
+  for (auto& [objectInstanceHandle, instance] : federation->second.objectInstances) {
+    static_cast<void>(objectInstanceHandle);
+    if (instance.producingFederateId != producingFederateId ||
+        !instance.pendingTimestampedDeletionMessageId) {
+      continue;
+    }
+    auto const messageId = *instance.pendingTimestampedDeletionMessageId;
+    auto const deletion = federation->second.tsoObjectDeletionMessages.find(messageId);
+    if (deletion == federation->second.tsoObjectDeletionMessages.end() ||
+        deletion->second.producingFederateId != producingFederateId) {
+      continue;
+    }
+
+    instance.knownObjectClassHandlesByFederate.erase(producingFederateId);
+    affectedMessages.push_back(messageId);
+  }
+
+  // Keep the pending deletion and reconstitution snapshot execution-owned:
+  // the producer's local object knowledge ends on disable, while receivers
+  // still have their timestamped delivery boundaries to cross.
+  for (std::uint64_t const messageId : affectedMessages) {
+    reclaimTsoMessagePayload(federation->second, messageId);
+  }
+}
+
 void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
     Federation& federation,
     std::uint64_t messageId) {
@@ -1261,10 +1353,21 @@ void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
     return;
   }
   auto const objectInstanceHandle = deletion->second.objectInstanceHandle;
+  auto const objectInstance = federation.objectInstances.find(objectInstanceHandle);
+  bool const producerStillKnowsAtLocalBoundary =
+      objectInstance != federation.objectInstances.end() &&
+      objectInstance->second.pendingTimestampedDeletionMessageId == messageId &&
+      objectInstance->second.knownObjectClassHandlesByFederate.contains(
+          deletion->second.producingFederateId);
   federation.tsoObjectDeletionReconstitutionRecords.erase(messageId);
+  if (producerStillKnowsAtLocalBoundary) {
+    // The invocation snapshot is no longer retractable, but the producer's
+    // local knowledge boundary is its own granted time, not the earlier
+    // retraction-expiry boundary. Keep only the deletion time until then.
+    return;
+  }
   federation.tsoObjectDeletionMessages.erase(deletion);
 
-  auto const objectInstance = federation.objectInstances.find(objectInstanceHandle);
   if (objectInstance == federation.objectInstances.end() ||
       objectInstance->second.pendingTimestampedDeletionMessageId != messageId) {
     return;

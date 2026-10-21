@@ -106,6 +106,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         std::shared_ptr<LogicalTime const> optimisticTime;
         std::shared_ptr<LogicalTime> flushQueueGrantedTime;
         std::shared_ptr<LogicalTime> flushQueueOptimisticTime;
+        std::shared_ptr<LogicalTime const> earliestDeliveredFlushQueueTsoTimestamp;
         std::vector<umbra::detail::TsoPayloadDelivery> tsoDeliveries;
         std::optional<std::wstring> immediateSaveLabel;
         std::optional<umbra::detail::FederationSaveNotification>
@@ -245,12 +246,26 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             }
             tsoDeliveries = std::move(tso.deliveries);
             // Preserve Time Advancing through queued TSO delivery and any
-            // timestamped-save admission. The actual mutation to the FQR
-            // grant time is deliberately deferred until the direct callback
-            // boundary below.
-            flushQueueGrantedTime = std::move(flushQueueCalculation.grantedTime);
-            flushQueueOptimisticTime = std::move(flushQueueCalculation.optimisticTime);
+            // timestamped-save admission. FQG times are calculated after
+            // callback dispatch so suppressed/retracted candidates do not
+            // masquerade as delivered TSO messages.
         }
+
+        auto recordFlushQueueTsoCallbackStarted =
+            [&](std::shared_ptr<LogicalTime const> const& timestamp) {
+          if (!flushQueue || !timestamp) {
+            return;
+          }
+          if (timestamp->implementationName() !=
+              pendingSnapshot.implementationName) {
+            throw RTIinternalError(
+                L"The embedded Flush Queue callback used an inconsistent logical-time implementation.");
+          }
+          if (!earliestDeliveredFlushQueueTsoTimestamp ||
+              *timestamp < *earliestDeliveredFlushQueueTsoTimestamp) {
+            earliestDeliveredFlushQueueTsoTimestamp = timestamp;
+          }
+        };
 
         // TSO callbacks are delivered before the matching Time Advance Grant
         // callback. Each entry is completed even when user code throws, so a
@@ -259,7 +274,10 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         for (auto const& delivery : deliveries) {
           try {
             std::visit(
-                [&recipient, &federationName, federateId](auto const& typedDelivery) {
+                [&recipient,
+                 &federationName,
+                 &recordFlushQueueTsoCallbackStarted,
+                 federateId](auto const& typedDelivery) {
                   using Delivery = std::decay_t<decltype(typedDelivery)>;
                   if constexpr (std::is_same_v<
                                     Delivery,
@@ -329,6 +347,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                       }
                     }
                     auto retraction = makeMessageRetractionHandle(message.messageId);
+                    recordFlushQueueTsoCallbackStarted(message.timestamp);
                     recipient.receiveInteraction(
                         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
                         parameterValues,
@@ -480,6 +499,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                           optionalSentRegions->insert(makeRegionHandle(regionHandle));
                         }
                       }
+                      recordFlushQueueTsoCallbackStarted(message.timestamp);
                       recipient.reflectAttributeValues(
                           makeObjectInstanceHandle(message.objectInstanceHandle),
                           attributeValues,
@@ -586,6 +606,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                     }
 
                     auto retraction = makeMessageRetractionHandle(message.messageId);
+                    recordFlushQueueTsoCallbackStarted(message.timestamp);
                     recipient.removeObjectInstance(
                         makeObjectInstanceHandle(removal->objectInstanceHandle),
                         message.userSuppliedTag,
@@ -662,6 +683,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                         message.parameters,
                         projection->receivedParameterHandles);
                     auto retraction = makeMessageRetractionHandle(message.messageId);
+                    recordFlushQueueTsoCallbackStarted(message.timestamp);
                     recipient.receiveDirectedInteraction(
                         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
                         makeObjectInstanceHandle(projection->objectInstanceHandle),
@@ -714,6 +736,27 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         }
         };
         deliverTsoPayloads(tsoDeliveries);
+        if (flushQueue) {
+          std::scoped_lock lock(ambassadorFederationManagementMutex());
+          auto& registry = embeddedFederationRegistry();
+          auto execution = registry.timeSnapshotFor(federationName);
+          if (!execution) {
+            throw FederateNotExecutionMember(
+                L"The embedded federation no longer records the Flush Queue requester.");
+          }
+          auto calculation =
+              umbra::detail::FederationFlushQueueGrantCalculator{}
+                  .calculateAfterTsoCallbacks(
+                      *execution,
+                      federateId,
+                      earliestDeliveredFlushQueueTsoTimestamp);
+          if (!calculation.calculated()) {
+            throw RTIinternalError(
+                L"The embedded federation could not calculate the delivered-callback Flush Queue Grant times.");
+          }
+          flushQueueGrantedTime = std::move(calculation.grantedTime);
+          flushQueueOptimisticTime = std::move(calculation.optimisticTime);
+        }
 
         if (!flushQueue) {
           std::optional<std::wstring> timedSaveLabel;
@@ -760,6 +803,10 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             if (!grantedTime) {
               return;
             }
+            registry.applyTsoObjectDeletionProducerTimeBoundary(
+                federationName,
+                federateId,
+                *grantedTime);
             grantCompleted = true;
             auto scheduled = registry.reevaluateTimeAdvanceGrants(federationName);
             if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
@@ -830,6 +877,12 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                   L"The embedded federate time state rejected the Flush Queue Grant.");
             }
             grantedTime = timeState->currentTime();
+            if (grantedTime) {
+              registry.applyTsoObjectDeletionProducerTimeBoundary(
+                  federationName,
+                  federateId,
+                  *grantedTime);
+            }
             optimisticTime = std::move(flushQueueOptimisticTime);
             grantCompleted = true;
             auto scheduled = registry.reevaluateTimeAdvanceGrants(federationName);

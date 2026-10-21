@@ -37,7 +37,17 @@ struct ProcessFederationJoinConnectionSnapshot;
 // private prevents them from becoming an accidental standards API.
 class ProcessFederationClientError final : public std::runtime_error {
  public:
-  using std::runtime_error::runtime_error;
+  explicit ProcessFederationClientError(
+      std::string message,
+      std::optional<TransportServiceStatus> status = std::nullopt)
+      : std::runtime_error(std::move(message)), status_(status) {}
+
+  [[nodiscard]] std::optional<TransportServiceStatus> status() const noexcept {
+    return status_;
+  }
+
+ private:
+  std::optional<TransportServiceStatus> status_;
 };
 
 class ProcessFederationClient final {

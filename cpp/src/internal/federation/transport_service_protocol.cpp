@@ -191,6 +191,7 @@ bool isTransportServiceStatus(TransportServiceStatus status) noexcept {
     case TransportServiceStatus::invalid_request:
     case TransportServiceStatus::internal_error:
     case TransportServiceStatus::service_reporting_interlock:
+    case TransportServiceStatus::invalid_logical_time:
       return true;
   }
   return false;

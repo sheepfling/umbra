@@ -321,6 +321,9 @@ void UmbraRtiAmbassador::disableTimeRegulation() {
     }
     result = federateTimeState_->disableTimeRegulation();
     if (result == umbra::detail::FederateTimeDisableStatus::applied) {
+      embeddedFederationRegistry().applyTsoObjectDeletionProducerRegulationDisabled(
+          *joinedFederationName_,
+          *joinedFederateId_);
       auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
           *joinedFederationName_);
       if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {

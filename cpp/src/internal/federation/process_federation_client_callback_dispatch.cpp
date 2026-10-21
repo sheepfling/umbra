@@ -269,6 +269,7 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
   auto finish = [this] {
     if (--dispatchDepth_ == 0U) {
       dispatchOwner_ = {};
+      callbackEventsAvailable_.notify_all();
     }
   };
   try {

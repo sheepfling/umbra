@@ -450,6 +450,12 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
     throw ProcessFederationClientError(
         "Process federation client received an invalid unsolicited event.");
   }
+  // A stream frame can race with Resign after the service has already
+  // removed this joined-federate lifetime. Never admit such a late frame to
+  // the next membership's callback queue.
+  if (!joinedFederationName_ || joinedFederateId_ == 0U) {
+    return;
+  }
   switch (message.operation) {
     case TransportServiceOperation::receive_interaction: {
       auto result = decodeProcessFederationReceiveInteractionResult(message.payload);

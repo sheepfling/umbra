@@ -643,10 +643,10 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
   // the registry lock.
   recipientState->second = Federation::TsoRecipientDeliveryState::delivered;
 
-  // The first accepted removal commits the federation-wide deletion and
-  // removes the producing federate's local knowledge without inducing a
-  // callback on that federate.  Other known recipients transition one at a
-  // time as their timestamped callbacks begin.
+  // The first accepted removal commits the federation-wide deletion without
+  // inducing a callback on the producer. Keep the producer's local knowledge
+  // until its own granted time reaches the deletion timestamp; other known
+  // recipients transition one at a time as their callbacks begin.
   if (!instance->second.deleteAccepted) {
     instance->second.deleteAccepted = true;
     instance->second.pendingDiscoveryFederates.clear();
@@ -662,8 +662,6 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
     instance->second.pendingAttributeOwnershipDivestitureIfWantedNotifications.clear();
     instance->second.pendingNegotiatedAttributeOwnershipDivestitures.clear();
     instance->second.pendingConfirmDivestitureNotifications.clear();
-    instance->second.knownObjectClassHandlesByFederate.erase(
-        instance->second.producingFederateId);
   }
 
   RemovedObjectInstanceSnapshot const result{

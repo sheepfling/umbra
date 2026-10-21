@@ -1,4 +1,12 @@
 {
+  "github_issues_resolution_2026_10_20_handoff": {
+    "status": "complete",
+    "as_of": "2026-10-21",
+    "scope": "Resolve and close the six GitHub issues with focused IEEE 1516.1-2025 C++ evidence; keep internal-only evidence distinct from normative mappings and avoid claims of conformance validation.",
+    "current": "#1 producer object knowledge is covered before deletion time with no recipient, after receive-order recipient removal, on time-boundary advance, and on time-regulation disable; embedded and public process endpoint evidence are recorded. #2 undefined-GALT FQR applies NRG across empty/queued TSO cases. #3 FQG frontier is derived from callbacks that actually begin, including suppression, retraction, all-suppressed, and independent-GALT cases. #4 process-pull interaction retraction covers before-poll, pre-callback, post-entry, and mixed fanout (53 assertions). #5 process Resign retraction-route cleanup covers interaction, queued attribute reflection, and object removal (53 + 34 assertions). #6 paired embedded/process FQR tests record bounded arrival policy; embedded reports actual/OLT 5/9 with timestamp 9 delivered, process actual/OLT 5/10 with no late TSO callback, and both retract timestamp 12 before callback entry. The pinned §§8.12–8.14 text does not prescribe transport-arrival/callback-start parity; the profile difference is documented as implementation policy, not a conformance claim. A process Send Interaction below the sender's current-time-plus-lookahead floor is rejected.",
+    "next": "After this scoped commit and issue-state update, resume ordinary roadmap work with python tools/query_rti_work.py resume; follow its current handoff. Reopen these issue lanes only if new contradictory public evidence appears.",
+    "detail": "Evidence and exact test selectors are in compliance/requirements-lab/catch2-test-plan.json: umbra-cpp-timestamped-delete-producer-knowledge-no-recipient-integration; umbra-cpp-fqr-undefined-galt-nrg-integration; umbra-cpp-fqr-delivered-callback-time-frontier-integration; umbra-cpp-process-tso-interaction-retraction-before-callback; umbra-cpp-process-tso-resign-retraction-attribute-removal; umbra-cpp-process-fqr-arrival-boundary-policy. FQR clause interpretation and profile policy are in docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md."
+  },
   "observer_coordination_visualization_handoff": {
     "status": "verified",
     "as_of": "2026-10-20",

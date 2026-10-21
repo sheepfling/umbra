@@ -98,6 +98,28 @@ FederationTimeAdvanceGrantDecision FederationTimeAdvanceGrantPolicy::decide(
 FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calculate(
     FederationTimeExecutionSnapshot const& execution,
     std::uint64_t requestingFederateId) const {
+  return calculateImpl(execution, requestingFederateId, nullptr, false);
+}
+
+FederationFlushQueueGrantCalculation
+FederationFlushQueueGrantCalculator::calculateAfterTsoCallbacks(
+    FederationTimeExecutionSnapshot const& execution,
+    std::uint64_t requestingFederateId,
+    std::shared_ptr<rti1516_2025::LogicalTime const>
+        earliestDeliveredTsoTimestamp) const {
+  return calculateImpl(
+      execution,
+      requestingFederateId,
+      std::move(earliestDeliveredTsoTimestamp),
+      true);
+}
+
+FederationFlushQueueGrantCalculation
+FederationFlushQueueGrantCalculator::calculateImpl(
+    FederationTimeExecutionSnapshot const& execution,
+    std::uint64_t requestingFederateId,
+    std::shared_ptr<rti1516_2025::LogicalTime const> deliveredTsoFrontier,
+    bool useDeliveredTsoFrontier) const {
   FederationFlushQueueGrantCalculation result;
   if (requestingFederateId == 0 || execution.definition.logicalTimeImplementationName.empty()) {
     return result;
@@ -143,27 +165,34 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
   }
 
   try {
-    // The grant follows every payload that is still undelivered at the
-    // callback boundary.  Most requests observe messages in the pending
-    // queue; a transport/coordinator hand-off can already have moved a
-    // payload into the explicit in-transit set.  Treat both sets as one
-    // delivery frontier so the actual and optimistic values cannot advance
-    // beyond a callback that must still complete.
-    std::shared_ptr<rti1516_2025::LogicalTime const> earliestUndelivered;
+    // Provisional callers use all queued and in-transit messages as a safe
+    // frontier. The public embedded FQR callback boundary instead supplies
+    // the earliest timestamp whose federate callback actually began; a
+    // retracted or recipient-suppressed candidate must not constrain either
+    // Flush Queue Grant time.
+    std::shared_ptr<rti1516_2025::LogicalTime const> timeFrontier;
+    if (useDeliveredTsoFrontier) {
+      if (deliveredTsoFrontier &&
+          deliveredTsoFrontier->implementationName() != time.implementationName) {
+        return result;
+      }
+      timeFrontier = std::move(deliveredTsoFrontier);
+    }
     auto considerUndelivered = [&](std::vector<TsoQueuedMessage> const& messages) {
       for (auto const& message : messages) {
         if (!message.timestamp ||
             message.timestamp->implementationName() != time.implementationName) {
           return false;
         }
-        if (!earliestUndelivered || *message.timestamp < *earliestUndelivered) {
-          earliestUndelivered = message.timestamp;
+        if (!timeFrontier || *message.timestamp < *timeFrontier) {
+          timeFrontier = message.timestamp;
         }
       }
       return true;
     };
-    if (!considerUndelivered(requester->queuedTsoMessages) ||
-        !considerUndelivered(requester->inTransitTsoMessages)) {
+    if (!useDeliveredTsoFrontier &&
+        (!considerUndelivered(requester->queuedTsoMessages) ||
+         !considerUndelivered(requester->inTransitTsoMessages))) {
       return result;
     }
 
@@ -173,8 +202,8 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
       result.status = FederationFlushQueueGrantStatus::factory_unavailable;
       return result;
     }
-    if (earliestUndelivered && *earliestUndelivered < *optimistic) {
-      optimistic = cloneLogicalTime(*factory, *earliestUndelivered);
+    if (timeFrontier && *timeFrontier < *optimistic) {
+      optimistic = cloneLogicalTime(*factory, *timeFrontier);
       if (!optimistic) {
         result.status = FederationFlushQueueGrantStatus::factory_unavailable;
         return result;
@@ -187,8 +216,21 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
         return result;
       }
     }
-    if (earliestUndelivered && *earliestUndelivered < *granted) {
-      granted = cloneLogicalTime(*factory, *earliestUndelivered);
+    if (timeFrontier && *timeFrontier < *granted) {
+      granted = cloneLogicalTime(*factory, *timeFrontier);
+      if (!granted) {
+        result.status = FederationFlushQueueGrantStatus::factory_unavailable;
+        return result;
+      }
+    }
+    if (bounds.status == FederationTimeBoundStatus::undefined &&
+        time.timeConstrained && !bounds.nonRegulatedGrant) {
+      // FQR still completes without waiting for a regulator when GALT is
+      // undefined, but disabled NRG forbids a time-constrained federate from
+      // being granted beyond its current logical time. Keep the optimistic
+      // Flush Queue Grant time derived from the request/queued TSO frontier;
+      // this cap affects only the actual grant.
+      granted = cloneLogicalTime(*factory, *time.currentTime);
       if (!granted) {
         result.status = FederationFlushQueueGrantStatus::factory_unavailable;
         return result;

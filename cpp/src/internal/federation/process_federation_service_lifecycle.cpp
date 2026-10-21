@@ -33,6 +33,22 @@ void ProcessFederationService::clearJoinedFederateSessionState(
   if (state == sessions_.end() || state->second.federateId != federateId) {
     return;
   }
+  // Resignation ends this joined-federate lifetime even when the transport
+  // session remains connected. A delivered TSO may still have a pending
+  // pushed Request Retraction recipient entry; do not let a later Retract
+  // notify this session (or a subsequent joined lifetime on the same session).
+  for (auto position = pendingPushedRetractionRecipients_.begin();
+       position != pendingPushedRetractionRecipients_.end();) {
+    auto& recipients = position->second;
+    recipients.erase(
+        std::remove(recipients.begin(), recipients.end(), &session),
+        recipients.end());
+    if (recipients.empty()) {
+      position = pendingPushedRetractionRecipients_.erase(position);
+    } else {
+      ++position;
+    }
+  }
   sessionsByFederateId_.erase(federateId);
   for (auto position = processTsoMessageProducers_.begin();
        position != processTsoMessageProducers_.end();) {
@@ -419,6 +435,10 @@ TransportServiceMessage ProcessFederationService::handleJoin(
           throw std::runtime_error(
               "The process federation time state rejected the Flush Queue Grant.");
         }
+        if (auto const grantedTime = timeState->currentTime()) {
+          registry_.applyTsoObjectDeletionProducerTimeBoundary(
+              federationName, federateId, *grantedTime);
+        }
         auto encodedGrant = encodeProcessLogicalTime(timeState->currentTime());
         if (!encodedGrant) {
           throw std::runtime_error(
@@ -546,6 +566,7 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       }
 
       auto const grantedTime = timeState->grant(generation);
+      registry_.applyTsoObjectDeletionProducerTimeBoundary(
       auto encodedGrant = encodeProcessLogicalTime(grantedTime);
       if (!encodedGrant) {
         throw std::runtime_error(

@@ -462,7 +462,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     bool constrainReceiver,
     bool preferReceiveOrder,
     bool gateNmraCallbacks,
-    bool requestNmr) {
+    bool requestNmr,
+    bool verifyProducerTimeBoundary,
+    bool receiverKnowsObject,
+    bool disableProducerRegulation) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -516,6 +519,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       callbackOrder.push_back('G');
       ++timeAdvanceGrantCount;
       recordTimeAdvanceGrant(time);
+      if (auto const* integerTime =
+              dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+        timeAdvanceGrantValue = integerTime->getTime();
+      }
       callbackChanged.notify_all();
     }
 
@@ -539,6 +546,19 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       return callbackChanged.wait_for(lock, std::chrono::seconds(2), [this, requireGrant] {
         return removed && (!requireGrant || timeAdvanceGrantCount == 1U);
       });
+    }
+
+    bool waitForTimeAdvanceGrantCount(std::size_t expectedCount) {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(
+          lock,
+          std::chrono::seconds(2),
+          [this, expectedCount] { return timeAdvanceGrantCount >= expectedCount; });
+    }
+
+    std::size_t observedTimeAdvanceGrantCount() {
+      std::scoped_lock lock(callbackMutex);
+      return timeAdvanceGrantCount;
     }
 
     bool hasDiscovered() {
@@ -575,6 +595,7 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     std::vector<std::uint8_t> grantTimestampEncoding;
     std::vector<char> callbackOrder;
     std::size_t timeAdvanceGrantCount = 0U;
+    std::int64_t timeAdvanceGrantValue = -1;
   } receiverFederate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -598,6 +619,7 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
   std::atomic_uint32_t deleteRecipientCount{0U};
   std::atomic_uint64_t deleteMessageId{0U};
   std::atomic_bool producerKnowledgeCleared{false};
+  std::atomic_bool producerKnowledgeRetainedBeforeBoundary{false};
   std::atomic_bool receiverKnowledgeCleared{false};
   std::mutex serverConnectionMutex;
   std::shared_ptr<ProcessTransportConnection> serverSenderConnection;
@@ -830,21 +852,23 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
             TransportServiceOperation::get_attribute_handle,
             "The public timestamped process delete server lost sender delete-privilege lookup.");
       }
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::get_object_class_handle,
-          "The public timestamped process delete server lost receiver object-class lookup.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::get_attribute_handle,
-          "The public timestamped process delete server lost receiver attribute lookup.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::subscribe_object_class_attributes,
-          "The public timestamped process delete server lost receiver Subscribe.");
+      if (receiverKnowsObject) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The public timestamped process delete server lost receiver object-class lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_attribute_handle,
+            "The public timestamped process delete server lost receiver attribute lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::subscribe_object_class_attributes,
+            "The public timestamped process delete server lost receiver Subscribe.");
+      }
       serveExpected(
           sender,
           senderHandler,
@@ -855,7 +879,7 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           senderHandler,
           TransportServiceOperation::register_object_instance,
           "The public timestamped process delete server lost sender Register.");
-      if (callbackModel == HLA_EVOKED) {
+      if (callbackModel == HLA_EVOKED && receiverKnowsObject) {
         serveReceivePollUntilEvent(
             [](auto const& result) { return result.discoveryEvent.has_value(); },
             "The public timestamped process delete server lost receiver discovery poll.");
@@ -942,7 +966,7 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
               TransportServiceOperation::acknowledge_tso_delivery,
               "The public timestamped process delete server lost receiver TSO acknowledgement.");
         }
-      } else if (callbackModel == HLA_EVOKED) {
+      } else if (callbackModel == HLA_EVOKED && receiverKnowsObject) {
         serveReceivePollUntilEvent(
             [](auto const& result) { return result.removalEvent.has_value(); },
             "The public timestamped process delete server lost receiver removal poll.");
@@ -953,6 +977,51 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       auto const senderMember = registry.memberByName(
           federationName, L"public-process-timestamped-delete-sender");
       auto const objectHandle = registeredObject.load(std::memory_order_acquire);
+      if (verifyProducerTimeBoundary) {
+        producerKnowledgeRetainedBeforeBoundary.store(
+            senderMember && objectHandle != 0U &&
+                registry.knownObjectInstanceFor(
+                    federationName, senderMember->id, objectHandle).has_value(),
+            std::memory_order_release);
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::update_attribute_values,
+            "The public timestamped process delete server lost the post-deletion-time attribute update.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::update_attribute_values,
+            "The public timestamped process delete server lost the pre-deletion-time attribute update.");
+        if (disableProducerRegulation) {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::disable_time_regulation,
+              "The public timestamped process delete server lost producer regulation disable.");
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::report_successful_void_service_invocation,
+              "The public timestamped process delete server lost the regulation-disable report.");
+        } else {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::time_advance_request,
+              "The public timestamped process delete server lost the producer TAR through deletion time.");
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::report_successful_void_service_invocation,
+              "The public timestamped process delete server lost the producer TAR report.");
+        }
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::update_attribute_values,
+            "The public timestamped process delete server lost the post-boundary attribute update.");
+      }
       producerKnowledgeCleared.store(
           senderMember && objectHandle != 0U &&
               !registry.knownObjectInstanceFor(
@@ -1039,34 +1108,40 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     REQUIRE(senderAttribute ==
             rti1516_2025::umbra_binding_detail::makeAttributeHandle(
                 expectedAttribute.load(std::memory_order_acquire)));
-    auto const receiverObjectClass =
-        receiverRti->getObjectClassHandle(objectClassNameWide);
-    auto const receiverAttribute =
-        receiverRti->getAttributeHandle(receiverObjectClass, attributeNameWide);
-    receiverRti->subscribeObjectClassAttributes(
-        receiverObjectClass,
-        rti1516_2025::AttributeHandleSet{receiverAttribute});
+    if (receiverKnowsObject) {
+      auto const receiverObjectClass =
+          receiverRti->getObjectClassHandle(objectClassNameWide);
+      auto const receiverAttribute =
+          receiverRti->getAttributeHandle(receiverObjectClass, attributeNameWide);
+      receiverRti->subscribeObjectClassAttributes(
+          receiverObjectClass,
+          rti1516_2025::AttributeHandleSet{receiverAttribute});
+    }
     senderRti->publishObjectClassAttributes(
         senderObjectClass,
         rti1516_2025::AttributeHandleSet{senderAttribute});
 
     auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
     REQUIRE(objectInstance.isValid());
-    if (callbackModel == HLA_IMMEDIATE) {
-      REQUIRE(receiverFederate.waitForDiscovery());
-    } else {
-      auto const deadline =
-          std::chrono::steady_clock::now() + std::chrono::seconds(2);
-      while (!receiverFederate.hasDiscovered() &&
-             std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
-        if (!receiverFederate.hasDiscovered()) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (receiverKnowsObject) {
+      if (callbackModel == HLA_IMMEDIATE) {
+        REQUIRE(receiverFederate.waitForDiscovery());
+      } else {
+        auto const deadline =
+            std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while (!receiverFederate.hasDiscovered() &&
+               std::chrono::steady_clock::now() < deadline) {
+          static_cast<void>(receiverRti->evokeCallback(0.0));
+          if (!receiverFederate.hasDiscovered()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          }
         }
+        REQUIRE(receiverFederate.hasDiscovered());
       }
+      REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+    } else {
+      REQUIRE_FALSE(receiverFederate.hasDiscovered());
     }
-    REQUIRE(receiverFederate.hasDiscovered());
-    REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
 
     if (preferReceiveOrder) {
       REQUIRE_NOTHROW(senderRti->changeAttributeOrderType(
@@ -1103,7 +1178,8 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     auto* integerFactory =
         dynamic_cast<rti1516_2025::HLAinteger64TimeFactory*>(factory.get());
     REQUIRE(integerFactory != nullptr);
-    auto timestamp = integerFactory->makeLogicalTime(5);
+    auto timestamp = integerFactory->makeLogicalTime(
+        verifyProducerTimeBoundary ? 10 : 5);
     REQUIRE(timestamp);
     auto const expectedTimestampEncoding = timestamp->encode();
     std::vector<std::uint8_t> const expectedTag{0x54U, 0x44U, 0x4FU};
@@ -1137,28 +1213,34 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       REQUIRE(receiverFederate.observedCallbackOrder().empty());
       REQUIRE_NOTHROW(receiverRti->enableCallbacks());
     }
-    if (callbackModel == HLA_IMMEDIATE) {
-      REQUIRE(receiverFederate.waitForRemoval(
-          constrainReceiver || gateNmraCallbacks || requestNmr));
-    } else {
-      auto const deadline =
-          std::chrono::steady_clock::now() + std::chrono::seconds(2);
-      while ((gateNmraCallbacks || requestNmr
-                  ? receiverFederate.observedCallbackOrder().size() < 2U
-                  : !receiverFederate.hasRemoved()) &&
-             std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
-        if (!receiverFederate.hasRemoved()) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (receiverKnowsObject) {
+      if (callbackModel == HLA_IMMEDIATE) {
+        REQUIRE(receiverFederate.waitForRemoval(
+            constrainReceiver || gateNmraCallbacks || requestNmr));
+      } else {
+        auto const deadline =
+            std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while ((gateNmraCallbacks || requestNmr
+                    ? receiverFederate.observedCallbackOrder().size() < 2U
+                    : !receiverFederate.hasRemoved()) &&
+               std::chrono::steady_clock::now() < deadline) {
+          static_cast<void>(receiverRti->evokeCallback(0.0));
+          if (!receiverFederate.hasRemoved()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          }
         }
       }
+      REQUIRE(receiverFederate.hasRemoved());
+    } else {
+      REQUIRE_FALSE(receiverFederate.hasRemoved());
     }
-    REQUIRE(receiverFederate.hasRemoved());
-    REQUIRE(receiverFederate.removedObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.removedProducingFederate ==
-            receiverFederate.discoveredProducingFederate);
-    REQUIRE(receiverFederate.removedTag == expectedTag);
-    REQUIRE(receiverFederate.timestampImplementationName == L"HLAinteger64Time");
+    if (receiverKnowsObject) {
+      REQUIRE(receiverFederate.removedObjectInstance == objectInstance);
+      REQUIRE(receiverFederate.removedProducingFederate ==
+              receiverFederate.discoveredProducingFederate);
+      REQUIRE(receiverFederate.removedTag == expectedTag);
+      REQUIRE(receiverFederate.timestampImplementationName == L"HLAinteger64Time");
+    }
     std::vector<std::uint8_t> expectedTimestampBytes;
     if (expectedTimestampEncoding.size() != 0U) {
       auto const* first =
@@ -1166,21 +1248,71 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       expectedTimestampBytes.assign(
           first, first + expectedTimestampEncoding.size());
     }
-    REQUIRE(receiverFederate.timestampEncoding == expectedTimestampBytes);
-    REQUIRE(receiverFederate.removedSentOrder ==
-            (preferReceiveOrder ? rti1516_2025::RECEIVE
-                                 : rti1516_2025::TIMESTAMP));
-    REQUIRE(receiverFederate.removedReceivedOrder ==
-            (constrainReceiver ? rti1516_2025::TIMESTAMP
-                               : rti1516_2025::RECEIVE));
-    REQUIRE(receiverFederate.hasOptionalRetraction ==
-            (regulateSender && !preferReceiveOrder));
-    if (gateNmraCallbacks || requestNmr) {
+    if (receiverKnowsObject) {
+      REQUIRE(receiverFederate.timestampEncoding == expectedTimestampBytes);
+      REQUIRE(receiverFederate.removedSentOrder ==
+              (preferReceiveOrder ? rti1516_2025::RECEIVE
+                                   : rti1516_2025::TIMESTAMP));
+      REQUIRE(receiverFederate.removedReceivedOrder ==
+              (constrainReceiver ? rti1516_2025::TIMESTAMP
+                                 : rti1516_2025::RECEIVE));
+      REQUIRE(receiverFederate.hasOptionalRetraction ==
+              (regulateSender && !preferReceiveOrder));
+    }
+    if (receiverKnowsObject && (gateNmraCallbacks || requestNmr)) {
       REQUIRE(receiverFederate.observedCallbackOrder() == std::vector<char>{'R', 'G'});
       REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
       REQUIRE(receiverFederate.grantTimestampEncoding == expectedTimestampBytes);
     }
     REQUIRE_FALSE(senderFederate.removed);
+
+    if (verifyProducerTimeBoundary) {
+      std::array<std::uint8_t, 3U> const updateValueBytes{0x50U, 0x52U, 0x45U};
+      std::array<std::uint8_t, 3U> const updateTagBytes{0x44U, 0x45U, 0x4CU};
+      AttributeHandleValueMap values;
+      values.emplace(
+          senderAttribute,
+          VariableLengthData(updateValueBytes.data(), updateValueBytes.size()));
+      REQUIRE_THROWS_AS(
+          senderRti->updateAttributeValues(
+              objectInstance,
+              values,
+              VariableLengthData(updateTagBytes.data(), updateTagBytes.size()),
+              rti1516_2025::HLAinteger64Time(11)),
+          rti1516_2025::ObjectInstanceNotKnown);
+      auto const updateRetraction = senderRti->updateAttributeValues(
+          objectInstance,
+          values,
+          VariableLengthData(updateTagBytes.data(), updateTagBytes.size()),
+          rti1516_2025::HLAinteger64Time(5));
+      REQUIRE(updateRetraction.isValid());
+      if (disableProducerRegulation) {
+        REQUIRE_NOTHROW(senderRti->disableTimeRegulation());
+      } else {
+        REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+            rti1516_2025::HLAinteger64Time(10)));
+        if (callbackModel == HLA_EVOKED) {
+          auto const grantDeadline =
+              std::chrono::steady_clock::now() + std::chrono::seconds(2);
+          while (senderFederate.observedTimeAdvanceGrantCount() < 1U &&
+                 std::chrono::steady_clock::now() < grantDeadline) {
+            static_cast<void>(senderRti->evokeCallback(0.0));
+            if (senderFederate.observedTimeAdvanceGrantCount() == 0U) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+          }
+        }
+        REQUIRE(senderFederate.waitForTimeAdvanceGrantCount(1U));
+        REQUIRE(senderFederate.timeAdvanceGrantValue == 10);
+      }
+      REQUIRE_THROWS_AS(
+          senderRti->updateAttributeValues(
+              objectInstance,
+              values,
+              VariableLengthData(updateTagBytes.data(), updateTagBytes.size()),
+              rti1516_2025::HLAinteger64Time(11)),
+          rti1516_2025::ObjectInstanceNotKnown);
+    }
 
     senderRti->resignFederationExecution(DELETE_OBJECTS);
     senderJoined = false;
@@ -1206,16 +1338,65 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
-  REQUIRE(deleteRecipientCount.load(std::memory_order_acquire) == 1U);
+  REQUIRE(deleteRecipientCount.load(std::memory_order_acquire) ==
+          (receiverKnowsObject ? 1U : 0U));
   REQUIRE((deleteMessageId.load(std::memory_order_acquire) != 0U) ==
           (regulateSender && !preferReceiveOrder));
-  REQUIRE(producerKnowledgeCleared.load(std::memory_order_acquire));
-  REQUIRE(receiverKnowledgeCleared.load(std::memory_order_acquire));
+  if (verifyProducerTimeBoundary) {
+    REQUIRE(producerKnowledgeRetainedBeforeBoundary.load(std::memory_order_acquire));
+    REQUIRE(producerKnowledgeCleared.load(std::memory_order_acquire));
+  } else if (regulateSender && !preferReceiveOrder) {
+    // The constrained-recipient slices advance the producer through time 6
+    // after deleting at time 5. Without that sender TAR, receiver removal
+    // alone must not clear the producer's local object knowledge.
+    REQUIRE(producerKnowledgeCleared.load(std::memory_order_acquire) ==
+            constrainReceiver);
+  }
+  if (receiverKnowsObject) {
+    REQUIRE(receiverKnowledgeCleared.load(std::memory_order_acquire));
+  }
   REQUIRE(expectedSenderFederate.load(std::memory_order_acquire) != 0U);
   REQUIRE(expectedReceiverFederate.load(std::memory_order_acquire) != 0U);
   REQUIRE(registeredObject.load(std::memory_order_acquire) != 0U);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
+}
+
+TEST_CASE(
+    "RTIambassadors retain producer object knowledge until a timestamped deletion boundary through a process endpoint",
+    "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-producer-knowledge][rti.service.update-attribute-values][rti.service.delete-object-instance][rti.service.time-advance-request]") {
+  SECTION("HLA_EVOKED") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, false, false, false, false, true);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, false, false, false, false, true);
+  }
+  SECTION("HLA_EVOKED without another federate knowing the object") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, false, false, false, false, true, false);
+  }
+  SECTION("HLA_IMMEDIATE without another federate knowing the object") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, false, false, false, false, true, false);
+  }
+  SECTION("HLA_EVOKED forgets immediately when regulation is disabled") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, false, false, false, false, true, true, true);
+  }
+  SECTION("HLA_IMMEDIATE forgets immediately when regulation is disabled") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, false, false, false, false, true, true, true);
+  }
+  SECTION("HLA_EVOKED disables regulation with no recipient") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, false, false, false, false, true, false, true);
+  }
+  SECTION("HLA_IMMEDIATE disables regulation with no recipient") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, false, false, false, false, true, false, true);
+  }
 }
 
 TEST_CASE(

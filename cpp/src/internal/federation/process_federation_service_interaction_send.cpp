@@ -2,6 +2,7 @@
 #include "internal/federation/process_federation_service_helpers.hpp"
 #include "internal/federation/process_federation_service_payload_helpers.hpp"
 #include "internal/federation/transport_service_protocol.hpp"
+#include "internal/runtime/ambassador_shared_utilities.hpp"
 
 #include "internal/encoding/byte_order.hpp"
 #include "internal/encoding/variable_length_data_2025.hpp"
@@ -102,6 +103,19 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       return rejected(request);
     }
     producingTimeState = state->second.timeState;
+  }
+
+  if (sendRequest.timestamp && producingTimeState) {
+    auto const timestamp = decodeProcessLogicalTime(
+        *sendRequest.timestamp,
+        federationDefinition_->logicalTimeImplementationName);
+    try {
+      rti1516_2025::umbra_binding_detail::validateAmbassadorTsoTimestamp(
+          producingTimeState->snapshot(), *timestamp);
+    } catch (rti1516_2025::InvalidLogicalTime const&) {
+      return responseFor(
+          request, TransportServiceStatus::invalid_logical_time);
+    }
   }
 
   // HLAsetSwitches is a predefined Subscribe-only MOM interaction.  It is
@@ -543,6 +557,10 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
         std::nullopt,
         messageId == 0U ? std::nullopt
                         : std::optional<std::uint64_t>(messageId)};
+    if (sendRequest.timestamp) {
+      event.sentOrderType = rti1516_2025::TIMESTAMP;
+      event.receivedOrderType = rti1516_2025::TIMESTAMP;
+    }
     event.defaultRegionUsed =
         resolvedRecipient.conveyRegionDesignatorSets && plan.defaultRegionUsed;
     if (resolvedRecipient.conveyRegionDesignatorSets &&
@@ -576,6 +594,14 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
         // The default service mode retains the original deterministic polling
         // seam used by the focused registry/service unit tests.
         state->second.interactionEvents.push_back(std::move(event));
+        if (messageId != 0U) {
+          // Keep pull recipients reachable after polling moves the event out
+          // of this queue. A producer may still retract before the receiver's
+          // queued public callback starts; handleRetract must notify that
+          // process so its callback bridge can suppress the original.
+          pendingPushedRetractionRecipients_[messageId].push_back(
+              receivingSession->second);
+        }
       }
       if (recipientCount != std::numeric_limits<std::uint32_t>::max()) {
         ++recipientCount;

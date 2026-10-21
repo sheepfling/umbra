@@ -383,19 +383,39 @@ for later progress. Do not collapse the delivery frontier, actual grant, and
 optimistic floor into one time value. This bounded path does not wait for
 future transport arrivals.
 
-#### FQR with HLA_EVOKED: request acceptance is not the delivery snapshot
+#### FQR with HLA_EVOKED: transport-arrival boundary is profile policy
 
-The following is a selected 2025 embedded test path. With the receiver using
-`HLA_EVOKED`, accepting `flushQueueRequest(10)` does not invoke the queued grant
-callback immediately. The publisher can enqueue timestamped interactions
-before the receiver next calls `evokeCallback`; in this path, the dispatcher
-starts the TSO extraction from inside that evoked callback. The tested sends
-arrive at timestamps 9 and 12, and both callbacks precede one Flush Queue
-Grant. The grant reports actual time 5 and optimistic time 9. Since timestamp
-12 is later than the FQR argument 10, do not interpret that argument as a
-snapshot-time queue cutoff for this tested dispatch path. The three values
-remain distinct: request argument 10, delivered message timestamp 12, and
-reported actual/optimistic times 5/9.
+The pinned 2025 Requirements Lab transcription supplies the clause text.
+Section 8.12 requires delivery of messages queued in the RTI that the joined
+federate will receive as TSO messages and explicitly recognizes that smaller
+timestamps may arrive in the future. Section 8.13 defines OLT as the minimum
+of the time supplied to FQR and the timestamps of TSO messages delivered in
+response. Section 8.14 guarantees that no additional TSO message will later
+be delivered with a timestamp below the actual grant. These clauses establish
+the queue/delivery result, OLT inputs, and actual-grant safety boundary; they
+do not prescribe a transport snapshot at FQR acceptance, an HLA_EVOKED
+callback-start cutoff, or identical embedded/process policy. This is a reading
+of the pinned Lab text, not an independent licensed-PDF conformance opinion.
+
+The same ordered public scenario is covered in both profiles: the receiver
+accepts FQR(10); the sender then submits timestamps 9 and 12; timestamp 12 is
+retracted before the receiver starts its evoked FQG callback. The two tested
+policies differ:
+
+| Profile | TSO callbacks before FQG | Actual grant | OLT |
+| --- | --- | ---: | ---: |
+| Embedded | Receive Interaction at 9; retracted 12 is suppressed | 5 | 9 |
+| Process coordinator | No post-acceptance TSO callback in this FQR; retracted 12 is absent | 5 | 10 |
+
+The embedded dispatcher selects the late-arriving input when callback-time
+extraction begins. The process coordinator fixes the FQR result when it accepts
+the request. Neither cutoff is prescribed by the cited clauses; the tests
+record a profile-policy difference, not a conformance failure or proof of
+cross-profile parity. The focused process test also verifies that its
+authoritative regular Send Interaction path rejects timestamp 4 from a sender
+whose current-time-plus-lookahead floor is 5 after FQG(actual=5). That check is
+limited to this producer path and does not establish the same safeguard for
+every timestamped service family.
 
 ```mermaid
 sequenceDiagram
@@ -414,20 +434,23 @@ sequenceDiagram
   PRTI->>Queue: Enqueue recipient TSO payload at 9
   Publisher->>PRTI: sendInteraction(timestamp=12)
   PRTI->>Queue: Enqueue recipient TSO payload at 12
+  Publisher->>PRTI: retract(timestamp=12)
+  PRTI->>Queue: Retire recipient payload at 12
   Receiver->>RRTI: evokeCallback()
   RRTI->>Dispatcher: Start the pending FQR grant callback
   Dispatcher->>Queue: Extract current recipient payloads through final time
-  Queue-->>Dispatcher: TSO payloads at 9 and 12
+  Queue-->>Dispatcher: TSO at 9; timestamp 12 is retracted
   Dispatcher-->>Receiver: receiveInteraction(timestamp=9)
-  Dispatcher-->>Receiver: receiveInteraction(timestamp=12)
   Dispatcher-->>Receiver: flushQueueGrant(actual=5, optimistic=9)
 ```
 
 This establishes the callback-time frontier for the cited embedded EVOKED
-scenario only. It does not establish process-endpoint parity, inclusion of
-messages that arrive after extraction begins, or a general normative rule
-about the FQR argument; use IEEE 1516.1-2025 clause 8.12 as the authority for
-normative interpretation.
+scenario only. The paired process test records its accepted-request policy and
+the different OLT (10). The tests do not define a universal transport arrival
+cutoff, require profile parity, or establish behavior for other TSO service
+families. Use §8.12 for FQR queue semantics, §8.13 for OLT inputs, and §8.14
+for the actual-grant future-delivery guarantee; do not treat OLT as the actual
+grant's safety boundary.
 
 ## Worked examples
 
@@ -904,16 +927,16 @@ The current opt-in development slice has explicit limits:
   bounded public slice. Other time-stamped service families are not implied.
 - The asynchronous-delivery implementation covers bounded receive-order
   callback routes; it does not make TSO delivery asynchronous.
-- The exact normative relationship between FQR's request argument and TSO
-  inputs arriving before an HLA_EVOKED grant callback begins is unresolved:
-  licensed IEEE 1516.1-2025 text is not present in this workspace, and the
-  Requirements Lab source compilation/reconstruction is not normative
-  authority for that question. The focused embedded test accepts FQR(10),
-  then sends TSOs at 9 and 12 before callback draining; it observes both
-  Receive Interaction callbacks before FQG (actual time 5, optimistic time 9).
-  Timestamp 12's delivery is Umbra implementation/test evidence only, not a
-  claim that the standard requires it, or that the behavior is validated or
-  conformant.
+- The pinned Requirements Lab transcription of §§8.12–8.14 is available in
+  this workspace. It defines FQR queue delivery, OLT inputs, and the
+  no-future-TSO-below-actual-grant guarantee, but not an arrival/callback-start
+  cutoff or mandatory embedded/process parity. The paired late-arrival tests
+  record embedded actual/OLT 5/9 (timestamp 9 delivered; timestamp 12 retracted)
+  and process actual/OLT 5/10 (no late TSO callback in this FQR). These are
+  implementation-policy observations, not conformance claims. The process
+  timestamp-4 rejection checks only the regular Send Interaction producer
+  floor and does not establish every timestamped service family's post-grant
+  behavior.
 - Save/restore cases cover selected temporal snapshots and pending operations;
   they do not establish general time-management persistence or complete
   callback restoration.

@@ -119,8 +119,15 @@ class ReportingFederateAmbassador final
     callbackOrder.push_back("flush-grant");
   }
 
+  void requestRetraction(
+      MessageRetractionHandle const& retraction) override {
+    requestRetractionReports.push_back(retraction.isValid());
+    callbackOrder.push_back("request-retraction");
+  }
+
   std::vector<TimestampedInteractionReport> timestampedInteractionReports;
   std::vector<FlushQueueGrantReport> flushQueueGrantReports;
+  std::vector<bool> requestRetractionReports;
   std::vector<std::string> callbackOrder;
 };
 
@@ -227,6 +234,125 @@ void verifyPrequeuedFqr(bool immediate) {
   REQUIRE(report.receivedOrderType == TIMESTAMP);
   REQUIRE(report.retractionValid);
 
+  // FQR may deliver a timestamp later than the request. A later flush may
+  // consequently deliver an earlier timestamp, and retracting the already
+  // delivered future message must still notify this receiver.
+  REQUIRE_THROWS_AS(
+      publisher->sendInteraction(
+          interactionClass,
+          parameterValues,
+          tag,
+          rti1516_2025::HLAinteger64Time(4)),
+      rti1516_2025::InvalidLogicalTime);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+
+  auto const earlier = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(earlier.isValid());
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  if (!immediate) {
+    drainCallbacks(*receiver);
+  }
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2U);
+  REQUIRE(receiverReports.timestampedInteractionReports[1].timeValue == L"6");
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 2U);
+  REQUIRE(receiverReports.timestampedInteractionReports[0].timeValue == L"12");
+  REQUIRE_NOTHROW(publisher->retract(sent));
+  if (!immediate) {
+    drainCallbacks(*receiver);
+  }
+  REQUIRE(receiverReports.requestRetractionReports == std::vector<bool>{true});
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+void verifyFqrGrantUsesDeliveredTsoBoundary() {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(std::filesystem::path("cpp") / "tests" / "data" /
+                                    "parameter-handle-provider-fom.xml")
+                             .wstring();
+  std::vector<unsigned char> const payload{0x46U, 0x51U, 0x52U};
+  std::vector<unsigned char> const tagBytes{0x42U, 0x44U};
+  VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"fqr-bound-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"fqr-bound-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const parameter = publisher->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(parameter.isValid());
+  ParameterHandleValueMap values;
+  values.emplace(parameter, VariableLengthData(payload.data(), payload.size()));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*publisher);
+
+  auto const retraction = publisher->sendInteraction(
+      interactionClass,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(9));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  // Move the only regulator beyond timestamp 9 while the receiver's evoked
+  // callback remains pending. FQR(10) must still deliver the queued TSO and
+  // account for its timestamp in the grant/optimistic-time result.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(12)));
+  drainCallbacks(*publisher);
+  rti1516_2025::HLAinteger64Time publisherTime;
+  REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherTime));
+  REQUIRE(publisherTime.getTime() == 12);
+
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 1U);
+  REQUIRE(receiverReports.flushQueueGrantReports.front().value == L"9");
+  REQUIRE(receiverReports.flushQueueGrantReports.front().optimisticValue == L"9");
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "flush-grant"});
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(report.timeValue == L"9");
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.parameterValues.size() == 1U);
+  REQUIRE(report.parameterValues.contains(parameter));
+  REQUIRE(variableLengthDataBytes(report.parameterValues.at(parameter)) == payload);
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) == tagBytes);
+  REQUIRE(report.sentOrderType == TIMESTAMP);
+  REQUIRE(report.receivedOrderType == TIMESTAMP);
+  REQUIRE(report.retractionValid);
+
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
@@ -286,9 +412,9 @@ TEST_CASE(
 
   // This deliberately tests producer input accepted after FQR submission,
   // which is distinct from the standard's requirement to flush TSO already
-  // queued when FQR is invoked. Keep the late-input observation as
-  // implementation evidence; the adjacent prequeued case covers the Lab's
-  // normative queue rule.
+  // queued when FQR is invoked. The late-arrival boundary is implementation
+  // policy, not a normative snapshot rule. A later message is retracted before
+  // callback entry so only the surviving timestamp contributes to OLT.
   REQUIRE_NOTHROW(receiver->flushQueueRequest(
       rti1516_2025::HLAinteger64Time(10)));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
@@ -306,28 +432,27 @@ TEST_CASE(
   REQUIRE(first.isValid());
   REQUIRE(second.isValid());
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE_NOTHROW(publisher->retract(second));
 
   drainCallbacks(*receiver);
-  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2U);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.flushQueueGrantReports.size() == 1U);
   REQUIRE(receiverReports.flushQueueGrantReports.front().value == L"5");
   REQUIRE(receiverReports.flushQueueGrantReports.front().optimisticValue == L"9");
   REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"interaction", "interaction", "flush-grant"});
+          std::vector<std::string>{"interaction", "flush-grant"});
   REQUIRE(receiverReports.timestampedInteractionReports[0].timeValue == L"9");
-  REQUIRE(receiverReports.timestampedInteractionReports[1].timeValue == L"12");
-  for (auto const& report : receiverReports.timestampedInteractionReports) {
-    REQUIRE(report.interactionClass == interactionClass);
-    REQUIRE(report.parameterValues.size() == 1U);
-    REQUIRE(report.parameterValues.contains(identifier));
-    REQUIRE(variableLengthDataBytes(report.parameterValues.at(identifier)) ==
-            std::vector<unsigned char>(identifierBytes, identifierBytes + sizeof(identifierBytes)));
-    REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
-            std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
-    REQUIRE(report.sentOrderType == TIMESTAMP);
-    REQUIRE(report.receivedOrderType == TIMESTAMP);
-    REQUIRE(report.retractionValid);
-  }
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.parameterValues.size() == 1U);
+  REQUIRE(report.parameterValues.contains(identifier));
+  REQUIRE(variableLengthDataBytes(report.parameterValues.at(identifier)) ==
+          std::vector<unsigned char>(identifierBytes, identifierBytes + sizeof(identifierBytes)));
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(report.sentOrderType == TIMESTAMP);
+  REQUIRE(report.receivedOrderType == TIMESTAMP);
+  REQUIRE(report.retractionValid);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(rti1516_2025::NO_ACTION));
@@ -337,9 +462,19 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded Flush Queue Request delivers prequeued TSO above the requested time",
+    "Embedded Flush Queue grant accounts for a prequeued TSO timestamp",
     "[integration][development-profile][interaction-management][time-management]"
-    "[flush-queue-request][flush-queue-prequeued-ts-above-request][tso][callback-model]"
+    "[flush-queue-request][fqr-delivered-tso-grant-bound][tso]"
+    "[rti.service.flush-queue-request][rti.service.time-advance-request]"
+    "[rti.service.send-interaction][federate.callback.receive-interaction]"
+    "[federate.callback.flush-queue-grant][2025]") {
+  verifyFqrGrantUsesDeliveredTsoBoundary();
+}
+
+TEST_CASE(
+    "Embedded Flush Queue Request permits later lower TSO and retraction callbacks",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[flush-queue-request][fqr-postgrant-lower-tso-retraction][tso][callback-model]"
     "[rti.service.flush-queue-request][rti.service.send-interaction]"
     "[federate.callback.receive-interaction][federate.callback.flush-queue-grant]") {
   SECTION("HLA_EVOKED") {

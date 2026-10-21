@@ -560,6 +560,10 @@ TransportServiceMessage ProcessFederationService::handleDisableTimeRole(
   }
 
   if (stateResult == FederateTimeDisableStatus::applied) {
+    if (regulation) {
+      registry_.applyTsoObjectDeletionProducerRegulationDisabled(
+          disable.federationName, disable.federateId);
+    }
     // Disabling either role can release a TAR that was waiting on the
     // corresponding temporal bound. Re-evaluate only after the role state has
     // changed, then dispatch any newly eligible grants through the same

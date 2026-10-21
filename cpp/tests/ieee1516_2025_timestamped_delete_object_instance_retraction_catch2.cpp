@@ -86,9 +86,16 @@ TEST_CASE(
       tag,
       rti1516_2025::HLAinteger64Time(7));
   REQUIRE(secondHandle.isValid());
+  // The publisher was at 2 with lookahead 5 when it sent the deletion at 7,
+  // so that send is valid. Advance it to 3 afterward: GALT is then 8 and the
+  // receiver's TAR(7) is strictly below GALT, as required for TAR.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
-  REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
   REQUIRE(receiverReports.objectRemovalReports.size() == 1);
   REQUIRE(
@@ -109,6 +116,10 @@ TEST_CASE(
   REQUIRE_THROWS_AS(
       receiver->getObjectInstanceHandle(objectInstanceName),
       rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE(publisher->getObjectInstanceName(objectInstance) == objectInstanceName);
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  while (publisher->evokeCallback(0.0)) {
+  }
   REQUIRE_THROWS_AS(
       publisher->getObjectInstanceName(objectInstance),
       rti1516_2025::ObjectInstanceNotKnown);
@@ -123,5 +134,156 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->disconnect());
 }
 
+void requireProducerCanUpdateBeforeTimestampedDeletion(
+    bool joinReceiveOrderRecipient,
+    bool disableRegulationBeforeDeletionTime = false) {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = joinReceiveOrderRecipient ? makeRti() : nullptr;
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const valueBytes[] = {0x56, 0x41, 0x4C, 0x35};
+  unsigned char const tagBytes[] = {0x44, 0x45, 0x4C, 0x31, 0x30};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  if (receiver) {
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  }
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"timestamped-delete-producer-knowledge-publisher", L"publisher", federationName));
+  if (receiver) {
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"timestamped-delete-producer-knowledge-receiver", L"subscriber", federationName));
+  }
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  AttributeHandleSet const attributes{reliable};
+  REQUIRE(child.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  if (receiver) {
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(child, attributes));
+  }
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  if (receiver) {
+    REQUIRE_FALSE(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+    while (publisher->evokeCallback(0.0)) {
+    }
+  }
+  auto const objectInstanceName = publisher->getObjectInstanceName(objectInstance);
+
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(10));
+  REQUIRE(retraction.isValid());
+
+  if (receiver) {
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
+    REQUIRE(receiverReports.objectRemovalReports.front().objectInstance == objectInstance);
+  }
+
+  if (disableRegulationBeforeDeletionTime) {
+    REQUIRE_NOTHROW(publisher->disableTimeRegulation());
+    REQUIRE_THROWS_AS(
+        publisher->getObjectInstanceName(objectInstance),
+        rti1516_2025::ObjectInstanceNotKnown);
+    if (receiver) {
+      REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    }
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    if (receiver) {
+      REQUIRE_NOTHROW(receiver->disconnect());
+    }
+    REQUIRE_NOTHROW(publisher->disconnect());
+    return;
+  }
+
+  AttributeHandleValueMap values;
+  values.emplace(reliable, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_THROWS_AS(
+      publisher->updateAttributeValues(
+          objectInstance,
+          values,
+          tag,
+          rti1516_2025::HLAinteger64Time(11)),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE(publisher->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(10)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE_THROWS_AS(
+      publisher->updateAttributeValues(
+          objectInstance,
+          values,
+          tag,
+          rti1516_2025::HLAinteger64Time(11)),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  if (receiver) {
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  }
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  if (receiver) {
+    REQUIRE_NOTHROW(receiver->disconnect());
+  }
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Timestamped Delete Object Instance preserves producer knowledge before its time when no recipient knows the object",
+    "[integration][development-profile][object-management][time-management]"
+    "[tso][timestamped-object-deletion][timestamped-delete-producer-knowledge]"
+    "[rti.service.delete-object-instance][rti.service.update-attribute-values]"
+    "[rti.service.enable-time-regulation][federate.callback.remove-object-instance]") {
+  requireProducerCanUpdateBeforeTimestampedDeletion(false);
+}
+
+TEST_CASE(
+    "Timestamped Delete Object Instance preserves producer knowledge after a receive-order recipient removes the object",
+    "[integration][development-profile][object-management][time-management]"
+    "[tso][timestamped-object-deletion][timestamped-delete-producer-knowledge]"
+    "[rti.service.delete-object-instance][rti.service.update-attribute-values]"
+    "[rti.service.enable-time-regulation][federate.callback.remove-object-instance]") {
+  requireProducerCanUpdateBeforeTimestampedDeletion(true);
+}
+
+TEST_CASE(
+    "Timestamped Delete Object Instance makes the producer forget immediately when regulation is disabled",
+    "[integration][development-profile][object-management][time-management]"
+    "[tso][timestamped-object-deletion][timestamped-delete-producer-knowledge]"
+    "[rti.service.delete-object-instance][rti.service.disable-time-regulation]"
+    "[federate.callback.remove-object-instance]") {
+  requireProducerCanUpdateBeforeTimestampedDeletion(false, true);
+}
 
 }  // namespace

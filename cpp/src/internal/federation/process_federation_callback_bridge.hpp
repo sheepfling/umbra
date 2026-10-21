@@ -81,6 +81,9 @@ class ProcessFederationCallbackBridge final {
       std::wstring federationName, std::uint64_t receivingFederateId);
   void setDeferredAttributeUpdateHandler(DeferredAttributeUpdateHandler handler);
   void cancelDeferredAttributeUpdates() noexcept;
+  // End the current joined-federate callback lifetime without closing this
+  // bridge, which may be reused if the ambassador rejoins.
+  void discardPendingCallbacks() noexcept;
 
   // Queue one provider-side Request Attribute Value Update callback through
   // the same callback dispatcher/session as all other process events.
@@ -230,6 +233,7 @@ class ProcessFederationCallbackBridge final {
     std::mutex mutex;
     bool callbackStarted = false;
     bool retractionRequested = false;
+    bool recipientResigned = false;
     bool retractionCallbackQueued = false;
     bool deliveryAcknowledged = false;
   };

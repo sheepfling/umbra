@@ -365,6 +365,7 @@ enum class TransportServiceStatus : std::uint16_t {
   invalid_request = 2U,
   internal_error = 3U,
   service_reporting_interlock = 4U,
+  invalid_logical_time = 5U,
 };
 
 struct TransportServiceMessage final {

@@ -91,12 +91,41 @@ void ProcessFederationClient::resignFederationExecution(
     std::uint64_t federateId,
     rti1516_2025::ResignAction resignAction) {
   auto resignedFederationName = federationName;
-  auto response = request(
-      TransportServiceOperation::resign_federation_execution,
-      encodeProcessFederationResignRequest(
-          ProcessFederationResignRequest{
-              std::move(federationName), federateId, resignAction}));
+  {
+    std::unique_lock lock(transactionMutex_);
+    ++callbackDispatchSuppressionDepth_;
+    callbackEventsAvailable_.wait(lock, [this] {
+      return dispatchDepth_ == 0U ||
+          dispatchOwner_ == std::this_thread::get_id();
+    });
+  }
+  auto releaseCallbackDispatchSuppression = [this] {
+    {
+      std::scoped_lock lock(transactionMutex_);
+      --callbackDispatchSuppressionDepth_;
+    }
+    callbackEventsAvailable_.notify_all();
+  };
+
+  TransportServiceMessage response;
+  try {
+    // A successful Resign terminates this callback lifetime. Do not let the
+    // generic request epilogue admit queued callbacks before we can discard
+    // the old lifetime's events.
+    response = request(
+        TransportServiceOperation::resign_federation_execution,
+        encodeProcessFederationResignRequest(
+            ProcessFederationResignRequest{
+                std::move(federationName), federateId, resignAction}),
+        false);
+  } catch (...) {
+    releaseCallbackDispatchSuppression();
+    throw;
+  }
   if (response.status != TransportServiceStatus::ok) {
+    releaseCallbackDispatchSuppression();
+    dispatchPendingPushedEvents();
+    flushDeferredTsoDeliveryAcknowledgements();
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
   }
@@ -108,16 +137,16 @@ void ProcessFederationClient::resignFederationExecution(
         joinedFederateId_ == federateId) {
       joinedFederationName_.reset();
       joinedFederateId_ = 0U;
-      std::erase_if(pendingEvents_, [](PendingEvent const& event) {
-        return std::holds_alternative<PendingDeferredAttributeUpdate>(event);
-      });
+      pendingEvents_.clear();
       bridge = callbackBridge_;
     }
   }
   if (bridge) {
     bridge->cancelExceptionReportProjections();
     bridge->cancelDeferredAttributeUpdates();
+    bridge->discardPendingCallbacks();
   }
+  releaseCallbackDispatchSuppression();
 }
 
 ProcessFederationRegisterSynchronizationPointResult

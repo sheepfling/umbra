@@ -1242,6 +1242,19 @@ class EmbeddedFederationRegistry final {
        std::uint64_t objectInstanceHandle,
        std::vector<std::uint64_t> const& sentAttributeHandles) const;
 
+  // Applies a producing federate's local object-knowledge boundary when a
+  // successful grant reaches or passes an accepted timestamped deletion.
+  void applyTsoObjectDeletionProducerTimeBoundary(
+      std::wstring const& federationName,
+      std::uint64_t producingFederateId,
+      rti1516_2025::LogicalTime const& grantedTime);
+
+  // A producer that disables time regulation crosses the producer-side
+  // knowledge boundary for its pending timestamped deletions immediately.
+  void applyTsoObjectDeletionProducerRegulationDisabled(
+      std::wstring const& federationName,
+      std::uint64_t producingFederateId);
+
   // Recomputes one originally planned passel immediately before callback
   // delivery. A resigning recipient, changed known-instance state, or changed
   // subscription is an ordinary no-delivery outcome; the returned subset is

@@ -43345,25 +43345,18 @@
         "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
         "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb"
       ],
-      "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
-        "requirement-candidate-content-clauses-08-time-management-page-200-l140-41",
-        "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
-        "requirement-candidate-content-clauses-08-time-management-page-201-l37-11",
-        "requirement-candidate-content-clauses-08-time-management-page-201-l40-12"
-      ],
+      "selected_requirements_lab_requirement_ids": [],
       "test_case": "Embedded Flush Queue Request admits TSO input queued after submission",
-      "source_location": "cpp/tests/flush_queue_future_input_catch2.cpp:142",
-      "assertions": 45,
+      "source_location": "cpp/tests/flush_queue_future_input_catch2.cpp:279",
+      "assertions": 37,
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "standard_sections": [
-        "hla-1516.1-2025:clause-8.12",
-        "hla-1516.1-2025:clause-8.12.3"
-      ],
+      "standard_sections": [],
       "tags": [
         "integration",
+        "internal-only",
+        "no-normative-mapping",
         "development-profile",
         "interaction-management",
         "time-management",
@@ -43376,11 +43369,11 @@
         "federate.callback.receive-interaction",
         "federate.callback.flush-queue-grant"
       ],
-      "status": "implemented-in-noninstallable-development-profile",
-      "requirements_lab_api_surface_status": "The full Requirements Lab text for 1516.1-2025 §§8.12 and 8.12.3 requires delivery of all TSO messages queued in the RTI for this joined federate when FQR is invoked; the request time does not filter that set. The clauses allow later smaller-timestamp messages to arrive, but define no cutoff at the beginning of an HLA_EVOKED callback. This case submits timestamps 9 and 12 only after FQR(10) returns and before callback draining, so their admission is implementation evidence, not a normative requirement. The adjacent `flush-queue-prequeued-ts-above-request` case directly tests the queued-set rule. Neither case claims conformance.",
+      "status": "implemented-internal-development-test-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "This public-API development regression submits timestamps 9 and 12 after FQR(10) returns but before HLA_EVOKED callback draining, then retracts timestamp 12 before callback entry. Embedded delivers the surviving timestamp 9 before FQG and reports actual time 5/OLT 9. The pinned §8.12–§8.14 text requires queued-message handling, defines OLT from messages delivered in response, and guarantees no later TSO below the actual grant; it does not define the post-submission transport-arrival/callback-start cutoff. This row therefore records embedded implementation policy only, with no direct requirement/section mapping and no validation or conformance claim. The adjacent prequeued TSO case retains the direct §8.12 mapping.",
       "ctest_target": "umbra_flush_queue_future_input_catch2",
       "ctest_filter": "^umbra\\.flush_queue_future_input\\.catch2\\.Embedded Flush Queue Request admits TSO input queued after submission$",
-      "next_action": "The focused HLA_EVOKED case passes 45 Catch2 assertions. Keep post-submission timestamp-9/12 delivery classified as implementation evidence: 1516.1-2025 §§8.12 and 8.12.3 define the queued set at FQR invocation and do not define a callback-start cutoff. The Lab-backed prequeued case separately checks normative FQR flushing. Future network/transport arrivals and alternate callback-model behavior remain separate cases; no conformance claim is implied."
+      "next_action": "Verified 2026-10-21: 37 Catch2 assertions pass. On this embedded route, late timestamp 9 is delivered before FQG, while timestamp 12 retracted before callback entry is suppressed; actual/OLT are 5/9. The paired process row records its separate accepted-request policy (5/10, no late callback). The Lab does not require one transport cutoff, so keep both as internal profile-policy evidence, not conformance evidence."
     },
     {
       "id": "umbra-cpp-flush-queue-prequeued-tso-above-request-integration",
@@ -79253,6 +79246,429 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore preserves atomic Release Multiple Names$",
       "next_action": "Test a foreign-owned invalid member and HLA_IMMEDIATE parity separately; keep changed-membership/distributed restart, installed-package/JUnit, interoperability, and conformance open."
+    },
+    {
+      "id": "umbra-cpp-fqr-delivered-callback-time-frontier-integration",
+      "primary_lane": "fqr-delivered-tso-frontier",
+      "focus_lane": "fqr-delivered-tso-frontier",
+      "requirements_lab_mapping_id": "rti.service.flush-queue-request",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getnonregulatedgrantswitch.25440ded4b01",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.flushqueuerequest.923ef48b62c9",
+        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
+        "api.2025.cpp.rtiambassador.retract.d2de2342935e",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"
+      ],
+      "requirement_section_mapping_overrides": [
+        {
+          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29",
+          "standard_section": "hla-1516.1-2025:clause-8.13",
+          "title": "Flush Queue Grant service result",
+          "requirements_lab_issue_id": "RL-349",
+          "basis": "The full page-202 source places the OLT result paragraph immediately under the §8.13 Flush Queue Grant service heading and before the §8.13.1–§8.13.3 subsections; the pinned Lab export incorrectly attaches this stable candidate to §8.13.3 Preconditions."
+        }
+      ],
+      "test_case": "Embedded FQG derives grant times from TSO callbacks actually delivered",
+      "source_location": "cpp/tests/flush_queue_request_delivered_callbacks_catch2.cpp:236",
+      "ctest_target": "umbra_flush_queue_request_optimistic_time_catch2",
+      "ctest_filter": "^umbra\\.flush_queue_request_optimistic_time\\.catch2\\.Embedded FQG derives grant times from TSO callbacks actually delivered$",
+      "assertions": 141,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "suppressed-earliest-tso-with-later-delivered-tso",
+        "all-candidates-suppressed-olt-remains-request",
+        "galt-independently-limits-actual-fqg-time",
+        "retraction-before-callback-dispatch"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.13"
+      ],
+      "tags": [
+        "integration", "development-profile", "2025", "time-management",
+        "flush-queue-request", "fqr-delivered-tso-frontier",
+        "fqr-olt-minimum-delivered-tso", "rti.service.flush-queue-request",
+        "rti.service.retract", "federate.callback.receive-interaction",
+        "federate.callback.flush-queue-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "The public 2025 C++ FQR case suppresses or retracts an earlier queued message before callback dispatch, then verifies the later callback alone determines OLT; it also covers all messages suppressed and a separately limiting GALT. The pinned Lab candidate page-202 l107-29 is incorrectly labeled §8.13.3; RL-349 records the defect and this row maps it to the §8.13 service result paragraph. Exact actual FQG values are bounded implementation evidence and are not asserted as a universal standard formula. The embedded callback dispatch resolves callback-start outcomes before it calculates and invokes FQG; process-mode parity is not claimed here.",
+      "next_action": "Verified 2026-10-21: 141 focused MinGW assertions cover retraction/suppression before callback dispatch, a later delivered candidate, the all-suppressed case, and an independent GALT limit. The pinned §8.13 OLT text does not state a transport-arrival/callback-start cutoff. Paired embedded/process policy evidence is recorded separately under GitHub #6; no parity or conformance claim is made."
+    },
+    {
+      "id": "umbra-cpp-fqr-undefined-galt-nrg-integration",
+      "primary_lane": "fqr-undefined-galt-nrg",
+      "focus_lane": "fqr-undefined-galt-nrg",
+      "requirements_lab_mapping_id": null,
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getnonregulatedgrantswitch.25440ded4b01",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.querygalt.f265712267b1",
+        "api.2025.cpp.rtiambassador.flushqueuerequest.923ef48b62c9",
+        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+        "api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"
+      ],
+      "test_case": "Embedded FQR applies NRG when GALT is undefined",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded FQR applies NRG when GALT is undefined$",
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "time-management",
+        "flush-queue-request",
+        "non-regulated-grant",
+        "undefined-galt",
+        "fqr-undefined-galt-nrg",
+        "github-issue-2",
+        "rti.service.flush-queue-request",
+        "rti.service.get-non-regulated-grant-switch",
+        "federate.callback.receive-interaction",
+        "federate.callback.flush-queue-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp:163",
+      "assertions": 102,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "undefined-galt-nrg-disabled-no-queued-tso",
+        "undefined-galt-nrg-enabled-no-queued-tso",
+        "undefined-galt-nrg-disabled-queued-tso",
+        "undefined-galt-nrg-enabled-queued-tso"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.13",
+        "hla-1516.1-2025:clause-8.13.3"
+      ],
+      "requirements_lab_api_surface_status": "The official public C++ case runs FQR(10) for a time-constrained requester with undefined Query GALT, under both NRG settings and both empty/queued-TSO conditions. With NRG disabled, actual FQG time remains at current time 0; with NRG enabled it advances to request time 10 when no TSO is queued, or the TSO frontier 5 when one is queued. OLT remains 10 or 5 respectively and TSO callback precedes FQG. Direct mappings are limited to page-185 l17-5 -> §8.1.6 and page-202 l107-29 -> §8.13. These are bounded embedded development-profile results, not general scheduling, interoperability, validation, or conformance claims.",
+      "next_action": "Verified 2026-10-21: the focused MinGW public C++ case passes all 102 assertions across NRG enabled/disabled and empty/queued TSO combinations. With undefined GALT and NRG disabled, actual grant stays at current time while OLT remains the request/queued frontier. This closes the bounded GitHub #2 acceptance slice; broader scheduling/conformance is not inferred."
+    },
+    {
+      "id": "umbra-cpp-process-fqr-arrival-boundary-policy",
+      "primary_lane": "flush-queue-request",
+      "focus_lane": "process-fqr-arrival-boundary",
+      "selected_cpp_api_surface_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "test_case": "RTIambassadors preserve the bounded FQR arrival policy across the process callback boundary",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp:830",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp",
+      "assertions": 34,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "process-endpoint-fqr",
+        "post-acceptance-tso-arrival-before-evoked-callback",
+        "retract-before-evoked-callback",
+        "actual-grant-5",
+        "optimistic-time-10",
+        "timestamp-below-grant-rejected"
+      ],
+      "standard_sections": [],
+      "tags": [
+        "integration",
+        "internal-only",
+        "no-normative-mapping",
+        "interaction-management",
+        "time-management",
+        "flush-queue-request",
+        "process-boundary",
+        "public-endpoint",
+        "process-fqr-arrival-boundary",
+        "github-issue-6",
+        "2025"
+      ],
+      "requirements_lab_api_surface_status": "The paired embedded/process HLA_EVOKED scenario records profile policy only. The Lab text in §§8.12–8.14 states FQR queue delivery, OLT inputs, and the no-future-TSO-below-actual-grant outcome, but it does not specify a transport-arrival/callback-start snapshot or require profile parity. Process accepts FQR before the timestamp-9/12 arrivals, retracts timestamp 12 before callback entry, reports actual/OLT 5/10 with no late callback, and rejects the sender's timestamp 4 against its regulated floor. This is bounded public process evidence, not a conformance claim or a general guarantee for all timestamped producer families.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors preserve the bounded FQR arrival policy across the process callback boundary$",
+      "ctest_label": "process-fqr-arrival-boundary",
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "next_action": "Verified 2026-10-21: the focused MinGW public process case passes 34 assertions. On this process route, post-acceptance TSO is not added to the accepted FQR callback set; actual/OLT are 5/10, retracted timestamp 12 is absent, and a regulated timestamp-4 send is rejected after FQG(actual=5). Paired embedded behavior is documented separately; the standard text leaves this arrival policy unspecified."
+    },
+    {
+      "id": "umbra-cpp-process-tso-interaction-retraction-before-callback",
+      "primary_lane": "process-tso-in-transit-interaction-retraction-before-callback",
+      "focus_lane": "process-tso-in-transit-interaction-retraction-before-callback",
+      "selected_cpp_api_surface_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "test_case": "RTIambassadors handle pulled timestamped interaction retraction around callback entry",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp",
+      "assertions": 53,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "process-endpoint-timestamped-interaction",
+        "process-pull-mode",
+        "retract-before-receiver-poll",
+        "retract-after-poll-before-public-callback-entry",
+        "retract-after-public-callback-entry",
+        "receiver-callbacks-disabled-before-callback-entry",
+        "post-reenable-public-command-fence",
+        "mixed-fanout-unconstrained-pull-and-constrained-queued-recipient",
+        "constrained-recipient-resigns-before-producer-retract"
+      ],
+      "standard_sections": [],
+      "tags": [
+        "integration",
+        "internal-only",
+        "no-normative-mapping",
+        "interaction-management",
+        "time-management",
+        "retraction",
+        "process-boundary",
+        "public-endpoint",
+        "process-tso-in-transit",
+        "process-tso-interaction-retraction-before-callback",
+        "process-tso-in-transit-interaction-retraction-before-callback",
+        "github-issue-4",
+        "github-issue-5",
+        "2025"
+      ],
+      "requirements_lab_api_surface_status": "Internal public-API process evidence only. The process-pull case checks retraction before polling, after polling but before callback entry, and after callback entry; mixed fanout covers one unconstrained pull recipient and one constrained queued recipient. The constrained recipient resigns before producer Retract, and its queued interaction/Request Retraction callbacks are suppressed after Resign. This closes the interaction-only slice of GitHub #5; public attribute-update and object-removal Resign cases remain open. No Requirements Lab requirement or canonical section is selected, and this is not conformance evidence.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors handle pulled timestamped interaction retraction around callback entry$",
+      "ctest_label": "process-tso-in-transit-interaction-retraction-before-callback",
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "next_action": "Verified 2026-10-21: the focused MinGW process-pull case passes 53 assertions under local loopback. It covers all three retraction callback boundaries, mixed constrained/unconstrained fanout, and a constrained receiver resigning before Retract with no stale callback afterward. Keep this lane internal-only with zero requirement/API/section mapping; no conformance claim is made."
+    },
+    {
+      "id": "umbra-cpp-process-tso-resign-retraction-attribute-removal",
+      "primary_lane": "process-tso-in-transit-interaction-retraction-before-callback",
+      "focus_lane": "process-tso-resign-retraction",
+      "selected_cpp_api_surface_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "test_case": "RTIambassadors discard queued process attribute and removal callbacks when the recipient Resigns before Retract",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp:618",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp",
+      "assertions": 34,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "process-endpoint-timestamped-attribute-update",
+        "process-endpoint-timestamped-object-removal",
+        "recipient-resigns-before-producer-retract",
+        "queued-callback-suppressed-after-resign"
+      ],
+      "standard_sections": [],
+      "tags": [
+        "integration",
+        "internal-only",
+        "no-normative-mapping",
+        "attribute-update",
+        "object-management",
+        "retraction",
+        "process-boundary",
+        "public-endpoint",
+        "process-tso-resign-retraction",
+        "github-issue-5",
+        "2025"
+      ],
+      "requirements_lab_api_surface_status": "Internal public-API process evidence only. Timestamped attribute-reflection and object-removal callbacks are queued, the receiver Resigns without disconnecting, and later producer Retract must not produce stale callbacks after rejoin. This fills the attribute and removal families requested by GitHub #5; it is not normative/conformance evidence and has no selected Requirements Lab requirement or canonical section.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors discard queued process attribute and removal callbacks when the recipient Resigns before Retract$",
+      "ctest_label": "process-tso-resign-retraction",
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "next_action": "Verified 2026-10-21: the focused MinGW public process case passes 34 assertions for queued attribute reflection and object removal suppressed after receiver Resign. Together with the process interaction-retraction case, the three acceptance families in GitHub #5 are covered. Keep this case internal-only; do not infer general Resign behavior beyond these event families."
+    },
+    {
+      "id": "umbra-cpp-timestamped-delete-producer-knowledge-disable-regulation-integration",
+      "requirements_lab_mapping_id": null,
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50"
+      ],
+      "test_case": "Timestamped Delete Object Instance makes the producer forget immediately when regulation is disabled",
+      "primary_lane": "timestamped-delete-producer-knowledge",
+      "focus_lane": "timestamped-delete-producer-knowledge",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp:280",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Timestamped Delete Object Instance makes the producer forget immediately when regulation is disabled$",
+      "ctest_label": "timestamped-delete-producer-knowledge",
+      "assertions": 14,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "object-management",
+        "time-management",
+        "tso",
+        "timestamped-object-deletion",
+        "timestamped-delete-producer-knowledge",
+        "rti.service.delete-object-instance",
+        "rti.service.enable-time-regulation",
+        "rti.service.disable-time-regulation"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This public IEEE 1516.1-2025 C++ regression covers the immediate producer-knowledge boundary when time regulation is disabled, as stated in §6.16.4(c)(2). The clause text and candidate mappings were verified in the pinned Requirements Lab source. Passing development-profile tests are not conformance validation.",
+      "next_action": "Verified 2026-10-21: focused MinGW test passes 14 assertions. The producer remains locally knowledgeable before the accepted deletion timestamp; it is forgotten at that time boundary or immediately when time regulation is disabled. Only the producer-knowledge cases map to §6.16.4; the separate update-time precondition is not mapped because the pinned Lab export lacks a stable requirement record. Development-profile evidence only, not conformance validation."
+    },
+    {
+      "id": "umbra-cpp-timestamped-delete-producer-knowledge-no-recipient-integration",
+      "requirements_lab_mapping_id": null,
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50"
+      ],
+      "test_case": "Timestamped Delete Object Instance preserves producer knowledge before its time when no recipient knows the object",
+      "primary_lane": "timestamped-delete-producer-knowledge",
+      "focus_lane": "timestamped-delete-producer-knowledge",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp:233",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Timestamped Delete Object Instance preserves producer knowledge before its time when no recipient knows the object$",
+      "ctest_label": "timestamped-delete-producer-knowledge",
+      "assertions": 17,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "object-management",
+        "time-management",
+        "tso",
+        "timestamped-object-deletion",
+        "timestamped-delete-producer-knowledge",
+        "rti.service.delete-object-instance",
+        "rti.service.update-attribute-values",
+        "rti.service.enable-time-regulation",
+        "rti.service.time-advance-request"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This public IEEE 1516.1-2025 C++ regression reproduces GitHub issue #1 with no other federate knowing the object. The producer-knowledge postconditions in §6.16.4(c)(1)-(2) were verified in the pinned 2025 Requirements Lab source and are mapped below. The test also exercises the §6.10.3(i) update-time relationship; the current Lab export does not provide a stable requirement record for that precondition, so that portion is not mapped. Passing development-profile tests are not conformance validation.",
+      "next_action": "Verified 2026-10-21: focused MinGW test passes 17 assertions. The producer remains locally knowledgeable before the accepted deletion timestamp; it is forgotten at that time boundary or immediately when time regulation is disabled. Only the producer-knowledge cases map to §6.16.4; the separate update-time precondition is not mapped because the pinned Lab export lacks a stable requirement record. Development-profile evidence only, not conformance validation."
+    },
+    {
+      "id": "umbra-cpp-timestamped-delete-producer-knowledge-process-endpoint-integration",
+      "requirements_lab_mapping_id": null,
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4",
+        "api.2025.cpp.federateambassador.removeobjectinstance.98c2549d1804"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50"
+      ],
+      "test_case": "RTIambassadors retain producer object knowledge until a timestamped deletion boundary through a process endpoint",
+      "primary_lane": "timestamped-delete-producer-knowledge",
+      "focus_lane": "timestamped-delete-producer-knowledge",
+      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1366",
+      "assertions": 278,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "delivery_modes": [
+        "configured-process-endpoint",
+        "no-recipient-knows-object",
+        "receive-order-recipient-removal-before-producer-boundary",
+        "producer-update-after-delete-time-is-rejected",
+        "time-regulation-disable-boundary"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "object-management",
+        "time-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "timestamped-delete-producer-knowledge",
+        "github-issue-1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This public IEEE 1516.1-2025 C++ process-endpoint regression covers the producer-knowledge timing outcomes in §6.16.4(c)(1)-(2), with direct mappings to the two pinned requirement candidates shown above. It checks both callback models, no-recipient and receive-order recipient-removal paths, plus immediate loss of knowledge when regulation is disabled. The related Update Attribute Values time relation is not mapped because the pinned export has no stable direct candidate for that precondition. Passing is development-profile evidence, not Requirements Lab validation or conformance.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors retain producer object knowledge until a timestamped deletion boundary through a process endpoint$",
+      "ctest_label": "timestamped-delete-producer-knowledge",
+      "next_action": "Verified 2026-10-20: focused MinGW Catch2 direct run passes 278 assertions across the eight process-endpoint sections. The public process lane matches the embedded acceptance boundary and uses the authoritative process service. This closes the scoped process parity gap only; it is not conformance evidence."
+    },
+    {
+      "id": "umbra-cpp-timestamped-delete-producer-knowledge-receive-order-recipient-integration",
+      "requirements_lab_mapping_id": null,
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.federateambassador.removeobjectinstance.98c2549d1804"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50"
+      ],
+      "test_case": "Timestamped Delete Object Instance preserves producer knowledge after a receive-order recipient removes the object",
+      "primary_lane": "timestamped-delete-producer-knowledge",
+      "focus_lane": "timestamped-delete-producer-knowledge",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp:242",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Timestamped Delete Object Instance preserves producer knowledge after a receive-order recipient removes the object$",
+      "ctest_label": "timestamped-delete-producer-knowledge",
+      "assertions": 26,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "object-management",
+        "time-management",
+        "tso",
+        "timestamped-object-deletion",
+        "timestamped-delete-producer-knowledge",
+        "rti.service.delete-object-instance",
+        "rti.service.update-attribute-values",
+        "rti.service.enable-time-regulation",
+        "rti.service.time-advance-request",
+        "federate.callback.remove-object-instance"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This public IEEE 1516.1-2025 C++ regression reproduces GitHub issue #1 after a non-time-constrained recipient receives removal before the producer advances. The producer-knowledge postconditions in §6.16.4(c)(1)-(2) were verified in the pinned 2025 Requirements Lab source and are mapped below. The test also exercises the §6.10.3(i) update-time relationship; the current Lab export does not provide a stable requirement record for that precondition, so that portion is not mapped. Passing development-profile tests are not conformance validation.",
+      "next_action": "Verified 2026-10-21: focused MinGW test passes 26 assertions. The producer remains locally knowledgeable before the accepted deletion timestamp; it is forgotten at that time boundary or immediately when time regulation is disabled. Only the producer-knowledge cases map to §6.16.4; the separate update-time precondition is not mapped because the pinned Lab export lacks a stable requirement record. Development-profile evidence only, not conformance validation."
     }
   ]
 }
