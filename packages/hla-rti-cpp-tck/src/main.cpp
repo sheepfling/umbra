@@ -19444,6 +19444,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-switch-duplicate-equal-contract",
       "cpp-tck.fom-switch-duplicate-order-contract",
       "cpp-tck.fom-switch-duplicate-omitted-contract",
+      "cpp-tck.fom-advisory-switch-duplicate-equal-contract",
+      "cpp-tck.fom-advisory-switch-duplicate-order-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20157,6 +20159,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-switch-duplicate-equal",
       "cpp-tck.fom-switch-duplicate-order",
       "cpp-tck.fom-switch-duplicate-omitted",
+      "cpp-tck.fom-advisory-switch-duplicate-equal",
+      "cpp-tck.fom-advisory-switch-duplicate-order",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -21024,6 +21028,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-switch-duplicate-omitted-contract") {
     return scenarioFomSwitchDuplicateOmittedContract;
+  }
+  if (id == "cpp-tck.fom-advisory-switch-duplicate-equal-contract") {
+    return scenarioFomAdvisorySwitchDuplicateEqualContract;
+  }
+  if (id == "cpp-tck.fom-advisory-switch-duplicate-order-contract") {
+    return scenarioFomAdvisorySwitchDuplicateOrderContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23298,6 +23308,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-switch-duplicate-omitted") {
     return scenarioFomSwitchDuplicateOmitted;
   }
+  if (id == "cpp-tck.fom-advisory-switch-duplicate-equal") {
+    return scenarioFomAdvisorySwitchDuplicateEqual;
+  }
+  if (id == "cpp-tck.fom-advisory-switch-duplicate-order") {
+    return scenarioFomAdvisorySwitchDuplicateOrder;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23830,6 +23846,19 @@ int run(Options const& options) {
                    options.scenarioFoms.count("switch-duplicate-omitted") == 0U))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied switch-duplicate FOM modules";
+      } else if ((scenario == "cpp-tck.fom-advisory-switch-duplicate-equal" ||
+                  scenario == "cpp-tck.fom-advisory-switch-duplicate-equal-contract" ||
+                  scenario == "cpp-tck.fom-advisory-switch-duplicate-order" ||
+                  scenario == "cpp-tck.fom-advisory-switch-duplicate-order-contract") &&
+                 (options.scenarioFoms.count("advisory-switch-duplicate-disabled") == 0U ||
+                  ((scenario == "cpp-tck.fom-advisory-switch-duplicate-equal" ||
+                    scenario == "cpp-tck.fom-advisory-switch-duplicate-equal-contract") &&
+                   options.scenarioFoms.count("advisory-switch-duplicate-equal") == 0U) ||
+                  ((scenario == "cpp-tck.fom-advisory-switch-duplicate-order" ||
+                    scenario == "cpp-tck.fom-advisory-switch-duplicate-order-contract") &&
+                   options.scenarioFoms.count("advisory-switch-duplicate-enabled") == 0U))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied advisory-switch-duplicate FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

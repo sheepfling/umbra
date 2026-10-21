@@ -144,6 +144,12 @@ public final class RtiTckMain {
       "hla.rti.tck.switchDuplicateEnabledFom";
    private static final String SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY =
       "hla.rti.tck.switchDuplicateOmittedFom";
+   private static final String ADVISORY_SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY =
+      "hla.rti.tck.advisorySwitchDuplicateDisabledFom";
+   private static final String ADVISORY_SWITCH_DUPLICATE_EQUAL_FOM_PROPERTY =
+      "hla.rti.tck.advisorySwitchDuplicateEqualFom";
+   private static final String ADVISORY_SWITCH_DUPLICATE_ENABLED_FOM_PROPERTY =
+      "hla.rti.tck.advisorySwitchDuplicateEnabledFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1800,6 +1806,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomSwitchDuplicateOmitted);
+      run(new Scenario("java-tck.fom-advisory-switch-duplicate-equal",
+            "Accept equivalent duplicate known-class advisory declarations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomAdvisorySwitchDuplicateEqual);
+      run(new Scenario("java-tck.fom-advisory-switch-duplicate-order",
+            "Expose the first known-class advisory declaration in conflicting module order",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomAdvisorySwitchDuplicateOrder);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11522,6 +11540,10 @@ public final class RtiTckMain {
             method = "fomSwitchDuplicateOrder"; break;
          case "java-tck.fom-switch-duplicate-omitted":
             method = "fomSwitchDuplicateOmitted"; break;
+         case "java-tck.fom-advisory-switch-duplicate-equal":
+            method = "fomAdvisorySwitchDuplicateEqual"; break;
+         case "java-tck.fom-advisory-switch-duplicate-order":
+            method = "fomAdvisorySwitchDuplicateOrder"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13183,6 +13205,20 @@ public final class RtiTckMain {
          requireAdapterFile(SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
          requireAdapterFile(SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY),
          timeImplementation(), callbackModel(), false, true);
+   }
+
+   private static void fomAdvisorySwitchDuplicateEqual() throws Exception {
+      FomAdvisorySwitchDuplicateTck.run(factory(),
+         requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
+         requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_EQUAL_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomAdvisorySwitchDuplicateOrder() throws Exception {
+      FomAdvisorySwitchDuplicateTck.run(factory(),
+         requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
+         requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_ENABLED_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {
