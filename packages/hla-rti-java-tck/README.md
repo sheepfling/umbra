@@ -478,6 +478,8 @@ after resignation. It passed focused local Java runs under both callback
 models on 2026-10-22; the existing C++ primary peer passed 2/2 without a
 rebuild. The provider supplies the rate FOM, class, attribute, and designator;
 these local passes are not independent-provider conformance evidence.
+Its named subscription and per-attribute rate equality also cover the smaller
+`cpp-tck.named-update-rate-subscription` behavior without a duplicate Java case.
 
 The opt-in `java-tck.timestamped-attribute-update-rate-reduction` case checks
 timestamped best-effort suppression while reliable attribute updates continue

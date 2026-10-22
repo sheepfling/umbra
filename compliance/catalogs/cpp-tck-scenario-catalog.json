@@ -11011,7 +11011,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-097-l20-4 → §5.8: the scenario subscribes one attribute with the FOM's named High update-rate designator and verifies that the attribute's queried subscription rate equals that designator's resolved rate. Installed-package direct and CTest runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-named-update-rate-subscription-20261016/results.json. Adapter evidence only, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to page-097-l20-4 → §5.8: the scenario subscribes one attribute with the FOM's named High update-rate designator and verifies that the attribute's queried subscription rate equals that designator's resolved rate. Installed-package direct and CTest runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-named-update-rate-subscription-20261016/results.json. The Java parity alias is a pure-API superset that also tests post-resignation membership; its named-rate subscription and equality checks passed in both callback models on 2026-10-22. Adapter evidence only, not a provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -11024,6 +11024,7 @@
       "cpp_test": "src/portable_tck.cpp#scenarioNamedUpdateRateSubscriptionPortable",
       "runner_id": "cpp-tck.named-update-rate-subscription",
       "parity": "java-tck.update-rate-queries",
+      "parity_aliases": ["java-tck.update-rate-lookups-valid-inputs-after-resignation"],
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
