@@ -2953,12 +2953,11 @@ public final class RtiTckMain {
             "directed-interaction",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.getTransportationTypeName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
             new String[] {
-               "java-1516.1-directed-interaction-publication",
-               "java-1516.1-directed-interaction-subscription",
-               "java-1516.1-directed-interaction-delivery",
-               "java-1516.1-object-registration-discovery",
-               "java-1516.1-interaction-parameter-delivery"
-         }, false), RtiTckMain::directedInteractionSubscriptionKind);
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l128-37",
+               "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10"
+         }, true), RtiTckMain::directedInteractionSubscriptionKind);
       run(new Scenario("java-tck.timestamped-directed-interaction-subscription-kind",
             "timestamped directed delivery through by-ownership and universal subscriptions",
             "time",
@@ -14658,7 +14657,7 @@ public final class RtiTckMain {
    }
 
    private static void directedInteractionSubscriptionKind() throws Exception {
-      DirectedInteractionSubscriptionKindTck.run(factory(), requireFom(), objectClassName(),
+      DirectedInteractionSubscriptionKindTck.run(factory(), requireFom(), timeImplementation(), objectClassName(),
          attributeName(), interactionClassName(), parameterName(), callbackModel());
    }
 

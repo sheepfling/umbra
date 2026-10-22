@@ -1229,10 +1229,14 @@ checks target discovery and directed deliveries even when the adapter-selected
 receiver uses evoked callbacks. The primary callback model is selected by the
 adapter; the case imports only the IEEE 1516.1-2025 Java API.
 
-The `java-tck.directed-interaction-subscription-kind` scenario distinguishes
+The default `java-tck.directed-interaction-subscription-kind` scenario distinguishes
 by-ownership from universal delivery, checks that an empty by-ownership set
-does not disturb a universal declaration, and changes both subscribers' kinds
-while the federation is active.
+does not disturb a universal declaration, and resubscribes both subscribers
+to different kinds while the federation is active. It uses adapter-supplied
+provider, FOM, logical-time implementation, endpoint, names, and callback
+model, and receiver-local handles. Focused installed JNI runs passed in both
+callback models. Ownership/universal eligibility remains supplemental under
+RL-028; independent-provider conformance is unverified.
 
 The `java-tck.directed-derived-object-target-eligibility` scenario runs the
 same ownership/universal distinction with an adapter-selected derived object

@@ -13652,9 +13652,17 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.getParameterHandleValueMapFactory",
@@ -13677,11 +13685,10 @@
         "FederateAmbassador.receiveDirectedInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-publication",
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-object-registration-discovery",
-        "java-1516.1-interaction-parameter-delivery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l128-37",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10"
       ],
       "contract_refs": [
         "directed-interaction-api-contract.json",
@@ -13699,8 +13706,9 @@
         "standard-directed-interaction-subscription-kind-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionSubscriptionKind",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, endpoint, callback model, and object/attribute/interaction/parameter names are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, FOM, logical-time implementation, endpoint, callback model, and object/attribute/interaction/parameter names.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-derived-object-target-eligibility",

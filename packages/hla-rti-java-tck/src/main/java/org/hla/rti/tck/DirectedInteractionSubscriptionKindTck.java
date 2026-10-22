@@ -16,17 +16,20 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Distinguish by-ownership and universal directed-interaction subscriptions. */
 final class DirectedInteractionSubscriptionKindTck {
    private DirectedInteractionSubscriptionKindTck() {
    }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String attributeName, String interactionName, String parameterName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador sender = factory.getRtiAmbassador();
@@ -43,6 +46,7 @@ final class DirectedInteractionSubscriptionKindTck {
       boolean[] joined = new boolean[4];
       boolean ownerPublished = false, secondOwnerPublished = false;
       boolean senderSubscribed = false, selectorSubscribed = false;
+      boolean secondOwnerSubscribed = false;
       boolean interactionPublished = false, ownerDirectedSubscribed = false;
       boolean secondOwnerDirectedSubscribed = false, selectorDirectedSubscribed = false;
       ObjectClassHandle senderClass = null, ownerClass = null;
@@ -62,7 +66,7 @@ final class DirectedInteractionSubscriptionKindTck {
          connected[2] = true;
          selector.connect(selectorRecorder.proxy(), callbackModel);
          connected[3] = true;
-         sender.createFederationExecution(federation, fom);
+         sender.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = sender.joinFederationExecution(
             "java-tck-subscription-kind-sender", federation);
@@ -101,6 +105,27 @@ final class DirectedInteractionSubscriptionKindTck {
             secondOwnerInteraction, parameterName);
          ParameterHandle selectorParameter = selector.getParameterHandle(selectorInteraction,
             parameterName);
+         JavaTckSupport.check(objectClassName.equals(sender.getObjectClassName(senderClass))
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(secondOwner.getObjectClassName(secondOwnerClass))
+               && objectClassName.equals(selector.getObjectClassName(selectorClass))
+               && attributeName.equals(sender.getAttributeName(senderClass, senderAttribute))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(secondOwner.getAttributeName(
+                  secondOwnerClass, secondOwnerAttribute))
+               && attributeName.equals(selector.getAttributeName(selectorClass, selectorAttribute))
+               && interactionName.equals(sender.getInteractionClassName(senderInteraction))
+               && interactionName.equals(owner.getInteractionClassName(ownerInteraction))
+               && interactionName.equals(secondOwner.getInteractionClassName(
+                  secondOwnerInteraction))
+               && interactionName.equals(selector.getInteractionClassName(selectorInteraction))
+               && parameterName.equals(sender.getParameterName(senderInteraction, senderParameter))
+               && parameterName.equals(owner.getParameterName(ownerInteraction, ownerParameter))
+               && parameterName.equals(secondOwner.getParameterName(
+                  secondOwnerInteraction, secondOwnerParameter))
+               && parameterName.equals(selector.getParameterName(
+                  selectorInteraction, selectorParameter)),
+            "adapter FOM class and member names did not round-trip locally");
 
          sender.subscribeObjectClassAttributes(senderClass, senderAttributes);
          senderSubscribed = true;
@@ -110,6 +135,8 @@ final class DirectedInteractionSubscriptionKindTck {
          ownerPublished = true;
          secondOwner.publishObjectClassAttributes(secondOwnerClass, secondOwnerAttributes);
          secondOwnerPublished = true;
+         secondOwner.subscribeObjectClassAttributes(secondOwnerClass, secondOwnerAttributes);
+         secondOwnerSubscribed = true;
 
          senderDirected = JavaTckSupport.interactionSet(sender, senderInteraction);
          ownerDirected = JavaTckSupport.interactionSet(owner, ownerInteraction);
@@ -127,79 +154,128 @@ final class DirectedInteractionSubscriptionKindTck {
          selectorDirectedSubscribed = true;
 
          ObjectInstanceHandle ownerTarget = owner.registerObjectInstance(ownerClass);
-         ObjectInstanceHandle secondOwnerTarget = secondOwner.registerObjectInstance(
-            secondOwnerClass);
+         String ownerTargetName = owner.getObjectInstanceName(ownerTarget);
+         JavaTckSupport.check(ownerTargetName != null && !ownerTargetName.isEmpty(),
+            "registered owner target has no standard object name");
          awaitDiscovery(sender, selector, senderRecorder, selectorRecorder,
-            ownerTarget, secondOwnerTarget);
+            ownerTargetName, callbackModel);
+         awaitDiscovery(secondOwner, secondOwnerRecorder, ownerTargetName, callbackModel);
+         ObjectInstanceHandle selectorOwnerTarget = selector.getObjectInstanceHandle(
+            ownerTargetName);
+         ObjectInstanceHandle senderOwnerTarget = sender.getObjectInstanceHandle(ownerTargetName);
+         ObjectInstanceHandle secondOwnerOwnerTarget = secondOwner.getObjectInstanceHandle(
+            ownerTargetName);
+         String producerName = sender.getFederateName(producer);
+         FederateHandle ownerProducer = owner.getFederateHandle(producerName);
+         FederateHandle secondOwnerProducer = secondOwner.getFederateHandle(producerName);
+         FederateHandle selectorProducer = selector.getFederateHandle(producerName);
+         JavaTckSupport.check(senderRecorder.hasDiscovery(ownerTargetName, senderOwnerTarget)
+               && selectorRecorder.hasDiscovery(ownerTargetName, selectorOwnerTarget)
+               && secondOwnerRecorder.hasDiscovery(ownerTargetName, secondOwnerOwnerTarget),
+            "owner target was not discovered with receiver-local handles");
 
          byte[] value = new byte[] {0x53, 0x55, 0x42, 0x2d, 0x4b};
          byte[] ownerTag = new byte[] {0x4f, 0x57, 0x4e};
          byte[] secondOwnerTag = new byte[] {0x4f, 0x57, 0x52};
-         send(sender, senderInteraction, senderParameter, ownerTarget, value, ownerTag);
-         awaitCounts(owner, selector, ownerRecorder, selectorRecorder, 1);
-         JavaTckSupport.drain(secondOwner);
+         send(sender, senderInteraction, senderParameter, senderOwnerTarget, value, ownerTag);
+         awaitCounts(owner, selector, ownerRecorder, selectorRecorder, 1, 1, callbackModel);
+         pumpQuiet(secondOwner, callbackModel);
          JavaTckSupport.check(secondOwnerRecorder.directed.isEmpty(),
             "by-ownership subscriber received a directed send for another owner's object");
          assertRecord(ownerRecorder.directed.get(0), ownerInteraction, ownerTarget,
-            ownerParameter, value, ownerTag, producer, owner, "owner-only delivery");
-         assertRecord(selectorRecorder.directed.get(0), selectorInteraction, ownerTarget,
-            selectorParameter, value, ownerTag, producer, selector, "universal delivery");
+            ownerParameter, value, ownerTag, ownerProducer, owner, "owner-only delivery");
+         assertRecord(selectorRecorder.directed.get(0), selectorInteraction, selectorOwnerTarget,
+            selectorParameter, value, ownerTag, selectorProducer, selector, "universal delivery");
 
          // Adding an empty by-ownership set must not erase the existing universal declaration.
          InteractionClassHandleSet empty =
             selector.getInteractionClassHandleSetFactory().create();
          selector.subscribeObjectClassDirectedInteractions(selectorClass, empty);
-         send(sender, senderInteraction, senderParameter, ownerTarget, value, ownerTag);
-         awaitCounts(owner, selector, ownerRecorder, selectorRecorder, 2);
+         send(sender, senderInteraction, senderParameter, senderOwnerTarget, value, ownerTag);
+         awaitCounts(owner, selector, ownerRecorder, selectorRecorder, 2, 2, callbackModel);
+         assertRecord(selectorRecorder.directed.get(1), selectorInteraction,
+            selectorOwnerTarget, selectorParameter, value, ownerTag, selectorProducer,
+            selector, "universal delivery after empty-set subscription");
+         pumpQuiet(secondOwner, callbackModel);
          JavaTckSupport.check(secondOwnerRecorder.directed.isEmpty(),
             "empty directed subscription set routed data to a non-owner");
 
-         send(sender, senderInteraction, senderParameter, secondOwnerTarget, value, secondOwnerTag);
-         awaitCounts(secondOwner, selector, secondOwnerRecorder, selectorRecorder, 1);
-         JavaTckSupport.drain(owner);
+         ObjectInstanceHandle secondOwnerTarget = secondOwner.registerObjectInstance(
+            secondOwnerClass);
+         String secondOwnerTargetName = secondOwner.getObjectInstanceName(secondOwnerTarget);
+         JavaTckSupport.check(secondOwnerTargetName != null && !secondOwnerTargetName.isEmpty(),
+            "registered second-owner target has no standard object name");
+         awaitDiscovery(sender, selector, senderRecorder, selectorRecorder,
+            secondOwnerTargetName, callbackModel);
+         ObjectInstanceHandle senderSecondOwnerTarget = sender.getObjectInstanceHandle(
+            secondOwnerTargetName);
+         ObjectInstanceHandle selectorSecondOwnerTarget = selector.getObjectInstanceHandle(
+            secondOwnerTargetName);
+         JavaTckSupport.check(senderRecorder.hasDiscovery(secondOwnerTargetName,
+               senderSecondOwnerTarget)
+               && selectorRecorder.hasDiscovery(secondOwnerTargetName,
+                  selectorSecondOwnerTarget),
+            "second-owner target was not discovered with receiver-local handles");
+
+         send(sender, senderInteraction, senderParameter, senderSecondOwnerTarget,
+            value, secondOwnerTag);
+         awaitCounts(secondOwner, selector, secondOwnerRecorder, selectorRecorder,
+            1, 3, callbackModel);
+         pumpQuiet(owner, callbackModel);
          JavaTckSupport.check(ownerRecorder.directed.size() == 2,
             "by-ownership subscriber received a second owner's target");
          assertRecord(secondOwnerRecorder.directed.get(0), secondOwnerInteraction,
-            secondOwnerTarget, secondOwnerParameter, value, secondOwnerTag, producer,
+            secondOwnerTarget, secondOwnerParameter, value, secondOwnerTag, secondOwnerProducer,
             secondOwner, "second-owner delivery");
          assertRecord(selectorRecorder.directed.get(2), selectorInteraction,
-            secondOwnerTarget, selectorParameter, value, secondOwnerTag, producer,
+            selectorSecondOwnerTarget, selectorParameter, value, secondOwnerTag, selectorProducer,
             selector, "universal second-owner delivery");
 
-         // Change the first subscriber to by-ownership and the second to universal.
-         selector.unsubscribeObjectClassDirectedInteractions(selectorClass);
-         selectorDirectedSubscribed = false;
+         // Resubscribe the existing selector to by-ownership without first unsubscribing.
          selector.subscribeObjectClassDirectedInteractions(selectorClass, selectorDirected);
-         selectorDirectedSubscribed = true;
-         secondOwner.unsubscribeObjectClassDirectedInteractions(secondOwnerClass,
-            secondOwnerDirected);
-         secondOwnerDirectedSubscribed = false;
+         send(sender, senderInteraction, senderParameter, senderOwnerTarget, value,
+            new byte[] {0x55, 0x31});
+         awaitCount(owner, ownerRecorder, 3, callbackModel);
+         assertRecord(ownerRecorder.directed.get(2), ownerInteraction, ownerTarget,
+            ownerParameter, value, new byte[] {0x55, 0x31}, ownerProducer, owner,
+            "owner delivery after selector resubscription");
+         pumpQuiet(selector, callbackModel);
+         pumpQuiet(secondOwner, callbackModel);
+         JavaTckSupport.check(selectorRecorder.directed.size() == 3,
+            "resubscribed by-ownership selector received a non-owned target");
+         JavaTckSupport.check(secondOwnerRecorder.directed.size() == 1,
+            "unrelated by-ownership subscriber received a non-owned target");
+
+         // Resubscribe the second owner to universal delivery without unsubscribing.
          secondOwner.subscribeObjectClassDirectedInteractionsUniversally(secondOwnerClass,
             secondOwnerDirected);
-         secondOwnerDirectedSubscribed = true;
 
-         send(sender, senderInteraction, senderParameter, secondOwnerTarget, value,
-            new byte[] {0x55, 0x31});
-         awaitCount(secondOwner, secondOwnerRecorder, 2);
-         JavaTckSupport.drain(owner);
-         JavaTckSupport.drain(selector);
-         JavaTckSupport.check(ownerRecorder.directed.size() == 2,
-            "by-ownership subscriber received another owner's target after mode change");
-         JavaTckSupport.check(selectorRecorder.directed.size() == 3,
-            "by-ownership subscriber received another owner's target after mode change");
-
-         send(sender, senderInteraction, senderParameter, ownerTarget, value,
+         send(sender, senderInteraction, senderParameter, senderOwnerTarget, value,
             new byte[] {0x55, 0x32});
-         awaitCount(owner, ownerRecorder, 3);
-         awaitCount(secondOwner, secondOwnerRecorder, 3);
+         awaitCount(owner, ownerRecorder, 4, callbackModel);
+         awaitCount(secondOwner, secondOwnerRecorder, 2, callbackModel);
+         pumpQuiet(selector, callbackModel);
          JavaTckSupport.check(selectorRecorder.directed.size() == 3,
             "by-ownership subscriber received a non-owned target after mode change");
-         assertRecord(ownerRecorder.directed.get(2), ownerInteraction, ownerTarget,
-            ownerParameter, value, new byte[] {0x55, 0x32}, producer, owner,
+         assertRecord(ownerRecorder.directed.get(3), ownerInteraction, ownerTarget,
+            ownerParameter, value, new byte[] {0x55, 0x32}, ownerProducer, owner,
             "switched universal owner delivery");
-         assertRecord(secondOwnerRecorder.directed.get(2), secondOwnerInteraction,
-            ownerTarget, secondOwnerParameter, value, new byte[] {0x55, 0x32}, producer,
+         assertRecord(secondOwnerRecorder.directed.get(1), secondOwnerInteraction,
+            secondOwnerOwnerTarget, secondOwnerParameter,
+            value, new byte[] {0x55, 0x32}, secondOwnerProducer,
             secondOwner, "switched universal second-owner delivery");
+         pumpQuiet(sender, callbackModel);
+         pumpQuiet(owner, callbackModel);
+         pumpQuiet(secondOwner, callbackModel);
+         JavaTckSupport.check(senderRecorder.directed.isEmpty()
+               && ownerRecorder.directed.size() == 4
+               && secondOwnerRecorder.directed.size() == 2
+               && selectorRecorder.directed.size() == 3
+               && senderRecorder.unexpectedDirectedCount.get() == 0
+               && ownerRecorder.unexpectedDirectedCount.get() == 0
+               && secondOwnerRecorder.unexpectedDirectedCount.get() == 0
+               && selectorRecorder.unexpectedDirectedCount.get() == 0,
+            "directed subscription-kind case produced an unexpected recipient or callback");
       } finally {
          if (selectorDirectedSubscribed && joined[3]) {
             try { selector.unsubscribeObjectClassDirectedInteractions(selectorClass); }
@@ -223,6 +299,10 @@ final class DirectedInteractionSubscriptionKindTck {
          }
          if (selectorSubscribed && joined[3]) {
             try { selector.unsubscribeObjectClass(selectorClass); }
+            catch (Exception ignored) { }
+         }
+         if (secondOwnerSubscribed && joined[2]) {
+            try { secondOwner.unsubscribeObjectClass(secondOwnerClass); }
             catch (Exception ignored) { }
          }
          if (ownerPublished && joined[1]) {
@@ -258,40 +338,65 @@ final class DirectedInteractionSubscriptionKindTck {
    }
 
    private static void awaitDiscovery(RTIambassador sender, RTIambassador selector,
-         Recorder senderRecorder, Recorder selectorRecorder, ObjectInstanceHandle first,
-         ObjectInstanceHandle second) throws Exception {
+         Recorder senderRecorder, Recorder selectorRecorder, String targetName,
+         CallbackModel callbackModel) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
-            && (!senderRecorder.discoveries.contains(first)
-               || !senderRecorder.discoveries.contains(second)
-               || !selectorRecorder.discoveries.contains(first)
-               || !selectorRecorder.discoveries.contains(second))) {
-         JavaTckSupport.drain(sender);
-         JavaTckSupport.drain(selector);
-         Thread.yield();
+            && (!senderRecorder.hasDiscovery(targetName)
+               || !selectorRecorder.hasDiscovery(targetName))) {
+         service(sender, callbackModel);
+         service(selector, callbackModel);
       }
-      JavaTckSupport.check(senderRecorder.discoveries.contains(first)
-            && senderRecorder.discoveries.contains(second)
-            && selectorRecorder.discoveries.contains(first)
-            && selectorRecorder.discoveries.contains(second),
-         "sender or universal subscriber did not discover both directed targets");
+      JavaTckSupport.check(senderRecorder.hasDiscovery(targetName)
+            && selectorRecorder.hasDiscovery(targetName),
+         "sender or universal subscriber did not discover directed target " + targetName);
+   }
+
+   private static void awaitDiscovery(RTIambassador ambassador, Recorder recorder,
+         String targetName, CallbackModel callbackModel) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline && !recorder.hasDiscovery(targetName)) {
+         service(ambassador, callbackModel);
+      }
+      JavaTckSupport.check(recorder.hasDiscovery(targetName),
+         "subscriber did not discover directed target " + targetName);
    }
 
    private static void awaitCounts(RTIambassador first, RTIambassador second,
-         Recorder firstRecorder, Recorder secondRecorder, int count) throws Exception {
-      awaitCount(first, firstRecorder, count);
-      awaitCount(second, secondRecorder, count);
+         Recorder firstRecorder, Recorder secondRecorder, int firstCount,
+         int secondCount, CallbackModel callbackModel) throws Exception {
+      awaitCount(first, firstRecorder, firstCount, callbackModel);
+      awaitCount(second, secondRecorder, secondCount, callbackModel);
    }
 
-   private static void awaitCount(RTIambassador ambassador, Recorder recorder, int count)
+   private static void awaitCount(RTIambassador ambassador, Recorder recorder, int count,
+         CallbackModel callbackModel)
          throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
-      while (System.nanoTime() < deadline && recorder.directed.size() < count) {
-         JavaTckSupport.drain(ambassador);
-         Thread.yield();
+      while (System.nanoTime() < deadline && recorder.directed.size() < count
+            && recorder.unexpectedDirectedCount.get() == 0) {
+         service(ambassador, callbackModel);
       }
-      JavaTckSupport.check(recorder.directed.size() >= count,
-         "directed subscription-kind callback did not arrive before deadline");
+      JavaTckSupport.check(recorder.directed.size() >= count
+            && recorder.unexpectedDirectedCount.get() == 0,
+         "directed subscription-kind callback count " + recorder.directed.size()
+            + " did not reach " + count + " before deadline; unexpected overloads="
+            + recorder.unexpectedDirectedCount.get());
+   }
+
+   private static void service(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+      else Thread.yield();
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
    }
 
    private static void assertRecord(Directed received, InteractionClassHandle interaction,
@@ -305,9 +410,10 @@ final class DirectedInteractionSubscriptionKindTck {
          description + " carried the wrong interaction, target, or parameter");
       JavaTckSupport.check(Arrays.equals(tag, received.tag),
          description + " did not preserve the tag");
-      JavaTckSupport.check("HLAreliable".equals(
-            inspector.getTransportationTypeName(received.transportation)),
-         description + " did not preserve reliable transportation");
+      String transportation = received.transportation == null ? null
+         : inspector.getTransportationTypeName(received.transportation);
+      JavaTckSupport.check(transportation != null && !transportation.isEmpty(),
+         description + " carried an unknown transportation type");
       JavaTckSupport.check(producer.equals(received.producer),
          description + " carried the wrong producer");
    }
@@ -346,8 +452,18 @@ final class DirectedInteractionSubscriptionKindTck {
    }
 
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final AtomicInteger unexpectedDirectedCount = new AtomicInteger();
+
+      private boolean hasDiscovery(String name) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name));
+      }
+
+      private boolean hasDiscovery(String name, ObjectInstanceHandle handle) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name)
+            && handle.equals(discovery.handle));
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -355,13 +471,16 @@ final class DirectedInteractionSubscriptionKindTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("receiveDirectedInteraction".equals(name)) {
-                  directed.add(new Directed((InteractionClassHandle) arguments[0],
-                     (ObjectInstanceHandle) arguments[1],
-                     ((ParameterHandleValueMap) arguments[2]).clone(),
-                     ((byte[]) arguments[3]).clone(),
-                     (TransportationTypeHandle) arguments[4], (FederateHandle) arguments[5]));
+                  if (arguments != null && arguments.length == 6) {
+                     directed.add(new Directed((InteractionClassHandle) arguments[0],
+                        (ObjectInstanceHandle) arguments[1],
+                        ((ParameterHandleValueMap) arguments[2]).clone(),
+                        ((byte[]) arguments[3]).clone(),
+                        (TransportationTypeHandle) arguments[4], (FederateHandle) arguments[5]));
+                  } else unexpectedDirectedCount.incrementAndGet();
                } else if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK subscription-kind callbacks";
@@ -370,6 +489,16 @@ final class DirectedInteractionSubscriptionKindTck {
                }
                return null;
             });
+      }
+   }
+
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
       }
    }
 }
