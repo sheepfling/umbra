@@ -4177,7 +4177,7 @@ public final class RtiTckMain {
             new String[] {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectRemoval);
+            }, true), RtiTckMain::timestampedObjectRemoval);
       run(new Scenario("java-tck.timestamped-object-deletion-mixed-advances",
             "timestamped object removal through Flush Queue, TARA, and NMRA", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance(time);RTIambassador.retract;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.flushQueueRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequestAvailable;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.flushQueueGrant;FederateAmbassador.timeAdvanceGrant",

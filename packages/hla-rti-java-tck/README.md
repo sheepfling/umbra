@@ -1040,8 +1040,8 @@ contract cases passed independent installed-package runs in both callback
 models; Java provider execution remains unsupported by default pending
 verification with a Java provider.
 
-Ownership, synchronization, DDM, time-managed delivery (including timestamped
-attribute reflection and object removal, mixed-advance attribute and interaction
+Ownership, synchronization, DDM, other time-managed delivery (including timestamped
+attribute reflection, mixed-advance attribute and interaction
 delivery, interaction retraction, cross-producer timestamp ordering, no-fanout
 interaction retraction, retraction fan-out, and Time Regulation/Time Constrained
 re-enable), save/restore,
@@ -1051,7 +1051,11 @@ asynchronous-delivery gate, checks release both by re-enabling asynchronous
 delivery and by a time advance while delivery is disabled, then validates the
 timestamped callback metadata and delivery-before-grant ordering. Its callback model is adapter-selectable through
 `hla.rti.tck.callbackModel` (`HLA_EVOKED` or `HLA_IMMEDIATE`). A provider profile
-can enable a lane only when the provider and supplied FOM support it.
+can enable a lane only when the provider and supplied FOM support it. The
+object-removal case is default-run after installed-package passes in both
+callback models on 2026-10-22. It directly witnesses only §§8.1.4 and 8.15.3;
+FOM, endpoint, callback model, and logical-time implementation remain adapter
+inputs, and no cross-provider conformance is claimed.
 Timestamped reflection checks that the constrained receiver gets no reflection
 and does not advance logical time before requesting an advance, then checks the
 callback's exact logical time and order metadata, reflection-before-grant

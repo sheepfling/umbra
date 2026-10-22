@@ -20812,6 +20812,16 @@
         "java-1516.1-object-registration-discovery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4", "hla-1516.1-2025:clause-8.15.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31", "standard_section": "hla-1516.1-2025:clause-8.15.3"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness distinguishes receive-order from timestamp-order removal at one receiver, including metadata and TSO delivery before the matching grant. Direct §8.15.3 witness holds an RO removal while time constrained with asynchronous delivery disabled, then releases it on enable; another held RO removal is released during time advance. This is one order/delivery branch, not the full classification matrix. The source compiles against only official 2025 Java API types; installed-JNI adapter evidence passed HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22, not an independent-provider conformance claim.",
       "contract_refs": [
         "object-instance-deletion-requirements-contract.json",
         "asynchronous-delivery-requirements-contract.json",
@@ -20819,8 +20829,9 @@
         "time-advance-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectRemoval",
-      "default_status": "unsupported",
-      "exclusion": "Requires a provider capability profile and time-management FOM; retain as unsupported until exercised against an installed IEEE 1516.1-2025 provider."
+      "parity": "cpp-tck.object-removal-order-classification",
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed both callback models on 2026-10-22: out/java-tck/timestamped-object-removal-{evoked,immediate}-promoted-20261022.json. Provider-specific FOM, endpoint, callback model, and logical-time implementation remain adapter inputs."
     },
     {
       "id": "java-tck.timestamped-delete-privilege-preferred-order",

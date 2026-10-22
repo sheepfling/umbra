@@ -18,6 +18,7 @@ import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 
 /** Portable IEEE 1516.1-2025 timestamped object-removal checks. */
 final class TimestampedObjectRemovalTck {
@@ -67,7 +68,10 @@ final class TimestampedObjectRemovalTck {
          ObjectInstanceHandle timestampedObject = publisher.registerObjectInstance(publisherClass);
          ObjectInstanceHandle timeAdvanceReleasedObject =
             publisher.registerObjectInstance(publisherClass);
-         drain(subscriber);
+         await(() -> subscriberRecorder.discoveredObjects.contains(receiveOrderObject)
+               && subscriberRecorder.discoveredObjects.contains(timestampedObject)
+               && subscriberRecorder.discoveredObjects.contains(timeAdvanceReleasedObject),
+            callbackModel, subscriber);
          check(subscriberRecorder.discoveredObjects.contains(receiveOrderObject)
                && subscriberRecorder.discoveredObjects.contains(timestampedObject)
                && subscriberRecorder.discoveredObjects.contains(timeAdvanceReleasedObject),
@@ -76,22 +80,23 @@ final class TimestampedObjectRemovalTck {
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTimeInterval lookahead = (LogicalTimeInterval) timeFactory.makeEpsilon();
          publisher.enableTimeRegulation(lookahead);
-         drain(publisher);
+         await(() -> publisherRecorder.timeRegulationEnabled, callbackModel, publisher);
          check(publisherRecorder.timeRegulationEnabled,
             "timeRegulationEnabled did not cross the standard callback interface");
          subscriber.enableTimeConstrained();
-         drain(subscriber);
+         await(() -> subscriberRecorder.timeConstrainedEnabled, callbackModel, subscriber);
          check(subscriberRecorder.timeConstrainedEnabled,
             "timeConstrainedEnabled did not cross the standard callback interface");
 
          byte[] receiveOrderTag = new byte[] {0x51, 0x52};
          publisher.deleteObjectInstance(receiveOrderObject, receiveOrderTag);
-         drain(subscriber);
+         drain(subscriber, callbackModel);
          check(subscriberRecorder.receiveOrderRemovals == 0
                && subscriberRecorder.timestampedRemovals == 0,
             "receive-order removal was delivered while asynchronous delivery was disabled");
          subscriber.enableAsynchronousDelivery();
-         drain(subscriber);
+         await(() -> subscriberRecorder.receiveOrderRemovals == 1,
+            callbackModel, subscriber);
          check(subscriberRecorder.receiveOrderRemovals == 1
                && subscriberRecorder.timestampedRemovals == 0,
             "enableAsynchronousDelivery did not release exactly the receive-order removal");
@@ -103,13 +108,19 @@ final class TimestampedObjectRemovalTck {
          subscriber.disableAsynchronousDelivery();
          byte[] timeAdvanceReleasedTag = new byte[] {0x71, 0x72};
          publisher.deleteObjectInstance(timeAdvanceReleasedObject, timeAdvanceReleasedTag);
-         drain(subscriber);
+         drain(subscriber, callbackModel);
          check(subscriberRecorder.receiveOrderRemovals == 1
                && subscriberRecorder.timestampedRemovals == 0,
             "disabling asynchronous delivery did not retain receive-order removal");
 
          LogicalTime current = publisher.queryLogicalTime();
          LogicalTime timestamp = (LogicalTime) current.add(lookahead);
+         timestamp = (LogicalTime) timestamp.add(lookahead);
+         timestamp = (LogicalTime) timestamp.add(lookahead);
+         LogicalTime receiverTarget = subscriber.queryLogicalTime();
+         receiverTarget = (LogicalTime) receiverTarget.add(lookahead);
+         receiverTarget = (LogicalTime) receiverTarget.add(lookahead);
+         receiverTarget = (LogicalTime) receiverTarget.add(lookahead);
          byte[] timestampedTag = new byte[] {0x61, 0x62};
          MessageRetractionReturn retraction = publisher.deleteObjectInstance(
             timestampedObject, timestampedTag, timestamp);
@@ -117,8 +128,13 @@ final class TimestampedObjectRemovalTck {
             "timestamped Delete Object Instance returned no valid retraction designator");
 
          subscriberRecorder.callbackSequence.clear();
-         subscriber.timeAdvanceRequest(timestamp);
-         drain(subscriber);
+         publisher.timeAdvanceRequest(timestamp);
+         subscriber.timeAdvanceRequest(receiverTarget);
+         await(() -> publisherRecorder.timeAdvanceGrant != null
+               && subscriberRecorder.timeAdvanceGrant != null
+               && subscriberRecorder.receiveOrderRemovals == 2
+               && subscriberRecorder.timestampedRemovals == 1,
+            callbackModel, publisher, subscriber);
          check(subscriberRecorder.receiveOrderRemovals == 2
                && subscriberRecorder.timestampedRemovals == 1,
             "time advance did not release the held receive-order and timestamped removals");
@@ -139,8 +155,9 @@ final class TimestampedObjectRemovalTck {
             "timestamped removal did not report timestamp order at both boundaries");
          check(retraction.handle.equals(subscriberRecorder.retractionHandle),
             "timestamped removal did not preserve its retraction handle");
-         check(timestamp.equals(subscriberRecorder.timeAdvanceGrant),
-            "timeAdvanceGrant did not report the requested logical time");
+         check(timestamp.equals(publisherRecorder.timeAdvanceGrant)
+               && receiverTarget.equals(subscriberRecorder.timeAdvanceGrant),
+            "timeAdvanceGrant did not report both requested logical times");
          check(subscriberRecorder.callbackSequence.size() == 2
                && "removeObjectInstance".equals(subscriberRecorder.callbackSequence.get(0))
                && "timeAdvanceGrant".equals(subscriberRecorder.callbackSequence.get(1)),
@@ -172,10 +189,30 @@ final class TimestampedObjectRemovalTck {
       }
    }
 
-   private static void drain(RTIambassador ambassador) throws Exception {
-      for (int i = 0; i < 64; ++i) {
-         ambassador.evokeCallback(0.0);
+   private static void drain(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) {
+         for (int i = 0; i < 64; ++i) {
+            ambassador.evokeCallback(0.0);
+         }
+      } else {
+         Thread.sleep(50L);
       }
+   }
+
+   private static void await(BooleanSupplier condition, CallbackModel callbackModel,
+         RTIambassador... ambassadors) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            for (RTIambassador ambassador : ambassadors) {
+               ambassador.evokeCallback(0.0);
+            }
+         } else {
+            Thread.sleep(1L);
+         }
+      }
+      check(condition.getAsBoolean(), "timed out waiting for standard callback");
    }
 
    private static void check(boolean condition, String message) {
@@ -186,14 +223,14 @@ final class TimestampedObjectRemovalTck {
 
    private static final class Recorder {
       private final java.util.Set<ObjectInstanceHandle> discoveredObjects =
-         new java.util.HashSet<>();
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private int receiveOrderRemovals;
+         java.util.concurrent.ConcurrentHashMap.newKeySet();
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private volatile int receiveOrderRemovals;
       private ObjectInstanceHandle receiveOrderObject;
       private byte[] receiveOrderTag;
       private FederateHandle receiveOrderProducer;
-      private int timestampedRemovals;
+      private volatile int timestampedRemovals;
       private ObjectInstanceHandle timestampedObject;
       private byte[] timestampedTag;
       private FederateHandle timestampedProducer;
@@ -201,8 +238,9 @@ final class TimestampedObjectRemovalTck {
       private OrderType sentOrder;
       private OrderType receivedOrder;
       private hla.rti1516_2025.MessageRetractionHandle retractionHandle;
-      private LogicalTime<?, ?> timeAdvanceGrant;
-      private final java.util.List<String> callbackSequence = new java.util.ArrayList<>();
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
+      private final java.util.List<String> callbackSequence =
+         java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -219,14 +257,12 @@ final class TimestampedObjectRemovalTck {
                   timeConstrainedEnabled = true;
                } else if ("removeObjectInstance".equals(name) && arguments != null
                      && arguments.length == 3) {
-                  receiveOrderRemovals++;
                   receiveOrderObject = (ObjectInstanceHandle) arguments[0];
                   receiveOrderTag = ((byte[]) arguments[1]).clone();
                   receiveOrderProducer = (FederateHandle) arguments[2];
+                  receiveOrderRemovals++;
                } else if ("removeObjectInstance".equals(name) && arguments != null
                      && arguments.length == 7) {
-                  timestampedRemovals++;
-                  callbackSequence.add(name);
                   timestampedObject = (ObjectInstanceHandle) arguments[0];
                   timestampedTag = ((byte[]) arguments[1]).clone();
                   timestampedProducer = (FederateHandle) arguments[2];
@@ -234,10 +270,12 @@ final class TimestampedObjectRemovalTck {
                   sentOrder = (OrderType) arguments[4];
                   receivedOrder = (OrderType) arguments[5];
                   retractionHandle = (hla.rti1516_2025.MessageRetractionHandle) arguments[6];
+                  callbackSequence.add(name);
+                  timestampedRemovals++;
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
-                  timeAdvanceGrant = (LogicalTime<?, ?>) arguments[0];
                   callbackSequence.add(name);
+                  timeAdvanceGrant = (LogicalTime<?, ?>) arguments[0];
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK object-removal callbacks";

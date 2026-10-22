@@ -12649,6 +12649,16 @@
         "cpp-1516.1-timestamped-object-deletion",
         "cpp-1516.1-timestamped-object-removal"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4", "hla-1516.1-2025:clause-8.15.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31", "standard_section": "hla-1516.1-2025:clause-8.15.3"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness distinguishes ordinary receive-order from timestamp-order object removal at one receiver, including order metadata and delivery before the matching time-advance grant. Direct §8.15.3 witness holds an RO removal while the receiver is time constrained and asynchronous delivery is disabled, then releases it after enableAsynchronousDelivery. A second held RO removal is released by time advance. This is a selected order/delivery branch, not the complete classification matrix or conformance; existing installed-package C++ binary passed both callback models on 2026-10-22.",
       "contract_refs": [
         "object-removal-order-classification-api-contract.json",
         "object-removal-order-classification-requirements-contract.json",
