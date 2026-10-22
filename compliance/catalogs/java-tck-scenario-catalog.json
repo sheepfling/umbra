@@ -4187,8 +4187,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectAttributeSubscriptionLifecycle",
       "parity": "cpp-tck.object-attribute-subscription-lifecycle",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible FOM, the standard MIM module, a distinct second attribute configured with hla.rti.tck.objectClassSecondAttribute, and a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/object-attribute-subscription-lifecycle-{evoked,immediate}-default-20261022.json after corrected opt-in runs. Initial reflection checks retained subscribed value and filtering; subsequent ordinary Update/Reflect checks user tag, producer, and transportation, matching C++ §5.8 parity. Matching C++ primary and contract passed 4/4 at out/mgw/tck-object-attribute-subscription-lifecycle-parity-20261016.json. Adapter supplies FOM, standard MIM, object class, two distinct attributes, endpoint, logical time, factory, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.attribute-subscription-invocations-accumulate",

@@ -1280,7 +1280,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectAttributeSubscriptionLifecycle);
+            }, true), RtiTckMain::objectAttributeSubscriptionLifecycle);
       run(new Scenario("java-tck.attribute-subscription-invocations-accumulate",
             "accumulate disjoint attributes from repeated class subscription invocations",
             "object-attribute-subscription-accumulation",

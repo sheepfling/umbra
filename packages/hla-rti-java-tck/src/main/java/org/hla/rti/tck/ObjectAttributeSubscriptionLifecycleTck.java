@@ -154,9 +154,14 @@ final class ObjectAttributeSubscriptionLifecycleTck {
 
          await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
             "initial active object-attribute subscription reflection");
-         assertReflection(subscriberCallbacks.reflections.get(0), object, subscriberAttribute,
-            subscriberSecondaryAttribute, initialValue, initialTag, producer,
-            "initial active object-attribute subscription");
+         Reflection initialReflection = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(initialReflection.object)
+               && initialReflection.values.size() == 1
+               && initialReflection.values.containsKey(subscriberAttribute)
+               && !initialReflection.values.containsKey(subscriberSecondaryAttribute)
+               && Arrays.equals(initialValue,
+                  initialReflection.values.get(subscriberAttribute)),
+            "initial active subscription did not retain only the subscribed attribute value");
          subscriberCallbacks.reflections.clear();
 
          byte[] activeValue = new byte[] {0x41, 0x43, 0x54};

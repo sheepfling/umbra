@@ -348,10 +348,14 @@ adapter-configured attributes and verifies that exact active set and rate in
 the standard MIM report; configure the second and third attributes with
 `hla.rti.tck.objectClassSecondAttribute` and
 `hla.rti.tck.objectClassThirdAttribute`.
-The ordinary subscription-lifecycle scenario also requires a distinct second
-attribute through `hla.rti.tck.objectClassSecondAttribute`; it publishes and
-updates both attributes while subscribing to only the primary one, checking
-that initial and subsequent reflection contain only the subscribed value.
+The default-run `java-tck.object-attribute-subscription-lifecycle` scenario
+requires a distinct second attribute through
+`hla.rti.tck.objectClassSecondAttribute`. It publishes and updates both
+attributes while subscribing to only the primary one. Activation checks the
+retained subscribed value without requiring the original update tag; later
+ordinary reflections check the tag, producer, and transportation metadata.
+Focused installed-provider evoked and immediate runs passed; independent-
+provider conformance is not claimed.
 The ownership-acquisition-if-available scenario uses a locally deleted object
 as its unknown-instance fixture and a valid attribute from another class for
 its undefined-attribute boundary. The adapter may set
