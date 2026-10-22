@@ -2178,13 +2178,13 @@ public final class RtiTckMain {
             "Accept identical same-label synchronization declarations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomSynchronizationDuplicateEqual);
       run(new Scenario("java-tck.fom-synchronization-duplicate-note-conflict",
             "Reject a changed note reference on one synchronization declaration",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomSynchronizationDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-transportation-duplicate-equal",
             "Accept identical same-name transportation declarations",

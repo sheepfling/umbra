@@ -558,6 +558,14 @@ installed-provider evoked and immediate runs with adapter-supplied FOM modules
 and standard MIM. This is the §6.2.7 FOM subset; the C++ case's separate
 §9.1.1 region-boundary assertions are not claimed here.
 
+The default-run `java-tck.fom-synchronization-duplicate-equal` and
+`java-tck.fom-synchronization-duplicate-note-conflict` cases cover Annex C.5
+composition of duplicate synchronization declarations: identical declarations
+are accepted, while a changed note reference is rejected with `InconsistentFOM`
+and the federation name can be reused. Both passed installed-provider evoked
+and immediate runs with adapter-supplied FOM modules. Independent-provider
+conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

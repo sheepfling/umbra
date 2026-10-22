@@ -9473,12 +9473,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l58-10"],
       "standard_sections": ["hla-1516.2-2025:clause-C.5"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l58-10", "standard_section": "hla-1516.2-2025:clause-C.5"}],
-      "mapping_note": "Standard Java API parity for same-label equal synchronization declarations. One focused packaged Umbra JNI runtime run passed (out/java-tck/synchronization-duplicate-equal-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for same-label equal synchronization declarations. Matching C++ primary and contract cases passed 4/4 at out/mgw/synchronization-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-synchronization-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomSynchronizationDuplicateEqual",
       "parity": "cpp-tck.fom-synchronization-duplicate-equal",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures synchronizationDuplicateBaseFom and synchronizationDuplicateEqualFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-synchronization-duplicate-equal-{evoked,immediate}-default-20261022.json. Adapter supplies the base and equal synchronization FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-synchronization-duplicate-note-conflict",
@@ -9489,12 +9489,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l54-9", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15"],
       "standard_sections": ["hla-1516.2-2025:clause-C.5"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l54-9", "standard_section": "hla-1516.2-2025:clause-C.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15", "standard_section": "hla-1516.2-2025:clause-C.5"}],
-      "mapping_note": "Standard Java API parity for a synchronization referenced-note conflict and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/synchronization-duplicate-note-conflict-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for a synchronization referenced-note conflict and valid federation-name retry. Matching C++ primary and contract cases passed 4/4 at out/mgw/synchronization-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-synchronization-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomSynchronizationDuplicateNoteConflict",
       "parity": "cpp-tck.fom-synchronization-duplicate-note-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures synchronizationDuplicateBaseFom and synchronizationDuplicateNoteConflictFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-synchronization-duplicate-note-conflict-{evoked,immediate}-default-20261022.json. Adapter supplies the base and changed-note synchronization FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-transportation-duplicate-equal",
