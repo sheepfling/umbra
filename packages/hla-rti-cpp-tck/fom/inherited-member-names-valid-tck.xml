@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name><objectClass>
+        <name>TckInheritedAttributeBase</name><sharing>PublishSubscribe</sharing>
+        <attribute>
+            <name>TckInheritedAttribute</name><dataType>HLAunicodeString</dataType>
+            <updateType>Static</updateType><updateCondition>NA</updateCondition>
+            <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+            <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+            <order>Receive</order><semantics>Inherited base attribute.</semantics>
+        </attribute>
+        <objectClass><name>TckInheritedAttributeChild</name>
+            <sharing>PublishSubscribe</sharing>
+            <attribute>
+                <name>TckChildAttribute</name><dataType>HLAunicodeString</dataType>
+                <updateType>Static</updateType><updateCondition>NA</updateCondition>
+                <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+                <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+                <order>Receive</order><semantics>Distinct child attribute.</semantics>
+            </attribute>
+        </objectClass>
+    </objectClass></objectClass></objects>
+    <interactions><interactionClass><name>HLAinteractionRoot</name><interactionClass>
+        <name>TckInheritedParameterBase</name><sharing>PublishSubscribe</sharing>
+        <transportation>HLAreliable</transportation><order>Receive</order>
+        <parameter><name>TckInheritedParameter</name><dataType>HLAunicodeString</dataType>
+            <semantics>Inherited base parameter.</semantics></parameter>
+        <interactionClass><name>TckInheritedParameterChild</name>
+            <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+            <order>Receive</order>
+            <parameter><name>TckChildParameter</name><dataType>HLAunicodeString</dataType>
+                <semantics>Distinct child parameter.</semantics></parameter>
+        </interactionClass>
+    </interactionClass></interactionClass></interactions>
+</objectModel>

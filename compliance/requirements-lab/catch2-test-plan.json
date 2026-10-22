@@ -14351,6 +14351,7 @@
         "hla-1516.2-2025:clause-6.2.6",
         "hla-1516.2-2025:clause-E"
       ],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l54-10", "standard_section": "hla-1516.2-2025:clause-6.2.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l110-23", "standard_section": "hla-1516.2-2025:clause-6.2.6"}, {"requirement_id": "requirement-candidate-sections-semantic-annexes-d-h-page-116-l26-3", "standard_section": "hla-1516.2-2025:clause-E"}, {"requirement_id": "requirement-candidate-sections-semantic-annexes-d-h-page-116-l30-4", "standard_section": "hla-1516.2-2025:clause-E"}],
       "test_case": "The FOM composition preflight rejects inherited attribute and parameter name overloading",
       "tags": [
         "unit",
@@ -14360,7 +14361,7 @@
       ],
       "assertions": 12,
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2424",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2109",
       "next_action": "This private composition guard rejects an object-class attribute and interaction-class parameter that overloads an inherited member name, preserving the exact diagnostics and fixture identities. Its selected Lab candidates resolve to IEEE 1516.2 clauses 6.2.5 and 6.2.6; broader hierarchy composition, runtime declaration behavior, JUnit/protected review, and conformance remain separate."
     },
     {

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name><objectClass>
+        <name>TckInheritedAttributeBase</name><sharing>PublishSubscribe</sharing>
+        <attribute>
+            <name>TckInheritedAttribute</name><dataType>HLAunicodeString</dataType>
+            <updateType>Static</updateType><updateCondition>NA</updateCondition>
+            <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+            <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+            <order>Receive</order><semantics>Inherited base attribute.</semantics>
+        </attribute>
+        <objectClass><name>TckInheritedAttributeChild</name>
+            <sharing>PublishSubscribe</sharing>
+            <attribute>
+                <name>TckInheritedAttribute</name><dataType>HLAunicodeString</dataType>
+                <updateType>Static</updateType><updateCondition>NA</updateCondition>
+                <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+                <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+                <order>Receive</order><semantics>Duplicate inherited name.</semantics>
+            </attribute>
+        </objectClass>
+    </objectClass></objectClass></objects>
+</objectModel>

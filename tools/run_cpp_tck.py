@@ -776,6 +776,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-user-tck.xml")),
             "tag-data-type-basic-synchronization="
             + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml")),
+            "inherited-member-names-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-member-names-valid-tck.xml")),
+            "inherited-attribute-duplicate="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-attribute-duplicate-tck.xml")),
+            "inherited-parameter-duplicate="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-parameter-duplicate-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="
