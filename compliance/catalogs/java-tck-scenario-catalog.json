@@ -9617,12 +9617,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6"],
       "standard_sections": ["hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for equivalent FOM-supplied known-class advisory switches. One focused packaged Umbra JNI runtime run passed (out/java-tck/advisory-switch-duplicate-equal-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for equivalent FOM-supplied known-class advisory switches. Matching C++ primary and contract cases passed 4/4 at out/mgw/advisory-switch-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-advisory-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAdvisorySwitchDuplicateEqual",
       "parity": "cpp-tck.fom-advisory-switch-duplicate-equal",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures advisorySwitchDuplicateDisabledFom and advisorySwitchDuplicateEqualFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-advisory-switch-duplicate-equal-{evoked,immediate}-default-20261022.json. Adapter supplies the Disabled and equivalent known-class advisory FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-advisory-switch-duplicate-order",
@@ -9633,12 +9633,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5"],
       "standard_sections": ["hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for first-known-class-advisory declaration across module orders. One focused packaged Umbra JNI runtime run passed (out/java-tck/advisory-switch-duplicate-order-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for first-known-class-advisory declaration across module orders. Matching C++ primary and contract cases passed 4/4 at out/mgw/advisory-switch-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-advisory-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAdvisorySwitchDuplicateOrder",
       "parity": "cpp-tck.fom-advisory-switch-duplicate-order",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures advisorySwitchDuplicateDisabledFom and advisorySwitchDuplicateEnabledFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-advisory-switch-duplicate-order-{evoked,immediate}-default-20261022.json. Adapter supplies the Disabled and Enabled known-class advisory FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-advisory-switch-duplicate-omitted",
@@ -9649,12 +9649,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-067-l50-4", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.13.3", "hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4", "standard_section": "hla-1516.2-2025:clause-4.13.3"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for the known-class advisory omitted/default value in both FOM orders. One focused packaged Umbra JNI runtime run passed (out/java-tck/advisory-switch-duplicate-omitted-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for the known-class advisory omitted/default value in both FOM orders. Matching C++ primary and contract cases passed 4/4 at out/mgw/advisory-switch-omitted-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-advisory-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAdvisorySwitchDuplicateOmitted",
       "parity": "cpp-tck.fom-advisory-switch-duplicate-omitted",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures advisorySwitchDuplicateDisabledFom and advisorySwitchDuplicateOmittedFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-advisory-switch-duplicate-omitted-{evoked,immediate}-default-20261022.json. Adapter supplies the explicit Disabled and omitted-setting known-class advisory FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-service-usage-merge",

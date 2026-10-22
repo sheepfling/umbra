@@ -2232,19 +2232,19 @@ public final class RtiTckMain {
             "Accept equivalent duplicate known-class advisory declarations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomAdvisorySwitchDuplicateEqual);
       run(new Scenario("java-tck.fom-advisory-switch-duplicate-order",
             "Expose the first known-class advisory declaration in conflicting module order",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomAdvisorySwitchDuplicateOrder);
       run(new Scenario("java-tck.fom-advisory-switch-duplicate-omitted",
             "Treat omitted known-class advisory isEnabled as Disabled in either module order",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomAdvisorySwitchDuplicateOmitted);
       run(new Scenario("java-tck.fom-service-usage-merge",
             "Logically OR service usage in the public composed current FDD",

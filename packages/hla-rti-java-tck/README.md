@@ -590,6 +590,14 @@ first FOM in either order, and an omitted `isEnabled` defaults to Disabled.
 All three passed installed-provider evoked and immediate runs with
 adapter-supplied FOM modules. Independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-advisory-switch-duplicate-equal`,
+`java-tck.fom-advisory-switch-duplicate-order`, and
+`java-tck.fom-advisory-switch-duplicate-omitted` cases cover equivalent,
+first-module, and omitted-default known-class advisory settings through the
+standard public getter. All three passed installed-provider evoked and
+immediate runs with adapter-supplied FOM modules. Independent-provider
+conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
