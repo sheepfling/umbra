@@ -68,6 +68,8 @@ void scenarioFomTimeRepresentationRejections(Options const&, rti::CallbackModel)
 void scenarioFomTimeRepresentationRejectionsContract(Options const&, rti::CallbackModel);
 void scenarioFomDefaultLogicalTimeSelection(Options const&, rti::CallbackModel);
 void scenarioFomDefaultLogicalTimeSelectionContract(Options const&, rti::CallbackModel);
+void scenarioFomUnavailableLogicalTimeFactory(Options const&, rti::CallbackModel);
+void scenarioFomUnavailableLogicalTimeFactoryContract(Options const&, rti::CallbackModel);
 void scenarioFomMemberDataTypeCategories(Options const&, rti::CallbackModel);
 void scenarioFomMemberDataTypeCategoriesContract(Options const&, rti::CallbackModel);
 void scenarioFomAttributeNaCompanionCompletion(Options const&, rti::CallbackModel);

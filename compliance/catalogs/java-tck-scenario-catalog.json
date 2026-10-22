@@ -8942,6 +8942,22 @@
       "exclusion": "Configure hla.rti.tck.defaultLogicalTimeFom and timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-unavailable-logical-time-factory",
+      "category": "fom-composition",
+      "title": "Reject an adapter-declared unavailable logical-time factory at Create",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.1-federation-create-join-resign-destroy"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.5.5"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "standard_section": "hla-1516.1-2025:clause-4.5.5"}],
+      "mapping_note": "Java standard-API parity for unavailable-factory Create exception and valid federation-name reuse. Adapter attests the supplied factory name is unsupported; Java provider runtime remains unverified.",
+      "contract_refs": ["standard-fom-unavailable-logical-time-factory-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomUnavailableLogicalTimeFactory",
+      "parity": "cpp-tck.fom-unavailable-logical-time-factory",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.defaultLogicalTimeFom and unsupportedTimeImplementation for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-time-representation-rejections",
       "category": "fom-composition",
       "title": "Reject basic and reference data types as logical-time representations",

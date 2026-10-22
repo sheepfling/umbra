@@ -14432,7 +14432,7 @@
       ],
       "assertions": 21,
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private reference-time selector passed 21 assertions and maps to IEEE 1516.2 clause 4.8.3 and IEEE 1516.1 clauses 4.5.5 and 4. Public default Create/Join/getTimeFactory, incompatible-FDD rejection, and valid name reuse now have separate installed-package C++ TCK evidence in both callback models (cpp-tck.fom-default-logical-time-selection); the private selector is not counted as public evidence. Unavailable custom factory names, other FDD combinations, Java provider runtime, interoperability, and conformance remain separate."
+      "next_action": "This private reference-time selector passed 21 assertions and maps to IEEE 1516.2 clause 4.8.3 and IEEE 1516.1 clauses 4.5.5 and 4. Public default Create/Join/getTimeFactory, incompatible-FDD rejection, unsupported factory-name exception, and valid name reuse now have separate installed-package C++ TCK evidence in both callback models (cpp-tck.fom-default-logical-time-selection and cpp-tck.fom-unavailable-logical-time-factory); the private selector is not counted as public evidence. Other FDD combinations, Java provider runtime, interoperability, and conformance remain separate."
     },
     {
       "id": "umbra-cpp-federation-preparation-mim-and-reference-time",

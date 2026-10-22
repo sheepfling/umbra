@@ -179,6 +179,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="HLAinteger64Time",
         help="Logical-time implementation selected by the adapter",
     )
+    parser.add_argument(
+        "--unsupported-time-implementation",
+        default="TckUnavailableTimeFactory",
+        help="Logical-time implementation name known to be unsupported by this provider",
+    )
     parser.add_argument("--provider-id", default="installed-package")
     parser.add_argument("--timeout-ms", type=int, default=10000)
 
@@ -1117,6 +1122,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_SCENARIO_SET": arguments.scenario_set,
         "HLA_RTI_TCK_ADAPTER_PROVIDER_ID": arguments.provider_id,
         "HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION": arguments.time_implementation,
+        "HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION": arguments.unsupported_time_implementation,
         "HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY": inputs[
             "service_report_directory"
         ],
@@ -1425,6 +1431,8 @@ def direct_arguments(
         arguments.ownership_added_attribute,
         "--time-implementation",
         arguments.time_implementation,
+        "--unsupported-time-implementation",
+        arguments.unsupported_time_implementation,
         "--provider-id",
         arguments.provider_id,
         "--timeout-ms",

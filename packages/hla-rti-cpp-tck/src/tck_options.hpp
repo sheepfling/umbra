@@ -146,6 +146,7 @@ struct Options {
   std::wstring fomAdditionalTransportationName = L"TckAdditionalTransport";
   bool requireCustomTransportation = false;
   std::wstring logicalTimeImplementationName;
+  std::wstring unsupportedLogicalTimeImplementationName;
   int timeoutMilliseconds = 5000;
   std::filesystem::path ownershipExtensionFom;
   std::wstring ownershipAddedAttributeName = L"AddedAfterRegistration";

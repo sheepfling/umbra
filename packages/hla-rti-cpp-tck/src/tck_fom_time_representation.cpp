@@ -100,4 +100,31 @@ void scenarioFomDefaultLogicalTimeSelectionContract(Options const& options,
   scenarioFomDefaultLogicalTimeSelection(options, model);
 }
 
+void scenarioFomUnavailableLogicalTimeFactory(Options const& options,
+                                              rti::CallbackModel model) {
+  auto const& unconstrained = requiredFom(options, "default-logical-time");
+  require(!options.unsupportedLogicalTimeImplementationName.empty(),
+          "Unavailable-factory testing requires an adapter-declared unsupported name");
+  Session creator(options, model, "fom-unavailable-time-factory-creator");
+  auto const federation = federationName(options, "fom-unavailable-time-factory");
+  creator.connect();
+  requireException(
+      [&] {
+        creator.rtiAmbassador().createFederationExecution(
+            federation, unconstrained.wstring(),
+            options.unsupportedLogicalTimeImplementationName);
+      },
+      L"CouldNotCreateLogicalTimeFactory",
+      "Create with an adapter-declared unavailable logical-time factory");
+  creator.rtiAmbassador().createFederationExecution(
+      federation, unconstrained.wstring());
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  creator.disconnect();
+}
+
+void scenarioFomUnavailableLogicalTimeFactoryContract(Options const& options,
+                                                      rti::CallbackModel model) {
+  scenarioFomUnavailableLogicalTimeFactory(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

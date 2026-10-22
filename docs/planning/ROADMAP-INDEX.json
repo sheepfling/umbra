@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_unavailable_logical_time_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package",
+    "scope": "Translate the native-green unavailable logical-time factory branch into public C++ Create exception/name-reuse tests and Java standard-API scenario-ID parity, using an adapter-declared unsupported factory name.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:2246; packages/hla-rti-cpp-tck/src/tck_fom_time_representation.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomUnavailableLogicalTimeFactoryTck.java",
+    "direct_mappings": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18 -> IEEE 1516.1-2025 clause 4.5.5"],
+    "evidence": "Native private reference-time selector passed 21 assertions. Public C++ primary and contract passed focused installed-package CTest and direct runner in evoked and immediate callback models (4/4 CTest and 4/4 direct total): out/mgw/unavailable-logical-time-focused-primary-20261021.json and out/mgw/unavailable-logical-time-focused-contract-20261021.json. Only TCK main and scenario objects were compiled, followed by focused relinks; the RTI core was not rebuilt. Java compiled against the 2025 API-only JAR; C++/Java catalog and parity audits passed.",
+    "scope_boundary": "The adapter supplies a time-unconstrained FOM and attests that its configured factory name is unsupported. Public Create throws CouldNotCreateLogicalTimeFactory and leaves the federation name available for a valid retry. A hard-coded provider-specific name is not embedded in portable source. Java provider runtime, all unsupported names, interoperability, and conformance are not claimed.",
+    "next": "Return to the current native-green restore-object-snapshot-status handoff (cpp-tck.restore-object-snapshot-status) after the concurrently edited source settles. Add the exact public MOM service-report Table 5 descriptor assertion for r003 only if the pinned argument is observed and focused installed-package tests pass; preserve the other contributor's dirty work. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_default_logical_time_handoff_2026_10_21": {
     "status": "verified-focused-installed-package",
     "scope": "Translate the native-green default logical-time selector into public C++ Create/Join/getTimeFactory assertions with Java standard-API scenario-ID parity and adapter-owned FOMs.",

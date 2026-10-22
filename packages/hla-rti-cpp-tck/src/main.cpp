@@ -19436,6 +19436,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-time-representation-valid-contract",
       "cpp-tck.fom-time-representation-rejections-contract",
       "cpp-tck.fom-default-logical-time-selection-contract",
+      "cpp-tck.fom-unavailable-logical-time-factory-contract",
       "cpp-tck.fom-member-data-type-categories-contract",
       "cpp-tck.fom-attribute-na-companion-completion-contract",
       "cpp-tck.fom-attribute-na-companion-rejections-contract",
@@ -20191,6 +20192,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-time-representation-valid",
       "cpp-tck.fom-time-representation-rejections",
       "cpp-tck.fom-default-logical-time-selection",
+      "cpp-tck.fom-unavailable-logical-time-factory",
       "cpp-tck.fom-member-data-type-categories",
       "cpp-tck.fom-attribute-na-companion-completion",
       "cpp-tck.fom-attribute-na-companion-rejections",
@@ -20365,6 +20367,8 @@ void printHelp() {
       "  --known-class-derived-attribute NAME\n"
       "                                Attribute declared only at the derived class\n"
       "  --time-implementation NAME    Optional Create Federation time name\n"
+      "  --unsupported-time-implementation NAME\n"
+      "                                Adapter-declared unavailable time factory\n"
       "  --connection-loss-server-managed\n"
       "                                Adapter already controls the loss lifecycle\n"
       "  --connection-loss-marker FILE Write callback completion marker for an adapter\n"
@@ -20686,6 +20690,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--time-implementation") {
       requireValue(index, argc, argv, argument);
       options.logicalTimeImplementationName = toWide(argv[++index]);
+    } else if (argument == "--unsupported-time-implementation") {
+      requireValue(index, argc, argv, argument);
+      options.unsupportedLogicalTimeImplementationName = toWide(argv[++index]);
     } else if (argument == "--timeout-ms") {
       requireValue(index, argc, argv, argument);
       options.timeoutMilliseconds = std::stoi(argv[++index]);
@@ -21080,6 +21087,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-default-logical-time-selection-contract") {
     return scenarioFomDefaultLogicalTimeSelectionContract;
+  }
+  if (id == "cpp-tck.fom-unavailable-logical-time-factory-contract") {
+    return scenarioFomUnavailableLogicalTimeFactoryContract;
   }
   if (id == "cpp-tck.fom-member-data-type-categories-contract") {
     return scenarioFomMemberDataTypeCategoriesContract;
@@ -23480,6 +23490,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-default-logical-time-selection") {
     return scenarioFomDefaultLogicalTimeSelection;
   }
+  if (id == "cpp-tck.fom-unavailable-logical-time-factory") {
+    return scenarioFomUnavailableLogicalTimeFactory;
+  }
   if (id == "cpp-tck.fom-member-data-type-categories") {
     return scenarioFomMemberDataTypeCategories;
   }
@@ -24097,6 +24110,12 @@ int run(Options const& options) {
                   options.scenarioFoms.count("time-representation-valid") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied default-time and integer64-time FOM modules";
+      } else if ((scenario == "cpp-tck.fom-unavailable-logical-time-factory" ||
+                  scenario == "cpp-tck.fom-unavailable-logical-time-factory-contract") &&
+                 (options.scenarioFoms.count("default-logical-time") == 0U ||
+                  options.unsupportedLogicalTimeImplementationName.empty())) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied default-time FOM and unsupported time-factory name";
       } else if ((scenario == "cpp-tck.fom-member-data-type-categories" ||
                   scenario == "cpp-tck.fom-member-data-type-categories-contract") &&
                  (options.scenarioFoms.count("member-data-type-valid") == 0U ||

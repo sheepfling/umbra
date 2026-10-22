@@ -286,6 +286,8 @@ set(HLA_RTI_TCK_ADAPTER_PROVIDER_ID "installed-package"
   CACHE STRING "Provider identifier recorded in TCK evidence")
 set(HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION "HLAinteger64Time"
   CACHE STRING "Logical time implementation selected by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION ""
+  CACHE STRING "Logical-time factory name this provider adapter knows is unavailable")
 set(HLA_RTI_TCK_ADAPTER_RTI_ADDRESS ""
   CACHE STRING "Optional standard RtiConfiguration address supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_CONFIGURATION_NAME ""
@@ -577,6 +579,7 @@ set(_tck_common_arguments
   --fom-update-rate "${HLA_RTI_TCK_ADAPTER_FOM_UPDATE_RATE}"
   --rate-designator "${HLA_RTI_TCK_ADAPTER_RATE_DESIGNATOR}"
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
+  --unsupported-time-implementation "${HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")
 list(APPEND _tck_common_arguments

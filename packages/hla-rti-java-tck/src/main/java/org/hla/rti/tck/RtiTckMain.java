@@ -116,6 +116,8 @@ public final class RtiTckMain {
       "hla.rti.tck.timeRepresentationValidFom";
    private static final String DEFAULT_LOGICAL_TIME_FOM_PROPERTY =
       "hla.rti.tck.defaultLogicalTimeFom";
+   private static final String UNSUPPORTED_TIME_IMPLEMENTATION_PROPERTY =
+      "hla.rti.tck.unsupportedTimeImplementation";
    private static final String TIME_REPRESENTATION_BASIC_DATA_FOM_PROPERTY =
       "hla.rti.tck.timeRepresentationBasicDataFom";
    private static final String TIME_REPRESENTATION_REFERENCE_DATA_FOM_PROPERTY =
@@ -1964,6 +1966,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, false),
          RtiTckMain::fomDefaultLogicalTimeSelection);
+      run(new Scenario("java-tck.fom-unavailable-logical-time-factory",
+            "Reject an adapter-declared unavailable logical-time factory and release the federation name",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, false),
+         RtiTckMain::fomUnavailableLogicalTimeFactory);
       run(new Scenario("java-tck.fom-time-representation-rejections",
             "Reject basic and reference data types as logical-time representations",
             "fom-composition",
@@ -11965,6 +11973,8 @@ public final class RtiTckMain {
             method = "fomTimeRepresentationValid"; break;
          case "java-tck.fom-default-logical-time-selection":
             method = "fomDefaultLogicalTimeSelection"; break;
+         case "java-tck.fom-unavailable-logical-time-factory":
+            method = "fomUnavailableLogicalTimeFactory"; break;
          case "java-tck.fom-time-representation-rejections":
             method = "fomTimeRepresentationRejections"; break;
          case "java-tck.fom-member-data-type-categories":
@@ -13657,6 +13667,13 @@ public final class RtiTckMain {
       FomDefaultLogicalTimeSelectionTck.run(factory(),
          requireAdapterFile(DEFAULT_LOGICAL_TIME_FOM_PROPERTY),
          requireAdapterFile(TIME_REPRESENTATION_VALID_FOM_PROPERTY),
+         callbackModel());
+   }
+
+   private static void fomUnavailableLogicalTimeFactory() throws Exception {
+      FomUnavailableLogicalTimeFactoryTck.run(factory(),
+         requireAdapterFile(DEFAULT_LOGICAL_TIME_FOM_PROPERTY),
+         requireAdapterValue(UNSUPPORTED_TIME_IMPLEMENTATION_PROPERTY),
          callbackModel());
    }
 
