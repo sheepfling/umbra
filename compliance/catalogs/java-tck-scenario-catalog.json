@@ -7613,15 +7613,21 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.evokeCallback",
@@ -7648,15 +7654,16 @@
         }
       ],
       "standard_sections": ["hla-1516.1-2025:clause-5.12"],
-      "mapping_note": "Parity mapping to the C++ no-applicable-subscription case. The receiver discovers the known target via an ordinary attribute subscription, has no directed-interaction class subscription, and receives neither directed nor ordinary interaction callback after the send and bounded callback servicing. This asserts only the no-applicable-class-subscription behavior in §5.12.",
+      "mapping_note": "Direct page-101-l14-2 -> §5.12 mapping matches the promoted C++ no-applicable-subscription case. The receiver discovers the known target via an ordinary attribute subscription and resolves its own object handle by standard instance name; it has no directed-interaction class subscription and receives neither directed nor ordinary interaction callback after the send and bounded callback servicing. This asserts only the no-applicable-class-subscription behavior. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "standard-directed-interaction-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionNoApplicableSubscription",
       "parity": "cpp-tck.directed-interaction-no-applicable-subscription",
-      "default_status": "unsupported",
-      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM with a directed interaction associated with the target object class."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied FOM with a directed interaction associated with the target object class, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.support-lookups-valid-inputs-after-resignation",

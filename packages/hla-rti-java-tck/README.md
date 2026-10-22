@@ -1257,6 +1257,14 @@ only the universal subscribers receive an interaction addressed to another
 member's object. Provider, FOM, names, and callback model are adapter-supplied;
 the case remains unsupported by default pending Java-provider execution.
 
+The default `java-tck.directed-interaction-no-applicable-subscription` case
+first discovers a target by its standard object name, then sends an untimed
+directed interaction to a receiver without a matching directed-class
+subscription. It checks that neither directed nor ordinary interaction
+delivery occurs during bounded callback servicing. It uses receiver-local
+handles and passed focused installed JNI runs in both callback models;
+independent-provider conformance remains unverified.
+
 The `java-tck.receive-order-interaction` scenario sends two tagged interactions
 in succession and verifies callback FIFO order, exact parameter values, standard
 handle/name round-trips, producer and reliable-transport metadata, no region

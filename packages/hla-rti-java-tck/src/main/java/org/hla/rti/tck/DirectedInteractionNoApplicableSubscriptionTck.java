@@ -14,10 +14,11 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Verifies that an unsubscribed receiver gets no directed interaction callback. */
 final class DirectedInteractionNoApplicableSubscriptionTck {
@@ -59,9 +60,14 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
             publisher.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle receiverInteraction =
             receiver.getInteractionClassHandle(interactionClassName);
-         JavaTckSupport.check(publisherObjectClass.equals(receiverObjectClass)
-               && publisherInteraction.equals(receiverInteraction),
-            "directed no-subscription class handles changed across federates");
+         JavaTckSupport.check(objectClassName.equals(
+               publisher.getObjectClassName(publisherObjectClass))
+               && objectClassName.equals(receiver.getObjectClassName(receiverObjectClass))
+               && interactionClassName.equals(
+                  publisher.getInteractionClassName(publisherInteraction))
+               && interactionClassName.equals(
+                  receiver.getInteractionClassName(receiverInteraction)),
+            "directed no-subscription class names did not round-trip locally");
 
          AttributeHandle publisherIdentity = publisher.getAttributeHandle(
             publisherObjectClass, identityAttributeName);
@@ -71,9 +77,15 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
             publisherInteraction, integerParameterName);
          ParameterHandle receiverParameter = receiver.getParameterHandle(
             receiverInteraction, integerParameterName);
-         JavaTckSupport.check(publisherIdentity.equals(receiverIdentity)
-               && publisherParameter.equals(receiverParameter),
-            "directed no-subscription member handles changed across federates");
+         JavaTckSupport.check(identityAttributeName.equals(
+               publisher.getAttributeName(publisherObjectClass, publisherIdentity))
+               && identityAttributeName.equals(
+                  receiver.getAttributeName(receiverObjectClass, receiverIdentity))
+               && integerParameterName.equals(
+                  publisher.getParameterName(publisherInteraction, publisherParameter))
+               && integerParameterName.equals(
+                  receiver.getParameterName(receiverInteraction, receiverParameter)),
+            "directed no-subscription member names did not round-trip locally");
 
          AttributeHandleSet publisherAttributes =
             JavaTckSupport.attributeSet(publisher, publisherIdentity);
@@ -88,12 +100,20 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
             publisherObjectClass, publishedInteractions);
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherObjectClass);
+         String targetName = publisher.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "registered directed-interaction target has no name");
          long discoveryDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-         while (!receiverRecorder.discoveries.contains(target)
+         while (receiverRecorder.discoveries.stream()
+               .noneMatch(discovery -> targetName.equals(discovery.name))
                && System.nanoTime() < discoveryDeadline) {
-            receiver.evokeCallback(0.01);
+            if (callbackModel == CallbackModel.HLA_EVOKED) receiver.evokeCallback(0.01);
+            else Thread.yield();
          }
-         JavaTckSupport.check(receiverRecorder.discoveries.contains(target),
+         Discovery discoveredTarget = receiverRecorder.discoveries.stream()
+            .filter(discovery -> targetName.equals(discovery.name)).findFirst().orElse(null);
+         JavaTckSupport.check(discoveredTarget != null && discoveredTarget.handle.equals(
+               receiver.getObjectInstanceHandle(targetName)),
             "receiver did not discover the known directed-interaction target");
 
          ParameterHandleValueMap parameters =
@@ -104,10 +124,11 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
 
          long noDeliveryDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
          while (System.nanoTime() < noDeliveryDeadline) {
-            receiver.evokeCallback(0.01);
+            if (callbackModel == CallbackModel.HLA_EVOKED) receiver.evokeCallback(0.01);
+            else Thread.sleep(1);
          }
          JavaTckSupport.check(receiverRecorder.directed.isEmpty()
-               && receiverRecorder.ordinaryInteractionCallbacks == 0,
+               && receiverRecorder.ordinaryInteractionCallbacks.get() == 0,
             "receiver without an applicable directed-interaction subscription received an interaction callback");
 
          receiver.unsubscribeObjectClassAttributes(receiverObjectClass, receiverAttributes);
@@ -142,10 +163,20 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Object> directed = new ArrayList<>();
-      private int ordinaryInteractionCallbacks;
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Object> directed = new CopyOnWriteArrayList<>();
+      private final AtomicInteger ordinaryInteractionCallbacks = new AtomicInteger();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -154,11 +185,12 @@ final class DirectedInteractionNoApplicableSubscriptionTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                } else if ("receiveDirectedInteraction".equals(name)) {
                   directed.add(arguments[0]);
                } else if ("receiveInteraction".equals(name)) {
-                  ++ordinaryInteractionCallbacks;
+                  ordinaryInteractionCallbacks.incrementAndGet();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK no-subscription recorder";
