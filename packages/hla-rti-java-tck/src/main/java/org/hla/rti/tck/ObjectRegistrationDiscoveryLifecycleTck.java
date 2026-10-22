@@ -11,9 +11,9 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Verifies hierarchy-aware registration discovery and subscription eligibility. */
 final class ObjectRegistrationDiscoveryLifecycleTck {
@@ -22,19 +22,19 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
    private static final int BASE = 2;
    private static final int CANCELLED = 3;
    private static final int LATE = 4;
-   private static final int UNJOINED = 5;
    private static final int FEDERATE_COUNT = 5;
 
    private ObjectRegistrationDiscoveryLifecycleTck() { }
 
-   static void run(RtiFactory factory, String fom, String baseClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String baseClassName,
          String derivedClassName, String identityAttributeName,
          String derivedAttributeName, CallbackModel callbackModel) throws Exception {
-      RTIambassador[] rti = new RTIambassador[FEDERATE_COUNT + 1];
-      Recorder[] recorders = new Recorder[FEDERATE_COUNT + 1];
-      boolean[] connected = new boolean[FEDERATE_COUNT + 1];
-      boolean[] joined = new boolean[FEDERATE_COUNT + 1];
-      boolean[] subscribed = new boolean[FEDERATE_COUNT + 1];
+      RTIambassador[] rti = new RTIambassador[FEDERATE_COUNT];
+      Recorder[] recorders = new Recorder[FEDERATE_COUNT];
+      boolean[] connected = new boolean[FEDERATE_COUNT];
+      boolean[] joined = new boolean[FEDERATE_COUNT];
+      boolean[] subscribed = new boolean[FEDERATE_COUNT];
       boolean published = false;
       boolean federationCreated = false;
       String federation = "java-tck-object-registration-discovery-" + UUID.randomUUID();
@@ -46,24 +46,20 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             rti[i].connect(recorders[i].proxy(), callbackModel);
             connected[i] = true;
          }
-         rti[UNJOINED] = factory.getRtiAmbassador();
-         recorders[UNJOINED] = new Recorder();
-         rti[PUBLISHER].createFederationExecution(federation, fom);
+         rti[PUBLISHER].createFederationExecution(federation, fom, timeImplementation);
          federationCreated = true;
-         FederateHandle producer = null;
+         String publisherName = "java-tck-object-registration-publisher";
          for (int i = 0; i < FEDERATE_COUNT; ++i) {
-            FederateHandle handle = rti[i].joinFederationExecution(
-               "java-tck-object-registration-" + roles[i], federation);
+            rti[i].joinFederationExecution(
+               "java-tck-object-registration-" + roles[i],
+               "registration-" + roles[i], federation);
             joined[i] = true;
-            if (i == PUBLISHER) {
-               producer = handle;
-            }
          }
 
-         ObjectClassHandle[] derivedClasses = new ObjectClassHandle[rti.length];
-         ObjectClassHandle[] baseClasses = new ObjectClassHandle[rti.length];
-         AttributeHandle[] identityAttributes = new AttributeHandle[rti.length];
-         AttributeHandle[] derivedAttributes = new AttributeHandle[rti.length];
+         ObjectClassHandle[] derivedClasses = new ObjectClassHandle[FEDERATE_COUNT];
+         ObjectClassHandle[] baseClasses = new ObjectClassHandle[FEDERATE_COUNT];
+         AttributeHandle[] identityAttributes = new AttributeHandle[FEDERATE_COUNT];
+         AttributeHandle[] derivedAttributes = new AttributeHandle[FEDERATE_COUNT];
          for (int i = 0; i < FEDERATE_COUNT; ++i) {
             derivedClasses[i] = rti[i].getObjectClassHandle(derivedClassName);
             baseClasses[i] = rti[i].getObjectClassHandle(baseClassName);
@@ -72,37 +68,20 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             derivedAttributes[i] = rti[i].getAttributeHandle(
                derivedClasses[i], derivedAttributeName);
             JavaTckSupport.check(derivedClasses[i] != null && baseClasses[i] != null
-                  && identityAttributes[i] != null && derivedAttributes[i] != null,
+                  && !derivedClasses[i].equals(baseClasses[i])
+                  && identityAttributes[i] != null && derivedAttributes[i] != null
+                  && derivedClassName.equals(rti[i].getObjectClassName(derivedClasses[i]))
+                  && baseClassName.equals(rti[i].getObjectClassName(baseClasses[i]))
+                  && identityAttributeName.equals(rti[i].getAttributeName(
+                     derivedClasses[i], identityAttributes[i]))
+                  && derivedAttributeName.equals(rti[i].getAttributeName(
+                     derivedClasses[i], derivedAttributes[i])),
                "typed object registration FOM lookup returned a null handle");
-         }
-         JavaTckSupport.check(!derivedClasses[PUBLISHER].equals(baseClasses[PUBLISHER]),
-            "typed object registration FOM did not preserve the class hierarchy");
-         for (int i = 1; i < FEDERATE_COUNT; ++i) {
-            JavaTckSupport.check(derivedClasses[PUBLISHER].equals(derivedClasses[i])
-                  && baseClasses[PUBLISHER].equals(baseClasses[i])
-                  && identityAttributes[PUBLISHER].equals(identityAttributes[i])
-                  && derivedAttributes[PUBLISHER].equals(derivedAttributes[i]),
-               "object class or inherited attribute handles changed across federates");
          }
          JavaTckSupport.check(rti[PUBLISHER].getAttributeHandle(
                baseClasses[PUBLISHER], identityAttributeName)
                .equals(identityAttributes[PUBLISHER]),
             "inherited identity attribute handle changed between base and derived classes");
-
-         JavaTckSupport.expectFailure(
-            () -> rti[UNJOINED].registerObjectInstance(
-               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
-            "NotConnected", "registering an object before connecting");
-         rti[UNJOINED].connect(recorders[UNJOINED].proxy(), callbackModel);
-         connected[UNJOINED] = true;
-         JavaTckSupport.expectFailure(
-            () -> rti[UNJOINED].registerObjectInstance(
-               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
-            "FederateNotExecutionMember", "registering an object before joining");
-         JavaTckSupport.expectFailure(
-            () -> rti[PUBLISHER].registerObjectInstance(
-               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
-            "ObjectClassNotDefined", "registering an object for an invalid class handle");
 
          JavaTckSupport.expectFailure(
             () -> rti[PUBLISHER].registerObjectInstance(derivedClasses[PUBLISHER]),
@@ -150,7 +129,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                   "evoked object discovery arrived before callback servicing");
             }
             JavaTckSupport.expectFailure(
-               () -> rti[EXACT].getKnownObjectClassHandle(object),
+               () -> rti[EXACT].getObjectInstanceHandle(objectName),
                "ObjectInstanceNotKnown",
                "looking up an evoked object before discovery");
 
@@ -172,10 +151,10 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             subscribed[CANCELLED] = false;
          }
 
-         assertDiscovery(rti[EXACT], recorders[EXACT], object, objectName,
-            derivedClasses[EXACT], producer, "exact-class discovery");
-         assertDiscovery(rti[BASE], recorders[BASE], object, objectName,
-            baseClasses[BASE], producer, "base-class promoted discovery");
+         assertDiscovery(rti[EXACT], recorders[EXACT], objectName,
+            derivedClasses[EXACT], publisherName, "exact-class discovery");
+         assertDiscovery(rti[BASE], recorders[BASE], objectName,
+            baseClasses[BASE], publisherName, "base-class promoted discovery");
 
          rti[LATE].subscribeObjectClassAttributes(derivedClasses[LATE], lateAttributes);
          subscribed[LATE] = true;
@@ -184,8 +163,8 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                "evoked late discovery arrived before callback servicing");
             JavaTckSupport.drain(rti[LATE]);
          }
-         assertDiscovery(rti[LATE], recorders[LATE], object, objectName,
-            derivedClasses[LATE], producer, "late exact-class discovery");
+         assertDiscovery(rti[LATE], recorders[LATE], objectName,
+            derivedClasses[LATE], publisherName, "late exact-class discovery");
 
          rti[EXACT].subscribeObjectClassAttributes(derivedClasses[EXACT], exactAttributes);
          if (callbackModel == CallbackModel.HLA_EVOKED) {
@@ -381,19 +360,19 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
    }
 
    private static void assertDiscovery(RTIambassador rti, Recorder recorder,
-         ObjectInstanceHandle object, String objectName, ObjectClassHandle expectedClass,
-         FederateHandle producer, String description) throws Exception {
+         String objectName, ObjectClassHandle expectedClass,
+         String publisherName, String description) throws Exception {
       JavaTckSupport.check(recorder.discoveries.size() == 1,
          description + " did not deliver exactly one discovery callback");
       Discovery actual = recorder.discoveries.get(0);
-      JavaTckSupport.check(object.equals(actual.object)
+      ObjectInstanceHandle localObject = rti.getObjectInstanceHandle(objectName);
+      JavaTckSupport.check(localObject.equals(actual.object)
             && expectedClass.equals(actual.objectClass)
             && objectName.equals(actual.name)
-            && producer.equals(actual.producer),
+            && publisherName.equals(rti.getFederateName(actual.producer)),
          description + " returned incorrect object, class, name, or producer metadata");
-      JavaTckSupport.check(expectedClass.equals(rti.getKnownObjectClassHandle(object))
-            && object.equals(rti.getObjectInstanceHandle(objectName))
-            && objectName.equals(rti.getObjectInstanceName(object)),
+      JavaTckSupport.check(expectedClass.equals(rti.getKnownObjectClassHandle(localObject))
+            && objectName.equals(rti.getObjectInstanceName(localObject)),
          description + " did not establish stable known-object identity lookups");
    }
 
@@ -405,7 +384,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
    }
 
    private static final class Recorder {
-      private final List<Discovery> discoveries = new ArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

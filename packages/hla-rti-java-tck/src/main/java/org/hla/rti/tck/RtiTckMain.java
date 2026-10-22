@@ -1150,8 +1150,8 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.object-registration-discovery-lifecycle",
              "hierarchy-aware object discovery and callback-time subscription eligibility",
              "object-management",
-             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
-             new String[] {"java-1516.1-object-registration-discovery"}, false),
+             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getFederateName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+             new String[] {"java-1516.1-object-registration-discovery"}, true),
           RtiTckMain::objectRegistrationDiscoveryLifecycle);
        run(new Scenario("java-tck.overlapping-object-class-subscriptions-single-discovery",
              "deliver one discovery when a federate subscribes to both a base and derived class",
@@ -14657,6 +14657,7 @@ public final class RtiTckMain {
 
     private static void objectRegistrationDiscoveryLifecycle() throws Exception {
        ObjectRegistrationDiscoveryLifecycleTck.run(factory(), requireFom(),
+          timeImplementation(),
           typedObjectClassName(), typedDerivedObjectClassName(),
           typedIdentityAttributeName(), typedDerivedAttributeName(), callbackModel());
     }

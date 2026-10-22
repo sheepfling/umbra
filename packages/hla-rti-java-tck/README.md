@@ -622,13 +622,15 @@ and checks interaction identity, empty tags, reliable transportation, and
 ordinary receive-order delivery. The scenario has a matching C++ portable TCK
 ID and remains unsupported by default until verified with a Java provider.
 
-The opt-in `java-tck.object-registration-discovery-lifecycle` scenario checks
+The default `java-tck.object-registration-discovery-lifecycle` scenario checks
 typed base/derived-class lookup, inherited attribute identity, publication,
 unnamed registration, exact and base-class discovery, evoked callback timing,
 unsubscribe cancellation, and late subscription. It uses only the standard
 IEEE 1516.1-2025 Java API; the adapter supplies its provider, FOM, endpoint,
-callback model, and typed class/attribute names. It remains unsupported by
-default until run against a Java provider.
+logical time, callback model, and typed class/attribute names. It compares
+object and class handles only within each federate, without fabricated invalid
+handles. Focused installed JNI execution passed in both callback modes;
+independent-provider conformance remains unverified.
 
 The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six

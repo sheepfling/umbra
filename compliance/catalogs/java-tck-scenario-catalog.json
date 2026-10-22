@@ -6648,7 +6648,10 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getFederateName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -6677,7 +6680,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the late member's active subscription discovering an already-registered object (§5.8). Hierarchy selection, callback-queue cancellation/timing, invalid-registration boundaries, lookup identity, and duplicate-subscription behavior are supplemental assertions and are not mapped here. Java provider execution remains unvalidated.",
+      "mapping_note": "Direct mapping is limited to the late member's active subscription discovering an already-registered object (§5.8, page-096-l57-16). Hierarchy selection, callback-queue cancellation/timing, valid-class registration before publication, lookup identity, and duplicate-subscription behavior are supplemental assertions and are not mapped here. Fabricated invalid-class handles were removed; each federate validates its own class/attribute names and discovered object handle, and producer identity is resolved by standard federate name. The adapter supplies the typed FOM and logical-time implementation. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -6688,8 +6691,10 @@
         "federation-management-preparation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectRegistrationDiscoveryLifecycle",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible typed object-class hierarchy and attribute names, provider, FOM, endpoint, and callback model. Keep opt-in until executed against a Java IEEE 1516.1-2025 provider."
+      "parity": "cpp-tck.object-registration-discovery-lifecycle",
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible typed object-class hierarchy and attribute names, provider, FOM, endpoint, logical-time implementation, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.overlapping-object-class-subscriptions-single-discovery",
