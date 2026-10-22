@@ -1186,7 +1186,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-attribute-value-update-request"
-            }, false), RtiTckMain::objectClassAttributeValueUpdateRequestBaseline);
+            }, true), RtiTckMain::objectClassAttributeValueUpdateRequestBaseline);
       run(new Scenario("java-tck.object-class-timestamped-provider-response",
             "timestamped response to an object-class attribute-value request",
             "object-management",

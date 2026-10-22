@@ -637,14 +637,14 @@ endpoint, callback model, and FOM remain adapter-configured. It passed the focus
 JNI gate in both `HLA_EVOKED` and `HLA_IMMEDIATE`; this does not establish
 independent-provider conformance.
 
-The opt-in `java-tck.object-class-attribute-value-update-request-baseline` scenario
+The default-run `java-tck.object-class-attribute-value-update-request-baseline` scenario
 uses the adapter's typed base/derived FOM and the
 `hla.rti.tck.typedIntegerAttribute` property when the integer attribute differs from
 the default. It requests inherited identity and base integer attributes at the base
 class, then checks one exact callback per derived instance, inherited-attribute
 filtering, request-tag propagation, and suppression for the requester's own instance.
-It uses no region services and remains unsupported by default until run against a
-Java provider.
+It uses no region services and passed the focused JNI gate in both `HLA_EVOKED`
+and `HLA_IMMEDIATE`. This does not establish independent-provider conformance.
 
 The opt-in `java-tck.attribute-value-update-response` scenario uses the adapter's
 ordinary object-class and attribute names. It verifies discovery and request-tag

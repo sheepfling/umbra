@@ -3516,7 +3516,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" }
       ],
-      "mapping_note": "Parity for the standard class-designator Request Attribute Value Update assertions: a base-class request reaches each matching concrete instance and only its owned requested attributes, with one callback per owner instance carrying that instance handle and request tag; the requester is not called for its own attributes. Discovery verifies the closest subscribed base class and producing federate. Provider-internal ordering and report behavior are not claimed. The page-137 l40-8 candidate is excluded because of the recorded Requirements Lab extraction mismatch. This Java source compiles against the official API; no Java provider-runtime result is claimed.",
+      "mapping_note": "Parity for the standard class-designator Request Attribute Value Update assertions: a base-class request reaches each matching concrete instance and only its owned requested attributes, with one callback per owner instance carrying that instance handle and request tag; the requester is not called for its own attributes. Discovery verifies the closest subscribed base class and producing federate. Provider-internal ordering and report behavior are not claimed. The page-137 l40-8 candidate is excluded because of the recorded Requirements Lab extraction mismatch. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3530,8 +3530,8 @@
         "standard-object-class-attribute-value-update-request-baseline-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectClassAttributeValueUpdateRequestBaseline",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied typed base/derived FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-class-timestamped-provider-response",
