@@ -792,6 +792,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-provider-tck.xml")),
             "reference-class-unresolved="
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-unresolved-tck.xml")),
+            "reference-attribute-consumer="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
+            "reference-attribute-provider="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-provider-tck.xml")),
+            "reference-attribute-missing="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-missing-tck.xml")),
+            "reference-attribute-mismatched="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-mismatched-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

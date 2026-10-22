@@ -19446,6 +19446,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-inherited-member-names-contract",
       "cpp-tck.fom-equivalent-class-conflict-contract",
       "cpp-tck.fom-reference-class-resolution-contract",
+      "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20187,6 +20188,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-inherited-member-names",
       "cpp-tck.fom-equivalent-class-conflict",
       "cpp-tck.fom-reference-class-resolution",
+      "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21082,6 +21084,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-reference-class-resolution-contract") {
     return scenarioFomReferenceClassResolutionContract;
+  }
+  if (id == "cpp-tck.fom-reference-attribute-resolution-contract") {
+    return scenarioFomReferenceAttributeResolutionContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23440,6 +23445,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-reference-class-resolution") {
     return scenarioFomReferenceClassResolution;
   }
+  if (id == "cpp-tck.fom-reference-attribute-resolution") {
+    return scenarioFomReferenceAttributeResolution;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -24054,6 +24062,14 @@ int run(Options const& options) {
                   options.scenarioFoms.count("reference-class-unresolved") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied reference-class FOM modules";
+      } else if ((scenario == "cpp-tck.fom-reference-attribute-resolution" ||
+                  scenario == "cpp-tck.fom-reference-attribute-resolution-contract") &&
+                 (options.scenarioFoms.count("reference-attribute-consumer") == 0U ||
+                  options.scenarioFoms.count("reference-attribute-provider") == 0U ||
+                  options.scenarioFoms.count("reference-attribute-missing") == 0U ||
+                  options.scenarioFoms.count("reference-attribute-mismatched") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied reference-attribute FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

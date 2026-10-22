@@ -13712,6 +13712,8 @@
         "requirement-candidate-sections-semantic-clause-4c-page-079-l49-3",
         "requirement-candidate-sections-semantic-clause-4b-page-048-l97-2"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9", "hla-1516.2-2025:clause-4.5.2"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l98-19", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "standard_section": "hla-1516.2-2025:clause-4.14.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l49-3", "standard_section": "hla-1516.2-2025:clause-4.14.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l97-2", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
       "test_case": "The FOM composition preflight resolves reference-data attributes and representations",
       "tags": [
         "unit",
@@ -13720,7 +13722,7 @@
         "reference-resolution",
         "data-types"
       ],
-      "assertions": 11,
+      "assertions": 21,
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:82",
       "next_action": "This private composition guard proves that a referenced attribute and its representation can be supplied by a later compatible module, while an unresolved attribute or representation mismatch is rejected with deterministic diagnostics. It is mapped to IEEE 1516.2 clauses 6.2.17, 4.14.9, and 4.5.2 through the pinned Lab candidates; broader table constraints, dependency packaging, JUnit/protected review, and conformance remain open."

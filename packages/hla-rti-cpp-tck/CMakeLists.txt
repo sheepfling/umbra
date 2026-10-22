@@ -186,6 +186,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_equivalent_class_conflict.cpp
   src/tck_fom_reference_class_resolution.cpp
   src/tck_fom_dimension_duplicate.cpp
+  src/tck_fom_reference_attribute_resolution.cpp
   src/tck_fom_synchronization_duplicate.cpp
   src/tck_fom_transportation_duplicate.cpp
   src/tck_fom_update_rate_duplicate.cpp

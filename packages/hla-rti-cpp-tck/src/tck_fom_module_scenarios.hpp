@@ -88,6 +88,8 @@ void scenarioFomEquivalentClassConflict(Options const&, rti::CallbackModel);
 void scenarioFomEquivalentClassConflictContract(Options const&, rti::CallbackModel);
 void scenarioFomReferenceClassResolution(Options const&, rti::CallbackModel);
 void scenarioFomReferenceClassResolutionContract(Options const&, rti::CallbackModel);
+void scenarioFomReferenceAttributeResolution(Options const&, rti::CallbackModel);
+void scenarioFomReferenceAttributeResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);
