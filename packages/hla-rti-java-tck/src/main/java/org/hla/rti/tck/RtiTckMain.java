@@ -112,6 +112,12 @@ public final class RtiTckMain {
       "hla.rti.tck.arrayCardinalityFixedMismatchFom";
    private static final String ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY =
       "hla.rti.tck.arrayCardinalityVariableMismatchFom";
+   private static final String TIME_REPRESENTATION_VALID_FOM_PROPERTY =
+      "hla.rti.tck.timeRepresentationValidFom";
+   private static final String TIME_REPRESENTATION_BASIC_DATA_FOM_PROPERTY =
+      "hla.rti.tck.timeRepresentationBasicDataFom";
+   private static final String TIME_REPRESENTATION_REFERENCE_DATA_FOM_PROPERTY =
+      "hla.rti.tck.timeRepresentationReferenceDataFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1788,6 +1794,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomArrayCardinalityRejections);
+      run(new Scenario("java-tck.fom-time-representation-valid",
+            "Accept a permitted logical-time representation data type",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTimeRepresentationValid);
+      run(new Scenario("java-tck.fom-time-representation-rejections",
+            "Reject basic and reference data types as logical-time representations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTimeRepresentationRejections);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11632,6 +11650,10 @@ public final class RtiTckMain {
             method = "fomArrayCardinalityForms"; break;
          case "java-tck.fom-array-cardinality-rejections":
             method = "fomArrayCardinalityRejections"; break;
+         case "java-tck.fom-time-representation-valid":
+            method = "fomTimeRepresentationValid"; break;
+         case "java-tck.fom-time-representation-rejections":
+            method = "fomTimeRepresentationRejections"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13263,6 +13285,21 @@ public final class RtiTckMain {
             requireAdapterFile(ARRAY_CARDINALITY_REVERSED_RANGE_FOM_PROPERTY),
             requireAdapterFile(ARRAY_CARDINALITY_FIXED_MISMATCH_FOM_PROPERTY),
             requireAdapterFile(ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY)
+         }, timeImplementation(), callbackModel());
+   }
+
+   private static void fomTimeRepresentationValid() throws Exception {
+      FomTimeRepresentationTck.run(factory(),
+         requireAdapterFile(TIME_REPRESENTATION_VALID_FOM_PROPERTY),
+         new String[0], timeImplementation(), callbackModel());
+   }
+
+   private static void fomTimeRepresentationRejections() throws Exception {
+      FomTimeRepresentationTck.run(factory(),
+         requireAdapterFile(TIME_REPRESENTATION_VALID_FOM_PROPERTY),
+         new String[] {
+            requireAdapterFile(TIME_REPRESENTATION_BASIC_DATA_FOM_PROPERTY),
+            requireAdapterFile(TIME_REPRESENTATION_REFERENCE_DATA_FOM_PROPERTY)
          }, timeImplementation(), callbackModel());
    }
 

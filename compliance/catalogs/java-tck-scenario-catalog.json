@@ -8526,6 +8526,38 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-time-representation-valid",
+      "category": "fom-composition",
+      "title": "Accept a permitted logical-time representation data type",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.8"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9", "standard_section": "hla-1516.2-2025:clause-6.2.8"}],
+      "mapping_note": "Standard Java API parity for accepted integer64 time-representation FOM; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-time-representation-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomTimeRepresentationValid",
+      "parity": "cpp-tck.fom-time-representation-valid",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-time-representation-rejections",
+      "category": "fom-composition",
+      "title": "Reject basic and reference data types as logical-time representations",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.8"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9", "standard_section": "hla-1516.2-2025:clause-6.2.8"}],
+      "mapping_note": "Standard Java API parity for invalid basic/reference time-representation FOMs and valid federation-name retry; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-time-representation-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomTimeRepresentationRejections",
+      "parity": "cpp-tck.fom-time-representation-rejections",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.timeRepresentationValidFom, timeRepresentationBasicDataFom, and timeRepresentationReferenceDataFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-array-cardinality-forms",
       "category": "fom-composition",
       "title": "Accept 2025 array cardinality forms with compatible predefined encodings",

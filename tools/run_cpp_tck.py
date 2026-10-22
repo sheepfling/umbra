@@ -728,6 +728,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml")),
             "array-cardinality-variable-encoding-mismatch="
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml")),
+            "time-representation-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-valid-tck.xml")),
+            "time-representation-basic-data="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-basic-data-tck.xml")),
+            "time-representation-reference-data="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-reference-data-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

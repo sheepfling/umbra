@@ -19433,6 +19433,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract",
       "cpp-tck.fom-array-cardinality-forms-contract",
       "cpp-tck.fom-array-cardinality-rejections-contract",
+      "cpp-tck.fom-time-representation-valid-contract",
+      "cpp-tck.fom-time-representation-rejections-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20161,6 +20163,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-nonextendable-variant-alternative-conflict",
       "cpp-tck.fom-array-cardinality-forms",
       "cpp-tck.fom-array-cardinality-rejections",
+      "cpp-tck.fom-time-representation-valid",
+      "cpp-tck.fom-time-representation-rejections",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21017,6 +21021,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-array-cardinality-rejections-contract") {
     return scenarioFomArrayCardinalityRejectionsContract;
+  }
+  if (id == "cpp-tck.fom-time-representation-valid-contract") {
+    return scenarioFomTimeRepresentationValidContract;
+  }
+  if (id == "cpp-tck.fom-time-representation-rejections-contract") {
+    return scenarioFomTimeRepresentationRejectionsContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23336,6 +23346,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-array-cardinality-rejections") {
     return scenarioFomArrayCardinalityRejections;
   }
+  if (id == "cpp-tck.fom-time-representation-valid") {
+    return scenarioFomTimeRepresentationValid;
+  }
+  if (id == "cpp-tck.fom-time-representation-rejections") {
+    return scenarioFomTimeRepresentationRejections;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -23864,6 +23880,17 @@ int run(Options const& options) {
                     options.scenarioFoms.count("array-cardinality-variable-encoding-mismatch") == 0U)))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied array-cardinality FOM modules";
+      } else if ((scenario == "cpp-tck.fom-time-representation-valid" ||
+                  scenario == "cpp-tck.fom-time-representation-valid-contract" ||
+                  scenario == "cpp-tck.fom-time-representation-rejections" ||
+                  scenario == "cpp-tck.fom-time-representation-rejections-contract") &&
+                 (options.scenarioFoms.count("time-representation-valid") == 0U ||
+                  ((scenario == "cpp-tck.fom-time-representation-rejections" ||
+                    scenario == "cpp-tck.fom-time-representation-rejections-contract") &&
+                   (options.scenarioFoms.count("time-representation-basic-data") == 0U ||
+                    options.scenarioFoms.count("time-representation-reference-data") == 0U)))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied time-representation FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

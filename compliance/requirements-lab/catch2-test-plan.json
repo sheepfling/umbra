@@ -14294,6 +14294,8 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.8"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9", "standard_section": "hla-1516.2-2025:clause-6.2.8"}],
       "test_case": "The FOM composition preflight validates time-representation data type categories",
       "tags": [
         "unit",
@@ -14303,7 +14305,7 @@
       ],
       "assertions": 26,
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2054",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1739",
       "next_action": "This private composition guard accepts the official integer64 and float64 logical-time representations, rejects basic and reference data types that are not permitted for time representation, and preserves the exact diagnostics. Its selected Lab candidate resolves to IEEE 1516.2 clause 6.2.8; reference-time selection, runtime time coordination, JUnit/protected review, and conformance remain separate."
     },
     {
