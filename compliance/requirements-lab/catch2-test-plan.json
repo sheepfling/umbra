@@ -14085,7 +14085,7 @@
         "ddm"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1758",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1487",
       "next_action": "This private completed-model preflight requires non-NA text in Input data type description whenever the DIF inputDataTypes sequence carries no named type. It covers the official empty-list representation and retains both Restaurant patterns for named types (NA or amplifying text). It deliberately does not decide whether a suitable FOM type exists, whether a description is unambiguous, or whether named types should have NA descriptions. RL-048 records the Requirements Lab export's broad clause-4 metadata. Remaining table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
     },
     {

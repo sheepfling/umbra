@@ -740,6 +740,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-na-tck.xml")),
             "dimension-input-table-type="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
+            "dimension-input-description-na-invalid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-na-invalid-tck.xml")),
+            "dimension-input-description-text="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-text-tck.xml")),
+            "dimension-input-description-named-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-named-na-tck.xml")),
+            "dimension-input-description-named-text="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "synchronization-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml")),
             "synchronization-duplicate-equal="

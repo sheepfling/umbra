@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Described Dimension Input</name><type>FOM</type></modelIdentification>
+  <dimensions><dimension>
+    <name>TckDescribedInputWithoutNamedType</name>
+    <inputDataTypes/>
+    <inputDataDescription>Coordinate supplied by the federate's external model.</inputDataDescription>
+    <upperBound>100</upperBound>
+    <normalization>Identity.</normalization>
+    <outputDataSemantics>Normalized coordinate.</outputDataSemantics>
+  </dimension></dimensions>
+</objectModel>

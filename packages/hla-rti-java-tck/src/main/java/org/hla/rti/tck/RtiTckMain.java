@@ -124,6 +124,14 @@ public final class RtiTckMain {
       "hla.rti.tck.dimensionInputNaFom";
    private static final String DIMENSION_INPUT_TABLE_TYPE_FOM_PROPERTY =
       "hla.rti.tck.dimensionInputTableTypeFom";
+   private static final String DIMENSION_DESCRIPTION_NA_INVALID_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDescriptionNaInvalidFom";
+   private static final String DIMENSION_DESCRIPTION_TEXT_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDescriptionTextFom";
+   private static final String DIMENSION_DESCRIPTION_NAMED_NA_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDescriptionNamedNaFom";
+   private static final String DIMENSION_DESCRIPTION_NAMED_TEXT_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDescriptionNamedTextFom";
    private static final String SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.synchronizationDuplicateBaseFom";
    private static final String SYNCHRONIZATION_DUPLICATE_EQUAL_FOM_PROPERTY =
@@ -1774,6 +1782,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDimensionInputType);
+      run(new Scenario("java-tck.fom-dimension-input-description",
+            "Require a meaningful description when a dimension has no named input type",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDimensionInputDescription);
       run(new Scenario("java-tck.fom-synchronization-duplicate-equal",
             "Accept identical same-label synchronization declarations",
             "fom-composition",
@@ -11564,6 +11578,8 @@ public final class RtiTckMain {
             method = "fomDimensionDuplicateConflict"; break;
          case "java-tck.fom-dimension-input-type":
             method = "fomDimensionInputType"; break;
+         case "java-tck.fom-dimension-input-description":
+            method = "fomDimensionInputDescription"; break;
          case "java-tck.fom-synchronization-duplicate-equal":
             method = "fomSynchronizationDuplicateEqual"; break;
          case "java-tck.fom-synchronization-duplicate-note-conflict":
@@ -13197,6 +13213,15 @@ public final class RtiTckMain {
          requireAdapterFile(DIMENSION_INPUT_RAW_BASIC_FOM_PROPERTY),
          requireAdapterFile(DIMENSION_INPUT_NA_FOM_PROPERTY),
          requireAdapterFile(DIMENSION_INPUT_TABLE_TYPE_FOM_PROPERTY),
+         requireMim(), timeImplementation(), callbackModel());
+   }
+
+   private static void fomDimensionInputDescription() throws Exception {
+      FomDimensionInputDescriptionTck.run(factory(),
+         requireAdapterFile(DIMENSION_DESCRIPTION_NA_INVALID_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DESCRIPTION_TEXT_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DESCRIPTION_NAMED_NA_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DESCRIPTION_NAMED_TEXT_FOM_PROPERTY),
          requireMim(), timeImplementation(), callbackModel());
    }
 

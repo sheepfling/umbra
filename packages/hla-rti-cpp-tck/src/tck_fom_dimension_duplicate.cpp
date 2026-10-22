@@ -133,4 +133,51 @@ void scenarioFomDimensionInputTypeContract(Options const& options,
   scenarioFomDimensionInputType(options, model);
 }
 
+void scenarioFomDimensionInputDescription(Options const& options,
+                                          rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Dimension input-description testing requires adapter-supplied MIM and logical time");
+  auto const& missing = requiredFom(options, "dimension-input-description-na-invalid");
+  auto const& described = requiredFom(options, "dimension-input-description-text");
+  auto const& namedNa = requiredFom(options, "dimension-input-description-named-na");
+  auto const& namedText = requiredFom(options, "dimension-input-description-named-text");
+  Session creator(options, model, "dimension-input-description-creator");
+  Session member(options, model, "dimension-input-description-member");
+  auto const federation = federationName(options, "fom-dimension-input-description");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(missing); }, L"InconsistentFOM",
+                   "a dimension with no named input type and NA description");
+
+  auto const checkAccepted = [&](std::filesystem::path const& module,
+                                 std::wstring const& dimensionName) {
+    createWithMim(module);
+    member.join(options.memberFederateName, options.federateType, federation);
+    auto& rti = member.rtiAmbassador();
+    auto const dimension = rti.getDimensionHandle(dimensionName);
+    require(dimension.isValid() &&
+                rti.getDimensionName(dimension) == dimensionName &&
+                rti.getDimensionUpperBound(dimension) == 100U,
+            "an accepted dimension input-description path was not publicly queryable");
+    member.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  };
+  checkAccepted(described, L"TckDescribedInputWithoutNamedType");
+  checkAccepted(namedNa, L"TckNamedInputNaDescription");
+  checkAccepted(namedText, L"TckTableDimensionInput");
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomDimensionInputDescriptionContract(Options const& options,
+                                                  rti::CallbackModel model) {
+  scenarioFomDimensionInputDescription(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail
