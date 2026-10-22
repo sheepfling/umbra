@@ -6093,14 +6093,14 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-automatic-resign-action-mim-attribute",
             "observe direct and conditional HLAautomaticResignAction MOM values",
             "federation-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;FederateHandle.encode;RTIambassador.getKnownObjectClassHandle;RTIambassador.requestAttributeValueUpdate;RTIambassador.getAutomaticResignDirective;RTIambassador.setAutomaticResignDirective;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;EncoderFactory.createHLAinteger32BE;HLAinteger32BE.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;FederateHandle.encode;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.requestAttributeValueUpdate;RTIambassador.getAutomaticResignDirective;RTIambassador.setAutomaticResignDirective;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;EncoderFactory.createHLAinteger32BE;HLAinteger32BE.decode",
             new String[] {
                "cpp-1516.1-automatic-resign-directive",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateAutomaticResignActionMomAttribute);
+            }, true), RtiTckMain::federateAutomaticResignActionMomAttribute);
       run(new Scenario("java-tck.federate-exception-reporting-mom-switch",
             "set the joined federate's Exception Reporting switch through the standard federate MOM interaction without changing neighboring switches",
             "mom-exception-reporting",

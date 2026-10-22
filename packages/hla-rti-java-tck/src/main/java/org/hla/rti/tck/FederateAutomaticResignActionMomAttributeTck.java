@@ -120,7 +120,7 @@ final class FederateAutomaticResignActionMomAttributeTck {
             changedStart, subjectMomObject, actionAttribute);
          JavaTckSupport.check(changed.size() == 1,
             "Automatic Resign Action change did not produce exactly one conditional reflection");
-         verifyReflection(changed.get(0), subjectMomObject, actionAttribute, reliable,
+         verifyReflection(monitor, changed.get(0), subjectMomObject, actionAttribute, reliable,
             changedAction, encoder, "conditional MOM reflection");
          requestAndVerify(monitor, callbackModel, recorder, subjectMomObject, actionAttribute,
             reliable, changedAction, encoder, "changed direct MOM value request");
@@ -138,7 +138,7 @@ final class FederateAutomaticResignActionMomAttributeTck {
             restoredStart, subjectMomObject, actionAttribute);
          JavaTckSupport.check(restored.size() == 1,
             "restoring Automatic Resign Action did not produce exactly one conditional reflection");
-         verifyReflection(restored.get(0), subjectMomObject, actionAttribute, reliable,
+         verifyReflection(monitor, restored.get(0), subjectMomObject, actionAttribute, reliable,
             initialAction, encoder, "restored conditional MOM reflection");
          requestAndVerify(monitor, callbackModel, recorder, subjectMomObject, actionAttribute,
             reliable, initialAction, encoder, "restored direct MOM value request");
@@ -183,19 +183,22 @@ final class FederateAutomaticResignActionMomAttributeTck {
       List<Reflection> values = recorder.valueReflectionsSince(before, object, attribute);
       JavaTckSupport.check(values.size() == 1,
          description + " delivered an unexpected number of direct MOM reflections");
-      verifyReflection(values.get(0), object, attribute, reliable, expected, encoder, description);
+      verifyReflection(monitor, values.get(0), object, attribute, reliable, expected,
+         encoder, description);
    }
 
-   private static void verifyReflection(Reflection reflection, ObjectInstanceHandle object,
+   private static void verifyReflection(RTIambassador monitor, Reflection reflection,
+         ObjectInstanceHandle object,
          AttributeHandle attribute, TransportationTypeHandle reliable, ResignAction expected,
          EncoderFactory encoder, String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && reflection.values.containsKey(attribute)
             && Arrays.equals(new byte[0], reflection.tag)
-            && reliable.equals(reflection.transportation) && reflection.producer == null
+            && reliable.equals(reflection.transportation)
             && (reflection.regions == null || reflection.regions.isEmpty())
             && !reflection.timestampOrdered,
          description + " had non-standard MOM reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(monitor, reflection.producer, description);
       HLAinteger32BE value = encoder.createHLAinteger32BE();
       value.decode(reflection.values.get(attribute));
       JavaTckSupport.check(value.getValue() == mimValue(expected),

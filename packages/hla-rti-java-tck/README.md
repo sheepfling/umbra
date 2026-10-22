@@ -2290,6 +2290,13 @@ the installed JNI adapter in evoked and immediate modes, with matching green
 C++ primary/contract evidence. Provider, FOM, MIM, endpoint, time factory, and
 callback model remain adapter configuration.
 
+`java-tck.federate-automatic-resign-action-mim-attribute` is default-run with
+the adapter-supplied standard MIM. It checks the initial automatic resign
+action, a different standard action, and restoration through both direct MOM
+requests and conditional reflections. The producer-handle check uses only the
+standard Get Federate Name service. The installed JNI adapter and the C++
+primary/contract passed both callback models.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 
