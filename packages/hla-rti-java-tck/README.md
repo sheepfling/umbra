@@ -306,6 +306,9 @@ defaults are the standard MIM `HLAobjectRoot.HLAmanager.HLAfederate` class
 and `HLAfederateHandle` attribute. The ownership-query partition/cleanup case
 uses the same foreign-attribute settings for its undefined-attribute boundary
 and queries the real object handle after removal for its unknown-object boundary.
+The ownership-query save/restore case uses the adapter's multi-attribute FOM,
+logical-time implementation, and callback model. It joins with explicit
+federate names so restored identity reports can be checked exactly.
 The opt-in `java-tck.attribute-subscription-invocations-accumulate` case
 subscribes to the configured primary attribute, waits for discovery, then
 subscribes to the distinct configured second attribute and verifies one update

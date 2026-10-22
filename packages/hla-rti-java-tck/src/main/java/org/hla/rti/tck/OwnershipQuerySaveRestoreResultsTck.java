@@ -52,10 +52,10 @@ final class OwnershipQuerySaveRestoreResultsTck {
          requesterConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution(ownerName, federation);
+         owner.joinFederationExecution(ownerName, "java-tck", federation);
          ownerJoined = true;
          FederateHandle requesterHandle = requester.joinFederationExecution(
-            requesterName, federation);
+            requesterName, "java-tck", federation);
          requesterJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -181,7 +181,10 @@ final class OwnershipQuerySaveRestoreResultsTck {
                && saveLabel.equals(requesterRestore.label)
                && requesterName.equals(requesterRestore.federateName)
                && requesterRestore.postRestoreHandle != null,
-            "restore initiation returned incorrect saved identity data");
+            "restore initiation returned incorrect saved identity data: owner label="
+               + ownerRestore.label + " name=" + ownerRestore.federateName
+               + ", requester label=" + requesterRestore.label
+               + " name=" + requesterRestore.federateName);
          owner.federateRestoreComplete();
          requester.federateRestoreComplete();
          awaitBoth(owner, requester, callbackModel, objectClassName,

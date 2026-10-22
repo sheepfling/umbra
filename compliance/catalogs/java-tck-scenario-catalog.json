@@ -22499,12 +22499,19 @@
         "FederateAmbassador.initiateFederateRestore",
         "FederateAmbassador.federationRestored"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management",
-        "cpp-1516.1-federation-save-lifecycle",
-        "cpp-1516.1-federation-restore-lifecycle"
+      "requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7", "requirement-candidate-content-clauses-04-federation-management-page-075-l47-8", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7", "requirement-candidate-content-clauses-04-federation-management-page-075-l47-8", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.19", "hla-1516.1-2025:clause-4.23", "hla-1516.1-2025:clause-4.30", "hla-1516.1-2025:clause-4.32", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "standard_section": "hla-1516.1-2025:clause-4.19"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "standard_section": "hla-1516.1-2025:clause-4.23"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7", "standard_section": "hla-1516.1-2025:clause-4.30"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-075-l47-8", "standard_section": "hla-1516.1-2025:clause-4.30"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2", "standard_section": "hla-1516.1-2025:clause-4.32"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
+      "mapping_note": "Pure Java parity saves a two-member federation, changes one owned attribute through negotiated transfer, restores the snapshot, then checks the original owner, an unowned companion, and the RTI-owned standard MOM attribute. It uses the standard named-join overload so the requested federate names match the restored identity callbacks. The seven direct pairs cover bounded save/restore initiation, completion, saved-state return, and owned-result query/report behavior. Official 2025 API JAR compilation and focused JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-query-save-restore-results-named-join-*-jni-20261022.json); C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests. No independent-provider or conformance claim.",
       "contract_refs": [
         "standard-ownership-management-contract.json",
         "attribute-ownership-query-api-contract.json",
@@ -22518,8 +22525,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipQuerySaveRestoreResults",
       "parity": "cpp-tck.ownership-query-save-restore-results",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied multi-attribute FOM, logical-time implementation, callback model, and a provider supporting federation save/restore and ownership management. The portable Java scenario uses only IEEE 1516.1-2025 APIs."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-acquisition-cancellation-transfer-race",

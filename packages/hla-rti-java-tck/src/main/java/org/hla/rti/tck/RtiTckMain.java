@@ -5221,7 +5221,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-save-lifecycle",
                "cpp-1516.1-federation-restore-lifecycle"
-            }, false), RtiTckMain::ownershipQuerySaveRestoreResults);
+            }, true), RtiTckMain::ownershipQuerySaveRestoreResults);
       run(new Scenario("java-tck.ownership-acquisition-cancellation-transfer-race",
             "resolve acquisition cancellation racing Divestiture If Wanted without stale confirmation",
             "ownership",
