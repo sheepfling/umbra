@@ -649,12 +649,30 @@ order, and checks that the list changes after an additional-module join and
 matches a later explicit request. The callback assertion also checks the
 standard transport, tag, producer, and DDM-region metadata.
 
-The opt-in `java-tck.federate-mom-fom-module-content-report` scenario requests
+The default-run `java-tck.federate-mom-fom-module-content-report` scenario requests
 one joined federate's FOM module through the standard federate MOM. The adapter
 supplies the base FOM, standard MIM, additional FOM module, logical-time
 implementation, callback model, and federate type. The test verifies the
 standard request/report handles and parameter names, reliable report delivery,
 the selected module indicator, and returned FOM XML content.
+It passed installed-provider HLA_EVOKED and HLA_IMMEDIATE runs with an
+adapter-supplied additional FOM module; independent-provider behavior is not
+yet verified.
+
+The default-run `java-tck.federate-mom-object-instance-information` scenario
+requests reports for an owned object, a discovered object, and an object
+removed from local knowledge. It checks the standard report parameters,
+decoded handle and attribute lists, reliable delivery, and the owned/known/NULL
+states. The adapter supplies the FOM, standard MIM, object-class and attribute
+names, logical time, and callback model. It passed installed-provider runs in
+both callback models; independent-provider behavior is not yet verified.
+
+The default-run `java-tck.federate-mom-publication-query` scenario requests
+standard federate MOM publication reports after publishing an adapter-named
+object attribute and interaction. It checks decoded object and interaction
+handles, the reported publication sets, an empty directed-interaction set,
+and reliable callback metadata. The installed provider passed both callback
+models; independent-provider behavior is not yet verified.
 
 The opt-in `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback

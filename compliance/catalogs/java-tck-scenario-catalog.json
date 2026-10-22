@@ -1037,7 +1037,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomFomModuleContentReport",
       "parity": "cpp-tck.federate-mom-fom-module-content-report",
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "provider JAR and factory",
         "endpoint and callback model",
@@ -1045,7 +1045,7 @@
         "additional FOM module joined by the target federate",
         "logical-time implementation and federate type via hla.rti.tck.federateType"
       ],
-      "exclusion": "Requires adapter-supplied base FOM, standard MIM, an additional FOM module joined by the target federate, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-fom-module-content-report-{evoked,immediate}-default-20261022.json with adapter-supplied base FOM, standard MIM, and additional FOM module. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-fom-module-content-report-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-object-instance-information",
@@ -1101,14 +1101,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomObjectInstanceInformation",
       "parity": "cpp-tck.federate-mom-object-instance-information",
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "provider JAR and factory",
         "endpoint and callback model",
         "base FOM and standard MIM",
         "logical-time implementation, federate type, object-class name, and attribute name"
       ],
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, and object-class/attribute names, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-object-instance-information-{evoked,immediate}-default-20261022.json with adapter-supplied class and attribute names from the P0 FOM. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-instance-information-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-publication-query",
@@ -1166,8 +1166,8 @@
         "logical-time implementation, federate type, object class, attribute, and interaction class"
       ],
       "parity": "cpp-tck.federate-mom-publication-query",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, and object-class/attribute/interaction-class names, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-publication-query-{evoked,immediate}-default-20261022.json with adapter-supplied P0 object, attribute, and interaction names. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-publication-query-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-complete-object-class-publication-query",

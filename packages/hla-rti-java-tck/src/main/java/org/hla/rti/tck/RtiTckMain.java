@@ -680,7 +680,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomFomModuleContentReport);
+            }, true), RtiTckMain::federateMomFomModuleContentReport);
       run(new Scenario("java-tck.federate-mom-object-instance-information",
             "report owned, known, and NULL object information through the standard federate MOM",
             "federate-mom",
@@ -688,7 +688,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomObjectInstanceInformation);
+            }, true), RtiTckMain::federateMomObjectInstanceInformation);
       run(new Scenario("java-tck.federate-mom-publication-query",
             "report object, interaction, and empty directed-interaction publication state through the standard MIM",
             "federate-mom",
@@ -696,7 +696,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomPublicationQuery);
+            }, true), RtiTckMain::federateMomPublicationQuery);
       run(new Scenario("java-tck.federate-mom-complete-object-class-publication-query",
             "verify all adapter-configured object attributes and inherited delete privilege in the publication report",
             "federate-mom",
