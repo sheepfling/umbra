@@ -45,10 +45,12 @@ final class ReceiveOrderAttributeUpdateTck {
          receiverConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         FederateHandle producer = publisher.joinFederationExecution(
-            "java-tck-receive-order-attribute-publisher", federation);
+         String publisherName = "java-tck-receive-order-attribute-publisher";
+         publisher.joinFederationExecution(publisherName,
+            "receive-order-attribute-publisher", federation);
          publisherJoined = true;
-         receiver.joinFederationExecution("java-tck-receive-order-attribute-receiver", federation);
+         receiver.joinFederationExecution("java-tck-receive-order-attribute-receiver",
+            "receive-order-attribute-receiver", federation);
          receiverJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
@@ -76,8 +78,13 @@ final class ReceiveOrderAttributeUpdateTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "receive-order attribute-update registration returned an invalid handle");
-         await(receiver, callbackModel, () -> receiverCallbacks.discoveries.contains(object),
+         String objectName = publisher.getObjectInstanceName(object);
+         await(receiver, callbackModel, () -> !receiverCallbacks.discoveries.isEmpty(),
             "receive-order attribute-update discovery");
+         ObjectInstanceHandle receiverObject = receiver.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(receiverCallbacks.discoveries.contains(receiverObject)
+               && receiverClass.equals(receiver.getKnownObjectClassHandle(receiverObject)),
+            "receiver did not preserve its locally discovered object identity");
          receiverCallbacks.reflections.clear();
          publisherCallbacks.reflections.clear();
 
@@ -95,10 +102,30 @@ final class ReceiveOrderAttributeUpdateTck {
             "receive-order attribute-update reflections");
          JavaTckSupport.check(receiverCallbacks.reflections.size() == 2,
             "receive-order attribute update delivered an unexpected callback count");
-         assertDelivery(receiver, receiverCallbacks.reflections.get(0), object,
-            receiverAttribute, firstValue, firstTag, producer, "first receive-order update");
-         assertDelivery(receiver, receiverCallbacks.reflections.get(1), object,
-            receiverAttribute, secondValue, secondTag, producer, "second receive-order update");
+         boolean sawFirst = false;
+         boolean sawSecond = false;
+         for (Reflection reflection : receiverCallbacks.reflections) {
+            boolean first = Arrays.equals(firstValue,
+               reflection.values.get(receiverAttribute))
+               && Arrays.equals(firstTag, reflection.tag);
+            boolean second = Arrays.equals(secondValue,
+               reflection.values.get(receiverAttribute))
+               && Arrays.equals(secondTag, reflection.tag);
+            JavaTckSupport.check(first != second,
+               "receive-order reflection returned unexpected value or tag metadata");
+            if (first) {
+               JavaTckSupport.check(!sawFirst, "first ordinary update was duplicated");
+               sawFirst = true;
+            } else {
+               JavaTckSupport.check(!sawSecond, "second ordinary update was duplicated");
+               sawSecond = true;
+            }
+            assertDelivery(receiver, reflection, receiverObject, receiverAttribute,
+               first ? firstValue : secondValue, first ? firstTag : secondTag,
+               publisherName, "receive-order update");
+         }
+         JavaTckSupport.check(sawFirst && sawSecond,
+            "receiver did not receive both ordinary updates");
          JavaTckSupport.check(publisherCallbacks.reflections.isEmpty(),
             "receive-order attribute update looped a reflection back to its publisher");
       } finally {
@@ -255,12 +282,12 @@ final class ReceiveOrderAttributeUpdateTck {
 
    private static void assertDelivery(RTIambassador receiver, Reflection reflection,
          ObjectInstanceHandle object, AttributeHandle attribute, byte[] value, byte[] tag,
-         FederateHandle producer, String description) throws Exception {
+         String publisherName, String description) throws Exception {
       JavaTckSupport.check(!reflection.timestampOrdered && object.equals(reflection.object)
             && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag)
-            && producer.equals(reflection.producer)
+            && publisherName.equals(receiver.getFederateName(reflection.producer))
             && reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty(),
          description + " returned incorrect object, attribute, value, tag, producer, or transport");

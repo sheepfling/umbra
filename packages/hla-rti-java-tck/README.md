@@ -856,12 +856,13 @@ Provider, FOM, endpoint, and callback model remain adapter-configured. Focused
 installed JNI execution passed in both modes; independent-provider conformance
 remains unverified.
 
-The opt-in `java-tck.receive-order-attribute-update` scenario checks adapter-name
-handle round trips, the evoked callback-servicing boundary, and two consecutive
-ordinary updates with exact object, attribute, value, tag, producer, receive-order,
-and transportation metadata. The publisher must receive no reflection. It is
-paired with the promoted C++ scenario and remains unsupported by default until
-executed against a Java 1516.1-2025 provider.
+The default `java-tck.receive-order-attribute-update` scenario checks adapter-name
+handle round trips, the evoked callback-servicing boundary, and two distinct
+ordinary updates with exact receiver-local object, attribute, value, tag,
+producer, receive-order, and transportation metadata. It does not require
+sender-order callback delivery without a direct standard mapping. The publisher
+receives no reflection. It passed focused installed JNI execution in both
+callback modes; independent-provider conformance remains unverified.
 
 The opt-in `java-tck.interaction-declarations-valid-inputs-after-resignation`
 scenario confirms a valid adapter-supplied interaction handle/name round trip,

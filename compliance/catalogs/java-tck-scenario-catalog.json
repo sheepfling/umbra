@@ -6567,7 +6567,7 @@
     {
       "id": "java-tck.receive-order-attribute-update",
       "category": "receive-order-attribute-update",
-      "title": "Deliver consecutive ordinary receive-order attribute updates in producer order",
+      "title": "Deliver two distinct ordinary receive-order attribute updates",
       "api_methods": [
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
@@ -6575,6 +6575,10 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -6593,6 +6597,30 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l79-23",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l115-35"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36", "standard_section": "hla-1516.1-2025:clause-5.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l79-23", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l115-35", "standard_section": "hla-1516.1-2025:clause-6.11.1"}
+      ],
+      "mapping_note": "Direct pairs cover active subscription under §5.8 (page-096-l117-36), ordinary update values and tags under §6.10 (page-120-l83-22/l110-31), and reflection values, transportation, producer, and no-publisher-loopback under §6.11.1 (page-122-l61-17/l79-23/l112-34/l115-35). The receiver gets each distinct ordinary update once, matched to its own object handle and the publisher's standard federate name. Callback servicing in HLA_EVOKED is supplemental. The case imposes no sender-order assertion because that ordering has no direct mapping here; federation lifecycle and discovery are setup. Java compiles against the official IEEE API and passed focused installed JNI runs in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
@@ -6608,8 +6636,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#receiveOrderAttributeUpdate",
       "parity": "cpp-tck.receive-order-attribute-update",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-registration-discovery-lifecycle",
