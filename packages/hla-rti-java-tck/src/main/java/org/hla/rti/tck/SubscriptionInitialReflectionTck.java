@@ -11,10 +11,10 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Checks initial and later value projection when subscribing to an existing object. */
 final class SubscriptionInitialReflectionTck {
@@ -61,6 +61,7 @@ final class SubscriptionInitialReflectionTck {
          published = true;
 
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         String objectName = publisher.getObjectInstanceName(object);
          byte[] currentFirst = new byte[] {0x21, 0x22};
          byte[] currentSecond = new byte[] {0x31, 0x32};
          AttributeHandleValueMap currentValues =
@@ -86,10 +87,13 @@ final class SubscriptionInitialReflectionTck {
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
          subscribed = true;
          awaitInitialDelivery(subscriber, subscriberRecorder);
-         JavaTckSupport.check(object.equals(subscriberRecorder.discoveredObject)
+         ObjectInstanceHandle localObject = subscriberRecorder.discoveredObject;
+         JavaTckSupport.check(objectName.equals(subscriber.getObjectInstanceName(localObject))
+               && localObject.equals(subscriber.getObjectInstanceHandle(objectName))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(localObject))
                && subscriberRecorder.reflections.size() == 1,
             "subscription to an existing object did not produce one discovery and initial reflection");
-         assertProjection(subscriberRecorder.reflections.get(0), object, subscriberFirst,
+         assertProjection(subscriberRecorder.reflections.get(0), localObject, subscriberFirst,
             subscriberSecond, currentFirst, "initial reflection");
 
          byte[] laterFirst = new byte[] {0x41, 0x42};
@@ -102,7 +106,7 @@ final class SubscriptionInitialReflectionTck {
          awaitReflectionCount(subscriber, subscriberRecorder, 2);
          JavaTckSupport.check(subscriberRecorder.reflections.size() == 2,
             "later multi-attribute update delivered a duplicate reflection");
-         assertProjection(subscriberRecorder.reflections.get(1), object, subscriberFirst,
+         assertProjection(subscriberRecorder.reflections.get(1), localObject, subscriberFirst,
             subscriberSecond, laterFirst, "later reflection");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
@@ -173,13 +177,18 @@ final class SubscriptionInitialReflectionTck {
    }
 
    private static final class Reflection {
-      private ObjectInstanceHandle object;
-      private AttributeHandleValueMap values;
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleValueMap values;
+
+      private Reflection(ObjectInstanceHandle object, AttributeHandleValueMap values) {
+         this.object = object;
+         this.values = values.clone();
+      }
    }
 
    private static final class Recorder {
-      private ObjectInstanceHandle discoveredObject;
-      private final List<Reflection> reflections = new ArrayList<>();
+      private volatile ObjectInstanceHandle discoveredObject;
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -192,10 +201,8 @@ final class SubscriptionInitialReflectionTck {
                   discoveredObject = (ObjectInstanceHandle) arguments[0];
                } else if ("reflectAttributeValues".equals(name)
                      && arguments != null && arguments.length == 6) {
-                  Reflection reflection = new Reflection();
-                  reflection.object = (ObjectInstanceHandle) arguments[0];
-                  reflection.values = ((AttributeHandleValueMap) arguments[1]).clone();
-                  reflections.add(reflection);
+                  reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleValueMap) arguments[1]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK subscription initial reflection callbacks";

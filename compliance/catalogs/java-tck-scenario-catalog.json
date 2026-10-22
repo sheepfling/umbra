@@ -4778,15 +4778,15 @@
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l63-18", "standard_section": "hla-1516.1-2025:clause-5.8" },
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l66-19", "standard_section": "hla-1516.1-2025:clause-5.8" }
       ],
-      "mapping_note": "Direct §5.8 mappings cover the initial reflection of an already-current subscribed attribute and the restriction of initial/later reflections to the subscribed set (page-096-l63-18 and page-096-l66-19). Discovery is checked as the callback precondition but is not separately mapped. The source uses only official IEEE 1516.1-2025 Java APIs; the adapter supplies the provider, endpoint, multi-attribute FOM, names, and callback model. Java provider runtime evidence is not yet available.",
+      "mapping_note": "Direct §5.8 mappings cover the initial reflection of an already-current subscribed attribute and the restriction of initial/later reflections to the subscribed set (page-096-l63-18 and page-096-l66-19). Discovery is checked as the callback precondition but is not separately mapped; the subscriber resolves its own object identity. The source uses only official IEEE 1516.1-2025 Java APIs; the adapter supplies the provider, endpoint, multi-attribute FOM, names, and callback model. Focused JNI passes in HLA_EVOKED and HLA_IMMEDIATE are recorded; independent-provider conformance is not claimed.",
       "contract_refs": [
         "subscribe-object-class-attributes-api-contract.json",
         "standard-declaration-management-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#subscriptionInitialReflectionProjection",
       "parity": "cpp-tck.subscription-initial-reflection-projection",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied Java 1516.1-2025 provider, endpoint, compatible multi-attribute FOM, class/attribute names, and callback model. Source compiles against the official Java API JAR; no Java provider-runtime result is claimed."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.active-subscription-object-discovery",

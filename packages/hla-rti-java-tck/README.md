@@ -683,6 +683,13 @@ publisher. It passed the focused JNI gate in both callback models using an
 adapter-supplied two-attribute FOM. It remains internal API-contract evidence
 without a direct canonical requirement mapping or independent-provider claim.
 
+The default-run `java-tck.subscription-initial-reflection-projection` scenario
+subscribes to an existing object and checks the current first-attribute value,
+then a later two-attribute update. Only the subscribed attribute may appear in
+either reflection. The adapter supplies the provider, FOM, names, and callback
+model; both callback modes passed the focused JNI gate. This is direct §5.8
+parity evidence, not an independent-provider conformance claim.
+
 The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
 against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable
 notification follows the GALT equality boundary and that a later advance is

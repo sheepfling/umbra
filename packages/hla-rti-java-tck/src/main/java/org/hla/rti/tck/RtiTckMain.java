@@ -1401,7 +1401,7 @@ public final class RtiTckMain {
             new String[] {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-attribute-value-update-reflection"
-            }, false), RtiTckMain::subscriptionInitialReflectionProjection);
+            }, true), RtiTckMain::subscriptionInitialReflectionProjection);
       run(new Scenario("java-tck.active-subscription-object-discovery",
             "discover matching objects already present and registered after an active subscription",
             "object-management",
