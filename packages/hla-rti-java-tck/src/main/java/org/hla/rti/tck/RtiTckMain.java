@@ -124,6 +124,18 @@ public final class RtiTckMain {
       "hla.rti.tck.memberDataTypeAttributeBasicFom";
    private static final String MEMBER_DATA_TYPE_PARAMETER_BASIC_FOM_PROPERTY =
       "hla.rti.tck.memberDataTypeParameterBasicFom";
+   private static final String ATTRIBUTE_NA_VALID_COMPANIONS_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaValidCompanionsFom";
+   private static final String ATTRIBUTE_NA_INVALID_UPDATE_TYPE_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaInvalidUpdateTypeFom";
+   private static final String ATTRIBUTE_NA_INVALID_UPDATE_CONDITION_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaInvalidUpdateConditionFom";
+   private static final String ATTRIBUTE_NA_INVALID_TRANSPORTATION_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaInvalidTransportationFom";
+   private static final String ATTRIBUTE_NA_OMITTED_COMPANIONS_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaOmittedCompanionsFom";
+   private static final String ATTRIBUTE_NA_OMITTED_COMPANIONS_EXTENSION_FOM_PROPERTY =
+      "hla.rti.tck.attributeNaOmittedCompanionsExtensionFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1818,6 +1830,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomMemberDataTypeCategories);
+      run(new Scenario("java-tck.fom-attribute-na-companion-completion",
+            "Accept explicit and cross-module completed NA attribute companions",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomAttributeNaCompanionCompletion);
+      run(new Scenario("java-tck.fom-attribute-na-companion-rejections",
+            "Reject incompatible update and transportation companions for NA attributes",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomAttributeNaCompanionRejections);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11668,6 +11692,10 @@ public final class RtiTckMain {
             method = "fomTimeRepresentationRejections"; break;
          case "java-tck.fom-member-data-type-categories":
             method = "fomMemberDataTypeCategories"; break;
+         case "java-tck.fom-attribute-na-companion-completion":
+            method = "fomAttributeNaCompanionCompletion"; break;
+         case "java-tck.fom-attribute-na-companion-rejections":
+            method = "fomAttributeNaCompanionRejections"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13323,6 +13351,25 @@ public final class RtiTckMain {
          requireAdapterFile(MEMBER_DATA_TYPE_ATTRIBUTE_BASIC_FOM_PROPERTY),
          requireAdapterFile(MEMBER_DATA_TYPE_PARAMETER_BASIC_FOM_PROPERTY),
          timeImplementation(), callbackModel());
+   }
+
+   private static void fomAttributeNaCompanionCompletion() throws Exception {
+      FomAttributeNaCompanionTck.run(factory(),
+         requireAdapterFile(ATTRIBUTE_NA_VALID_COMPANIONS_FOM_PROPERTY),
+         new String[] {
+            requireAdapterFile(ATTRIBUTE_NA_OMITTED_COMPANIONS_FOM_PROPERTY),
+            requireAdapterFile(ATTRIBUTE_NA_OMITTED_COMPANIONS_EXTENSION_FOM_PROPERTY)
+         }, new String[0], timeImplementation(), callbackModel());
+   }
+
+   private static void fomAttributeNaCompanionRejections() throws Exception {
+      FomAttributeNaCompanionTck.run(factory(),
+         requireAdapterFile(ATTRIBUTE_NA_VALID_COMPANIONS_FOM_PROPERTY),
+         new String[0], new String[] {
+            requireAdapterFile(ATTRIBUTE_NA_INVALID_UPDATE_TYPE_FOM_PROPERTY),
+            requireAdapterFile(ATTRIBUTE_NA_INVALID_UPDATE_CONDITION_FOM_PROPERTY),
+            requireAdapterFile(ATTRIBUTE_NA_INVALID_TRANSPORTATION_FOM_PROPERTY)
+         }, timeImplementation(), callbackModel());
    }
 
    private static void fomDimensionDuplicateUnion() throws Exception {

@@ -13556,8 +13556,10 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.2"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
       "test_case": "The FOM composition preflight validates supplied NA attribute companions",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2153",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1838",
       "tags": [
         "unit",
         "fom",

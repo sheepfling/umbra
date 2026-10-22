@@ -8526,6 +8526,38 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-attribute-na-companion-completion",
+      "category": "fom-composition",
+      "title": "Accept explicit and cross-module completed NA attribute companions",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.2"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
+      "mapping_note": "Standard Java API parity for explicit and second-module-completed NA attribute companion rows. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-attribute-na-companions-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeNaCompanionCompletion",
+      "parity": "cpp-tck.fom-attribute-na-companion-completion",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.attributeNaValidCompanionsFom, attributeNaOmittedCompanionsFom, and attributeNaOmittedCompanionsExtensionFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-attribute-na-companion-rejections",
+      "category": "fom-composition",
+      "title": "Reject incompatible update and transportation companions for NA attributes",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.2"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
+      "mapping_note": "Standard Java API parity for three schema-valid invalid companion modules and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-attribute-na-companions-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeNaCompanionRejections",
+      "parity": "cpp-tck.fom-attribute-na-companion-rejections",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.attributeNaValidCompanionsFom, attributeNaInvalidUpdateTypeFom, attributeNaInvalidUpdateConditionFom, and attributeNaInvalidTransportationFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-member-data-type-categories",
       "category": "fom-composition",
       "title": "Reject raw basic data types on object attributes and interaction parameters",

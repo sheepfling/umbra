@@ -740,6 +740,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-attribute-basic-tck.xml")),
             "member-data-type-parameter-basic="
             + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-parameter-basic-tck.xml")),
+            "attribute-na-valid-companions="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-valid-companions-tck.xml")),
+            "attribute-na-invalid-update-type="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-type-tck.xml")),
+            "attribute-na-invalid-update-condition="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-condition-tck.xml")),
+            "attribute-na-invalid-transportation="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-transportation-tck.xml")),
+            "attribute-na-omitted-companions="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-tck.xml")),
+            "attribute-na-omitted-companions-extension="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-extension-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

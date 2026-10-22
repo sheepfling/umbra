@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_attribute_na_companions_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 NA attribute companion rule into public C++ TCK primary/contract cases and Java scenario-ID parity with six adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1838; packages/hla-rti-cpp-tck/src/tck_fom_attribute_na_companions.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomAttributeNaCompanionTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-048-l109-5 -> IEEE 1516.2-2025 clause 4.5.2"],
+    "evidence": "Native focused case passed 36 assertions; six adapter FOMs passed the pinned DIF XSD. C++ compiled against installed official IEEE API headers. Isolated installed-package CTest passed 8/8 and direct runs passed 8/8 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/attribute-na-companions-20261021.json). Java compiles against the API-only JAR; catalog and parity validators pass. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create accepts a fully specified NA attribute and a partial attribute completed by a second module; it rejects non-NA update type/condition and NA transportation as InconsistentFOM and permits valid federation-name reuse. The native standard Restaurant control and a separate NA order violation are not directly asserted here. No private diagnostic text, Java runtime, interoperability, or conformance claim. The focused link reused existing objects and compiled only the entry point and new scenario source; it is not a full rebuild.",
+    "next": "Audit the native-green dynamic update-condition case at cpp/tests/libxml2_fom_composer_catch2.cpp:1922 and its pinned mapping against existing portable coverage. Translate uncovered schema-valid public Create cases with Java parity and installed-package gate. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_member_data_type_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 attribute and parameter data-type category rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",
