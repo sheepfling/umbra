@@ -9457,12 +9457,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.7"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "standard_section": "hla-1516.2-2025:clause-6.2.7"}],
-      "mapping_note": "Standard Java API parity for out-of-range [0..101) rejection and exact-boundary [0..100) acceptance with upperBound 100. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-default-range-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for the FOM §6.2.7 subset: out-of-range [0..101) rejection and exact-boundary [0..100) acceptance with upperBound 100. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-default-range-20261021.json; the C++ primary additionally checks §9.1.1 region bounds, which this Java scenario does not claim. Independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-dimension-default-range-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDefaultRange",
       "parity": "cpp-tck.fom-dimension-default-range",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures dimensionDefaultRangeOutsideFom, dimensionDefaultRangeBoundedFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-default-range-{evoked,immediate}-default-20261022.json. Adapter supplies outside and bounded dimension-range FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-synchronization-duplicate-equal",
