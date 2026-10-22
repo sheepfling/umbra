@@ -3614,9 +3614,8 @@ public final class RtiTckMain {
              "timestamped interaction retraction without eligible subscribers", "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.retract;RTIambassador.timeAdvanceRequest;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
              new String[] {
-                "java-1516.1-interaction-declaration-and-delivery",
-                "java-1516.1-time-advance-and-grant"
-             }, false), RtiTckMain::timestampedInteractionNoFanout);
+                "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"
+             }, true), RtiTckMain::timestampedInteractionNoFanout);
        run(new Scenario("java-tck.timestamped-interaction-source-resignation",
              "deliver an accepted timestamped interaction after its producer resigns", "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.retract;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",

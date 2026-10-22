@@ -17857,6 +17857,16 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        }
+      ],
+      "mapping_note": "Direct mapping covers only use of Retract on a still-pending timestamped interaction under Clause 8.22.3. No-subscriber fan-out, designator terminalization, and grant fencing are supplemental API observations. Focused installed-provider runs passed in both callback models; no independent-provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -17867,8 +17877,9 @@
         "time-advance-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionNoFanout",
-      "default_status": "unsupported",
-      "exclusion": "No federate subscribes to the published interaction. Provider, time-managed FOM, logical-time implementation, and callback model are adapter-supplied; keep unsupported by default until Java provider runtime evidence is collected."
+      "default_status": "run",
+      "exclusion": "No federate subscribes to the published interaction. Provider, time-managed FOM, logical-time implementation, interaction/parameter names, endpoint, and callback model are adapter-supplied.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-source-resignation",

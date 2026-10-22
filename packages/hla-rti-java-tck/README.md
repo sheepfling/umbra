@@ -1446,7 +1446,20 @@ to a registered object. It verifies target discovery, no delivery before an
 advance, callback-before-grant ordering for all three services, exact grant
 distinctions, payload/tag/time/order/retraction metadata, and resolvable
 transportation. It remains unsupported by default until run through a
-compatible provider adapter.
+compatible provider adapter. A focused installed-adapter run reached the
+publisher and Flush Queue grants but not the TARA/NMRA grants or directed
+deliveries. Its recorder now reads the producer handle from the official
+discovery callback's fourth argument.
+
+The default-run `java-tck.timestamped-interaction-no-fanout` scenario verifies
+that a timestamped interaction retains a usable retraction designator even
+without subscribers, delivers no interaction or retraction callbacks, and
+rejects that designator after retraction or after advancing past its timestamp.
+It passed focused installed-provider runs under HLA_EVOKED and HLA_IMMEDIATE.
+The direct standard mapping covers Retract use only; no-fanout behavior and
+designator terminalization are supplemental observations. Provider, FOM,
+endpoint, time implementation, interaction/parameter names, and callback model
+remain adapter inputs.
 
 The `java-tck.timestamped-interaction-retraction` scenario follows the promoted
 C++ sequence: an unconstrained subscriber receives a timestamped interaction,

@@ -49,7 +49,8 @@ final class TimestampedInteractionNoFanoutTck {
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTimeInterval lookahead = (LogicalTimeInterval) timeFactory.makeEpsilon();
          publisher.enableTimeRegulation(lookahead);
-         JavaTckSupport.drain(publisher);
+         awaitCallback(publisher, () -> recorder.timeRegulationEnabled,
+            "timeRegulationEnabled");
          JavaTckSupport.check(recorder.timeRegulationEnabled,
             "timeRegulationEnabled did not cross the publisher callback interface");
 
@@ -75,7 +76,8 @@ final class TimestampedInteractionNoFanoutTck {
 
          LogicalTime grantTime = offset(sendTime, lookahead, 1);
          publisher.timeAdvanceRequest(grantTime);
-         JavaTckSupport.drain(publisher);
+         awaitCallback(publisher, () -> recorder.timeAdvanceGrant != null,
+            "timeAdvanceGrant");
          JavaTckSupport.check(grantTime.equals(recorder.timeAdvanceGrant)
                && grantTime.equals(publisher.queryLogicalTime()),
             "publisher did not receive the requested time-advance grant");
@@ -120,6 +122,17 @@ final class TimestampedInteractionNoFanoutTck {
       return result;
    }
 
+   private static void awaitCallback(RTIambassador ambassador, CallbackObserved observed,
+         String callback) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(ambassador);
+         if (observed.get()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(callback + " was not observed within 10 seconds");
+   }
+
    private static void expectException(CheckedOperation operation, String expected,
          String description) throws Exception {
       try {
@@ -146,11 +159,16 @@ final class TimestampedInteractionNoFanoutTck {
       void run() throws Exception;
    }
 
+   @FunctionalInterface
+   private interface CallbackObserved {
+      boolean get();
+   }
+
    private static final class Recorder {
-      private boolean timeRegulationEnabled;
-      private int receiveInteractionCallbacks;
-      private int requestRetractionCallbacks;
-      private LogicalTime<?, ?> timeAdvanceGrant;
+      private volatile boolean timeRegulationEnabled;
+      private volatile int receiveInteractionCallbacks;
+      private volatile int requestRetractionCallbacks;
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

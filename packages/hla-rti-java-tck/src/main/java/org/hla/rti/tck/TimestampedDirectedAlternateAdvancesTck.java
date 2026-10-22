@@ -310,7 +310,14 @@ final class TimestampedDirectedAlternateAdvancesTck {
                && !receiverRecs[2].timeAdvanceGrantTimes.isEmpty()) return;
          Thread.sleep(1L);
       }
-      throw new AssertionError("alternate directed advances did not all complete within 10 seconds");
+      throw new AssertionError("alternate directed advances did not all complete within 10 seconds"
+         + " (publisher grants=" + publisherRec.timeAdvanceGrantTimes.size()
+         + ", flush grants=" + receiverRecs[0].flushQueueGrantTimes.size()
+         + ", TARA grants=" + receiverRecs[1].timeAdvanceGrantTimes.size()
+         + ", NMRA grants=" + receiverRecs[2].timeAdvanceGrantTimes.size()
+         + ", deliveries=" + receiverRecs[0].interactions.size() + "/"
+         + receiverRecs[1].interactions.size() + "/"
+         + receiverRecs[2].interactions.size() + ")");
    }
 
    private static void awaitPublisherGrant(RTIambassador publisher, Recorder publisherRec,
@@ -437,11 +444,11 @@ final class TimestampedDirectedAlternateAdvancesTck {
                if ("timeRegulationEnabled".equals(name)) timeRegulationEnabled = true;
                else if ("timeConstrainedEnabled".equals(name)) timeConstrainedEnabled = true;
                else if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 3) {
+                     && arguments.length == 4) {
                   Discovery event = new Discovery();
                   event.object = (ObjectInstanceHandle) arguments[0];
                   event.objectClass = (ObjectClassHandle) arguments[1];
-                  event.producer = (FederateHandle) arguments[2];
+                  event.producer = (FederateHandle) arguments[3];
                   discoveries.add(event);
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 10) {
