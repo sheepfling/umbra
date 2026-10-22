@@ -463,15 +463,21 @@ transportation type to check targeted and universal directed delivery, including
 target, value, tag, producer, and transportation metadata. It remains unsupported
 by default until exercised against a Java provider.
 
-The opt-in `java-tck.support-lookups-valid-inputs-after-resignation` case first
+The default-run `java-tck.support-lookups-valid-inputs-after-resignation` case first
 proves adapter-supplied class/member handles round-trip while joined, then checks
 that the corresponding eight handle/name lookups report
-`FederateNotExecutionMember` after resignation.
+`FederateNotExecutionMember` after resignation. Focused local Java runs passed
+under both callback models on 2026-10-22 with adapter-selected P0 names; the
+existing C++ primary peer passed 2/2 without rebuilding. This is not
+independent-provider conformance evidence.
 
-The opt-in `java-tck.update-rate-lookups-valid-inputs-after-resignation` case
+The default-run `java-tck.update-rate-lookups-valid-inputs-after-resignation` case
 uses adapter-supplied rate FOM inputs to verify both named and
 object-attribute update-rate lookups while joined and their membership errors
-after resignation.
+after resignation. It passed focused local Java runs under both callback
+models on 2026-10-22; the existing C++ primary peer passed 2/2 without a
+rebuild. The provider supplies the rate FOM, class, attribute, and designator;
+these local passes are not independent-provider conformance evidence.
 
 The opt-in `java-tck.timestamped-attribute-update-rate-reduction` case checks
 timestamped best-effort suppression while reliable attribute updates continue
@@ -688,11 +694,13 @@ logical time, provider, endpoint, and callback model. Fabricated invalid-handle
 checks are excluded from this portable Java subset. Focused installed JNI runs
 passed in both callback modes; independent-provider conformance is unverified.
 
-The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
+The default-run `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six
 ordinary object-attribute publication/subscription calls while joined and after
 resignation. The calls succeed while joined and report `FederateNotExecutionMember`
-after resignation. It remains unsupported by default until run against a Java provider.
+after resignation. It passed focused local Java runs in both callback models on
+2026-10-22; the existing C++ primary peer passed 2/2 without rebuilding. These
+are not independent-provider conformance results.
 
 The default-run `java-tck.attribute-value-update-request-baseline` scenario uses an
 adapter-supplied multi-attribute FOM plus the `hla.rti.tck.multiAttributeObjectClass`,

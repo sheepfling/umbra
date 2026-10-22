@@ -7726,14 +7726,35 @@
         "cpp-1516.1-parameter-handle-membership-boundary-after-resignation",
         "cpp-1516.1-parameter-name-membership-boundary-after-resignation"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.4",
+        "hla-1516.1-2025:clause-10.5",
+        "hla-1516.1-2025:clause-10.9",
+        "hla-1516.1-2025:clause-10.10",
+        "hla-1516.1-2025:clause-10.13",
+        "hla-1516.1-2025:clause-10.14",
+        "hla-1516.1-2025:clause-10.15",
+        "hla-1516.1-2025:clause-10.16"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "cpp-1516.1-object-class-handle-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.4"},
+        {"requirement_id": "cpp-1516.1-object-class-name-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.5"},
+        {"requirement_id": "cpp-1516.1-attribute-handle-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.9"},
+        {"requirement_id": "cpp-1516.1-attribute-name-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.10"},
+        {"requirement_id": "cpp-1516.1-interaction-class-handle-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.13"},
+        {"requirement_id": "cpp-1516.1-interaction-class-name-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.14"},
+        {"requirement_id": "cpp-1516.1-parameter-handle-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.15"},
+        {"requirement_id": "cpp-1516.1-parameter-name-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.16"}
+      ],
+      "mapping_note": "Eight direct post-resignation FederateNotExecutionMember assertions use valid FOM names and handles established while joined. Clause pairs follow the pinned standard API contract; joined round trips and fixture lifecycle are supplemental. Local JNI passes are not independent-provider conformance evidence.",
       "contract_refs": [
         "support-lookup-valid-inputs-after-resignation-api-contract.json",
         "support-lookup-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#supportLookupsAfterResignation",
       "parity": "cpp-tck.support-lookup-valid-inputs-after-resignation-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM with valid class/member names and a logical-time implementation; remains opt-in until exercised against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider runs passed in evoked and immediate callback modes on 2026-10-22 with adapter-supplied P0 names; the existing C++ primary peer passed 2/2 without rebuilding."
     },
     {
       "id": "java-tck.dimension-lookup-valid-handles-after-resignation",
@@ -7797,14 +7818,23 @@
         "cpp-1516.1-update-rate-value-membership-boundary-after-resignation",
         "cpp-1516.1-update-rate-value-for-attribute-membership-boundary-after-resignation"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.11",
+        "hla-1516.1-2025:clause-10.12"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "cpp-1516.1-update-rate-value-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.11"},
+        {"requirement_id": "cpp-1516.1-update-rate-value-for-attribute-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-10.12"}
+      ],
+      "mapping_note": "Direct post-resignation FederateNotExecutionMember assertions on a valid designator and known object/attribute map to the pinned API clauses. Joined-state value checks and fixture lifecycle are supplemental; local JNI runs are not independent-provider conformance evidence.",
       "contract_refs": [
         "update-rate-lookup-valid-inputs-after-resignation-api-contract.json",
         "update-rate-lookup-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#updateRateLookupsAfterResignation",
       "parity": "cpp-tck.update-rate-lookup-valid-inputs-after-resignation-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rate FOM, object class, attribute, update-rate designator, logical-time implementation, and Java IEEE 1516.1-2025 provider; configure these with hla.rti.tck.updateRateFom, hla.rti.tck.updateRateObjectClass, hla.rti.tck.updateRateAttribute, and hla.rti.tck.updateRateDesignator."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider Java runs passed in evoked and immediate callback modes on 2026-10-22 with adapter-selected rate FOM, class, attribute, and designator; the existing C++ primary peer passed 2/2 without rebuilding."
     },
     {
       "id": "java-tck.timestamped-attribute-update-rate-reduction",
@@ -9743,14 +9773,14 @@
         { "requirement_id": "cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-5.9" },
         { "requirement_id": "cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation", "standard_section": "hla-1516.1-2025:clause-5.9" }
       ],
-      "mapping_note": "Direct mapping follows the official Java API contract for §§5.2, 5.3, 5.8, and 5.9. The scenario validates each declaration operation with valid adapter-FOM handles while joined, then verifies FederateNotExecutionMember after resignation. It uses only the official Java API and JDK; no Java provider-runtime or provider-independent conformance result is claimed.",
+      "mapping_note": "Direct mapping follows the official Java API contract for §§5.2, 5.3, 5.8, and 5.9. The scenario validates each declaration operation with valid adapter-FOM handles while joined, then verifies FederateNotExecutionMember after resignation. It uses only the official Java API and JDK; focused local runtime evidence is not independent-provider conformance evidence.",
       "contract_refs": [
         "object-attribute-declarations-valid-inputs-after-resignation-api-contract.json",
         "object-attribute-declarations-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectAttributeDeclarationsAfterResignation",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter FOM object-class and attribute names plus a Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider Java runs passed in evoked and immediate callback modes on 2026-10-22 with adapter-supplied P0 object-class and attribute names; the existing C++ primary peer passed 2/2 without rebuilding."
     },
     {
       "id": "java-tck.directed-interaction-declarations-valid-inputs-after-resignation",

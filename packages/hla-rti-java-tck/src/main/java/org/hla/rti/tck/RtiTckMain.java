@@ -1146,7 +1146,7 @@ public final class RtiTckMain {
                "cpp-1516.1-subscribe-object-class-attributes-membership-boundary-after-resignation",
                "cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation",
                "cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation"
-            }, false), RtiTckMain::objectAttributeDeclarationsAfterResignation);
+            }, true), RtiTckMain::objectAttributeDeclarationsAfterResignation);
        run(new Scenario("java-tck.object-registration-discovery-lifecycle",
              "hierarchy-aware object discovery and callback-time subscription eligibility",
              "object-management",
@@ -1755,7 +1755,7 @@ public final class RtiTckMain {
                "cpp-1516.1-interaction-class-name-membership-boundary-after-resignation",
                "cpp-1516.1-parameter-handle-membership-boundary-after-resignation",
                "cpp-1516.1-parameter-name-membership-boundary-after-resignation"
-            }, false), RtiTckMain::supportLookupsAfterResignation);
+            }, true), RtiTckMain::supportLookupsAfterResignation);
       run(new Scenario("java-tck.dimension-lookup-valid-handles-after-resignation",
             "check dimension lookup membership boundaries after resignation with valid FOM handles",
             "handle-lookup",
@@ -2344,7 +2344,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-update-rate-value-membership-boundary-after-resignation",
                "cpp-1516.1-update-rate-value-for-attribute-membership-boundary-after-resignation"
-            }, false), RtiTckMain::updateRateLookupsAfterResignation);
+            }, true), RtiTckMain::updateRateLookupsAfterResignation);
       run(new Scenario("java-tck.timestamped-attribute-update-rate-reduction",
             "Throttle timestamped best-effort reflections while retaining reliable updates",
             "timestamped-attribute-update-rate-reduction",
