@@ -1228,8 +1228,12 @@ selective subscription and publication changes, callback metadata and delivery
 ordering across target deletion, the standard removal callback, and rejection
 of a later send to the deleted target. An independent `HLA_IMMEDIATE` observer
 checks target discovery and directed deliveries even when the adapter-selected
-receiver uses evoked callbacks. The primary callback model is selected by the
-adapter; the case imports only the IEEE 1516.1-2025 Java API.
+receiver uses evoked callbacks. The provider, typed FOM, time implementation,
+endpoint, names, selected interaction transportation, and primary callback model
+are adapter inputs. This default-run case imports only the IEEE 1516.1-2025
+Java API and passed focused installed JNI runs in both callback models. Queued
+callback cutoffs are supplemental regressions, not independent-provider
+conformance claims.
 
 The default `java-tck.directed-interaction-subscription-kind` scenario distinguishes
 by-ownership from universal delivery, checks that an empty by-ownership set
