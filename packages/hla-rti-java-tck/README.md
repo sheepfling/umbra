@@ -566,6 +566,14 @@ and the federation name can be reused. Both passed installed-provider evoked
 and immediate runs with adapter-supplied FOM modules. Independent-provider
 conformance is not claimed.
 
+The default-run `java-tck.fom-transportation-duplicate-equal` and
+`java-tck.fom-transportation-duplicate-note-conflict` cases cover Annex C.6
+composition of user-defined transportation declarations. Equal declarations
+are accepted and exposed by standard handle/name lookup; a changed note
+reference is rejected with `InconsistentFOM`, followed by a valid retry.
+Both passed installed-provider evoked and immediate runs with adapter-supplied
+FOM modules. Independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

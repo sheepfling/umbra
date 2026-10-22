@@ -2190,13 +2190,13 @@ public final class RtiTckMain {
             "Accept identical same-name transportation declarations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomTransportationDuplicateEqual);
       run(new Scenario("java-tck.fom-transportation-duplicate-note-conflict",
             "Reject a changed note reference on one transportation declaration",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomTransportationDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-update-rate-duplicate-equal",
             "Accept identical same-name update-rate declarations",
