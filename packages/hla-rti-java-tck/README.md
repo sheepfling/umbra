@@ -496,10 +496,12 @@ The opt-in `java-tck.resign-unconditional-divestiture` case verifies that
 unconditional-divestiture assumption and the surviving peer's tagged acquisition,
 including the implicit `HLAprivilegeToDeleteObject` attribute.
 
-The opt-in `java-tck.final-federate-resignation-cleanup` case verifies that a
+The default `java-tck.final-federate-resignation-cleanup` case verifies that a
 final member's `NO_ACTION` resignation removes its registered object and frees
 the former object name for reservation and named registration after rejoining.
-It remains unsupported by default until exercised against a Java provider.
+It uses only the standard Java API and adapter-supplied class, attribute, FOM,
+logical time, provider, endpoint, and callback model. Focused installed JNI
+runs passed in both callback modes; independent-provider conformance is unverified.
 
 The `java-tck.federation-membership` scenario also covers the unnamed
 two-argument join overload: it verifies that the RTI-assigned federate name

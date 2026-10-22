@@ -7313,10 +7313,12 @@ public final class RtiTckMain {
             "federation-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstance(named);RTIambassador.getObjectInstanceHandle;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded",
             new String[] {
-               "cpp-1516.1-federation-create-join-resign-destroy",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-instance-name-lifecycle"
-            }, false), RtiTckMain::finalFederateResignationCleanup);
+               "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15",
+               "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+               "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
+               "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+               "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
+            }, true), RtiTckMain::finalFederateResignationCleanup);
       run(new Scenario("java-tck.object-name-reservation-lifecycle",
             "exercise single and multiple object-name reservation lifecycle boundaries",
             "object-management",

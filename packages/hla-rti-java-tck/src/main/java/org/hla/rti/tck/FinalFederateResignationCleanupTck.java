@@ -47,6 +47,8 @@ final class FinalFederateResignationCleanupTck {
          ambassador.publishObjectClassAttributes(objectClass, attributes);
          attributesPublished = true;
          ObjectInstanceHandle original = ambassador.registerObjectInstance(objectClass);
+         JavaTckSupport.check(original != null,
+            "object registration returned a null instance handle");
          String reusableName = ambassador.getObjectInstanceName(original);
          JavaTckSupport.check(reusableName != null && !reusableName.isEmpty(),
             "object registration returned an empty instance name");
@@ -67,9 +69,15 @@ final class FinalFederateResignationCleanupTck {
 
          callbacks.reservations.clear();
          ambassador.reserveObjectInstanceName(reusableName);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(callbacks.reservations.isEmpty(),
+               "evoked reservation callback arrived before callback servicing");
+         }
          await(ambassador, callbackModel,
             () -> callbacks.reservations.contains(reusableName),
             "name reuse after final-member resignation");
+         JavaTckSupport.check(callbacks.reservations.size() == 1,
+            "name reuse produced duplicate reservation callbacks");
          ObjectInstanceHandle replacement = ambassador.registerObjectInstance(objectClass,
             reusableName);
          JavaTckSupport.check(replacement != null

@@ -29549,10 +29549,34 @@
         "FederateAmbassador.objectInstanceNameReservationSucceeded"
       ],
       "requirement_ids": [
-        "cpp-1516.1-federation-create-join-resign-destroy",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-name-lifecycle"
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-4.12.4",
+        "hla-1516.1-2025:clause-6.2",
+        "hla-1516.1-2025:clause-6.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15", "standard_section": "hla-1516.1-2025:clause-4" },
+        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3", "standard_section": "hla-1516.1-2025:clause-6.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40", "standard_section": "hla-1516.1-2025:clause-6.3" }
+      ],
+      "mapping_note": "The five Lab requirement rows map respectively to clauses 4, 4.12, 4.12.4, 6.2, and 6.3. The Java source verifies the sole member resigns with NO_ACTION, rejoins the still-existing execution, reserves the former object's name, receives exactly one reservation callback, and registers that name again. Evoked callback timing is supplemental. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied FOM and logical time; independent-provider interoperability and conformance are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-api-contract.json",
@@ -29566,8 +29590,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#finalFederateResignationCleanup",
       "parity": "cpp-tck.final-federate-resignation-cleanup",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and logical-time implementation; remains opt-in until exercised against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible object class and attribute FOM, provider, endpoint, logical-time implementation, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-name-reservation-lifecycle",
