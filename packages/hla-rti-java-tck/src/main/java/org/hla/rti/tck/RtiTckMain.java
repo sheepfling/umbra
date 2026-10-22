@@ -7324,9 +7324,18 @@ public final class RtiTckMain {
             "object-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.reserveMultipleObjectInstanceNames;RTIambassador.releaseMultipleObjectInstanceNames;RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.objectInstanceNameReservationFailed;FederateAmbassador.multipleObjectInstanceNameReservationSucceeded;FederateAmbassador.multipleObjectInstanceNameReservationFailed",
             new String[] {
-               "cpp-1516.1-object-instance-name-lifecycle",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectNameReservationLifecycle);
+               "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+               "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
+               "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
+               "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
+               "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
+               "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+               "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+               "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+               "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+               "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+               "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
+            }, true), RtiTckMain::objectNameReservationLifecycle);
       run(new Scenario("java-tck.service-report-reserve-object-instance-name",
             "standard MOM report and success callback for object-name reservation",
             "mom-service-reporting",
@@ -11397,7 +11406,8 @@ public final class RtiTckMain {
    }
 
    private static void objectNameReservationLifecycle() throws Exception {
-      ObjectNameReservationLifecycleTck.run(factory(), requireFom(), callbackModel());
+      ObjectNameReservationLifecycleTck.run(factory(), requireFom(),
+         timeImplementation(), callbackModel());
    }
 
    private static void namedRegistration() throws Exception {

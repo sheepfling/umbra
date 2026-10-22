@@ -503,6 +503,13 @@ It uses only the standard Java API and adapter-supplied class, attribute, FOM,
 logical time, provider, endpoint, and callback model. Focused installed JNI
 runs passed in both callback modes; independent-provider conformance is unverified.
 
+The default `java-tck.object-name-reservation-lifecycle` case exercises legal
+and illegal single-name reservations, contention and release, mixed multiple-name
+success/failure callbacks, atomic release, and name reuse after resignation.
+Its FOM, logical time, provider, endpoint, and callback model come from the
+adapter. Focused installed JNI runs passed in both callback modes; this is not
+independent-provider conformance evidence.
+
 The `java-tck.federation-membership` scenario also covers the unnamed
 two-argument join overload: it verifies that the RTI-assigned federate name
 round-trips through handle lookup and appears with the requested federate type

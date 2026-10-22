@@ -29616,9 +29616,52 @@
         "FederateAmbassador.multipleObjectInstanceNameReservationFailed"
       ],
       "requirement_ids": [
-        "cpp-1516.1-object-instance-name-lifecycle",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.2",
+        "hla-1516.1-2025:clause-6.3",
+        "hla-1516.1-2025:clause-6.4.3",
+        "hla-1516.1-2025:clause-6.5.3",
+        "hla-1516.1-2025:clause-6.7.5"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3", "standard_section": "hla-1516.1-2025:clause-6.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l24-4", "standard_section": "hla-1516.1-2025:clause-6.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40", "standard_section": "hla-1516.1-2025:clause-6.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26", "standard_section": "hla-1516.1-2025:clause-6.4.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l119-29", "standard_section": "hla-1516.1-2025:clause-6.4.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27", "standard_section": "hla-1516.1-2025:clause-6.5.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l104-28", "standard_section": "hla-1516.1-2025:clause-6.5.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l107-29", "standard_section": "hla-1516.1-2025:clause-6.5.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l110-30", "standard_section": "hla-1516.1-2025:clause-6.5.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l45-9", "standard_section": "hla-1516.1-2025:clause-6.7.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l48-10", "standard_section": "hla-1516.1-2025:clause-6.7.5" }
+      ],
+      "mapping_note": "Direct mappings from the pinned object-instance-name reservation contract cover single-name validation, unique ownership, and callbacks (§§6.2–6.3), release and reuse (§6.4.3), multiple-name validation and split success/failure callbacks (§6.5.3), and owned/atomic multiple release (§6.7.5). Resignation cleanup, membership errors, and evoked callback timing are supplemental here. The Java source uses only official IEEE 1516.1-2025 APIs and adapter-supplied FOM, logical time, provider, endpoint, and callback model. Focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-name-reservation-api-contract.json",
         "object-instance-name-reservation-requirements-contract.json",
@@ -29627,8 +29670,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectNameReservationLifecycle",
       "parity": "cpp-tck.object-name-reservation-lifecycle",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and standard object-name reservation services."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible FOM, provider, endpoint, logical-time implementation, and callback model with standard object-name reservation services.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.service-report-reserve-object-instance-name",

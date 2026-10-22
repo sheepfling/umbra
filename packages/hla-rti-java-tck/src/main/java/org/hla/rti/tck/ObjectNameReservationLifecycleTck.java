@@ -19,7 +19,8 @@ final class ObjectNameReservationLifecycleTck {
 
    private ObjectNameReservationLifecycleTck() { }
 
-   static void run(RtiFactory factory, String fom, CallbackModel callbackModel) throws Exception {
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador unjoined = factory.getRtiAmbassador();
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador peer = factory.getRtiAmbassador();
@@ -42,7 +43,7 @@ final class ObjectNameReservationLifecycleTck {
          ownerConnected = true;
          peer.connect(peerCallbacks.proxy(), callbackModel);
          peerConnected = true;
-         owner.createFederationExecution(federation, fom);
+         owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          owner.joinFederationExecution("java-tck-name-lifecycle-owner", federation);
          ownerJoined = true;
