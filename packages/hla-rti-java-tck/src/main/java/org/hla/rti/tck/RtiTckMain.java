@@ -3138,9 +3138,10 @@ public final class RtiTckMain {
             "retain a queued timestamped interaction across pending Time Constrained enablement",
             "time-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(LogicalTime);RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(TSO)",
-            new String[] {"cpp-1516.1-time-role-callbacks",
+            new String[] {"requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+               "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-timestamped-interaction-delivery",
-               "cpp-1516.1-time-advance-request"}, false),
+               "cpp-1516.1-time-advance-request"}, true),
          RtiTckMain::timeConstrainedEnableRetainsQueuedTso);
       run(new Scenario("java-tck.time-constrained-enable-retains-queued-tso-attribute",
             "retain a queued timestamped attribute update across pending Time Constrained enablement",

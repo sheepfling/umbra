@@ -132,6 +132,13 @@ final class TimeConstrainedQueuedTsoTck {
          checkNoDelivery(receiverCallbacks, "after enablement but before TAR(6)");
          int orderBeforeAdvance = receiverCallbacks.callbackOrder.size();
 
+         regulator.timeAdvanceRequest(regulatorSix);
+         await(regulator, callbackModel,
+            () -> regulatorCallbacks.grants.size() == 3,
+            "Time Constrained queued-TSO regulator grant to six");
+         JavaTckSupport.check(regulatorSix.equals(regulatorCallbacks.grants.get(2)),
+            "Time Constrained queued-TSO regulator did not reach time six");
+
          receiver.timeAdvanceRequest(receiverSix);
          await(receiver, callbackModel,
             () -> receiverCallbacks.timedInteractions.size() == 1
@@ -224,7 +231,7 @@ final class TimeConstrainedQueuedTsoTck {
          interaction = (InteractionClassHandle) arguments[0];
          values = ((ParameterHandleValueMap) arguments[1]).clone();
          tag = ((byte[]) arguments[2]).clone();
-         sentOrder = (OrderType) arguments[3];
+         sentOrder = (OrderType) arguments[7];
          time = (LogicalTime<?, ?>) arguments[6];
          receivedOrder = (OrderType) arguments[8];
       }

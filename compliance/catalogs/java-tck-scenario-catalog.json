@@ -14586,12 +14586,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.6"
         }
       ],
-      "mapping_note": "Direct mapping is limited to §8.6's queued-TSO role-transition behavior: while Time Constrained enablement is pending, a timestamped interaction remains queued; after enablement, it is received as TIMESTAMP/TIMESTAMP before TAR(6)'s grant. This does not prescribe a GALT formula, cover other producer families, or claim provider conformance.",
+      "mapping_note": "Direct mapping is limited to §8.6's queued-TSO role-transition behavior: while Time Constrained enablement is pending, a timestamped interaction remains queued; after enablement, it is received as TIMESTAMP/TIMESTAMP before TAR(6)'s grant. The Java test now decodes the official timed callback's sent-order argument and advances the regulator to six before the receiver's TAR(6), matching the promoted C++ peer. Focused installed-provider runs pass in both callback models; this does not prescribe a GALT formula, cover other producer families, or claim independent-provider conformance.",
       "contract_refs": ["standard-time-constrained-enable-stored-tso-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableRetainsQueuedTso",
       "parity": "cpp-tck.time-constrained-enable-retains-queued-tso",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-enable-retains-queued-tso-attribute",

@@ -1778,6 +1778,15 @@ not a test failure. Provider, FOM, interaction class, endpoint, time, and
 callback configuration remain adapter inputs; no cross-provider conformance
 is claimed.
 
+The default `java-tck.time-constrained-enable-retains-queued-tso` case
+checks that one timestamped interaction stays queued while Time Constrained
+enablement is pending, then arrives as TIMESTAMP/TIMESTAMP before TAR(6)'s
+grant. The Java translation now decodes the official callback's sent-order
+field and advances the regulator to six before the receiver's TAR(6), as in
+its promoted C++ peer. Focused installed-provider runs pass in both callback
+models with adapter-supplied FOM, interaction/parameter names, endpoint, and
+time implementation. This is a bounded §8.6 result, not conformance.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
