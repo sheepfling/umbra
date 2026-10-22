@@ -1534,9 +1534,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.ownership-assumption-transfer-epoch",
             "offer a previously offered candidate a fresh tagged assumption after ownership changes hands",
             "ownership-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-            new String[] {"cpp-1516.1-ownership-management",
-               "cpp-1516.1-object-registration-discovery"}, false),
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
+               "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21",
+               "requirement-candidate-content-clauses-07-ownership-management-page-154-l162-51"
+            }, true),
          RtiTckMain::ownershipAssumptionTransferEpoch);
       run(new Scenario("java-tck.resign-assumption-later-discovery",
             "continue resign-time ownership search after a later federate joins and discovers the retained object",

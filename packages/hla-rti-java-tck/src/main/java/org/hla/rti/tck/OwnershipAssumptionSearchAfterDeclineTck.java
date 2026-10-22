@@ -239,24 +239,45 @@ final class OwnershipAssumptionSearchAfterDeclineTck {
          AttributeHandle secondAttribute = second.getAttributeHandle(secondClass, attributeName);
          AttributeHandle privilege = owner.getAttributeHandle(
             ownerClass, "HLAprivilegeToDeleteObject");
+         AttributeHandle firstPrivilege = first.getAttributeHandle(
+            firstClass, "HLAprivilegeToDeleteObject");
+         AttributeHandle secondPrivilege = second.getAttributeHandle(
+            secondClass, "HLAprivilegeToDeleteObject");
          JavaTckSupport.check(ownerClass != null && firstClass != null && secondClass != null
                && ownerAttribute != null && firstAttribute != null && secondAttribute != null
-               && privilege != null,
+               && privilege != null && firstPrivilege != null && secondPrivilege != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(first.getObjectClassName(firstClass))
+               && objectClassName.equals(second.getObjectClassName(secondClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(first.getAttributeName(firstClass, firstAttribute))
+               && attributeName.equals(second.getAttributeName(secondClass, secondAttribute)),
             "adapter FOM did not resolve transfer-epoch class and attribute handles");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(first, firstAttribute);
          AttributeHandleSet secondAttributes = JavaTckSupport.attributeSet(second, secondAttribute);
          AttributeHandleSet transferred = JavaTckSupport.attributeSet(
             owner, ownerAttribute, privilege);
+         AttributeHandleSet firstTransferred = JavaTckSupport.attributeSet(
+            first, firstAttribute, firstPrivilege);
+         AttributeHandleSet secondTransferred = JavaTckSupport.attributeSet(
+            second, secondAttribute, secondPrivilege);
          owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
          first.subscribeObjectClassAttributes(firstClass, firstAttributes);
          second.subscribeObjectClassAttributes(secondClass, secondAttributes);
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null, "transfer-epoch registration returned null");
-         await(first, callbackModel, () -> firstRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(first, callbackModel, () -> firstRecorder.discoveries.size() == 1,
             "first transfer-epoch candidate discovery");
-         await(second, callbackModel, () -> secondRecorder.discoveries.contains(object),
+         ObjectInstanceHandle firstObject = first.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(firstObject.equals(firstRecorder.discoveries.get(0)),
+            "first candidate discovery did not resolve to its local object handle");
+         await(second, callbackModel, () -> secondRecorder.discoveries.size() == 1,
             "second transfer-epoch candidate discovery");
+         ObjectInstanceHandle secondObject = second.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(secondObject.equals(secondRecorder.discoveries.get(0)),
+            "second candidate discovery did not resolve to its local object handle");
          first.publishObjectClassAttributes(firstClass, firstAttributes);
          second.publishObjectClassAttributes(secondClass, secondAttributes);
 
@@ -270,33 +291,35 @@ final class OwnershipAssumptionSearchAfterDeclineTck {
             "second transfer assumption");
          OwnershipEvent initialFirst = firstRecorder.assumptions.get(0);
          OwnershipEvent initialSecond = secondRecorder.assumptions.get(0);
-         Set<AttributeHandle> expected = new HashSet<>(transferred);
-         JavaTckSupport.check(object.equals(initialFirst.object)
-               && object.equals(initialSecond.object)
-               && expected.equals(initialFirst.attributes)
-               && expected.equals(initialSecond.attributes)
+         JavaTckSupport.check(firstObject.equals(initialFirst.object)
+               && secondObject.equals(initialSecond.object)
+               && new HashSet<>(firstTransferred).equals(initialFirst.attributes)
+               && new HashSet<>(secondTransferred).equals(initialSecond.attributes)
                && Arrays.equals(firstTag, initialFirst.tag)
                && Arrays.equals(firstTag, initialSecond.tag),
             "initial transfer did not offer both candidates the original tag");
 
-         first.attributeOwnershipAcquisition(object, transferred, acquisitionTag);
+         first.attributeOwnershipAcquisition(firstObject, firstTransferred, acquisitionTag);
          await(first, callbackModel, () -> firstRecorder.acquisitions.size() == 1,
             "first candidate acquisition notification");
          OwnershipEvent acquisition = firstRecorder.acquisitions.get(0);
-         JavaTckSupport.check(object.equals(acquisition.object)
-               && expected.equals(acquisition.attributes)
-               && first.isAttributeOwnedByFederate(object, firstAttribute),
+         JavaTckSupport.check(firstObject.equals(acquisition.object)
+               && new HashSet<>(firstTransferred).equals(acquisition.attributes)
+               && first.isAttributeOwnedByFederate(firstObject, firstAttribute)
+               && first.isAttributeOwnedByFederate(firstObject, firstPrivilege),
             "first candidate did not acquire the transferred attributes");
          second.unpublishObjectClass(secondClass);
          owner.resignFederationExecution(ResignAction.NO_ACTION);
          joined[0] = false;
-         first.unconditionalAttributeOwnershipDivestiture(object, transferred, secondTag);
+         first.unconditionalAttributeOwnershipDivestiture(
+            firstObject, firstTransferred, secondTag);
          second.publishObjectClassAttributes(secondClass, secondAttributes);
          await(second, callbackModel, () -> secondRecorder.assumptions.size() == 2,
             "fresh assumption after transfer");
          OwnershipEvent fresh = secondRecorder.assumptions.get(1);
          JavaTckSupport.check(secondRecorder.assumptions.size() == 2
-               && object.equals(fresh.object) && expected.equals(fresh.attributes)
+               && secondObject.equals(fresh.object)
+               && new HashSet<>(secondTransferred).equals(fresh.attributes)
                && Arrays.equals(secondTag, fresh.tag),
             "old reservation suppressed a fresh tagged transfer-epoch offer");
 
