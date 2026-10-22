@@ -2297,6 +2297,13 @@ requests and conditional reflections. The producer-handle check uses only the
 standard Get Federate Name service. The installed JNI adapter and the C++
 primary/contract passed both callback models.
 
+`java-tck.federate-automatic-resign-action-mom-switch` is a separate
+default-run standard-MIM interaction case. It sends individual
+`HLAsetSwitches.HLAautomaticResignAction` values, verifies the public getter
+and unchanged neighboring switches, then restores the starting directive.
+The installed JNI adapter and C++ primary/contract passed both callback
+models; the case does not claim resignation side effects.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 

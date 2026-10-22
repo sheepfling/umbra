@@ -6089,7 +6089,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-automatic-resign-directive",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateAutomaticResignActionMomSwitch);
+            }, true), RtiTckMain::federateAutomaticResignActionMomSwitch);
       run(new Scenario("java-tck.federate-automatic-resign-action-mim-attribute",
             "observe direct and conditional HLAautomaticResignAction MOM values",
             "federation-management",

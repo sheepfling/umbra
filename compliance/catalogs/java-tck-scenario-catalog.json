@@ -36453,8 +36453,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAutomaticResignActionMomSwitch",
       "parity": "cpp-tck.federate-automatic-resign-action-mom-switch",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-automatic-resign-action-mom-switch-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-automatic-resign-action-mom-switch-verified-20261016.json. Standard HLAsetSwitches.HLAautomaticResignAction sets NO_ACTION and DELETE_OBJECTS then restores the observed initial directive without changing neighboring switches; resignation side effects are not claimed. Provider, application FOM, standard MIM, endpoint, time, and callback model remain adapter-owned; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-automatic-resign-action-mim-attribute",
