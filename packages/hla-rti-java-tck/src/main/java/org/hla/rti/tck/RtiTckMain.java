@@ -170,6 +170,12 @@ public final class RtiTckMain {
       "hla.rti.tck.equivalentClassBaseFom";
    private static final String EQUIVALENT_CLASS_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.equivalentClassConflictFom";
+   private static final String REFERENCE_CLASS_CONSUMER_FOM_PROPERTY =
+      "hla.rti.tck.referenceClassConsumerFom";
+   private static final String REFERENCE_CLASS_PROVIDER_FOM_PROPERTY =
+      "hla.rti.tck.referenceClassProviderFom";
+   private static final String REFERENCE_CLASS_UNRESOLVED_FOM_PROPERTY =
+      "hla.rti.tck.referenceClassUnresolvedFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1918,6 +1924,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomEquivalentClassConflict);
+      run(new Scenario("java-tck.fom-reference-class-resolution",
+            "Resolve reference-data classes from a later module and reject unresolved classes",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomReferenceClassResolution);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11786,6 +11798,8 @@ public final class RtiTckMain {
             method = "fomInheritedMemberNames"; break;
          case "java-tck.fom-equivalent-class-conflict":
             method = "fomEquivalentClassConflict"; break;
+         case "java-tck.fom-reference-class-resolution":
+            method = "fomReferenceClassResolution"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13513,6 +13527,14 @@ public final class RtiTckMain {
       FomEquivalentClassConflictTck.run(factory(),
          requireAdapterFile(EQUIVALENT_CLASS_BASE_FOM_PROPERTY),
          requireAdapterFile(EQUIVALENT_CLASS_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomReferenceClassResolution() throws Exception {
+      FomReferenceClassResolutionTck.run(factory(),
+         requireAdapterFile(REFERENCE_CLASS_CONSUMER_FOM_PROPERTY),
+         requireAdapterFile(REFERENCE_CLASS_PROVIDER_FOM_PROPERTY),
+         requireAdapterFile(REFERENCE_CLASS_UNRESOLVED_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

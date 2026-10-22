@@ -13688,6 +13688,8 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-094-l94-18",
         "requirement-candidate-sections-semantic-clause-4c-page-079-l53-4"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l94-18", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l53-4", "standard_section": "hla-1516.2-2025:clause-4.14.9"}],
       "test_case": "The FOM composition preflight resolves reference-data classes after the complete module set is merged",
       "tags": [
         "unit",
@@ -13696,8 +13698,9 @@
         "reference-resolution",
         "data-types"
       ],
-      "assertions": 8,
+      "assertions": 16,
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:46",
       "next_action": "This private composition guard proves that a reference-data class supplied by a later compatible module is visible to the merged model and that an unresolved referenced class is rejected with a deterministic diagnostic. It is mapped to IEEE 1516.2 clauses 6.2.17 and 4.14.9 through the pinned Lab candidates; broader reference-data attribute/representation constraints, dependency packaging, JUnit/protected review, and conformance remain open."
     },
     {

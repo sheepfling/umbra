@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green focused IEEE 1516.2-2025 reference-data class resolution witness. Public Create accepts a consumer module whose referenced class is declared in a later adapter-supplied FOM, exposes that class through standard lookup, rejects a schema-valid unresolved reference class as InconsistentFOM, and permits valid federation-name reuse. Clauses 6.2.17 and 4.14.9 are mapped directly. Attribute/representation reference constraints, Java provider runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-reference-class-resolution",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules), joinFederationExecution, getObjectClassHandle/getObjectClassName, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle and class lookup services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_reference_class_resolution.cpp::scenarioFomReferenceClassResolutionContract"]
+    }
+  ]
+}

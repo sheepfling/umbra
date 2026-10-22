@@ -786,6 +786,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-base-tck.xml")),
             "equivalent-class-conflict="
             + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-conflict-tck.xml")),
+            "reference-class-consumer="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-consumer-tck.xml")),
+            "reference-class-provider="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-provider-tck.xml")),
+            "reference-class-unresolved="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-unresolved-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="
