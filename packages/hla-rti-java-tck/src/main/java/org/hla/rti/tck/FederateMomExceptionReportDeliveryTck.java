@@ -105,7 +105,7 @@ final class FederateMomExceptionReportDeliveryTck {
             "malformed HLAserviceReporting did not deliver exactly two cumulative reports");
 
          for (Report report : recorder.events) {
-            verifyReport(report, reportClass, serviceParameter, exceptionParameter,
+            verifyReport(rti, report, reportClass, serviceParameter, exceptionParameter,
                parameterErrorParameter, federateParameter, reliable, expectedFederate,
                SET_SWITCHES, encoder);
          }
@@ -212,7 +212,8 @@ final class FederateMomExceptionReportDeliveryTck {
          JavaTckSupport.check(recorder.events.size() == 1,
             requestDescription + " missing " + missingParameter
                + " did not deliver exactly one MOM exception report");
-         verifyReport(recorder.events.get(0), reportClass, serviceParameter, exceptionParameter,
+         verifyReport(rti, recorder.events.get(0), reportClass, serviceParameter,
+            exceptionParameter,
             parameterErrorParameter, federateParameter, reliable, expectedFederate,
             requestInteraction, encoder);
       } finally {
@@ -306,7 +307,7 @@ final class FederateMomExceptionReportDeliveryTck {
          settleCallbacks(rti, callbackModel);
          JavaTckSupport.check(recorder.events.size() == 1,
             "rejected Service Reporting enablement did not produce exactly one MOM exception report");
-         verifyReport(recorder.events.get(0), exceptionReportClass, serviceParameter,
+         verifyReport(rti, recorder.events.get(0), exceptionReportClass, serviceParameter,
             exceptionParameter, parameterErrorParameter, federateParameter, reliable,
             expectedFederate,
             "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches",
@@ -379,17 +380,19 @@ final class FederateMomExceptionReportDeliveryTck {
          description + " delivered an unexpected number of MOM exception reports");
    }
 
-   private static void verifyReport(Report report, InteractionClassHandle reportClass,
+   private static void verifyReport(RTIambassador rti, Report report,
+         InteractionClassHandle reportClass,
          ParameterHandle serviceParameter, ParameterHandle exceptionParameter,
          ParameterHandle parameterErrorParameter, ParameterHandle federateParameter,
          TransportationTypeHandle reliable, byte[] expectedFederate, String expectedService,
          EncoderFactory encoder) throws Exception {
-      verifyReport(report, reportClass, serviceParameter, exceptionParameter,
+      verifyReport(rti, report, reportClass, serviceParameter, exceptionParameter,
          parameterErrorParameter, federateParameter, reliable, expectedFederate,
          expectedService, true, encoder);
    }
 
-   private static void verifyReport(Report report, InteractionClassHandle reportClass,
+   private static void verifyReport(RTIambassador rti, Report report,
+         InteractionClassHandle reportClass,
          ParameterHandle serviceParameter, ParameterHandle exceptionParameter,
          ParameterHandle parameterErrorParameter, ParameterHandle federateParameter,
          TransportationTypeHandle reliable, byte[] expectedFederate, String expectedService,
@@ -400,9 +403,10 @@ final class FederateMomExceptionReportDeliveryTck {
             && report.parameters.containsKey(exceptionParameter)
             && report.parameters.containsKey(parameterErrorParameter)
             && report.parameters.containsKey(federateParameter)
-            && reliable.equals(report.transportation)
-            && report.producer == null && report.regionsEmpty,
+            && reliable.equals(report.transportation) && report.regionsEmpty,
          "HLAreportMOMexception callback metadata or parameter set was not standard");
+      JavaTckSupport.requireNoProducingFederate(rti, report.producer,
+         "HLAreportMOMexception");
       HLAunicodeString service = encoder.createHLAunicodeString();
       service.decode(report.parameters.get(serviceParameter));
       HLAunicodeString exception = encoder.createHLAunicodeString();

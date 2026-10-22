@@ -6121,19 +6121,19 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-mom-exception-report-delivery",
             "report malformed standard HLAsetSwitches parameters through HLAreportMOMexception",
             "mom-exception-reporting",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.subscribeInteractionClass;RTIambassador.getAutomaticResignDirective;RTIambassador.getServiceReportingSwitch;RtiFactory.getEncoderFactory;EncoderFactory.createHLAinteger32BE;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.subscribeInteractionClass;RTIambassador.getAutomaticResignDirective;RTIambassador.getServiceReportingSwitch;RtiFactory.getEncoderFactory;EncoderFactory.createHLAinteger32BE;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomExceptionReportDelivery);
+            }, true), RtiTckMain::federateMomExceptionReportDelivery);
       run(new Scenario("java-tck.federate-mom-exception-missing-parameter",
             "report missing HLAsyncPointName through HLAreportMOMexception",
             "mom-exception-reporting",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.subscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.subscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomExceptionMissingParameter);
+            }, true), RtiTckMain::federateMomExceptionMissingParameter);
       run(new Scenario("java-tck.federation-mom-exception-missing-fom-module-indicator",
             "report a missing HLAFOMmoduleIndicator through HLAreportMOMexception",
             "mom-exception-reporting",
@@ -6145,11 +6145,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-mom-exception-report-service-precondition",
             "report Service Reporting enablement rejected by its report-subscription precondition",
             "mom-exception-reporting",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.subscribeInteractionClass;RTIambassador.getServiceReportingSwitch;RtiFactory.getEncoderFactory;EncoderFactory.createHLAinteger32BE;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.subscribeInteractionClass;RTIambassador.getServiceReportingSwitch;RtiFactory.getEncoderFactory;EncoderFactory.createHLAinteger32BE;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;RTIambassador.sendInteraction(receive order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateHandle.encode;HLAunicodeString.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomExceptionReportServicePrecondition);
+            }, true), RtiTckMain::federateMomExceptionReportServicePrecondition);
       run(new Scenario("java-tck.federate-exception-reporting-mim-attribute",
             "observe Exception Reporting switch changes and direct value requests through the standard federate MOM object",
             "mom-exception-reporting",

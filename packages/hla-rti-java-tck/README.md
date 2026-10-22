@@ -2304,6 +2304,14 @@ and unchanged neighboring switches, then restores the starting directive.
 The installed JNI adapter and C++ primary/contract passed both callback
 models; the case does not claim resignation side effects.
 
+Three separate default-run `HLAreportMOMexception` cases cover malformed
+`HLAsetSwitches` enumerators, an omitted required synchronization-status
+parameter, and the Service Reporting subscription precondition. They verify
+standard report identity and parameter-error values without prescribing a
+synchronous exception type or report wording. Their RTI-originated producer
+check uses only standard handle lookup. Each passed the installed JNI adapter
+in both callback modes, matching its C++ primary and contract evidence.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 
