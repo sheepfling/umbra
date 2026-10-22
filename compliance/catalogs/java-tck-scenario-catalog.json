@@ -6312,7 +6312,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -6322,7 +6326,10 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
-      "requirement_ids": ["cpp-1516.1-federation-create-join-resign-destroy", "cpp-1516.1-ownership-management"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
+      ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
@@ -6332,12 +6339,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
       ],
-      "mapping_note": "Official 1516.1-2025 Java API-only parity mirrors the late join/discovery continuation after unconditional resign-time divestiture. It checks retained-object discovery before publication, no premature assumption, then exactly one grouped empty-tag offer after publication. Java compiles against the official API-only JAR; provider runtime remains unverified. C++ installed-package primary/contract passed 4/4 across evoked/immediate callbacks.",
+      "mapping_note": "Official 1516.1-2025 Java API-only parity mirrors direct page-058-l112-33 -> §4.12 resign-time divestiture and page-059-l8-1 -> §4.12.4 late join/discovery continuation. It checks receiver-local retained-object discovery before publication, no premature assumption, then exactly one grouped empty-tag offer after publication. The source uses adapter-supplied class, attribute, FOM, logical time, provider, endpoint, and callback model. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-resign-assumption-later-discovery-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignAssumptionLaterDiscovery",
       "parity": "cpp-tck.resign-assumption-later-discovery",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, names, time implementation, callback model, and an IEEE 1516.1-2025 Java provider; provider-runtime execution remains unverified."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied FOM, class and attribute names, time implementation, callback model, endpoint, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.negotiated-divestiture-concurrent-assumption",

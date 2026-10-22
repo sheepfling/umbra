@@ -1540,9 +1540,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.resign-assumption-later-discovery",
             "continue resign-time ownership search after a later federate joins and discovers the retained object",
             "ownership-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
-            new String[] {"cpp-1516.1-federation-create-join-resign-destroy",
-               "cpp-1516.1-ownership-management"}, false),
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+               "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
+            }, true),
          RtiTckMain::resignAssumptionLaterDiscovery);
       run(new Scenario("java-tck.negotiated-divestiture-concurrent-assumption",
             "keep a third candidate's tagged assumption observable while negotiated confirmation is pending",

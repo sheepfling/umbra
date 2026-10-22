@@ -1660,6 +1660,13 @@ handle, the ordinary attribute and standard delete privilege, and an empty
 tag. The case passed focused installed JNI runs in both callback modes using
 adapter-supplied inputs; independent-provider conformance is unverified.
 
+The default `java-tck.resign-assumption-later-discovery` case keeps the
+federation alive after the owner resigns, then joins a new candidate. That
+candidate discovers the retained object before publication, receives no early
+offer, and receives one grouped empty-tag assumption offer after publishing.
+It checks the candidate's local object handle and passed focused installed JNI
+runs in both callback modes; independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object

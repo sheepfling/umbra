@@ -246,6 +246,7 @@ final class ResignUnconditionalDivestitureTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "late-discovery registration returned a null object handle");
+         String objectName = owner.getObjectInstanceName(object);
 
          // The observer keeps the federation alive but cannot receive an offer.
          owner.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
@@ -257,13 +258,18 @@ final class ResignUnconditionalDivestitureTck {
          AttributeHandle latePrivilege = late.getAttributeHandle(
             lateClass, "HLAprivilegeToDeleteObject");
          JavaTckSupport.check(lateClass != null && lateAttribute != null
-               && latePrivilege != null,
+               && latePrivilege != null
+               && objectClassName.equals(late.getObjectClassName(lateClass))
+               && attributeName.equals(late.getAttributeName(lateClass, lateAttribute)),
             "adapter FOM did not resolve late-discovery candidate handles");
          AttributeHandleSet lateAttributes = JavaTckSupport.attributeSet(
             late, lateAttribute);
          late.subscribeObjectClassAttributes(lateClass, lateAttributes);
-         await(late, callbackModel, () -> lateCallbacks.discoveries.contains(object),
+         await(late, callbackModel, () -> lateCallbacks.discoveries.size() == 1,
             "retained object discovery after joining");
+         ObjectInstanceHandle lateObject = late.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(lateObject.equals(lateCallbacks.discoveries.get(0)),
+            "late discovery did not establish a receiver-local object handle");
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(late);
          JavaTckSupport.check(lateCallbacks.assumptions.isEmpty(),
             "nonpublishing late candidate received an ownership assumption");
@@ -273,7 +279,7 @@ final class ResignUnconditionalDivestitureTck {
             "late-discovery ownership assumption");
          OwnershipEvent offer = lateCallbacks.assumptions.get(0);
          JavaTckSupport.check(lateCallbacks.assumptions.size() == 1
-               && object.equals(offer.object)
+               && lateObject.equals(offer.object)
                && offer.attributes.size() == 2
                && offer.attributes.contains(lateAttribute)
                && offer.attributes.contains(latePrivilege)
