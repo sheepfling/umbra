@@ -8801,12 +8801,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l86-19"],
       "standard_sections": ["hla-1516.2-2025:clause-C.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l86-19", "standard_section": "hla-1516.2-2025:clause-C.3"}],
-      "mapping_note": "Standard Java API parity for a same-value/different-name enumerator collision and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for a same-value/different-name enumerator collision and valid federation-name retry. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-enumerated-variant-conflicts-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomEnumeratedValueCollision",
       "parity": "cpp-tck.fom-enumerated-value-collision",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.enumeratedCollisionFirstFom and enumeratedCollisionSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-enumerated-value-collision-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/enumerated-variant-conflicts-20261021.json. The adapter supplies enumeratedCollisionFirstFom and enumeratedCollisionSecondFom."
     },
     {
       "id": "java-tck.fom-nonextendable-variant-alternative-conflict",
@@ -8817,12 +8817,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
       "standard_sections": ["hla-1516.2-2025:clause-C.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3"}],
-      "mapping_note": "Standard Java API parity for a non-extendable variant's different alternative sets and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for a non-extendable variant's different alternative sets and valid federation-name retry. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-enumerated-variant-conflicts-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomNonextendableVariantAlternativeConflict",
       "parity": "cpp-tck.fom-nonextendable-variant-alternative-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-nonextendable-variant-alternative-conflict-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/enumerated-variant-conflicts-20261021.json. The adapter supplies nonextendableVariantFirstFom and nonextendableVariantSecondFom; no extendable-variant claim."
     },
     {
       "id": "java-tck.fom-reference-attribute-resolution",
@@ -9281,12 +9281,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
-      "mapping_note": "Standard Java API parity for schema-valid scalar, list, range, Dynamic, and mixed array cardinalities. One focused packaged Umbra JNI runtime run passed (out/java-tck/array-cardinality-forms-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for schema-valid scalar, list, range, Dynamic, and mixed array cardinalities. The installed Java adapter passed both callback models; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-array-cardinality-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityForms",
       "parity": "cpp-tck.fom-array-cardinality-forms",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.arrayCardinalityValidFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-array-cardinality-forms-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/array-cardinality-20261021.json. The adapter supplies arrayCardinalityValidFom."
     },
     {
       "id": "java-tck.fom-array-cardinality-rejections",
@@ -9297,12 +9297,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
-      "mapping_note": "Standard Java API parity for three schema-valid invalid array modules and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/array-cardinality-rejections-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for three schema-valid invalid array modules and valid federation-name retry. The installed Java adapter passed both callback models; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-array-cardinality-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityRejections",
       "parity": "cpp-tck.fom-array-cardinality-rejections",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures arrayCardinalityValidFom, arrayCardinalityReversedRangeFom, arrayCardinalityFixedMismatchFom, and arrayCardinalityVariableMismatchFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-array-cardinality-rejections-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/array-cardinality-20261021.json. The adapter supplies arrayCardinalityValidFom, arrayCardinalityReversedRangeFom, arrayCardinalityFixedMismatchFom, and arrayCardinalityVariableMismatchFom."
     },
     {
       "id": "java-tck.fom-dimension-duplicate-union",

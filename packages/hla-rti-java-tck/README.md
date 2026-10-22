@@ -2552,6 +2552,16 @@ adapter and matching C++ primary/contract cases in both callback modes.
 RL-319 clips the separate variant conflict continuation: neither case
 claims complete variant-record merging or independent-provider conformance.
 
+`java-tck.fom-enumerated-value-collision` and
+`java-tck.fom-nonextendable-variant-alternative-conflict` are default-run
+§C.3 rejection cases. The adapter supplies the respective
+`hla.rti.tck.enumeratedCollisionFirstFom`/`enumeratedCollisionSecondFom` or
+`hla.rti.tck.nonextendableVariantFirstFom`/`nonextendableVariantSecondFom`
+modules. Each accepts its modules separately, rejects their conflicting
+combination, and checks valid federation-name reuse. The installed Java
+adapter and matching C++ primary/contract cases passed both callback modes;
+no extendable-variant or cross-provider conformance claim is made.
+
 `java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
 adapter-supplied application FOM and standard MIM. It reads the initial MOM
 `HLAasynchronousDelivery` value, toggles the standard services, and verifies
@@ -2632,9 +2642,10 @@ These inputs enable `java-tck.fom-default-logical-time-selection`,
 `java-tck.fom-time-representation-rejections`. Leave a case default-disabled
 when its provider adapter cannot attest the required input.
 
-The adjacent array-cardinality and dimension-duplicate cases also use
-adapter-supplied FOM paths. `arrayCardinalityValidFom` supplies the accepted
-scalar/list/range/Dynamic/mixed forms; `arrayCardinalityReversedRangeFom`,
+The default-run array-cardinality cases and adjacent dimension-duplicate
+cases use adapter-supplied FOM paths. `arrayCardinalityValidFom` supplies the
+accepted scalar/list/range/Dynamic/mixed forms;
+`arrayCardinalityReversedRangeFom`,
 `arrayCardinalityFixedMismatchFom`, and
 `arrayCardinalityVariableMismatchFom` supply the three independent rejection
 branches. `dimensionDuplicateBaseFom` pairs with
@@ -2643,7 +2654,9 @@ branches. `dimensionDuplicateBaseFom` pairs with
 name with `hla.rti.tck.` when passing it as a Java property. These fixtures
 enable the four corresponding `java-tck.fom-array-cardinality-*` and
 `java-tck.fom-dimension-duplicate-*` scenarios only for adapters that supply
-and attest the relevant 2025 modules.
+and attest the relevant 2025 modules. The two array-cardinality cases passed
+the installed Java adapter in both callback models, matching green C++
+primary/contract evidence; no independent-provider conformance is claimed.
 
 The dimension-input cases additionally require the standard MIM via
 `--mim-path`. Configure `dimensionInputRawBasicFom`, `dimensionInputNaFom`,
