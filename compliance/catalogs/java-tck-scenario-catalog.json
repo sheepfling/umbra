@@ -451,7 +451,9 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes(active)",
@@ -459,6 +461,7 @@
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.attributeOwnershipAcquisition",
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST)",
@@ -497,7 +500,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.18.1"
         }
       ],
-      "mapping_note": "Direct mappings are limited to §6.18.1 and match the C++ scenario: page-132-l140-38 covers the invoking federate forgetting its known-object state after local deletion, followed by an eligible rediscovery; page-132-l146-40 covers federation-object retention and the no-owned-attributes precondition, exercised by FederateOwnsAttributes and a subsequent owner update/reflection after rediscovery. OwnershipAcquisitionPending and the NotConnected/FederateNotExecutionMember setup checks are supplemental. Java provider runtime evidence remains pending; this mapping is not a provider-conformance claim.",
+      "mapping_note": "Direct mappings are limited to §6.18.1 and match the C++ scenario: page-132-l140-38 covers the invoking federate forgetting its known-object state after local deletion, followed by an eligible rediscovery; page-132-l146-40 covers federation-object retention and the no-owned-attributes precondition, exercised by FederateOwnsAttributes and a subsequent owner update/reflection after rediscovery. OwnershipAcquisitionPending remains supplemental. Fabricated pre-connect/pre-join invalid-handle checks are omitted. Each recipient resolves its local object handle by standard name, and producer identity is checked by standard federate name; no cross-ambassador handle equality is assumed. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -513,8 +516,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#localDeleteObjectInstance",
       "parity": "cpp-tck.local-delete-object-instance",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.local-delete-object-instance-name-lookup-boundary",

@@ -538,6 +538,14 @@ case checks that a member forgets a discovered object locally and can no longer
 resolve its handle, while the publishing member retains its object name until
 the normal deletion service is called.
 
+The default `java-tck.local-delete-object-instance` case checks owner-attribute
+protection, recipient-local forgetting and rediscovery, and continued ordinary
+reflection. It resolves each recipient's object by name, without comparing
+opaque handles across federates or fabricating invalid handles. The focused
+installed JNI gate passed in both callback modes; provider, FOM, endpoint,
+and callback model remain adapter-supplied. Independent-provider conformance
+remains unverified.
+
 The focused `java-tck.remote-delete-known-object-class-lookup-boundary` case
 checks that the deleting member loses known-class lookup immediately, the
 other member receives the standard removal callback, and that member then

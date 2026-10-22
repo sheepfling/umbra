@@ -31,8 +31,6 @@ final class LocalDeleteObjectInstanceTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
-      RTIambassador unjoined = factory.getRtiAmbassador();
-      Recorder unjoinedCallbacks = new Recorder();
       RTIambassador owner = factory.getRtiAmbassador();
       Recorder ownerCallbacks = new Recorder();
       RTIambassador requester = factory.getRtiAmbassador();
@@ -40,32 +38,24 @@ final class LocalDeleteObjectInstanceTck {
       RTIambassador freshRequester = null;
       Recorder freshCallbacks = new Recorder();
       String federation = "java-tck-local-delete-object-instance-" + UUID.randomUUID();
-      boolean unjoinedConnected = false, ownerConnected = false, requesterConnected = false;
+      boolean ownerConnected = false, requesterConnected = false;
       boolean freshConnected = false, created = false, ownerJoined = false;
       boolean requesterJoined = false, freshJoined = false;
       boolean ownerPublished = false, requesterSubscribed = false, freshSubscribed = false;
       ObjectClassHandle ownerClass = null, requesterClass = null, freshClass = null;
       AttributeHandle ownerAttribute = null, requesterAttribute = null, freshAttribute = null;
       try {
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-         JavaTckSupport.expectFailure(() -> owner.localDeleteObjectInstance(invalidObject),
-            "NotConnected", "local deletion before connect");
-         unjoined.connect(unjoinedCallbacks.proxy(), callbackModel);
-         unjoinedConnected = true;
-         JavaTckSupport.expectFailure(() -> unjoined.localDeleteObjectInstance(invalidObject),
-            "FederateNotExecutionMember", "local deletion after connect before join");
-
          owner.connect(ownerCallbacks.proxy(), callbackModel);
          ownerConnected = true;
          requester.connect(requesterCallbacks.proxy(), callbackModel);
          requesterConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         FederateHandle producer = owner.joinFederationExecution(
-            "java-tck-local-delete-owner", federation);
+         String ownerName = "java-tck-local-delete-owner";
+         owner.joinFederationExecution(ownerName, "local-delete-owner", federation);
          ownerJoined = true;
-         requester.joinFederationExecution("java-tck-local-delete-requester", federation);
+         requester.joinFederationExecution("java-tck-local-delete-requester",
+            "local-delete-requester", federation);
          requesterJoined = true;
 
          ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -73,7 +63,11 @@ final class LocalDeleteObjectInstanceTck {
          ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          requesterAttribute = requester.getAttributeHandle(requesterClass, attributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
-               && ownerAttribute != null && requesterAttribute != null,
+               && ownerAttribute != null && requesterAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(requester.getAttributeName(requesterClass, requesterAttribute)),
             "adapter FOM did not resolve local-delete object class and attribute");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet requesterAttributes = JavaTckSupport.attributeSet(
@@ -86,11 +80,15 @@ final class LocalDeleteObjectInstanceTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "local-delete setup returned an invalid object handle");
-         await(requester, callbackModel, () -> hasDiscovery(requesterCallbacks, object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(requester, callbackModel, () -> !requesterCallbacks.discoveries.isEmpty(),
             "local-delete object discovery");
-         Discovery discovery = findDiscovery(requesterCallbacks, object);
+         ObjectInstanceHandle requesterObject = requester.getObjectInstanceHandle(objectName);
+         Discovery discovery = findDiscovery(requesterCallbacks, requesterObject);
          JavaTckSupport.check(requesterClass.equals(discovery.objectClass)
-               && requesterClass.equals(requester.getKnownObjectClassHandle(object)),
+               && objectName.equals(discovery.name)
+               && ownerName.equals(requester.getFederateName(discovery.producer))
+               && requesterClass.equals(requester.getKnownObjectClassHandle(requesterObject)),
             "local-delete discovery did not establish object identity");
 
          JavaTckSupport.expectFailure(() -> owner.localDeleteObjectInstance(object),
@@ -98,8 +96,8 @@ final class LocalDeleteObjectInstanceTck {
 
          byte[] acquisitionTag = new byte[] {0x51, 0x18};
          requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
-         requester.attributeOwnershipAcquisition(object, requesterAttributes, acquisitionTag);
-         JavaTckSupport.expectFailure(() -> requester.localDeleteObjectInstance(object),
+         requester.attributeOwnershipAcquisition(requesterObject, requesterAttributes, acquisitionTag);
+         JavaTckSupport.expectFailure(() -> requester.localDeleteObjectInstance(requesterObject),
             "OwnershipAcquisitionPending", "local deletion while ownership acquisition is pending");
          requester.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
          requesterJoined = false;
@@ -108,7 +106,8 @@ final class LocalDeleteObjectInstanceTck {
          freshRequester = fresh;
          fresh.connect(freshCallbacks.proxy(), callbackModel);
          freshConnected = true;
-         fresh.joinFederationExecution("java-tck-local-delete-requester-fresh", federation);
+         fresh.joinFederationExecution("java-tck-local-delete-requester-fresh",
+            "local-delete-fresh", federation);
          freshJoined = true;
          freshClass = fresh.getObjectClassHandle(objectClassName);
          freshAttribute = fresh.getAttributeHandle(freshClass, attributeName);
@@ -118,21 +117,27 @@ final class LocalDeleteObjectInstanceTck {
             fresh, freshAttribute);
          fresh.subscribeObjectClassAttributes(freshClass, freshAttributes);
          freshSubscribed = true;
-         await(fresh, callbackModel, () -> hasDiscovery(freshCallbacks, object),
+         await(fresh, callbackModel, () -> !freshCallbacks.discoveries.isEmpty(),
             "fresh requester object discovery");
+         ObjectInstanceHandle freshObject = fresh.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(hasDiscovery(freshCallbacks, freshObject)
+               && freshClass.equals(fresh.getKnownObjectClassHandle(freshObject)),
+            "fresh requester did not preserve its local object identity");
 
          freshCallbacks.removals.clear();
-         fresh.localDeleteObjectInstance(object);
+         fresh.localDeleteObjectInstance(freshObject);
          JavaTckSupport.check(freshCallbacks.removals.isEmpty(),
             "local object deletion unexpectedly delivered a removal callback");
-         JavaTckSupport.expectFailure(() -> fresh.getKnownObjectClassHandle(object),
+         JavaTckSupport.expectFailure(() -> fresh.getKnownObjectClassHandle(freshObject),
             "ObjectInstanceNotKnown", "object identity after local deletion");
 
          freshCallbacks.discoveries.clear();
          fresh.subscribeObjectClassAttributes(freshClass, freshAttributes);
-         await(fresh, callbackModel, () -> hasDiscovery(freshCallbacks, object),
+         await(fresh, callbackModel, () -> !freshCallbacks.discoveries.isEmpty(),
             "rediscovery after local deletion");
-         JavaTckSupport.check(freshClass.equals(fresh.getKnownObjectClassHandle(object)),
+         ObjectInstanceHandle rediscoveredObject = fresh.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(hasDiscovery(freshCallbacks, rediscoveredObject)
+               && freshClass.equals(fresh.getKnownObjectClassHandle(rediscoveredObject)),
             "rediscovery after local deletion did not restore object identity");
 
          freshCallbacks.reflections.clear();
@@ -145,9 +150,9 @@ final class LocalDeleteObjectInstanceTck {
             () -> freshCallbacks.reflections.size() == 1,
             "post-local-delete attribute reflection");
          Reflection reflection = freshCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(reflection.object)
+         JavaTckSupport.check(rediscoveredObject.equals(reflection.object)
                && Arrays.equals(updateTag, reflection.tag)
-               && producer.equals(reflection.producer)
+               && ownerName.equals(fresh.getFederateName(reflection.producer))
                && Arrays.equals(value, reflection.values.get(freshAttribute)),
             "post-local-delete reflection returned the wrong metadata or value");
       } finally {
@@ -190,9 +195,6 @@ final class LocalDeleteObjectInstanceTck {
          }
          if (ownerConnected) {
             try { owner.disconnect(); } catch (Exception ignored) { }
-         }
-         if (unjoinedConnected) {
-            try { unjoined.disconnect(); } catch (Exception ignored) { }
          }
       }
    }

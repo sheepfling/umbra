@@ -590,7 +590,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.local-delete-object-instance",
             "exercise local-delete ownership boundaries, rediscovery, and continued updates",
             "local-object-instance-deletion",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.attributeOwnershipAcquisition;RTIambassador.localDeleteObjectInstance;RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST);RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.attributeOwnershipAcquisition;RTIambassador.localDeleteObjectInstance;RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST);RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-object-registration-discovery",
@@ -599,7 +599,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-object-registration-negative-boundaries"
-            }, false), RtiTckMain::localDeleteObjectInstance);
+            }, true), RtiTckMain::localDeleteObjectInstance);
       run(new Scenario("java-tck.local-delete-object-instance-name-lookup-boundary",
             "handle-to-name lookup after local object forgetting", "object-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.localDeleteObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance",
