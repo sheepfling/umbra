@@ -94,6 +94,7 @@ final class OwnershipCompetingIfAvailableTck {
          owner.queryAttributeOwnership(object, ownerAttributes);
          await(owner, model, objectClassName,
             () -> !ownerEvents.notOwned.isEmpty(), "initial unowned report");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(ownerEvents.notOwned.size() == 1
                && ownerEvents.information.isEmpty(),
             "competing If Available fixture did not establish an unowned attribute");
@@ -115,9 +116,11 @@ final class OwnershipCompetingIfAvailableTck {
          await(second, model, objectClassName,
             () -> !secondEvents.acquisitions.isEmpty() || !secondEvents.unavailable.isEmpty(),
             "second candidate terminal callback");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(second);
          await(first, model, objectClassName,
             () -> !firstEvents.acquisitions.isEmpty() || !firstEvents.unavailable.isEmpty(),
             "first candidate terminal callback");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(first);
          checkTerminal(firstEvents, object, firstAttributes, "first candidate");
          checkTerminal(secondEvents, object, secondAttributes, "second candidate");
          boolean firstWon = firstEvents.acquisitions.size() == 1;
@@ -131,6 +134,7 @@ final class OwnershipCompetingIfAvailableTck {
          owner.queryAttributeOwnership(object, ownerAttributes);
          await(owner, model, objectClassName,
             () -> !ownerEvents.information.isEmpty(), "winner owner report");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(ownerEvents.information.size() == 1
                && ownerEvents.notOwned.isEmpty(),
             "winner query did not exclusively report one federate owner");

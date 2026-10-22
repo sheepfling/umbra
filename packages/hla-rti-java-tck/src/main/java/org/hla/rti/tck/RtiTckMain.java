@@ -5125,7 +5125,7 @@ public final class RtiTckMain {
              "resolve two If Available contenders and query the actual winning owner",
              "ownership",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.queryAttributeOwnership;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.informAttributeOwnership",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipCompetingIfAvailableQuery);
        run(new Scenario("java-tck.ownership-mixed-if-available-query",
              "partition one If Available request between unowned and held attributes",
