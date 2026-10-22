@@ -6214,7 +6214,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-asynchronous-delivery-mim-attribute",
             "observe Asynchronous Delivery service transitions through the standard federate MOM object",
             "asynchronous-delivery",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.enableAsynchronousDelivery;RTIambassador.disableAsynchronousDelivery;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.enableAsynchronousDelivery;RTIambassador.disableAsynchronousDelivery;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-asynchronous-delivery-enable",
@@ -6222,7 +6222,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateAsynchronousDeliveryMomAttribute);
+            }, true), RtiTckMain::federateAsynchronousDeliveryMomAttribute);
       run(new Scenario("java-tck.federate-time-constrained-mim-attribute",
             "observe Time Constrained service transitions through the standard federate MOM object and callback",
             "time-management",

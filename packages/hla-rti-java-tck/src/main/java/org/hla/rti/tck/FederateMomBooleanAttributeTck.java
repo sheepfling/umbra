@@ -16,6 +16,7 @@ import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
+import hla.rti1516_2025.exceptions.InvalidFederateHandle;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -213,7 +214,7 @@ final class FederateMomBooleanAttributeTck {
       List<Reflection> reflections = recorder.valueReflectionsSince(before, object, attribute);
       JavaTckSupport.check(reflections.size() == 1,
          description + " delivered an unexpected number of direct MOM reflections");
-      return validateReflection(reflections.get(0), object, attribute, reliable, expected,
+      return validateReflection(monitor, reflections.get(0), object, attribute, reliable, expected,
          booleanEncoding, encoder, description);
    }
 
@@ -227,25 +228,35 @@ final class FederateMomBooleanAttributeTck {
       List<Reflection> reflections = recorder.valueReflectionsSince(before, object, attribute);
       JavaTckSupport.check(reflections.size() == 1,
          description + " did not produce exactly one conditional MOM reflection");
-      validateReflection(reflections.get(0), object, attribute, reliable, expected,
+      validateReflection(monitor, reflections.get(0), object, attribute, reliable, expected,
          booleanEncoding, encoder, description);
    }
 
-   private static boolean validateReflection(Reflection reflection, ObjectInstanceHandle object,
+   private static boolean validateReflection(RTIambassador monitor, Reflection reflection,
+         ObjectInstanceHandle object,
          AttributeHandle attribute, TransportationTypeHandle reliable, Boolean expected,
          boolean booleanEncoding, EncoderFactory encoder, String description) throws Exception {
       RegionHandleSet regions = reflection.regions;
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(new byte[0], reflection.tag)
-            && reliable.equals(reflection.transportation) && reflection.producer == null
+            && reliable.equals(reflection.transportation)
             && (regions == null || regions.isEmpty()) && !reflection.timestampOrdered,
          description + " had non-standard MOM reflection metadata: objectMatch="
             + object.equals(reflection.object) + ", attributeCount="
             + reflection.values.size() + ", tagLength=" + reflection.tag.length
             + ", reliable=" + reliable.equals(reflection.transportation)
-            + ", producerAbsent=" + (reflection.producer == null)
             + ", regionsEmpty=" + (regions == null || regions.isEmpty())
             + ", timestampOrdered=" + reflection.timestampOrdered);
+      if (reflection.producer != null) {
+         boolean invalidProducer = false;
+         try {
+            monitor.getFederateName(reflection.producer);
+         } catch (InvalidFederateHandle expectedInvalidHandle) {
+            invalidProducer = true;
+         }
+         JavaTckSupport.check(invalidProducer,
+            description + " supplied a valid producing FederateHandle for an RTI-originated MOM reflection");
+      }
       boolean actual;
       if (booleanEncoding) {
          HLAboolean value = encoder.createHLAboolean();

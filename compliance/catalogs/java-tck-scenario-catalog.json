@@ -37013,6 +37013,7 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.enableAsynchronousDelivery",
         "RTIambassador.disableAsynchronousDelivery",
@@ -37036,8 +37037,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAsynchronousDeliveryMomAttribute",
       "parity": "cpp-tck.federate-asynchronous-delivery-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Adapter-supplied application FOM, standard MIM, logical time, and provider are required. Installed JNI diagnostic on 2026-10-22 failed in both callback models: the first directly requested MOM value reflected a non-null producing FederateHandle, while the portable Java assertion expects no producer. Leave opt-in until the pinned Java callback's invalid-producer representation and JNI translation are reconciled; no pass or conformance is claimed."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-asynchronous-mom-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-asynchronous-delivery-mim-attribute-verified-20261016.json. For a non-null Java producer handle, the pure standard getFederateName service must reject it as InvalidFederateHandle; null also represents no producer. Application FOM, standard MIM, time, endpoint, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.federate-time-constrained-mim-attribute",

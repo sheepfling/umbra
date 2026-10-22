@@ -2257,11 +2257,14 @@ to IEEE 1516.2-2025 §C.3. Supply two valid matching-declaration modules via
 installed JNI adapter passed both callback models, matching the
 C++ primary and contract evidence, but this is not cross-provider conformance.
 
-`java-tck.federate-asynchronous-delivery-mim-attribute` remains opt-in: the
-installed JNI adapter's initial MOM reflection supplied a producer-handle
-object where this Java assertion expects no producer. Both callback models
-failed at that metadata check; the Java invalid-handle representation needs
-resolution before promotion.
+`java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
+adapter-supplied application FOM and standard MIM. It reads the initial MOM
+`HLAasynchronousDelivery` value, toggles the standard services, and verifies
+conditional reflections. A non-null producer handle must be rejected as
+`InvalidFederateHandle` by the standard `getFederateName` service; a null handle
+also denotes no producer. This avoids assuming that all Java providers encode
+an invalid handle as null. The installed JNI adapter passed both callback
+models after that API-only oracle was applied.
 
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
