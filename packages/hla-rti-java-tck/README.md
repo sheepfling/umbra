@@ -1745,6 +1745,14 @@ installed-provider runs in both HLA_EVOKED and HLA_IMMEDIATE. The adapter
 supplies the provider JAR, FOM, endpoint, logical-time implementation, and
 callback model; independent-provider conformance is not claimed.
 
+The default `java-tck.time-constrained-enable-galt-equality` case checks
+delayed Time Constrained Enabled delivery at GALT equality, matching queried
+logical time, and a TAR held at the regulating peer's GALT until that peer
+advances. Its direct §8.1.2/§8.6/§8.6.4 mappings passed focused installed-
+provider runs in both callback models. Provider, FOM, endpoint, time, and
+callback configuration remain adapter inputs; this is not an independent-
+provider conformance claim.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

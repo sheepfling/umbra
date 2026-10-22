@@ -14387,7 +14387,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.6.4"
         }
       ],
-      "mapping_note": "The §8.6 mapping covers delayed constrained enablement at GALT equality. The direct §8.6.4 postcondition mappings check Query Logical Time immediately matches the Time Constrained Enabled argument and hold a TAR(8) at GALT 6 with no early grant or logical-time change; §8.1.2 covers the TAR grant after the regulator advances. This is a bounded public-API two-federate witness. RL-346 places page-193 l31/l34 under §8.6.4 despite the Lab's §8.7.5 export; the l72 extraction/crosswalk remain tracked in RL-334/RL-342. Java provider runtime is unverified, so no conformance claim is made.",
+      "mapping_note": "The §8.6 mapping covers delayed constrained enablement at GALT equality. The direct §8.6.4 postcondition mappings check Query Logical Time immediately matches the Time Constrained Enabled argument and hold a TAR(8) at GALT 6 with no early grant or logical-time change; §8.1.2 covers the TAR grant after the regulator advances. This is a bounded public-API two-federate witness. RL-346 places page-193 l31/l34 under §8.6.4 despite the Lab's §8.7.5 export; the l72 extraction/crosswalk remain tracked in RL-334/RL-342. Focused installed-provider Java runs pass in both callback models; independent-provider conformance is not claimed.",
       "contract_refs": [
         "standard-time-constrained-enable-galt-equality-contract.json",
         "time-role-api-contract.json",
@@ -14397,8 +14397,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableGaltEquality",
       "parity": "cpp-tck.time-constrained-enable-galt-equality",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, endpoint, and callback configuration; runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-enable-regulating-federate-current-time",

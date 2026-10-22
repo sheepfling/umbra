@@ -3099,7 +3099,7 @@ public final class RtiTckMain {
                "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-time-advance-request"
             },
-            false), RtiTckMain::timeConstrainedEnableGaltEquality);
+            true), RtiTckMain::timeConstrainedEnableGaltEquality);
       run(new Scenario("java-tck.time-constrained-enable-regulating-federate-current-time",
             "report the regulating federate's current logical time when Time Constrained is enabled",
             "time-management",
