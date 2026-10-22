@@ -1667,6 +1667,15 @@ offer, and receives one grouped empty-tag assumption offer after publishing.
 It checks the candidate's local object handle and passed focused installed JNI
 runs in both callback modes; independent-provider conformance is unverified.
 
+The default `java-tck.ownership-assumption-search-after-decline` case holds a
+first candidate's assumption callback while a second candidate receives its
+acquisition-cancellation confirmation. It verifies that the unowned search
+continues only after the first callback returns, with one tagged offer to the
+second candidate. Immediate delivery uses only the standard callback
+disable/enable services. Receiver-local handles, adapter-supplied inputs, and
+focused installed JNI passes in both callback modes keep this portable;
+independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object

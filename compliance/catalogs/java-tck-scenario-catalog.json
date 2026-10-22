@@ -6183,7 +6183,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -6201,7 +6205,11 @@
         "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
-      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49"
+      ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
         "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21",
@@ -6216,12 +6224,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21", "standard_section": "hla-1516.1-2025:clause-7"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49", "standard_section": "hla-1516.1-2025:clause-7.2"}
       ],
-      "mapping_note": "Pure Java parity mirrors the callback-boundary cancellation and search continuation in both callback models; the immediate path uses standard Disable/Enable Callbacks services. The source compiles against the official API-only JAR; provider runtime is unverified. C++ primary/contract passed 4/4 under evoked/immediate callbacks.",
+      "mapping_note": "Pure Java parity mirrors the direct page-148-l61-18/l70-21 -> Clause 7 and page-154-l156-49 -> §7.2 callback-boundary cancellation and unowned search continuation. The immediate path uses standard Disable/Enable Callbacks services; both candidate callbacks are checked with receiver-local object and attribute handles and the divestiture tag. The source compiles against the official IEEE 1516.1-2025 API-only JAR and uses adapter-supplied class, attribute, FOM, logical time, provider, endpoint, and callback model. Focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-ownership-assumption-search-after-decline-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAssumptionSearchAfterDecline",
       "parity": "cpp-tck.ownership-assumption-search-after-decline",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, names, time implementation, callback model, and an IEEE 1516.1-2025 Java provider; provider-runtime execution is unverified."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied FOM, class and attribute names, time implementation, callback model, endpoint, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.resign-multi-survivor-assumption-fanout",

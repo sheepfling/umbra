@@ -62,7 +62,13 @@ final class OwnershipAssumptionSearchAfterDeclineTck {
          AttributeHandle firstAttribute = first.getAttributeHandle(firstClass, attributeName);
          AttributeHandle secondAttribute = second.getAttributeHandle(secondClass, attributeName);
          JavaTckSupport.check(ownerClass != null && firstClass != null && secondClass != null
-               && ownerAttribute != null && firstAttribute != null && secondAttribute != null,
+               && ownerAttribute != null && firstAttribute != null && secondAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(first.getObjectClassName(firstClass))
+               && objectClassName.equals(second.getObjectClassName(secondClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(first.getAttributeName(firstClass, firstAttribute))
+               && attributeName.equals(second.getAttributeName(secondClass, secondAttribute)),
             "adapter FOM did not resolve assumption-search class and attribute handles");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(first, firstAttribute);
@@ -74,18 +80,25 @@ final class OwnershipAssumptionSearchAfterDeclineTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "assumption-search registration returned a null object handle");
-         await(first, callbackModel, () -> firstRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(first, callbackModel, () -> firstRecorder.discoveries.size() == 1,
             "first assumption candidate discovery");
-         await(second, callbackModel, () -> secondRecorder.discoveries.contains(object),
+         ObjectInstanceHandle firstObject = first.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(firstObject.equals(firstRecorder.discoveries.get(0)),
+            "first candidate discovery did not resolve to its local object handle");
+         await(second, callbackModel, () -> secondRecorder.discoveries.size() == 1,
             "second assumption candidate discovery");
+         ObjectInstanceHandle secondObject = second.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(secondObject.equals(secondRecorder.discoveries.get(0)),
+            "second candidate discovery did not resolve to its local object handle");
          first.publishObjectClassAttributes(firstClass, firstAttributes);
          second.publishObjectClassAttributes(secondClass, secondAttributes);
 
          byte[] acquisitionTag = new byte[] {(byte) 0xc1, 0x25};
          byte[] divestitureTag = new byte[] {(byte) 0xc2, 0x25};
          if (callbackModel == CallbackModel.HLA_IMMEDIATE) second.disableCallbacks();
-         second.attributeOwnershipAcquisition(object, secondAttributes, acquisitionTag);
-         second.cancelAttributeOwnershipAcquisition(object, secondAttributes);
+         second.attributeOwnershipAcquisition(secondObject, secondAttributes, acquisitionTag);
+         second.cancelAttributeOwnershipAcquisition(secondObject, secondAttributes);
 
          CountDownLatch firstEntered = new CountDownLatch(1);
          CountDownLatch cancellationDelivered = new CountDownLatch(1);
@@ -150,12 +163,17 @@ final class OwnershipAssumptionSearchAfterDeclineTck {
                && (callbackModel == CallbackModel.HLA_IMMEDIATE
                   || secondRecorder.assumptions.isEmpty()),
             "callback-boundary cancellation or first assumption occurred out of order");
+         OwnershipEvent firstOffer = firstRecorder.assumptions.get(0);
+         JavaTckSupport.check(firstObject.equals(firstOffer.object)
+               && firstOffer.attributes.equals(new HashSet<>(firstAttributes))
+               && Arrays.equals(divestitureTag, firstOffer.tag),
+            "first ownership-assumption callback lost its local object, attribute, or tag");
 
          await(second, callbackModel, () -> !secondRecorder.assumptions.isEmpty(),
             "continued ownership assumption after declined callback");
          OwnershipEvent continued = secondRecorder.assumptions.get(0);
          JavaTckSupport.check(secondRecorder.assumptions.size() == 1
-               && object.equals(continued.object)
+               && secondObject.equals(continued.object)
                && continued.attributes.equals(new HashSet<>(secondAttributes))
                && Arrays.equals(divestitureTag, continued.tag),
             "continued ownership assumption lost its object, attribute, or tag");
