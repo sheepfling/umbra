@@ -3147,9 +3147,10 @@ public final class RtiTckMain {
             "retain a queued timestamped attribute update across pending Time Constrained enablement",
             "time-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP);RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.reflectAttributeValues(TSO)",
-            new String[] {"cpp-1516.1-time-role-callbacks",
+            new String[] {"requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+               "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-timestamped-attribute-update",
-               "cpp-1516.1-time-advance-request"}, false),
+               "cpp-1516.1-time-advance-request"}, true),
          RtiTckMain::timeConstrainedEnableRetainsQueuedTsoAttribute);
       run(new Scenario("java-tck.time-constrained-enable-receive-order-boundary",
             "preserve receive-order delivery before and timestamp-order delivery after Time Constrained enablement",

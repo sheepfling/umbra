@@ -1787,6 +1787,16 @@ its promoted C++ peer. Focused installed-provider runs pass in both callback
 models with adapter-supplied FOM, interaction/parameter names, endpoint, and
 time implementation. This is a bounded §8.6 result, not conformance.
 
+The default `java-tck.time-constrained-enable-retains-queued-tso-attribute`
+case applies the same §8.6 boundary to a timestamped attribute update. It
+checks that no receive-order reflection escapes while enablement is pending
+and that the queued passel reflects as TIMESTAMP/TIMESTAMP before TAR(6)'s
+grant. Focused installed-provider runs pass in both callback models after
+the publisher advances to six. The promoted C++ peer's current source omits
+that advance and needs a separate fresh runtime audit; no exact-sequence
+parity or independent-provider conformance is claimed. FOM, object/attribute
+names, endpoint, time, and callback model remain adapter inputs.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

@@ -146,6 +146,12 @@ final class TimeConstrainedQueuedAttributeTck {
             "Time Constrained queued-attribute role transition");
          checkNoReflection(receiverCallbacks, "after enablement but before TAR(6)");
          int orderBeforeAdvance = receiverCallbacks.callbackOrder.size();
+         publisher.timeAdvanceRequest(publisherSix);
+         await(publisher, callbackModel,
+            () -> publisherCallbacks.grants.size() == 3,
+            "Time Constrained queued-attribute publisher grant to six");
+         JavaTckSupport.check(publisherSix.equals(publisherCallbacks.grants.get(2)),
+            "Time Constrained queued-attribute publisher did not reach time six");
          receiver.timeAdvanceRequest(receiverSix);
          await(receiver, callbackModel,
             () -> receiverCallbacks.timedReflections.size() == 1

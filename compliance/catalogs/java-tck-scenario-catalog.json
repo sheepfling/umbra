@@ -14639,12 +14639,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.6"
         }
       ],
-      "mapping_note": "Direct §8.6 page-192-l93-27 witness: a timestamped Update Attribute Values passel queued while Time Constrained enablement is pending does not escape as receive order; after enablement it reflects as TIMESTAMP/TIMESTAMP before the receiver's TAR(6) grant. This does not prescribe a GALT formula or claim other producer families or provider conformance.",
+      "mapping_note": "Direct §8.6 page-192-l93-27 witness: a timestamped Update Attribute Values passel queued while Time Constrained enablement is pending does not escape as receive order; after enablement it reflects as TIMESTAMP/TIMESTAMP before the receiver's TAR(6) grant. The Java test advances its publisher to six before the receiver's TAR(6) to clear the observed lookahead boundary; the promoted C++ peer source currently omits that step and needs a separate fresh verification audit. Focused installed-provider Java runs pass in both callback models. This does not prescribe a GALT formula, cover other producer families, or claim independent-provider conformance.",
       "contract_refs": ["standard-time-constrained-enable-stored-tso-attribute-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableRetainsQueuedTsoAttribute",
       "parity": "cpp-tck.time-constrained-enable-retains-queued-tso-attribute",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, object/attribute names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-enable-receive-order-boundary",
