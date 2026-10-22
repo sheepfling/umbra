@@ -30,6 +30,13 @@ second, Java-side RTI implementation:
   standard-shaped Java values; and
 - translates C++ RTI exception names into Java RTI exception classes.
 
+For a Java-only bridge change, run
+`python tools/build_jni_java_provider.py --api-jar <official-api.jar> --output-jar <new-provider.jar>`
+from the repository root. This cross-platform helper rebuilds only the Java
+provider JAR, includes its service resources, and leaves the installed native
+library and C++ build untouched. Supply the resulting JAR through the Java
+TCK adapter when checking a bridge fix.
+
 The bridge now has a reproducible staging path, but it is not a Maven/Gradle
 publication and Umbra does not claim redistribution rights for the IEEE API.
 The Python `build_umbra_jni.py` workflow stages the bridge JAR, native library,

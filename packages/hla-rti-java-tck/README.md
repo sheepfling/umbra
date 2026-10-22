@@ -1238,6 +1238,17 @@ model, and receiver-local handles. Focused installed JNI runs passed in both
 callback models. Ownership/universal eligibility remains supplemental under
 RL-028; independent-provider conformance is unverified.
 
+The default `java-tck.timestamped-directed-interaction-subscription-kind`
+scenario checks owner and universal delivery after a live directed-subscription
+kind change, timestamped callback metadata before Time Advance Grants, and
+valid versus invalid retraction results for regulating and non-regulating
+senders. Its Java source imports only the official IEEE 1516.1-2025 API;
+provider, FOM, logical time, endpoint, names, and callback model remain
+adapter-supplied. Focused evoked and immediate runs passed using a Java
+provider JAR rebuilt from source with the installed native library. The
+recipient eligibility matrix and positive-lookahead boundary are supplemental;
+independent-provider conformance is unverified.
+
 The `java-tck.directed-derived-object-target-eligibility` scenario runs the
 same ownership/universal distinction with an adapter-selected derived object
 class and inherited identity attribute. It checks target ownership and

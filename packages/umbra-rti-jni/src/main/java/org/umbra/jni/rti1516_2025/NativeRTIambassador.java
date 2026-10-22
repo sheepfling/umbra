@@ -1445,15 +1445,18 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
     */
    private Object messageRetractionResult(Method method, byte[] encodedHandle)
       throws RTIinternalError {
-      NativeMessageRetractionHandle handle = new NativeMessageRetractionHandle(encodedHandle);
       Class<?> returnType = method.getReturnType();
       if (!"hla.rti1516_2025.MessageRetractionReturn".equals(returnType.getName())) {
-         return handle;
+         return new NativeMessageRetractionHandle(
+            encodedHandle == null ? new byte[0] : encodedHandle);
       }
+      boolean valid = encodedHandle != null && encodedHandle.length != 0;
+      NativeMessageRetractionHandle handle = valid
+         ? new NativeMessageRetractionHandle(encodedHandle) : null;
       try {
          return returnType
             .getConstructor(boolean.class, MessageRetractionHandle.class)
-            .newInstance(true, handle);
+            .newInstance(valid, handle);
       } catch (ReflectiveOperationException error) {
          throw internalError("Could not create the IEEE message-retraction return value", error);
       }

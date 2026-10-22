@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 /** Checks timestamped directed delivery for by-ownership and universal selectors. */
@@ -132,15 +133,33 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
          owner.subscribeObjectClassDirectedInteractions(ownerClass, ownerDirected);
          ownershipSubscriber.subscribeObjectClassDirectedInteractions(
             ownershipClass, ownershipDirected);
+         universalSubscriber.subscribeObjectClassDirectedInteractions(
+            universalClass, universalDirected);
          universalSubscriber.subscribeObjectClassDirectedInteractionsUniversally(
             universalClass, universalDirected);
          sender.changeInteractionOrderType(senderInteraction, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle target = owner.registerObjectInstance(ownerClass);
-         await(ambassadors, () -> senderRecorder.discoveries.contains(target)
-               && ownershipRecorder.discoveries.contains(target)
-               && universalRecorder.discoveries.contains(target),
+         String targetName = owner.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "timestamped directed target has no standard object name");
+         await(ambassadors, callbackModel,
+            () -> senderRecorder.hasDiscovery(targetName)
+               && ownershipRecorder.hasDiscovery(targetName)
+               && universalRecorder.hasDiscovery(targetName),
             "timestamped directed target discovery");
+         ObjectInstanceHandle senderObject = sender.getObjectInstanceHandle(targetName);
+         ObjectInstanceHandle ownershipObject = ownershipSubscriber.getObjectInstanceHandle(
+            targetName);
+         ObjectInstanceHandle universalObject = universalSubscriber.getObjectInstanceHandle(
+            targetName);
+         JavaTckSupport.check(senderRecorder.hasDiscovery(targetName, senderObject)
+               && ownershipRecorder.hasDiscovery(targetName, ownershipObject)
+               && universalRecorder.hasDiscovery(targetName, universalObject),
+            "timestamped directed target did not have receiver-local discovery handles");
+         String producerName = sender.getFederateName(producer);
+         FederateHandle ownerProducer = owner.getFederateHandle(producerName);
+         FederateHandle universalProducer = universalSubscriber.getFederateHandle(producerName);
 
          LogicalTimeFactory<?, ?> ownerTimeFactory = owner.getTimeFactory();
          LogicalTimeFactory<?, ?> senderTimeFactory = sender.getTimeFactory();
@@ -156,7 +175,7 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
          ownershipSubscriber.enableTimeConstrained();
          universalSubscriber.enableTimeConstrained();
          sender.enableTimeRegulation(lookahead);
-         await(ambassadors, () -> ownerRecorder.timeConstrainedEnabled
+         await(ambassadors, callbackModel, () -> ownerRecorder.timeConstrainedEnabled
                && ownershipRecorder.timeConstrainedEnabled
                && universalRecorder.timeConstrainedEnabled
                && senderRecorder.timeRegulationEnabled,
@@ -184,13 +203,13 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
             sender.getParameterHandleValueMapFactory().create(1);
          parameters.put(senderParameter, payload);
          MessageRetractionReturn sent = sender.sendDirectedInteraction(
-            senderInteraction, target, parameters, tag, timestamp);
+            senderInteraction, senderObject, parameters, tag, timestamp);
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
                && sent.handle != null,
             "timestamped directed send returned no valid retraction handle");
-         JavaTckSupport.drain(owner);
-         JavaTckSupport.drain(ownershipSubscriber);
-         JavaTckSupport.drain(universalSubscriber);
+         service(owner, callbackModel);
+         service(ownershipSubscriber, callbackModel);
+         service(universalSubscriber, callbackModel);
          JavaTckSupport.check(ownerRecorder.interactions.isEmpty()
                && ownershipRecorder.interactions.isEmpty()
                && universalRecorder.interactions.isEmpty(),
@@ -201,7 +220,7 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
          ownershipSubscriber.timeAdvanceRequest(ownershipTarget);
          universalSubscriber.timeAdvanceRequest(universalTarget);
          sender.timeAdvanceRequest(timestamp);
-         await(ambassadors, () -> ownerRecorder.interactions.size() == 1
+         await(ambassadors, callbackModel, () -> ownerRecorder.interactions.size() == 1
                && ownerRecorder.grants.size() == 1
                && ownershipRecorder.interactions.isEmpty()
                && ownershipRecorder.grants.size() == 1
@@ -211,16 +230,23 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
             "timestamped directed-interaction delivery and grant callbacks");
 
          assertDelivery(ownerRecorder.interactions.get(0), ownerInteraction, target,
-            ownerParameter, payload, tag, producer, timestamp, ownerRecorder.callbackOrder,
+            ownerParameter, payload, tag, ownerProducer, timestamp, ownerRecorder.callbackOrder,
             "target-owner directed interaction");
-         assertDelivery(universalRecorder.interactions.get(0), universalInteraction, target,
-            universalParameter, payload, tag, producer, timestamp,
+         assertDelivery(universalRecorder.interactions.get(0), universalInteraction, universalObject,
+            universalParameter, payload, tag, universalProducer, timestamp,
             universalRecorder.callbackOrder, "universal directed interaction");
          JavaTckSupport.check(ownerTarget.equals(ownerRecorder.grants.get(0))
                && ownershipTarget.equals(ownershipRecorder.grants.get(0))
                && universalTarget.equals(universalRecorder.grants.get(0))
                && timestamp.equals(senderRecorder.grants.get(0)),
             "timestamped directed-interaction grants returned the wrong logical times");
+         JavaTckSupport.check(senderRecorder.interactions.isEmpty()
+               && ownershipRecorder.interactions.isEmpty()
+               && senderRecorder.unexpectedDirectedCount.get() == 0
+               && ownerRecorder.unexpectedDirectedCount.get() == 0
+               && ownershipRecorder.unexpectedDirectedCount.get() == 0
+               && universalRecorder.unexpectedDirectedCount.get() == 0,
+            "timestamped directed send reached an ineligible member or wrong callback overload");
 
          ownershipSubscriber.publishObjectClassDirectedInteractions(
             ownershipClass, ownershipDirected);
@@ -228,7 +254,7 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
             ownershipInteraction, OrderType.TIMESTAMP);
          ownershipSubscriber.enableTimeRegulation(
             (LogicalTimeInterval<?>) ownershipTimeFactory.makeEpsilon());
-         await(ambassadors, () -> ownershipRecorder.timeRegulationEnabled,
+         await(ambassadors, callbackModel, () -> ownershipRecorder.timeRegulationEnabled,
             "timestamped directed-interaction second sender's Time Regulation callback");
 
          LogicalTime<?, ?> senderLater = offset(senderInitial, lookahead, 4);
@@ -241,19 +267,19 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
          ownershipParameters.put(ownershipParameter, payload);
          JavaTckSupport.expectFailure(
             () -> sender.sendDirectedInteraction(
-               senderInteraction, target, parameters, tag, timestamp),
+               senderInteraction, senderObject, parameters, tag, timestamp),
             "InvalidLogicalTime",
             "timestamped directed send below current logical time plus lookahead");
          LogicalTime<?, ?> senderAtLookaheadBoundary = offset(senderInitial, lookahead, 3);
          MessageRetractionReturn boundary = sender.sendDirectedInteraction(
-            senderInteraction, target, parameters, tag, senderAtLookaheadBoundary);
+            senderInteraction, senderObject, parameters, tag, senderAtLookaheadBoundary);
          JavaTckSupport.check(boundary != null && boundary.retractionHandleIsValid
                && boundary.handle != null,
             "timestamped directed send at current logical time plus lookahead returned no handle");
          MessageRetractionReturn sameSender = sender.sendDirectedInteraction(
-            senderInteraction, target, parameters, tag, senderLater);
+            senderInteraction, senderObject, parameters, tag, senderLater);
          MessageRetractionReturn otherSender = ownershipSubscriber.sendDirectedInteraction(
-            ownershipInteraction, target, ownershipParameters, tag, ownershipLater);
+            ownershipInteraction, ownershipObject, ownershipParameters, tag, ownershipLater);
          JavaTckSupport.check(sameSender != null && sameSender.retractionHandleIsValid
                && sameSender.handle != null && otherSender != null
                && otherSender.retractionHandleIsValid && otherSender.handle != null
@@ -275,9 +301,9 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
             universalSubscriber.getParameterHandleValueMapFactory().create(1);
          universalParameters.put(universalParameter, payload);
          MessageRetractionReturn nonRegulating = universalSubscriber.sendDirectedInteraction(
-            universalInteraction, target, universalParameters, tag, universalLater);
+            universalInteraction, universalObject, universalParameters, tag, universalLater);
          JavaTckSupport.check(nonRegulating != null
-               && !nonRegulating.retractionHandleIsValid,
+               && !nonRegulating.retractionHandleIsValid && nonRegulating.handle == null,
             "timestamped directed send by a non-regulating federate returned a retraction handle");
       } finally {
          for (int i = 0; i < ambassadors.length; ++i) {
@@ -307,14 +333,19 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
       return result;
    }
 
-   private static void await(RTIambassador[] ambassadors,
+   private static void await(RTIambassador[] ambassadors, CallbackModel callbackModel,
          BooleanSupplier condition, String description) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline && !condition.getAsBoolean()) {
-         for (RTIambassador ambassador : ambassadors) JavaTckSupport.drain(ambassador);
-         Thread.yield();
+         for (RTIambassador ambassador : ambassadors) service(ambassador, callbackModel);
       }
       JavaTckSupport.check(condition.getAsBoolean(), description + " did not complete");
+   }
+
+   private static void service(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+      else Thread.yield();
    }
 
    private static void assertDelivery(Interaction actual,
@@ -350,11 +381,21 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final AtomicInteger unexpectedDirectedCount = new AtomicInteger();
       private volatile boolean timeConstrainedEnabled;
       private volatile boolean timeRegulationEnabled;
+
+      private boolean hasDiscovery(String name) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name));
+      }
+
+      private boolean hasDiscovery(String name, ObjectInstanceHandle handle) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name)
+            && handle.equals(discovery.handle));
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -362,8 +403,9 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 2) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                     && arguments.length >= 3) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                } else if ("timeConstrainedEnabled".equals(name)) {
                   timeConstrainedEnabled = true;
                } else if ("timeRegulationEnabled".equals(name)) {
@@ -382,6 +424,8 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
                   interaction.retraction = (MessageRetractionHandle) arguments[9];
                   interactions.add(interaction);
                   callbackOrder.add(name);
+               } else if ("receiveDirectedInteraction".equals(name)) {
+                  unexpectedDirectedCount.incrementAndGet();
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
@@ -394,6 +438,16 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
                }
                return null;
             });
+      }
+   }
+
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
       }
    }
 }

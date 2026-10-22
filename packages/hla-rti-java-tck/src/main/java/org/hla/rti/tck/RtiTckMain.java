@@ -2963,10 +2963,13 @@ public final class RtiTckMain {
             "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions(universally=false/true);RTIambassador.registerObjectInstance;RTIambassador.changeInteractionOrderType;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendDirectedInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(time);FederateAmbassador.timeAdvanceGrant",
             new String[] {
-               "java-1516.1-directed-interaction-subscription",
-               "java-1516.1-directed-interaction-delivery",
-               "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedDirectedInteractionSubscriptionKind);
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+               "requirement-candidate-content-clauses-06-object-management-page-126-l179-50",
+               "requirement-candidate-content-clauses-06-object-management-page-127-l7-1",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-185-l17-5"
+            }, true), RtiTckMain::timestampedDirectedInteractionSubscriptionKind);
       run(new Scenario("java-tck.directed-derived-object-target-eligibility",
             "directed delivery eligibility for a derived-class target owner and universal subscriber",
             "directed-interaction",

@@ -18434,6 +18434,10 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
@@ -18454,9 +18458,20 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-time-advance-and-grant"
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l179-50",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l7-1",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l179-50",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l7-1",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5"
       ],
       "requirement_mappings": [
         {
@@ -18491,7 +18506,7 @@
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6"
       ],
-      "mapping_note": "Direct mappings cover the subscription calls, time-managed send/advance path, and both retraction-designator branches. Three timestamped sends by one regulating federate and one by a distinct regulating federate return four valid, pairwise distinct handles; a timestamped send by a third, non-regulating federate returns no valid handle. The regulating federates also select preferred TIMESTAMP order and provide the timestamp. The observed recipient matrix (target owner and universal subscriber receive; known non-owner by-ownership subscriber does not) is a standard-API supplementary assertion because the pinned requirements export has no granular candidate for that selector-eligibility predicate. A regulating sender's timed send at its granted logical time is expected to fail as InvalidLogicalTime below positive lookahead, while a send exactly at current time plus lookahead is expected to succeed with a valid handle. This one Clause 8 boundary is supplementary and does not claim the complete page-127 l157 timestamp-constraint requirement, including time-advancing and zero-lookahead cases. Callback metadata and delivery-before-grant are checked without claiming queued-subscription-change or unsubscribe cutoff behavior. Java source is limited to the official IEEE 1516.1-2025 API; provider execution remains unverified.",
+      "mapping_note": "Direct mappings cover effective and changed subscription kind, time-managed send/advance, and both retraction-designator branches. Three timestamped sends by one regulating federate and one by a distinct regulating federate return four valid, pairwise distinct handles; a timestamped send by a third, non-regulating federate returns an invalid result with no handle. The regulating federates select preferred TIMESTAMP order and provide the timestamp. The observed recipient matrix (target owner and universal subscriber receive; known non-owner by-ownership subscriber does not) is supplemental under RL-028 because the pinned requirements export has no granular selector-eligibility candidate. A regulating sender's timed send at its granted logical time fails as InvalidLogicalTime below positive lookahead, while one at current time plus lookahead succeeds. That Clause 8 boundary is supplemental and does not claim the full page-127 l157 requirement. Callback metadata and delivery-before-grant are checked without claiming queued-subscription-change or unsubscribe cutoff behavior. Java source uses only the official IEEE 1516.1-2025 API; focused JNI execution passed with a rebuilt Java provider JAR and the installed native library, not an independent-provider conformance run.",
       "contract_refs": [
         "standard-directed-interaction-subscription-kind-contract.json",
         "timestamped-directed-interaction-api-contract.json",
@@ -18501,8 +18516,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDirectedInteractionSubscriptionKind",
       "parity": "cpp-tck.timestamped-directed-interaction-subscription-kind",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied Java provider, FOM, logical-time implementation, endpoint, and callback model. Keep unsupported until the scenario executes against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied Java provider, FOM, logical-time implementation, endpoint, object/attribute/interaction/parameter names, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-directed-interaction-tar-nmr",
