@@ -7584,12 +7584,15 @@
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
-        "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle",
-        "RTIambassador.getInteractionClassHandle", "RTIambassador.getParameterHandle",
+        "RTIambassador.getObjectClassHandle", "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle", "RTIambassador.getAttributeName",
+        "RTIambassador.getInteractionClassHandle", "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle", "RTIambassador.getParameterName",
         "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions(set)",
-        "RTIambassador.registerObjectInstance", "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally(set)",
+        "RTIambassador.registerObjectInstance", "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle", "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendDirectedInteraction", "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions(set)",
@@ -7598,20 +7601,22 @@
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.receiveDirectedInteraction"
+        "FederateAmbassador.receiveDirectedInteraction(receive-order overload)"
       ],
-      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
-      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9", "hla-1516.1-2025:clause-6.14.3"],
       "requirement_mappings": [
-        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "standard_section": "hla-1516.1-2025:clause-6.1.9"}
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "standard_section": "hla-1516.1-2025:clause-6.1.9"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16", "standard_section": "hla-1516.1-2025:clause-6.14.3"}
       ],
-      "mapping_note": "The Java peer checks one base-object discovery, the known object class, and exactly one receive-order directed callback at the base interaction with the projected base parameter despite an inapplicable child-class subscription. This parallels the native-green C++ slice; Java provider runtime is not yet available.",
+      "mapping_note": "Direct subset of the promoted C++ case: page-109-l88-26 -> §6.1.9 for exactly one base-class discovery and known-class lookup; page-127-l52-16 -> §6.14.3 for one receive-order directed callback projected to the base interaction and base parameter despite an inapplicable child-class subscription. The Java test uses standard universal subscriptions and receiver-local name/handle lookup. Focused installed-provider runs passed under both callback models. The C++ case's timestamped continuation and its page-175/page-197 mappings remain outside this Java peer pending a separate runtime gate; no full parity, independent-provider, or conformance claim.",
       "contract_refs": ["directed-interaction-api-contract.json", "standard-directed-interaction-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedKnownObjectClassFallback",
       "parity": "cpp-tck.directed-known-object-class-fallback",
-      "default_status": "unsupported",
-      "exclusion": "Java provider runtime evidence is not yet available; official-API compile and parity checks only. Requires an adapter-supplied directed hierarchy FOM."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied directed hierarchy FOM, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; timestamped C++ continuation is not yet covered.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-interaction-no-applicable-subscription",

@@ -1274,6 +1274,14 @@ the compatible FOM. Focused installed JNI runs passed in both callback models;
 the separate timestamped witness and independent-provider conformance are not
 established by this case alone.
 
+The default `java-tck.directed-known-object-class-fallback` case discovers a
+derived target only as its subscribed base class, then verifies that one
+untimed directed send is received as the base interaction with only the base
+parameter. The inapplicable child-class subscription does not change that
+projection. It uses receiver-local standard handles and passed focused
+installed JNI runs in both callback models. The C++ peer also tests a
+timestamped continuation, which remains outside this Java case for now.
+
 The `java-tck.receive-order-interaction` scenario sends two tagged interactions
 in succession and verifies callback FIFO order, exact parameter values, standard
 handle/name round-trips, producer and reliable-transport metadata, no region

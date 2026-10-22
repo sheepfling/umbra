@@ -13,13 +13,18 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 
 /** Receive-order directed receipt is selected using the target's known object class. */
 final class DirectedKnownObjectClassFallbackTck {
+   private static final long CALLBACK_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(10);
+
    private DirectedKnownObjectClassFallbackTck() {
    }
 
@@ -59,7 +64,13 @@ final class DirectedKnownObjectClassFallbackTck {
          InteractionClassHandle receiverChildClass = receiver.getInteractionClassHandle(childInteractionName);
          JavaTckSupport.check(!baseObject.equals(receiverChildObject)
                && !baseClass.equals(receiverChildClass)
-               && sentClass.equals(receiverChildClass),
+               && childObjectName.equals(publisher.getObjectClassName(childObject))
+               && baseObjectName.equals(receiver.getObjectClassName(baseObject))
+               && childObjectName.equals(receiver.getObjectClassName(receiverChildObject))
+               && childInteractionName.equals(publisher.getInteractionClassName(sentClass))
+               && baseInteractionName.equals(receiver.getInteractionClassName(baseClass))
+               && childInteractionName.equals(
+                  receiver.getInteractionClassName(receiverChildClass)),
             "adapter FOM lacks the distinct directed object and interaction hierarchies");
          AttributeHandle publisherMarker = publisher.getAttributeHandle(childObject, markerName);
          AttributeHandle receiverMarker = receiver.getAttributeHandle(baseObject, markerName);
@@ -69,9 +80,20 @@ final class DirectedKnownObjectClassFallbackTck {
             sentClass, childParameterName);
          ParameterHandle receivedBaseParameter = receiver.getParameterHandle(
             baseClass, baseParameterName);
-         JavaTckSupport.check(publisherMarker.equals(receiverMarker)
-               && sentBaseParameter.equals(receivedBaseParameter),
-            "directed fixture member handles changed across federates");
+         ParameterHandle receivedChildParameter = receiver.getParameterHandle(
+            receiverChildClass, childParameterName);
+         JavaTckSupport.check(markerName.equals(publisher.getAttributeName(
+               childObject, publisherMarker))
+               && markerName.equals(receiver.getAttributeName(baseObject, receiverMarker))
+               && baseParameterName.equals(publisher.getParameterName(
+                  sentClass, sentBaseParameter))
+               && childParameterName.equals(publisher.getParameterName(
+                  sentClass, sentChildParameter))
+               && baseParameterName.equals(receiver.getParameterName(
+                  baseClass, receivedBaseParameter))
+               && childParameterName.equals(receiver.getParameterName(
+                  receiverChildClass, receivedChildParameter)),
+            "directed fixture member names did not round-trip locally");
 
          publisher.publishObjectClassAttributes(childObject,
             JavaTckSupport.attributeSet(publisher, publisherMarker));
@@ -79,17 +101,26 @@ final class DirectedKnownObjectClassFallbackTck {
             JavaTckSupport.attributeSet(receiver, receiverMarker));
          publisher.publishObjectClassDirectedInteractions(childObject,
             JavaTckSupport.interactionSet(publisher, sentClass));
-         receiver.subscribeObjectClassDirectedInteractions(baseObject,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(baseObject,
             JavaTckSupport.interactionSet(receiver, baseClass));
-         receiver.subscribeObjectClassDirectedInteractions(receiverChildObject,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverChildObject,
             JavaTckSupport.interactionSet(receiver, receiverChildClass));
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(childObject);
-         JavaTckSupport.drain(receiver);
+         String targetName = publisher.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "registered directed target has no object name");
+         await(receiver, callbackModel,
+            () -> receiverRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)),
+            "base-class discovery of the directed target");
+         Discovery discovery = receiverRecorder.discoveries.stream()
+            .filter(event -> targetName.equals(event.name)).findFirst().orElse(null);
+         ObjectInstanceHandle receiverTarget = receiver.getObjectInstanceHandle(targetName);
          JavaTckSupport.check(receiverRecorder.discoveries.size() == 1
-               && target.equals(receiverRecorder.discoveries.get(0).object)
-               && baseObject.equals(receiverRecorder.discoveries.get(0).objectClass)
-               && baseObject.equals(receiver.getKnownObjectClassHandle(target)),
+               && discovery != null && receiverTarget.equals(discovery.object)
+               && baseObject.equals(discovery.objectClass)
+               && baseObject.equals(receiver.getKnownObjectClassHandle(receiverTarget)),
             "receiver did not know the child-registered target only at the base object class");
 
          byte[] baseValue = new byte[] {0x42};
@@ -99,16 +130,21 @@ final class DirectedKnownObjectClassFallbackTck {
          parameters.put(sentBaseParameter, baseValue);
          parameters.put(sentChildParameter, childValue);
          publisher.sendDirectedInteraction(sentClass, target, parameters, tag);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.directed.size() == 1,
+         await(receiver, callbackModel,
+            () -> !receiverRecorder.directed.isEmpty()
+               || receiverRecorder.nonReceiveOrderDirectedCount.get() > 0,
+            "receive-order directed fallback");
+         pumpQuiet(receiver, callbackModel);
+         JavaTckSupport.check(receiverRecorder.directed.size() == 1
+               && receiverRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "known-class directed subscriber did not receive exactly one callback");
          Directed delivery = receiverRecorder.directed.get(0);
          JavaTckSupport.check(baseClass.equals(delivery.interaction)
-               && target.equals(delivery.target)
+               && receiverTarget.equals(delivery.target)
                && producer.equals(delivery.producer)
                && delivery.parameters.size() == 1
                && Arrays.equals(baseValue, delivery.parameters.get(receivedBaseParameter))
-               && !delivery.parameters.containsKey(sentChildParameter)
+               && !delivery.parameters.containsKey(receivedChildParameter)
                && Arrays.equals(tag, delivery.tag),
             "directed receipt did not select the base known-class subscription and parameter view");
 
@@ -133,6 +169,25 @@ final class DirectedKnownObjectClassFallbackTck {
       }
    }
 
+   private static void await(RTIambassador ambassador, CallbackModel callbackModel,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.yield();
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(150);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
+   }
+
    private static void resign(RTIambassador ambassador) {
       try { ambassador.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
       catch (Exception ignored) { }
@@ -145,10 +200,13 @@ final class DirectedKnownObjectClassFallbackTck {
    private static final class Discovery {
       private final ObjectInstanceHandle object;
       private final ObjectClassHandle objectClass;
+      private final String name;
 
-      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass) {
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
+            String name) {
          this.object = object;
          this.objectClass = objectClass;
+         this.name = name;
       }
    }
 
@@ -170,8 +228,9 @@ final class DirectedKnownObjectClassFallbackTck {
    }
 
    private static final class Recorder {
-      private final List<Discovery> discoveries = new ArrayList<>();
-      private final List<Directed> directed = new ArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final AtomicInteger nonReceiveOrderDirectedCount = new AtomicInteger();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -179,12 +238,16 @@ final class DirectedKnownObjectClassFallbackTck {
             (proxy, method, arguments) -> {
                if ("discoverObjectInstance".equals(method.getName())) {
                   discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
-                     (ObjectClassHandle) arguments[1]));
+                     (ObjectClassHandle) arguments[1], (String) arguments[2]));
                } else if ("receiveDirectedInteraction".equals(method.getName())) {
-                  directed.add(new Directed((InteractionClassHandle) arguments[0],
-                     (ObjectInstanceHandle) arguments[1],
-                     ((ParameterHandleValueMap) arguments[2]).clone(),
-                     ((byte[]) arguments[3]).clone(), (FederateHandle) arguments[5]));
+                  if (arguments == null || arguments.length != 6) {
+                     nonReceiveOrderDirectedCount.incrementAndGet();
+                  } else {
+                     directed.add(new Directed((InteractionClassHandle) arguments[0],
+                        (ObjectInstanceHandle) arguments[1],
+                        ((ParameterHandleValueMap) arguments[2]).clone(),
+                        ((byte[]) arguments[3]).clone(), (FederateHandle) arguments[5]));
+                  }
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java TCK known-class recorder";
