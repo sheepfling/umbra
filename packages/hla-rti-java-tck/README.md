@@ -2639,8 +2639,25 @@ Java properties, passed through `--jvm-argument=-D...`:
 These inputs enable `java-tck.fom-default-logical-time-selection`,
 `java-tck.fom-unavailable-logical-time-factory`,
 `java-tck.fom-time-representation-valid`, and
-`java-tck.fom-time-representation-rejections`. Leave a case default-disabled
-when its provider adapter cannot attest the required input.
+`java-tck.fom-time-representation-rejections` as default-run cases when the
+provider adapter supplies and attests the required inputs. The valid case
+accepts an integer64 time-representation FOM; the rejection case rejects
+raw basic and reference data types and checks valid federation-name reuse.
+The default-time case observes `HLAfloat64Time` through the standard time
+factory; the unavailable-factory case requires an adapter-attested absent
+factory name. The installed Java adapter and matching C++ primary/contract
+cases passed both callback models. Float64 representation acceptance, other
+factories, and independent-provider conformance are not claimed.
+
+`java-tck.fom-member-data-type-categories` is also default-run. Supply
+`hla.rti.tck.memberDataTypeValidFom`,
+`hla.rti.tck.memberDataTypeAttributeBasicFom`, and
+`hla.rti.tck.memberDataTypeParameterBasicFom` through the adapter. It accepts
+simple-data members, rejects raw basic attribute and parameter data types,
+and checks valid federation-name reuse. The installed Java adapter and
+matching C++ primary/contract passed both callback models; the parameter
+source mapping has only Clause 4 granularity, and cross-provider conformance
+is not claimed.
 
 The default-run array-cardinality cases and adjacent dimension-duplicate
 cases use adapter-supplied FOM paths. `arrayCardinalityValidFom` supplies the
