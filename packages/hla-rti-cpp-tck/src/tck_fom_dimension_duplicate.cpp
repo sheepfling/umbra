@@ -228,4 +228,57 @@ void scenarioFomDimensionInputNaExclusivityContract(Options const& options,
   scenarioFomDimensionInputNaExclusivity(options, model);
 }
 
+void scenarioFomDimensionNameUniqueness(Options const& options,
+                                        rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Dimension name uniqueness requires adapter-supplied MIM and logical time");
+  auto const& duplicate = requiredFom(options, "dimension-duplicate-within-module");
+  auto const& base = requiredFom(options, "dimension-duplicate-base");
+  auto const& equivalent = requiredFom(options, "dimension-duplicate-equal-unique");
+  Session creator(options, model, "dimension-name-uniqueness-creator");
+  Session member(options, model, "dimension-name-uniqueness-member");
+  auto const federation = federationName(options, "fom-dimension-name-uniqueness");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::vector<std::wstring> const& modules) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, modules, options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim({duplicate.wstring()}); },
+                   L"InconsistentFOM", "duplicate dimension names within one module");
+
+  auto const checkAccepted = [&](std::vector<std::wstring> const& modules,
+                                 bool expectUnique) {
+    // Same federation name checks failed-create cleanup and legal reuse.
+    createWithMim(modules);
+    member.join(options.memberFederateName, options.federateType, federation);
+    auto& rti = member.rtiAmbassador();
+    auto const shared = rti.getDimensionHandle(L"TckDuplicateDimension");
+    require(shared.isValid() &&
+                rti.getDimensionName(shared) == L"TckDuplicateDimension" &&
+                rti.getDimensionUpperBound(shared) == 100U,
+            "an accepted dimension was not publicly queryable");
+    if (expectUnique) {
+      auto const unique = rti.getDimensionHandle(L"TckUniqueDimension");
+      require(unique.isValid() && unique != shared &&
+                  rti.getDimensionName(unique) == L"TckUniqueDimension" &&
+                  rti.getDimensionUpperBound(unique) == 200U,
+              "legal cross-module dimension union was not publicly queryable");
+    }
+    member.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  };
+  checkAccepted({base.wstring()}, false);
+  checkAccepted({base.wstring(), equivalent.wstring()}, true);
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomDimensionNameUniquenessContract(Options const& options,
+                                                rti::CallbackModel model) {
+  scenarioFomDimensionNameUniqueness(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

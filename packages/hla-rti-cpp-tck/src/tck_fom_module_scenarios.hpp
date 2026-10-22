@@ -72,6 +72,8 @@ void scenarioFomDimensionInputDescription(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputDescriptionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputNaExclusivity(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputNaExclusivityContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionNameUniqueness(Options const&, rti::CallbackModel);
+void scenarioFomDimensionNameUniquenessContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqual(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateNoteConflict(Options const&, rti::CallbackModel);

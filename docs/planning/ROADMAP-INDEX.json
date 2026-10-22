@@ -1,4 +1,15 @@
 {
+  "portable_tck_fom_dimension_name_uniqueness_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 Dimension-table within-module name-uniqueness rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1556; packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionNameUniquenessTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1 -> IEEE 1516.2-2025 clause 4 (pinned Lab section granularity)"
+    ],
+    "evidence": "Native focused case passed 7 assertions; three adapter FOM bindings passed pinned DIF XSD. C++ compiled against official installed IEEE API headers. Isolated installed-package CTest passed 8/8 and direct runs passed 8/8 across HLA_EVOKED/HLA_IMMEDIATE, including the prior NA-exclusivity regression (out/mgw/dimension-name-uniqueness-20261021.json). Java compiles against the API-only JAR; C++/Java catalog and parity validators pass. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create with MIM rejects identical duplicate dimension names within one FOM using InconsistentFOM, then accepts one valid module and equivalent same-name definitions across separate modules under the reusable federation name; joined dimension lookups round-trip. No private diagnostic text, Java runtime, interoperability, or conformance claim. The focused link reused unrelated existing objects and compiled only the entry-point and touched dimension source; it is not a full rebuild.",
+    "next": "Inspect the adjacent native-green FOM name-conventions case at cpp/tests/libxml2_fom_composer_catch2.cpp:1576 and its pinned mapping. Translate only schema-valid illegal-name forms with an accepted-name control through public Create outcomes, using adapter-owned FOMs, Java parity, and the installed-package gate. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_dimension_input_na_exclusivity_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 Dimension-table NA input-marker exclusivity rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",

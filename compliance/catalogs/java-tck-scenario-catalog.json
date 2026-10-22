@@ -8638,6 +8638,22 @@
       "exclusion": "Configure hla.rti.tck.dimensionInputMixedNaFom, dimensionInputNaFom, dimensionDescriptionTextFom, dimensionInputTableTypeFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-dimension-name-uniqueness",
+      "category": "fom-composition",
+      "title": "Reject duplicate dimension names within one module",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.getDimensionHandle", "RTIambassador.getDimensionName", "RTIambassador.getDimensionUpperBound", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Standard Java API parity for same-module duplicate-name rejection, single-module acceptance, and legal equivalent cross-module union. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-dimension-name-uniqueness-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionNameUniqueness",
+      "parity": "cpp-tck.fom-dimension-name-uniqueness",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.dimensionDuplicateWithinModuleFom, dimensionDuplicateBaseFom, dimensionDuplicateEqualUniqueFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-synchronization-duplicate-equal",
       "category": "fom-composition",
       "title": "Accept identical same-label synchronization declarations",
