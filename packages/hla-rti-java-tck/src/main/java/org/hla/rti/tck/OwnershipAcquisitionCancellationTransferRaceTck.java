@@ -139,8 +139,8 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
             }, "java-tck-ownership-cancellation-race");
             canceller.start();
             requester.attributeOwnershipAcquisition(object, requesterAttributes, acquisitionTag);
-            JavaTckSupport.check(owner.evokeMultipleCallbacks(0.0, 1.0),
-               "evoked owner did not service the ownership release callback");
+            await(owner, callbackModel, () -> releaseCallbackEntered.getCount() == 0,
+               "ownership cancellation-race release callback");
             canceller.join(TimeUnit.SECONDS.toMillis(CALLBACK_TIMEOUT_SECONDS));
             JavaTckSupport.check(!canceller.isAlive(),
                "ownership cancellation worker did not finish");

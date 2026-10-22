@@ -22547,6 +22547,16 @@
         "attribute-ownership-check-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionCancellationTransferRace",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.15"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5", "standard_section": "hla-1516.1-2025:clause-7.15"}
+      ],
+      "mapping_note": "The evoked release-callback race completes cancellation before Divestiture If Wanted and verifies exactly one acquisition notification with matching object, attribute, and tag, no stale cancellation confirmation, and ownership transfer. Immediate mode verifies the successful transfer reply without a concurrent cancellation. Java compiled against the official 2025 API JAR and passed focused JNI runs in both callback models. The denied/unavailable reply and three-form aggregate remain unmapped; no independent-provider or conformance claim.",
       "parity": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java source uses only standard IEEE 1516.1-2025 ownership services and callbacks."

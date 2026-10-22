@@ -28105,6 +28105,16 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.15"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5", "standard_section": "hla-1516.1-2025:clause-7.15"}
+      ],
+      "mapping_note": "The HLA_EVOKED race completes cancellation before Divestiture If Wanted transfers ownership, then checks exactly one Attribute Ownership Acquisition Notification, its object/attribute/tag, absence of a stale cancellation confirmation, and the new owner. HLA_IMMEDIATE checks the same transfer reply without a concurrent cancellation. The other two reply forms and the three-form aggregate remain unmapped. Current-source C++ primary/contract passed 4/4 focused installed-package CTests and 4/4 direct runs; Java parity passed 2/2 focused JNI runs. No independent-provider or conformance claim.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -28113,7 +28123,8 @@
         "attribute-ownership-check-api-contract.json",
         "attribute-ownership-check-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioOwnershipAcquisitionCancellationTransferRace",
+      "native_equivalent_runner_ids": ["umbra-cpp-ownership-acquisition-cancellation-notification-race-integration"],
+      "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioOwnershipAcquisitionCancellationTransferRace",
       "runner_id": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "parity": "java-tck.ownership-acquisition-cancellation-transfer-race",
       "default_status": "run",
@@ -28141,6 +28152,16 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.15"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5", "standard_section": "hla-1516.1-2025:clause-7.15"}
+      ],
+      "mapping_note": "Contract twin of the evoked cancellation/Divestiture If Wanted race: one exact acquisition notification wins with no stale cancellation confirmation and ownership transfers. Immediate mode exercises the successful transfer reply without a concurrent cancellation. This does not map the denied/unavailable reply or three-form aggregate. The installed-package CTest passed both callback models; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-ownership-acquisition-cancellation-transfer-race-contract.json"
       ],
