@@ -85,6 +85,7 @@ final class OwnershipQueryOwnerReportTck {
          await(observer, callbackModel,
             () -> !observerRecorder.ownershipInformation.isEmpty(),
             "Inform Attribute Ownership callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
          JavaTckSupport.check(observerRecorder.ownershipInformation.size() == 1,
             "ownership query produced duplicate Inform Attribute Ownership callbacks");
          OwnershipInformation result = observerRecorder.ownershipInformation.get(0);

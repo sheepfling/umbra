@@ -22294,19 +22294,23 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.informAttributeOwnership"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
+      "mapping_note": "Pure Java parity queries one owned attribute and checks exactly one Inform Attribute Ownership callback identifying the object, attribute, and current federate owner without changing ownership. Evoked queues are drained before the exact-one assertion. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/attribute-ownership-query-owner-report-drained-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. The three direct clause 7.17.5/7.18.4 mappings cover only the owned-result branch; unowned/RTI-owned results, independent-provider behavior, and conformance are not claimed.",
       "contract_refs": [
         "attribute-ownership-query-owner-report-api-contract.json",
         "attribute-ownership-query-owner-report-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipQueryOwnerReport",
       "parity": "cpp-tck.attribute-ownership-query-owner-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 FOM and an ownership-capable provider. The scenario uses the adapter callback model and only the standard Java API; provider runtime verification is pending."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-acquisition-cancellation-save-restore",

@@ -5147,7 +5147,7 @@ public final class RtiTckMain {
                 "cpp-1516.1-object-management",
                 "cpp-1516.1-ownership-management",
                 "cpp-1516.1-federation-create-join-resign-destroy"
-             }, false), RtiTckMain::attributeOwnershipQueryOwnerReport);
+             }, true), RtiTckMain::attributeOwnershipQueryOwnerReport);
       run(new Scenario("java-tck.ownership-acquisition-if-available",
             "report unavailable ownership, acquire after unconditional divestiture, and reject reacquisition by the owner",
             "ownership",

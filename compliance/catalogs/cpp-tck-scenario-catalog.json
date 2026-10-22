@@ -27213,11 +27213,15 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.informAttributeOwnership"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
+      "mapping_note": "The installed-package standard-API C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/tck-regulation-enable-20261021/attribute-ownership-query-owner-report-20261022.json). Three direct clause 7.17.5/7.18.4 mappings cover the owned-result query and exact owner callback only. Java parity passed both callback models against the installed JNI provider; unowned/RTI-owned results, independent-provider behavior, and conformance remain outside this case.",
       "contract_refs": [
         "attribute-ownership-query-owner-report-api-contract.json",
         "attribute-ownership-query-owner-report-requirements-contract.json"
@@ -27237,9 +27241,15 @@
         "RTIambassador.isAttributeOwnedByFederate",
         "FederateAmbassador.informAttributeOwnership"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-ownership-management"
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
+      "mapping_note": "This contract twin runs the same owned-result standard-API case under the adapter callback model. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests in both callback models (out/mgw/tck-regulation-enable-20261021/attribute-ownership-query-owner-report-20261022.json); pure Java parity passed 2/2 focused JNI runs. The three direct mappings do not cover other ownership-query result branches or conformance.",
       "contract_refs": [
         "attribute-ownership-query-owner-report-api-contract.json",
         "attribute-ownership-query-owner-report-requirements-contract.json"
