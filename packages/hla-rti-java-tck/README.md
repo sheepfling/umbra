@@ -539,6 +539,12 @@ Create and class-handle/name lookups. It passed installed-provider evoked and
 immediate runs using four adapter-supplied FOM modules and the standard MIM.
 Named tables and independent-provider conformance are not claimed.
 
+The default-run `java-tck.fom-model-modification-date` case rejects a
+timezone-suffixed model date and accepts the required `YYYY-MM-DD` form
+through public Create and class-handle/name lookups. It passed installed-provider
+evoked and immediate runs with adapter-supplied FOM modules and standard MIM;
+independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

@@ -9425,12 +9425,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.1"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8", "standard_section": "hla-1516.2-2025:clause-6.2.1"}],
-      "mapping_note": "Standard Java API parity for timezone-suffixed modification-date rejection and exact YYYY-MM-DD acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/model-modification-date-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for timezone-suffixed modification-date rejection and exact YYYY-MM-DD acceptance. Matching C++ primary and contract cases passed 4/4 at out/mgw/model-modification-date-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-model-modification-date-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomModelModificationDate",
       "parity": "cpp-tck.fom-model-modification-date",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures modelModificationDateTimezoneFom, modelModificationDateExactFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-model-modification-date-{evoked,immediate}-default-20261022.json. Adapter supplies both model-modification-date FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-positive-update-rate",
