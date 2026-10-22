@@ -353,11 +353,12 @@ active subscription as a positive control for the publisher's standard Start
 Registration callback, then clears the control and verifies that the passive
 subscription produces no new callback. It does not claim a Stop Registration
 effect, and Java provider runtime verification remains pending.
-The opt-in `java-tck.selective-attribute-unsubscription` case first confirms
-that a two-attribute subscription receives both values, removes only the
-configured primary attribute, and verifies that later updates still reflect
-the secondary attribute without the removed value. It uses only the standard
-Java API; Java provider runtime verification remains pending.
+The default `java-tck.selective-attribute-unsubscription` case first confirms
+that two federates independently receive both attributes, removes only the
+configured primary attribute for one, and verifies that its secondary value
+continues while the other federate still receives both. It uses receiver-local
+handles through only the standard Java API. Focused installed JNI runs passed
+in both callback modes; independent-provider conformance remains unverified.
 The opt-in `java-tck.whole-class-attribute-unsubscription` case confirms both
 configured attributes are initially reflected, invokes the standard
 whole-class unsubscribe service, and verifies that later updates produce no

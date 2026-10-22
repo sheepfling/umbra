@@ -517,7 +517,22 @@ final class ObjectAttributeSubscriptionLifecycleTck {
                && retainedFirst != null && retainedSecond != null
                && !publisherFirst.equals(publisherSecond)
                && !subscriberFirst.equals(subscriberSecond)
-               && !retainedFirst.equals(retainedSecond),
+               && !retainedFirst.equals(retainedSecond)
+               && objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && objectClassName.equals(retainedSubscriber.getObjectClassName(retainedClass))
+               && firstAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherFirst))
+               && secondAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherSecond))
+               && firstAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberFirst))
+               && secondAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberSecond))
+               && firstAttributeName.equals(retainedSubscriber.getAttributeName(
+                  retainedClass, retainedFirst))
+               && secondAttributeName.equals(retainedSubscriber.getAttributeName(
+                  retainedClass, retainedSecond)),
             "adapter FOM did not resolve distinct unsubscription attributes");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
@@ -534,12 +549,22 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "selective-unsubscription registration returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
          await(subscriber, callbackModel,
-            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            () -> subscriberCallbacks.discoveries.size() == 1,
             "selective-unsubscription object discovery");
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(findDiscovery(subscriberCallbacks.discoveries,
+               subscriberObject) != null,
+            "subscriber discovery did not resolve to its local object handle");
          await(retainedSubscriber, callbackModel,
-            () -> findDiscovery(retainedCallbacks.discoveries, object) != null,
+            () -> retainedCallbacks.discoveries.size() == 1,
             "retained subscriber object discovery");
+         ObjectInstanceHandle retainedObject =
+            retainedSubscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(findDiscovery(retainedCallbacks.discoveries,
+               retainedObject) != null,
+            "retained discovery did not resolve to its local object handle");
 
          byte[] initialFirstValue = new byte[] {0x53, 0x45, 0x4c, 0x31};
          byte[] initialSecondValue = new byte[] {0x52, 0x45, 0x4d, 0x31};
@@ -554,7 +579,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "initial two-attribute subscription produced an unexpected reflection count");
          Reflection initialReflection = subscriberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(initialReflection.object)
+         JavaTckSupport.check(subscriberObject.equals(initialReflection.object)
                && initialReflection.values.size() == 2
                && Arrays.equals(initialFirstValue, initialReflection.values.get(subscriberFirst))
                && Arrays.equals(initialSecondValue, initialReflection.values.get(subscriberSecond))
@@ -563,7 +588,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(retainedCallbacks.reflections.size() == 1,
             "initial retained subscription produced an unexpected reflection count");
          Reflection retainedInitialReflection = retainedCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(retainedInitialReflection.object)
+         JavaTckSupport.check(retainedObject.equals(retainedInitialReflection.object)
                && retainedInitialReflection.values.size() == 2
                && Arrays.equals(initialFirstValue,
                   retainedInitialReflection.values.get(retainedFirst))
@@ -591,7 +616,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "selective unsubscription produced an unexpected reflection count");
          Reflection remainingReflection = subscriberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(remainingReflection.object)
+         JavaTckSupport.check(subscriberObject.equals(remainingReflection.object)
                && remainingReflection.values.size() == 1
                && !remainingReflection.values.containsKey(subscriberFirst)
                && Arrays.equals(nextSecondValue,
@@ -601,7 +626,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(retainedCallbacks.reflections.size() == 1,
             "retained subscription produced an unexpected reflection count");
          Reflection retainedReflection = retainedCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(retainedReflection.object)
+         JavaTckSupport.check(retainedObject.equals(retainedReflection.object)
                && retainedReflection.values.size() == 2
                && Arrays.equals(nextFirstValue, retainedReflection.values.get(retainedFirst))
                && Arrays.equals(nextSecondValue, retainedReflection.values.get(retainedSecond))

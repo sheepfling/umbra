@@ -4327,7 +4327,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
@@ -4344,10 +4348,7 @@
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4"
@@ -4361,7 +4362,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l17-4 -> §5.9.4: after confirming two federates independently receive both attributes, the scenario supplies only Value to Unsubscribe Object Class Attributes for one federate and verifies that only its subscription changes; the other federate continues receiving both attributes. Registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Java provider runtime evidence is not recorded.",
+      "mapping_note": "Direct mapping is limited to page-098-l17-4 -> §5.9.4: after confirming two federates independently receive both attributes, the scenario supplies only the first attribute to Unsubscribe Object Class Attributes for one federate and verifies that only its subscription changes; the other federate continues receiving both attributes. Registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Each receiver's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -4373,8 +4374,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#selectiveAttributeUnsubscription",
       "parity": "cpp-tck.selective-attribute-unsubscription",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.whole-class-attribute-unsubscription",
