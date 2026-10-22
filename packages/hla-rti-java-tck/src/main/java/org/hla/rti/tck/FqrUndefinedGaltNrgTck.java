@@ -29,8 +29,6 @@ final class FqrUndefinedGaltNrgTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String interactionClassName, String parameterName, CallbackModel model)
          throws Exception {
-      JavaTckSupport.check(model == CallbackModel.HLA_EVOKED,
-         "undefined-GALT FQR has native evidence only for evoked callbacks");
       runOne(factory, fom, timeImplementation, interactionClassName, parameterName,
          model, false);
       runOne(factory, fom, timeImplementation, interactionClassName, parameterName,
@@ -71,7 +69,7 @@ final class FqrUndefinedGaltNrgTck {
          LogicalTime<?, ?> messageTime = offset(initial, epsilon, 5);
          LogicalTime<?, ?> requestTime = offset(initial, epsilon, 10);
          requester.enableTimeConstrained();
-         await(requester, () -> requesterEvents.constrainedEnabled == 1,
+         await(requester, model, () -> requesterEvents.constrainedEnabled == 1,
             "undefined-GALT time-constrained enablement");
 
          InteractionClassHandle interaction = null;
@@ -88,7 +86,7 @@ final class FqrUndefinedGaltNrgTck {
             producer.changeInteractionOrderType(interaction, OrderType.TIMESTAMP);
             requester.subscribeInteractionClass(interaction);
             producer.enableTimeRegulation(epsilon);
-            await(producer, () -> producerEvents.regulationEnabled == 1,
+            await(producer, model, () -> producerEvents.regulationEnabled == 1,
                "undefined-GALT producer regulation");
             ParameterHandleValueMap values =
                producer.getParameterHandleValueMapFactory().create(1);
@@ -106,7 +104,7 @@ final class FqrUndefinedGaltNrgTck {
          JavaTckSupport.check(!galt.timeIsValid,
             "undefined-GALT FQR setup unexpectedly had a defined GALT");
          requester.flushQueueRequest(requestTime);
-         await(requester, () -> requesterEvents.grants.size() == 1
+         await(requester, model, () -> requesterEvents.grants.size() == 1
                && (!queued || requesterEvents.interactions.size() == 1),
             "undefined-GALT Flush Queue Grant");
          LogicalTime<?, ?> expectedOptimistic = queued ? messageTime : requestTime;
@@ -156,11 +154,13 @@ final class FqrUndefinedGaltNrgTck {
       }
    }
 
-   private static void await(RTIambassador member, BooleanSupplier ready,
+   private static void await(RTIambassador member, CallbackModel model, BooleanSupplier ready,
          String description) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
-      while (!ready.getAsBoolean() && System.nanoTime() < deadline)
-         member.evokeCallback(0.0);
+      while (!ready.getAsBoolean() && System.nanoTime() < deadline) {
+         if (model == CallbackModel.HLA_EVOKED) member.evokeCallback(0.0);
+         else Thread.yield();
+      }
       JavaTckSupport.check(ready.getAsBoolean(), "timed out waiting for " + description);
    }
 

@@ -39822,15 +39822,15 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.13"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29", "standard_section": "hla-1516.1-2025:clause-8.13"}],
-      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the native- and installed-package-green evoked undefined-GALT FQR matrix. RL-349 crosswalks the page-202 OLT result to §8.13. Java compiles against the official API-only JAR; provider runtime pending.",
-      "callback_models": ["evoked"],
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the native- and installed-package-green undefined-GALT FQR matrix. In both callback models and with adapter FOM NRG enabled or disabled, the Java scenario checks empty and queued TSO branches, grant time and optimistic time, callback order, and Query Logical Time. RL-349 crosswalks the page-202 OLT result to §8.13. Four focused Java provider runs passed against one packaged provider; this is not cross-provider interoperability or conformance evidence.",
+      "callback_models": ["evoked", "immediate"],
       "contract_refs": ["standard-fqr-undefined-galt-nrg-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fqrUndefinedGaltNrg",
       "parity": "cpp-tck.fqr-undefined-galt-nrg",
       "default_status": "unsupported",
       "promotion": "candidate",
-      "adapter_inputs": ["provider Java API JAR and service-loaded RtiFactory", "adapter FOM with NRG enabled or disabled and an ordinary interaction/parameter", "provider-supported logical-time implementation and HLA_EVOKED callback model"],
-      "exclusion": "Java provider runtime has not been executed; no implementation-specific API or FOM path is embedded."
+      "adapter_inputs": ["provider Java API JAR and service-loaded RtiFactory", "adapter FOM with NRG enabled or disabled and an ordinary interaction/parameter", "provider-supported logical-time implementation and adapter-selected HLA_EVOKED or HLA_IMMEDIATE callback model"],
+      "exclusion": "Default-disabled until an adapter supplies and attests the selected standard API JAR, provider, FOM NRG setting, interaction/parameter names, logical time, endpoint, and callback model."
     },
     {
       "id": "java-tck.fqr-deferred-lookahead",

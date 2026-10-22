@@ -124,8 +124,6 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
 }
 
 void runMatrix(Options const& options, rti::CallbackModel model) {
-  require(model == rti::HLA_EVOKED,
-          "undefined-GALT FQR has native evidence only for evoked callbacks");
   require(!options.fom.empty() && !options.logicalTimeImplementationName.empty(),
           "undefined-GALT FQR requires adapter FOM and logical-time implementation");
   runOne(options, model, false);

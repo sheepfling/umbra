@@ -17570,7 +17570,7 @@ int runFqrUndefinedGaltNrgScenarios(int argc, char** argv) {
       argc, argv, fqrUndefinedGaltNrgScenario,
       fqrUndefinedGaltNrgContractId,
       scenarioFqrUndefinedGaltNrg,
-      scenarioFqrUndefinedGaltNrgContract, true);
+      scenarioFqrUndefinedGaltNrgContract, false);
 }
 
 int runDefaultRegionClassRequestEquivalenceScenarios(int argc, char** argv) {
