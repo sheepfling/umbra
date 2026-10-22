@@ -812,12 +812,12 @@ adapter-supplied DDM FOM and names; provider runtime verification remains
 pending.
 
 The default `java-tck.object-removal-multi-recipient-fifo` scenario deletes two
-ordinary objects in sequence and verifies that each of two subscribers receives
-both removals in producer order with the corresponding object, tag, and producer
-metadata, while the owner receives no loopback. Provider, FOM, endpoint, and
-callback model and logical-time implementation remain adapter-configured. The
-case passed focused execution against a fresh GNU/Ninja JNI provider build and
-is observable through the standard 1516.1-2025 API only.
+ordinary objects and verifies that each of two subscribers receives exactly one
+removal per locally known object with the matching tag and producer metadata.
+The historical ID preserves C++ parity; Java does not require removal order.
+Provider, FOM, endpoint, callback model, and logical time remain adapter-configured.
+It passed the focused JNI gate in both callback modes through the standard
+1516.1-2025 API. This does not establish independent-provider conformance.
 
 The opt-in `java-tck.object-deletion-service-boundaries` scenario checks
 pre-connection and pre-membership lookup failures, object name/handle round

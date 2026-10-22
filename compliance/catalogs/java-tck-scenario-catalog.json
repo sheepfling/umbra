@@ -4948,7 +4948,6 @@
         "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
         "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
         "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
         "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
         "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
       ],
@@ -4966,7 +4965,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1" }
       ],
-      "mapping_note": "Direct pairs follow the precise ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and matching object handle, tag, and producer at each active subscriber. The per-recipient FIFO comparison and absence of owner loopback are supplemental observations, not separate normative claims. Java source uses only the official IEEE API; Java provider runtime evidence has not been collected, and the C++ adapter run is not Java provider evidence.",
+      "mapping_note": "Direct pairs follow the ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and exactly one matching local object handle, tag, and producer at each active subscriber. The historical scenario ID retains 'fifo' for C++ parity, but Java imposes no removal-order requirement; absence of owner loopback is supplemental. The unmatched page-130-l137-40 candidate is not selected for direct mapping. Java uses only the official IEEE API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -4981,7 +4980,8 @@
         "standard-object-removal-multi-recipient-fifo-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectRemovalMultiRecipientFifo",
-      "default_status": "run"
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-deletion-service-boundaries",
