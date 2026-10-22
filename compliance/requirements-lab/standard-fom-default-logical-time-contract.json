@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Public witness for the pinned Create default-selection and FDD time-representation rules. The adapter supplies one FOM with no time representation and one declaring HLAinteger64Time. The C++ TCK uses only official RTIambassador services and the returned standard LogicalTimeFactory; provider library, endpoint, FOMs, and callback model remain adapter inputs. Native selector passed 21 assertions; installed-package focused CTest and direct runner passed primary and contract in both callback models. Java compiled against the API-only JAR, but Java-provider runtime, standalone XSD-tool validation, interoperability, and conformance are not claimed.",
+  "notes": "Public witness for the pinned Create default-selection and FDD time-representation rules. The adapter supplies one FOM with no time representation and one declaring HLAinteger64Time. The C++ TCK uses only official RTIambassador services and the returned standard LogicalTimeFactory; provider library, endpoint, FOMs, and callback model remain adapter inputs. Native selector passed 21 assertions; installed-package focused CTest and direct runner passed primary and contract in both callback models. Java compiled against the API-only JAR and passed one focused packaged Umbra JNI runtime run (out/java-tck/default-logical-time-jni-20261021.json). Other Java providers, standalone XSD-tool validation, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-default-logical-time-selection",

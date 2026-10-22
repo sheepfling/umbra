@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Native-green focused time-representation category witness for IEEE 1516.2-2025 clause 6.2.8. Public Create accepts a schema-valid adapter FOM selecting HLAinteger64Time, rejects raw basic and reference data types with InconsistentFOM, and proves valid federation-name reuse after each rejection. C++ installed-package and Java runtime outcomes are recorded separately in the handoff. The native float64 acceptance branch is not included because this portable slice has one adapter-selected logical-time implementation. No private composition API, diagnostic-text, interoperability, or conformance claim.",
+  "notes": "Native-green focused time-representation category witness for IEEE 1516.2-2025 clause 6.2.8. Public Create accepts a schema-valid adapter FOM selecting HLAinteger64Time, rejects raw basic and reference data types with InconsistentFOM, and proves valid federation-name reuse after each rejection. C++ installed-package cases are green; both Java parity IDs passed one focused packaged Umbra JNI runtime run each (out/java-tck/time-representation-valid-jni-20261021.json and out/java-tck/time-representation-rejections-jni-20261021.json). The native float64 acceptance branch is not included because this portable slice has one adapter-selected logical-time implementation. Other Java providers, private composition APIs, diagnostic-text, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-time-representation-valid",

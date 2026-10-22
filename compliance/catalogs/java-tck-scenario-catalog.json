@@ -8918,12 +8918,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9", "standard_section": "hla-1516.2-2025:clause-6.2.8"}],
-      "mapping_note": "Standard Java API parity for accepted integer64 time-representation FOM; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for an accepted integer64 time-representation FOM. Packaged Umbra JNI provider passed the focused Java runtime scenario using an adapter-supplied FOM (out/java-tck/time-representation-valid-jni-20261021.json). Other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-time-representation-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomTimeRepresentationValid",
       "parity": "cpp-tck.fom-time-representation-valid",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.timeRepresentationValidFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-default-logical-time-selection",
@@ -8934,12 +8934,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4"],
       "standard_sections": ["hla-1516.1-2025:clause-4.5.5", "hla-1516.2-2025:clause-4.8.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "standard_section": "hla-1516.1-2025:clause-4.5.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4", "standard_section": "hla-1516.2-2025:clause-4.8.3"}],
-      "mapping_note": "Java standard-API scenario-ID parity for default Create time selection, incompatible FDD rejection, and valid federation-name reuse. API-only compilation passed; Java provider runtime unverified.",
+      "mapping_note": "Java standard-API scenario-ID parity for default Create time selection, incompatible FDD rejection, and valid federation-name reuse. API-only compilation and a focused packaged Umbra JNI runtime run passed (out/java-tck/default-logical-time-jni-20261021.json). Other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-default-logical-time-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDefaultLogicalTimeSelection",
       "parity": "cpp-tck.fom-default-logical-time-selection",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.defaultLogicalTimeFom and timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.defaultLogicalTimeFom and timeRepresentationValidFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-unavailable-logical-time-factory",
@@ -8950,12 +8950,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18"],
       "standard_sections": ["hla-1516.1-2025:clause-4.5.5"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "standard_section": "hla-1516.1-2025:clause-4.5.5"}],
-      "mapping_note": "Java standard-API parity for unavailable-factory Create exception and valid federation-name reuse. Adapter attests the supplied factory name is unsupported; Java provider runtime remains unverified.",
+      "mapping_note": "Java standard-API parity for unavailable-factory Create exception and valid federation-name reuse. The adapter attests its supplied factory name is unsupported. API-only compilation and a focused packaged Umbra JNI runtime run passed (out/java-tck/unavailable-logical-time-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-unavailable-logical-time-factory-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomUnavailableLogicalTimeFactory",
       "parity": "cpp-tck.fom-unavailable-logical-time-factory",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.defaultLogicalTimeFom and unsupportedTimeImplementation for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.defaultLogicalTimeFom and an attested unsupportedTimeImplementation; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-time-representation-rejections",
@@ -8966,12 +8966,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9", "standard_section": "hla-1516.2-2025:clause-6.2.8"}],
-      "mapping_note": "Standard Java API parity for invalid basic/reference time-representation FOMs and valid federation-name retry; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for invalid basic/reference time-representation FOMs and valid federation-name retry. Packaged Umbra JNI provider passed the focused Java runtime scenario (out/java-tck/time-representation-rejections-jni-20261021.json). Other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-time-representation-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomTimeRepresentationRejections",
       "parity": "cpp-tck.fom-time-representation-rejections",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.timeRepresentationValidFom, timeRepresentationBasicDataFom, and timeRepresentationReferenceDataFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures timeRepresentationValidFom, timeRepresentationBasicDataFom, and timeRepresentationReferenceDataFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-array-cardinality-forms",

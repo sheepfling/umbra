@@ -1602,6 +1602,25 @@ scenario; other entries are marked `filtered` in the result report.
 For diagnostic exception stacks, pass
 `--jvm-argument=-Dhla.rti.tck.stacktrace=true`.
 
+The focused time/FOM parity cases take their fixtures from adapter-supplied
+Java properties, passed through `--jvm-argument=-D...`:
+
+- `hla.rti.tck.defaultLogicalTimeFom`: a valid FOM with no declared time
+  representation;
+- `hla.rti.tck.timeRepresentationValidFom`: a valid FOM documenting
+  `HLAinteger64Time`;
+- `hla.rti.tck.timeRepresentationBasicDataFom` and
+  `hla.rti.tck.timeRepresentationReferenceDataFom`: schema-valid FOMs with
+  disallowed time-representation data type categories; and
+- `hla.rti.tck.unsupportedTimeImplementation`: a factory name the selected
+  provider adapter knows is unavailable.
+
+These inputs enable `java-tck.fom-default-logical-time-selection`,
+`java-tck.fom-unavailable-logical-time-factory`,
+`java-tck.fom-time-representation-valid`, and
+`java-tck.fom-time-representation-rejections`. Leave a case default-disabled
+when its provider adapter cannot attest the required input.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set

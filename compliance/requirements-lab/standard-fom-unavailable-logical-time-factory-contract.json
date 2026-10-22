@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Public Create exception witness for IEEE 1516.1-2025 clause 4.5.5. The adapter supplies a time-unconstrained FOM and a logical-time implementation name it knows the selected provider does not support. Portable C++ and Java sources use only their standard RTI APIs; the name is never fixed in scenario code. A rejected Create raises CouldNotCreateLogicalTimeFactory and leaves the federation name available for a valid retry. Native private selector passed 21 assertions; installed-package focused CTest and direct runner passed primary and contract in both callback models. Java compiled against the API-only JAR; Java provider runtime, interoperability, and conformance are not claimed.",
+  "notes": "Public Create exception witness for IEEE 1516.1-2025 clause 4.5.5. The adapter supplies a time-unconstrained FOM and a logical-time implementation name it knows the selected provider does not support. Portable C++ and Java sources use only their standard RTI APIs; the name is never fixed in scenario code. A rejected Create raises CouldNotCreateLogicalTimeFactory and leaves the federation name available for a valid retry. Native private selector passed 21 assertions; installed-package focused CTest and direct runner passed primary and contract in both callback models. Java compiled against the API-only JAR and passed one focused packaged Umbra JNI runtime run (out/java-tck/unavailable-logical-time-jni-20261021.json). Other Java providers, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-unavailable-logical-time-factory",

@@ -1,4 +1,13 @@
 {
+  "portable_tck_java_time_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Run four already-green C++ time/FOM slices through their pure IEEE 1516.1-2025 Java scenario IDs using a packaged 2025 Java provider and adapter-owned FOM/time inputs.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomTimeRepresentationTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDefaultLogicalTimeSelectionTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomUnavailableLogicalTimeFactoryTck.java; compliance/catalogs/java-tck-scenario-catalog.json",
+    "direct_mappings": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18 -> IEEE 1516.1-2025 clause 4.5.5", "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4 -> IEEE 1516.2-2025 clause 4.8.3", "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9 -> IEEE 1516.2-2025 clause 6.2.8"],
+    "evidence": "Four focused Python-launched Java TCK runs each reported one pass and zero failures against the packaged Umbra JNI C++ RTI 2025 provider: out/java-tck/default-logical-time-jni-20261021.json, unavailable-logical-time-jni-20261021.json, time-representation-valid-jni-20261021.json, and time-representation-rejections-jni-20261021.json. Each run used the API-only Java TCK classes, provider JAR/native bridge, and adapter-supplied FOMs/properties; no C++ core rebuild or portable Java source change was needed.",
+    "scope_boundary": "These are focused one-ID runtime checks on one packaged provider, not a full Java suite, a second-provider interoperability check, or a conformance claim. The four catalog scenarios remain default-disabled until each provider configures the requisite FOMs and, for the unavailable-factory case, attests an unsupported name. The concurrent Table 5 restore-status mapping remains separately owned and unchanged.",
+    "next": "Run the adjacent already-promoted C++ array-cardinality scenarios through java-tck.fom-array-cardinality-forms and java-tck.fom-array-cardinality-rejections with adapter-supplied 2025 FOMs, one focused Java provider gate per ID. Promote their Java runtime notes only on green evidence; do not duplicate the concurrently edited Table 5 restore-status mapping or resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_unavailable_logical_time_handoff_2026_10_21": {
     "status": "verified-focused-installed-package",
     "scope": "Translate the native-green unavailable logical-time factory branch into public C++ Create exception/name-reuse tests and Java standard-API scenario-ID parity, using an adapter-declared unsupported factory name.",
