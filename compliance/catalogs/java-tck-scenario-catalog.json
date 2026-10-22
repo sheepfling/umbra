@@ -9711,7 +9711,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#fomStandardInvalidInputCorpus",
       "parity": "cpp-tck.fom-standard-invalid-input-corpus",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied valid FOM, one or more semantic-invalid FOM files, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom and hla.rti.tck.standardInvalidFomModules (platform-path-separator-delimited). Provider runtime verification remains pending."
+      "exclusion": "Supplemental opt-in corpus, not default-run: each adapter must supply a valid FOM and attest one or more semantically invalid modules via hla.rti.tck.standardInvalidFomModules (platform-path-separator-delimited). The C++ contract is experimental and no direct normative row mapping has been verified; do not promote from provider runtime alone.",
+      "evidence_note": "Official Java exception-type assertions compiled against the IEEE 1516.1-2025 API JAR and passed focused installed-provider HLA_EVOKED/HLA_IMMEDIATE opt-in runs over seven adapter FOM modules at out/java-tck/fom-standard-invalid-input-corpus-{evoked,immediate}-typed-optin-20261022.json. Matching C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/fom-standard-invalid-input-corpus-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-handle-stability",

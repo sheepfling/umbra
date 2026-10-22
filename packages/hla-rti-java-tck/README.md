@@ -466,7 +466,12 @@ name-reuse check using standard Create Federation Execution without MIM.
 The opt-in `java-tck.fom-standard-invalid-input-corpus` case accepts a
 platform-path-separator-delimited adapter corpus of semantic-invalid FOM files;
 each rejected input is followed by valid create/join/destroy using the same
-federation name.
+federation name. It accepts only the official Java `CouldNotOpenFOM`,
+`ErrorReadingFOM`, `InvalidFOM`, or `InconsistentFOM` exception types. Seven
+adapter fixtures passed focused installed-provider evoked and immediate runs.
+The corpus remains opt-in because its C++ contract is experimental and no
+direct normative row mapping has been verified; runtime success alone is not
+a conformance claim.
 The opt-in `java-tck.fom-dimension-handle-stability` case checks base and
 extension dimension metadata and object/interaction-class associations across
 FOM composition. It uses no DDM region services; the FOMs, dimensions, and class

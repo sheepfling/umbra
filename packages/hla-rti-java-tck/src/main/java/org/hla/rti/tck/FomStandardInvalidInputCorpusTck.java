@@ -6,16 +6,15 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.exceptions.CouldNotOpenFOM;
+import hla.rti1516_2025.exceptions.ErrorReadingFOM;
+import hla.rti1516_2025.exceptions.InconsistentFOM;
+import hla.rti1516_2025.exceptions.InvalidFOM;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.UUID;
 
 /** Exercises semantic-invalid adapter FOM files and verifies each name remains reusable. */
 final class FomStandardInvalidInputCorpusTck {
-   private static final String[] INVALID_FOM_EXCEPTIONS = {
-      "CouldNotOpenFOM", "ErrorReadingFOM", "InvalidFOM", "InconsistentFOM"
-   };
-
    private FomStandardInvalidInputCorpusTck() { }
 
    static void run(RtiFactory factory, String validFom, String[] invalidFomModules,
@@ -67,14 +66,8 @@ final class FomStandardInvalidInputCorpusTck {
          String invalidFom, String timeImplementation) throws Exception {
       try {
          creator.createFederationExecution(federation, invalidFom, timeImplementation);
-      } catch (Throwable error) {
-         for (Throwable current = error; current != null; current = current.getCause()) {
-            if (Arrays.asList(INVALID_FOM_EXCEPTIONS)
-                  .contains(current.getClass().getSimpleName())) {
-               return;
-            }
-         }
-         throw new AssertionError("standard-invalid FOM input threw unexpected " + error, error);
+      } catch (CouldNotOpenFOM | ErrorReadingFOM | InvalidFOM | InconsistentFOM expected) {
+         return;
       }
       throw new AssertionError("standard-invalid FOM input was accepted: " + invalidFom);
    }
