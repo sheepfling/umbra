@@ -82583,6 +82583,15 @@
         "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
         "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
       ],
+      "standard_sections": ["hla-1516.1-2025:clause-4.27", "hla-1516.1-2025:clause-4.32", "hla-1516.1-2025:clause-8.2", "hla-1516.1-2025:clause-8.3.1", "hla-1516.1-2025:clause-8.5.5", "hla-1516.1-2025:clause-8.6.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "standard_section": "hla-1516.1-2025:clause-4.27"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43", "standard_section": "hla-1516.1-2025:clause-4.32"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "standard_section": "hla-1516.1-2025:clause-8.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44", "standard_section": "hla-1516.1-2025:clause-8.3.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "standard_section": "hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17", "standard_section": "hla-1516.1-2025:clause-8.6.3"}
+      ],
       "test_case": "Embedded federation restore rebinds mixed pending time-role callbacks per member",
       "primary_lane": "time-role",
       "focus_lane": "restore-pending-time-role-callbacks",
@@ -82602,7 +82611,7 @@
         "callback-immediate"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This public C++ multi-member case saves one pending regulation and one pending constrained request, restores both callback routes under HLA_EVOKED and HLA_IMMEDIATE, and proves independent delivery and stale-work fencing. Remaining pending application ledgers, process-restart rehydration, transport, package/JUnit/protected-review evidence, and conformance remain open.",
+      "next_action": "The official-header-only portable C++ primary/contract twins passed a fresh focused installed-package CTest gate in HLA_EVOKED and HLA_IMMEDIATE (4/4), with prior integer64/float64 direct evidence; Java API-only parity passed the packaged provider in both callback models with both time factories. Keep process-restart rehydration, transport interoperability, other providers, the full logical-time matrix, and conformance open.",
       "source_location": "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp:149",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation restore rebinds mixed pending time-role callbacks per member$",
       "assertions": 36,

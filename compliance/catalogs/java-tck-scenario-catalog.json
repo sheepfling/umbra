@@ -32233,7 +32233,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
         "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
       ],
-      "mapping_note": "Standard API-only Java parity for a native-green, installed-package candidate. Java compilation must use the official API-only JAR; Java provider execution is not yet verified.",
+      "mapping_note": "Standard API-only Java parity for the promoted installed-package C++ scenario. Four focused packaged Umbra JNI runs passed: evoked and immediate callback models under both HLAinteger64Time and HLAfloat64Time (out/java-tck/restore-mixed-pending-time-role-*-jni-20261021.json). Other Java providers, process-restart persistence, and conformance are not claimed.",
       "java_test": "org.hla.rti.tck.RtiTckMain#restoreMixedPendingTimeRoleCallbacks",
       "parity": "cpp-tck.restore-mixed-pending-time-role-callbacks",
       "default_status": "unsupported",
@@ -32242,7 +32242,7 @@
         "adapter-supplied IEEE 1516.2-2025 FOM and provider-supported logical-time implementation",
         "HLA_EVOKED or HLA_IMMEDIATE callback model supplied by adapter"
       ],
-      "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
+      "exclusion": "Default-disabled until each provider supplies a compatible 2025 FOM, logical-time factory, and callback model; the packaged Umbra JNI focused runtime passed the four-case matrix."
     },
     {
       "id": "java-tck.restore-pending-time-advance-immediate",
