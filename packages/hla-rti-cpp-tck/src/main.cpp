@@ -19382,6 +19382,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.ownership-cancellation-idle-contract",
       "cpp-tck.ownership-denial-idle",
       "cpp-tck.ownership-denial-idle-contract",
+      "cpp-tck.ownership-acquisition-cancellation-denial-race",
+      "cpp-tck.ownership-acquisition-cancellation-denial-race-contract",
       "cpp-tck.ownership-denial-query",
       "cpp-tck.ownership-denial-query-contract",
       "cpp-tck.ownership-transition-query",
@@ -23309,6 +23311,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ownership-denial-idle-contract") {
     return scenarioOwnershipDenialIdleContract;
+  }
+  if (id == "cpp-tck.ownership-acquisition-cancellation-denial-race") {
+    return scenarioOwnershipAcquisitionCancellationDenialRace;
+  }
+  if (id == "cpp-tck.ownership-acquisition-cancellation-denial-race-contract") {
+    return scenarioOwnershipAcquisitionCancellationDenialRaceContract;
   }
   if (id == "cpp-tck.ownership-denial-query") {
     return scenarioOwnershipDenialQuery;

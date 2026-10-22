@@ -27,11 +27,24 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
+      runCase(factory, fom, objectClassName, attributeName, callbackModel, false);
+   }
+
+   static void runDenied(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel) throws Exception {
+      JavaTckSupport.check(callbackModel == CallbackModel.HLA_EVOKED,
+         "ownership cancellation denial race requires evoked callbacks");
+      runCase(factory, fom, objectClassName, attributeName, callbackModel, true);
+   }
+
+   private static void runCase(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel, boolean denial) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
       Recorder requesterRecorder = new Recorder();
-      String federation = "java-tck-ownership-cancellation-transfer-race-" + UUID.randomUUID();
+      String federation = "java-tck-ownership-cancellation-"
+         + (denial ? "denial-" : "transfer-") + UUID.randomUUID();
       boolean ownerConnected = false;
       boolean requesterConnected = false;
       boolean created = false;
@@ -94,6 +107,7 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
 
          byte[] acquisitionTag = new byte[] {(byte) 0xc1, 0x25};
          byte[] divestitureTag = new byte[] {(byte) 0xd1, 0x25};
+         byte[] denialTag = new byte[] {(byte) 0xde, 0x25};
          ownerRecorder.clearOwnershipEvents();
          requesterRecorder.clearOwnershipEvents();
          if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
@@ -116,10 +130,15 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
                   throw new AssertionError("cancellation did not complete inside release callback");
                }
                try {
-                  AttributeHandleSet divested = owner.attributeOwnershipDivestitureIfWanted(
-                     object, ownerAttributeSet, divestitureTag);
-                  JavaTckSupport.check(ownerAttributeSet.equals(divested),
-                     "evoked ownership race returned the wrong divested set");
+                  if (denial) {
+                     owner.attributeOwnershipReleaseDenied(
+                        object, ownerAttributeSet, denialTag);
+                  } else {
+                     AttributeHandleSet divested = owner.attributeOwnershipDivestitureIfWanted(
+                        object, ownerAttributeSet, divestitureTag);
+                     JavaTckSupport.check(ownerAttributeSet.equals(divested),
+                        "evoked ownership race returned the wrong divested set");
+                  }
                } catch (Throwable failure) {
                   divestitureFailure.set(failure);
                }
@@ -157,19 +176,33 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
             "ownership acquisition produced an unexpected release-request count");
          checkEvent(ownerRecorder.releaseRequests.get(0), object, ownerAttributes,
             acquisitionTag, "ownership cancellation-race release request");
-         await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
-            "ownership cancellation-race acquisition notification");
+         await(requester, callbackModel,
+            () -> denial ? !requesterRecorder.unavailabilities.isEmpty()
+               : !requesterRecorder.acquisitions.isEmpty(),
+            denial ? "ownership cancellation-race unavailable reply"
+               : "ownership cancellation-race acquisition notification");
           if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.cancellations.isEmpty(),
-            "ownership transfer delivered a stale acquisition-cancellation confirmation");
-         JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
-            "ownership transfer delivered an unexpected acquisition-notification count");
-         checkEvent(requesterRecorder.acquisitions.get(0), object,
-            requesterAttributes, divestitureTag,
-            "ownership cancellation-race acquisition notification");
-         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
-               && requester.isAttributeOwnedByFederate(object, requesterAttribute),
-            "ownership cancellation race did not complete the transfer");
+            "ownership race delivered a stale acquisition-cancellation confirmation");
+         if (denial) {
+            JavaTckSupport.check(requesterRecorder.unavailabilities.size() == 1
+                  && requesterRecorder.acquisitions.isEmpty(),
+               "ownership denial race delivered an extra or wrong acquisition reply");
+            checkEvent(requesterRecorder.unavailabilities.get(0), object,
+               requesterAttributes, denialTag, "ownership cancellation-race unavailable reply");
+            JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+                  && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               "ownership cancellation denial race changed the owner");
+         } else {
+            JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
+               "ownership transfer delivered an unexpected acquisition-notification count");
+            checkEvent(requesterRecorder.acquisitions.get(0), object,
+               requesterAttributes, divestitureTag,
+               "ownership cancellation-race acquisition notification");
+            JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
+                  && requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               "ownership cancellation race did not complete the transfer");
+         }
       } finally {
          if (canceller != null && canceller.isAlive()) {
             canceller.interrupt();
@@ -247,6 +280,7 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> unavailabilities = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> cancellations = new CopyOnWriteArrayList<>();
       private volatile ReleaseHandler releaseHandler;
 
@@ -269,6 +303,9 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length == 3) {
                   acquisitions.add(event(arguments));
+               } else if ("attributeOwnershipUnavailable".equals(name)
+                     && arguments != null && arguments.length == 3) {
+                  unavailabilities.add(event(arguments));
                } else if ("confirmAttributeOwnershipAcquisitionCancellation".equals(name)
                      && arguments != null && arguments.length == 2) {
                   cancellations.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
@@ -288,6 +325,7 @@ final class OwnershipAcquisitionCancellationTransferRaceTck {
       private void clearOwnershipEvents() {
          releaseRequests.clear();
          acquisitions.clear();
+         unavailabilities.clear();
          cancellations.clear();
       }
 

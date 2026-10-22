@@ -22562,6 +22562,23 @@
       "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java source uses only standard IEEE 1516.1-2025 ownership services and callbacks."
     },
     {
+      "id": "java-tck.ownership-acquisition-cancellation-denial-race",
+      "category": "ownership",
+      "title": "Return Attribute Ownership Unavailable when owner denial wins an evoked cancellation race",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.cancelAttributeOwnershipAcquisition", "RTIambassador.attributeOwnershipReleaseDenied", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation", "FederateAmbassador.attributeOwnershipUnavailable"],
+      "requirement_ids": ["cpp-1516.1-object-management", "cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-170-l34-8"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.15"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l34-8", "standard_section": "hla-1516.1-2025:clause-7.15"}],
+      "mapping_note": "The evoked owner-release callback waits for a completed cancellation request, then denies release. The requester receives exactly one tagged unavailable reply, no stale cancellation confirmation or acquisition notification, and ownership remains with the owner. This is the unavailable reply form only, not the three-form aggregate. Compiled against the official 2025 API JAR and passed one focused JNI run; no independent-provider or conformance claim.",
+      "contract_refs": ["standard-ownership-acquisition-cancellation-denial-race-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionCancellationDenialRace",
+      "parity": "cpp-tck.ownership-acquisition-cancellation-denial-race",
+      "callback_models": ["evoked"],
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider; the race requires evoked callbacks and uses only IEEE 1516.1-2025 Java API services."
+    },
+    {
       "id": "java-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "category": "ownership",
       "title": "Cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",

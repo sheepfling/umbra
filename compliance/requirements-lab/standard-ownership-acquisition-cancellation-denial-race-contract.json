@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK checks the standard evoked ownership-acquisition cancellation race against owner denial. An adapter supplies the provider library, FOM, endpoint, and callback configuration. The scenario uses only the official IEEE 1516.1 C++ API and the C++ standard library, verifies one tagged Attribute Ownership Unavailable reply with no stale cancellation confirmation, and checks that ownership remains with the owner. This is public-API evidence for the second losing-cancellation reply form in clause 7.15, not proof of the aggregate three-form reply rule or general conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-acquisition-cancellation-denial-race",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, cancelAttributeOwnershipAcquisition, and attributeOwnershipReleaseDenied with standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp::scenarioOwnershipAcquisitionCancellationDenialRaceContract"
+      ]
+    }
+  ]
+}

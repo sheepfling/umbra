@@ -5230,6 +5230,14 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
             }, false), RtiTckMain::ownershipAcquisitionCancellationTransferRace);
+      run(new Scenario("java-tck.ownership-acquisition-cancellation-denial-race",
+            "return one unavailable reply when owner denial wins an evoked cancellation race",
+            "ownership",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-ownership-management"
+            }, false), RtiTckMain::ownershipAcquisitionCancellationDenialRace);
       run(new Scenario("java-tck.negotiated-divestiture-partial-acquisition-cancellation",
             "cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",
             "ownership",
@@ -9010,6 +9018,11 @@ public final class RtiTckMain {
 
    private static void ownershipAcquisitionCancellationTransferRace() throws Exception {
       OwnershipAcquisitionCancellationTransferRaceTck.run(factory(), requireFom(),
+         objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void ownershipAcquisitionCancellationDenialRace() throws Exception {
+      OwnershipAcquisitionCancellationTransferRaceTck.runDenied(factory(), requireFom(),
          objectClassName(), attributeName(), callbackModel());
    }
 
