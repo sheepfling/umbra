@@ -40148,13 +40148,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
-      "mapping_note": "Standard-API Java parity for the native-green mixed If Available per-attribute ownership outcome. The source compiles against the official 2025 API JAR; no Java provider runtime or conformance is claimed.",
+      "mapping_note": "Standard-API Java parity for the native-green mixed If Available per-attribute ownership outcome. One request partitions an unowned and a held attribute into acquisition and unavailable callbacks with exact object, attribute, and tag checks; ownership queries confirm both final owners and no release request is accepted. Evoked callback queues are drained before exact-one assertions. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-mixed-if-available-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. No independent-provider or conformance claim.",
       "contract_refs": ["standard-ownership-mixed-if-available-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipMixedIfAvailableQuery",
       "parity": "cpp-tck.ownership-mixed-if-available-query",
-      "default_status": "unsupported",
-      "promotion": "candidate",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-unpublish-owned",

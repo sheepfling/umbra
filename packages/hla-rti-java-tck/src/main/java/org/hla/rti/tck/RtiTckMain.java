@@ -5131,7 +5131,7 @@ public final class RtiTckMain {
              "partition one If Available request between unowned and held attributes",
              "ownership",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.queryAttributeOwnership;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.requestAttributeOwnershipRelease",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipMixedIfAvailableQuery);
        run(new Scenario("java-tck.ownership-unpublish-owned",
              "unpublishing one owned class attribute releases only its instance attribute",

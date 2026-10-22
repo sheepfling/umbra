@@ -105,6 +105,7 @@ final class OwnershipMixedIfAvailableTck {
             () -> !requesterEvents.acquisitions.isEmpty()
                && !requesterEvents.unavailable.isEmpty(),
             "mixed If Available terminal callbacks");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterEvents.acquisitions.size() == 1
                && requesterEvents.unavailable.size() == 1,
             "mixed If Available request did not produce two distinct outcomes");
@@ -148,6 +149,7 @@ final class OwnershipMixedIfAvailableTck {
       await(ambassador, model, objectClassName,
          () -> !events.information.isEmpty() || !events.notOwned.isEmpty(),
          "attribute ownership report");
+      if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
       if (owned) {
          JavaTckSupport.check(events.information.size() == 1
                && events.notOwned.isEmpty(),
