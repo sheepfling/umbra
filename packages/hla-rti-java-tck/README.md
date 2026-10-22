@@ -1241,13 +1241,15 @@ universal delivery while excluding subscribers that are not eligible for the
 target. Supply a compatible typed FOM and callback model through the adapter;
 the scenario remains unsupported by default pending Java-provider execution.
 
-The `java-tck.directed-interaction-multi-recipient-fifo` scenario registers and
-publishes one target, then sends two ordinary directed interactions to that
-target. It verifies both universal subscribers independently receive the same
-FIFO sequence with exact class/target/parameter/value/tag/producer metadata and
-resolvable transportation, while the sender receives no loopback. FOM and
-declaration names, provider, and callback model are adapter-supplied; the case
-remains unsupported by default pending Java-provider execution.
+The default `java-tck.directed-interaction-multi-recipient-fifo` scenario
+registers one target, then sends two ordinary directed interactions to it. Both
+universal subscribers independently receive exact class, receiver-local
+target/parameter/value/tag/producer metadata and resolvable transportation,
+while the sender receives no loopback. FIFO is an additional regression check,
+not a standalone conformance claim. The adapter supplies the FOM, names,
+logical-time implementation, provider, endpoint, and callback model. Focused
+installed JNI runs passed in both modes; independent-provider conformance
+remains unverified.
 
 The `java-tck.directed-interaction-mixed-subscription-fanout` scenario
 contrasts a by-ownership subscriber, two universal subscribers, and an

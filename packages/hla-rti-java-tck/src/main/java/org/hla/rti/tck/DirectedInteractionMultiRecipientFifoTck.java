@@ -16,16 +16,19 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** P1 ordinary directed interaction FIFO fan-out to multiple universal subscribers. */
 final class DirectedInteractionMultiRecipientFifoTck {
    private DirectedInteractionMultiRecipientFifoTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String attributeName, String interactionName, String parameterName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -52,7 +55,7 @@ final class DirectedInteractionMultiRecipientFifoTck {
          firstConnected = true;
          second.connect(secondRecorder.proxy(), callbackModel);
          secondConnected = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-directed-multi-recipient-publisher", federation);
@@ -79,6 +82,22 @@ final class DirectedInteractionMultiRecipientFifoTck {
             publisherInteraction, parameterName);
          ParameterHandle firstParameter = first.getParameterHandle(firstInteraction, parameterName);
          ParameterHandle secondParameter = second.getParameterHandle(secondInteraction, parameterName);
+         JavaTckSupport.check(objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(first.getObjectClassName(firstClass))
+               && objectClassName.equals(second.getObjectClassName(secondClass))
+               && attributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherAttribute))
+               && attributeName.equals(first.getAttributeName(firstClass, firstAttribute))
+               && attributeName.equals(second.getAttributeName(secondClass, secondAttribute))
+               && interactionName.equals(publisher.getInteractionClassName(publisherInteraction))
+               && interactionName.equals(first.getInteractionClassName(firstInteraction))
+               && interactionName.equals(second.getInteractionClassName(secondInteraction))
+               && parameterName.equals(publisher.getParameterName(
+                  publisherInteraction, publisherParameter))
+               && parameterName.equals(first.getParameterName(firstInteraction, firstParameter))
+               && parameterName.equals(second.getParameterName(
+                  secondInteraction, secondParameter)),
+            "adapter FOM class and member names did not round-trip locally");
 
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          objectPublished = true;
@@ -97,9 +116,19 @@ final class DirectedInteractionMultiRecipientFifoTck {
          secondDirectedSubscribed = true;
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
-         awaitDiscovery(first, second, firstRecorder, secondRecorder, target);
-         JavaTckSupport.check(firstRecorder.discoveries.contains(target)
-               && secondRecorder.discoveries.contains(target),
+         String targetName = publisher.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "registered directed target has no object name");
+         awaitDiscovery(first, second, firstRecorder, secondRecorder,
+            targetName, callbackModel);
+         ObjectInstanceHandle firstTarget = first.getObjectInstanceHandle(targetName);
+         ObjectInstanceHandle secondTarget = second.getObjectInstanceHandle(targetName);
+         JavaTckSupport.check(firstRecorder.discoveries.stream().anyMatch(
+               discovery -> targetName.equals(discovery.name)
+                  && firstTarget.equals(discovery.handle))
+               && secondRecorder.discoveries.stream().anyMatch(
+                  discovery -> targetName.equals(discovery.name)
+                     && secondTarget.equals(discovery.handle)),
             "both universal subscribers must discover the directed-interaction target");
          publisherRecorder.directed.clear();
          firstRecorder.directed.clear();
@@ -117,15 +146,21 @@ final class DirectedInteractionMultiRecipientFifoTck {
                   && secondRecorder.directed.isEmpty(),
                "evoked directed interactions arrived before callback servicing");
          }
-         awaitBoth(first, second, firstRecorder, secondRecorder);
+         awaitBoth(first, second, firstRecorder, secondRecorder, callbackModel);
+         pumpQuiet(publisher, callbackModel);
+         pumpQuiet(first, callbackModel);
+         pumpQuiet(second, callbackModel);
          JavaTckSupport.check(firstRecorder.directed.size() == 2
-               && secondRecorder.directed.size() == 2,
+               && secondRecorder.directed.size() == 2
+               && firstRecorder.nonReceiveOrderDirectedCount.get() == 0
+               && secondRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "each universal subscriber must receive exactly two directed interactions");
-         assertDelivery(firstRecorder.directed, firstInteraction, target, firstParameter,
+         assertDelivery(firstRecorder.directed, firstInteraction, firstTarget, firstParameter,
             firstValue, firstTag, secondValue, secondTag, producer, first, "first subscriber");
-         assertDelivery(secondRecorder.directed, secondInteraction, target, secondParameter,
+         assertDelivery(secondRecorder.directed, secondInteraction, secondTarget, secondParameter,
             firstValue, firstTag, secondValue, secondTag, producer, second, "second subscriber");
-         JavaTckSupport.check(publisherRecorder.directed.isEmpty(),
+         JavaTckSupport.check(publisherRecorder.directed.isEmpty()
+               && publisherRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "directed interactions were delivered back to their sender");
 
          first.unsubscribeObjectClassDirectedInteractions(firstClass);
@@ -202,33 +237,54 @@ final class DirectedInteractionMultiRecipientFifoTck {
    }
 
    private static void awaitDiscovery(RTIambassador first, RTIambassador second,
-         Recorder firstRecorder, Recorder secondRecorder, ObjectInstanceHandle target)
+         Recorder firstRecorder, Recorder secondRecorder, String targetName,
+         CallbackModel callbackModel)
          throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
-            && (!firstRecorder.discoveries.contains(target)
-               || !secondRecorder.discoveries.contains(target))) {
-         JavaTckSupport.drain(first);
-         JavaTckSupport.drain(second);
-         Thread.yield();
+            && (firstRecorder.discoveries.stream()
+                  .noneMatch(discovery -> targetName.equals(discovery.name))
+               || secondRecorder.discoveries.stream()
+                  .noneMatch(discovery -> targetName.equals(discovery.name)))) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            first.evokeCallback(0.01);
+            second.evokeCallback(0.01);
+         } else Thread.yield();
       }
-      JavaTckSupport.check(firstRecorder.discoveries.contains(target)
-            && secondRecorder.discoveries.contains(target),
+      JavaTckSupport.check(firstRecorder.discoveries.stream()
+            .anyMatch(discovery -> targetName.equals(discovery.name))
+            && secondRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)),
          "both subscribers did not discover the directed target before deadline");
    }
 
    private static void awaitBoth(RTIambassador first, RTIambassador second,
-         Recorder firstRecorder, Recorder secondRecorder) throws Exception {
+         Recorder firstRecorder, Recorder secondRecorder, CallbackModel callbackModel)
+         throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
-            && (firstRecorder.directed.size() < 2 || secondRecorder.directed.size() < 2)) {
-         JavaTckSupport.drain(first);
-         JavaTckSupport.drain(second);
-         Thread.yield();
+            && (firstRecorder.directed.size() < 2 || secondRecorder.directed.size() < 2)
+            && firstRecorder.nonReceiveOrderDirectedCount.get() == 0
+            && secondRecorder.nonReceiveOrderDirectedCount.get() == 0) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            first.evokeCallback(0.01);
+            second.evokeCallback(0.01);
+         } else Thread.yield();
       }
       JavaTckSupport.check(firstRecorder.directed.size() >= 2
-            && secondRecorder.directed.size() >= 2,
+            && secondRecorder.directed.size() >= 2
+            && firstRecorder.nonReceiveOrderDirectedCount.get() == 0
+            && secondRecorder.nonReceiveOrderDirectedCount.get() == 0,
          "both directed multi-recipient streams did not arrive before deadline");
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
    }
 
    private static void assertDelivery(List<Directed> received,
@@ -282,9 +338,20 @@ final class DirectedInteractionMultiRecipientFifoTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final AtomicInteger nonReceiveOrderDirectedCount = new AtomicInteger();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -292,15 +359,19 @@ final class DirectedInteractionMultiRecipientFifoTck {
             new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("receiveDirectedInteraction".equals(name)) {
+               if ("receiveDirectedInteraction".equals(name)
+                     && arguments != null && arguments.length == 6) {
                   ParameterHandleValueMap parameters =
                      ((ParameterHandleValueMap) arguments[2]).clone();
                   byte[] tag = ((byte[]) arguments[3]).clone();
                   directed.add(new Directed((InteractionClassHandle) arguments[0],
                      (ObjectInstanceHandle) arguments[1], parameters, tag,
                      (TransportationTypeHandle) arguments[4], (FederateHandle) arguments[5]));
+               } else if ("receiveDirectedInteraction".equals(name)) {
+                  nonReceiveOrderDirectedCount.incrementAndGet();
                } else if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK directed FIFO callbacks";

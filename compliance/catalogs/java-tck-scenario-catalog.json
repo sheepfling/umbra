@@ -13481,7 +13481,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
       ],
-      "mapping_note": "The direct candidate-to-clause anchors are drawn from the 2025 native evidence matrix: interaction declaration and directed-interaction semantics (5.1.4, 5.1.5, 5.12), target registration/discovery (6.8.4), directed send (6.14, 6.14.3), and directed receive (6.15.1). Producer-order FIFO comparison is an additional regression assertion; the native process case is classified private-foundation, so FIFO is not claimed as independently established conformance evidence. Attribute declarations are fixture setup, and callback driving/lifecycle are supplementary.",
+      "mapping_note": "Direct mappings match the promoted C++ row: interaction declaration and directed semantics (§§5.1.4, 5.1.5, 5.12), target registration/discovery (§6.8.4), directed send (§§6.14, 6.14.3), and directed receipt (§6.15.1). Two universal subscribers independently receive both tagged parameter values; producer-order FIFO is an additional regression assertion, not independently established conformance evidence. Class/member names and discovered object handles are resolved locally through the standard API, with adapter-supplied FOM, logical time, endpoint, and callback model. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
       "category": "directed-interaction",
       "title": "Deliver ordinary directed interactions to two universal subscribers in producer order",
       "api_methods": [
@@ -13489,15 +13489,23 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
         "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
@@ -13509,14 +13517,19 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.receiveDirectedInteraction"
+        "FederateAmbassador.receiveDirectedInteraction(receive-order overload)"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-publication",
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-object-registration-discovery",
-        "java-1516.1-interaction-parameter-delivery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
       ],
       "contract_refs": [
         "directed-interaction-api-contract.json",
@@ -13533,8 +13546,9 @@
         "standard-directed-interaction-multi-recipient-fifo-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionMultiRecipientFifo",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, endpoint, object/attribute/interaction/parameter names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, FOM, logical-time implementation, endpoint, object/attribute/interaction/parameter names, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-interaction-mixed-subscription-fanout",

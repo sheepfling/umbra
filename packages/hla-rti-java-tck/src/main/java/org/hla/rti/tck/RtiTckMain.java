@@ -2927,14 +2927,19 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.directed-interaction-multi-recipient-fifo",
              "deliver ordinary directed interactions to two universal subscribers in producer order",
              "directed-interaction",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getInteractionClassHandleSetFactory;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(receive-order overload)",
              new String[] {
-                "java-1516.1-directed-interaction-publication",
-                "java-1516.1-directed-interaction-subscription",
-                "java-1516.1-directed-interaction-delivery",
-                "java-1516.1-object-registration-discovery",
-                "java-1516.1-interaction-parameter-delivery"
-             }, false), RtiTckMain::directedInteractionMultiRecipientFifo);
+                "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+                "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+                "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+                "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+                "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+                "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+                "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+                "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+                "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+                "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+             }, true), RtiTckMain::directedInteractionMultiRecipientFifo);
        run(new Scenario("java-tck.directed-interaction-mixed-subscription-fanout",
              "route ordinary directed interactions by ownership and universal subscription kind",
              "directed-interaction",
@@ -14645,8 +14650,8 @@ public final class RtiTckMain {
 
    private static void directedInteractionMultiRecipientFifo() throws Exception {
       DirectedInteractionMultiRecipientFifoTck.run(factory(), requireFom(),
-         objectClassName(), attributeName(), interactionClassName(), parameterName(),
-         callbackModel());
+         timeImplementation(), objectClassName(), attributeName(), interactionClassName(),
+         parameterName(), callbackModel());
    }
 
    private static void directedInteractionMixedSubscriptionFanout() throws Exception {
