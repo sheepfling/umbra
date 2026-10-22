@@ -513,6 +513,15 @@ and interaction dimension associations and upper-bound lookup, then rejects an
 unresolved dimension and retries valid Create. Both passed installed-provider
 evoked and immediate runs with adapter-supplied FOMs; independent-provider
 behavior remains unverified.
+The default-run `java-tck.fom-dimension-duplicate-union` and
+`java-tck.fom-dimension-duplicate-conflict` cases check Annex C.4's identical
+duplicate/unique-dimension acceptance and changed-upper-bound rejection through
+public Create and dimension lookups. The default-run
+`java-tck.fom-dimension-input-type` case checks raw-basic rejection and NA or
+MIM-defined table-type acceptance. All three use adapter-supplied FOMs, MIM
+where needed, logical time, and callback model, and passed focused
+installed-provider evoked and immediate runs. Independent-provider conformance
+is not claimed.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

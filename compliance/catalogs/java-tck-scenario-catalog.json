@@ -9313,12 +9313,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8"],
       "standard_sections": ["hla-1516.2-2025:clause-C.4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2", "standard_section": "hla-1516.2-2025:clause-C.4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8", "standard_section": "hla-1516.2-2025:clause-C.4"}],
-      "mapping_note": "Standard Java API parity for accepted identical duplicate and joined dimension-handle/upper-bound lookups. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-duplicate-union-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for accepted identical duplicate and joined dimension-handle/name/upper-bound lookups. Matching C++ primary and contract passed 4/4 at out/mgw/dimension-duplicate-20261021.json. Other dimension sub-element conflicts are separate.",
       "contract_refs": ["standard-fom-dimension-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDuplicateUnion",
       "parity": "cpp-tck.fom-dimension-duplicate-union",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateEqualUniqueFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-duplicate-union-{evoked,immediate}-default-20261022.json. Adapter supplies base and equal-unique FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-duplicate-conflict",
@@ -9329,12 +9329,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5"],
       "standard_sections": ["hla-1516.2-2025:clause-C.4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3", "standard_section": "hla-1516.2-2025:clause-C.4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5", "standard_section": "hla-1516.2-2025:clause-C.4"}],
-      "mapping_note": "Standard Java API parity for upperBound-only conflict and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-duplicate-conflict-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for upperBound-only conflict and valid federation-name retry. Matching C++ primary and contract passed 4/4 at out/mgw/dimension-duplicate-20261021.json. Other dimension sub-element conflicts are separate.",
       "contract_refs": ["standard-fom-dimension-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDuplicateConflict",
       "parity": "cpp-tck.fom-dimension-duplicate-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateConflictFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-duplicate-conflict-{evoked,immediate}-default-20261022.json. Adapter supplies base and conflicting-upper-bound FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-input-type",
@@ -9345,12 +9345,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Java API parity for raw basic rejection, NA acceptance, and MIM-defined table-type acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-input-type-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Java API parity for raw basic rejection, NA acceptance, and MIM-defined table-type acceptance. Matching C++ primary and contract passed 4/4 at out/mgw/dimension-input-type-20261021.json. The pinned Lab candidate retains broad clause-4 provenance.",
       "contract_refs": ["standard-fom-dimension-input-type-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionInputType",
       "parity": "cpp-tck.fom-dimension-input-type",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures dimensionInputRawBasicFom, dimensionInputNaFom, dimensionInputTableTypeFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-input-type-{evoked,immediate}-default-20261022.json. Adapter supplies raw-basic, NA, and table-type FOM modules plus standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-input-description",
