@@ -66,13 +66,6 @@ final class MultiAttributeSubscriptionProjectionTck {
             JavaTckSupport.check(!firstAttributes[i].equals(secondAttributes[i]),
                "adapter multi-attribute FOM resolved both names to one attribute handle");
          }
-         for (int i = 1; i < rti.length; ++i) {
-            JavaTckSupport.check(classes[0].equals(classes[i])
-                  && firstAttributes[0].equals(firstAttributes[i])
-                  && secondAttributes[0].equals(secondAttributes[i]),
-               "multi-attribute handles changed across federates");
-         }
-
          AttributeHandleSet publishedAttributes = JavaTckSupport.attributeSet(
             rti[0], firstAttributes[0], secondAttributes[0]);
          AttributeHandleSet bothSet = JavaTckSupport.attributeSet(
@@ -89,15 +82,19 @@ final class MultiAttributeSubscriptionProjectionTck {
          subscribed[3] = true;
 
          ObjectInstanceHandle object = rti[0].registerObjectInstance(classes[0]);
-         await(rti[1], () -> recorders[1].discovered(object),
+         String objectName = rti[0].getObjectInstanceName(object);
+         await(rti[1], () -> recorders[1].discoveredObject != null,
             "both-attribute subscriber did not discover the object before the deadline");
-         await(rti[2], () -> recorders[2].discovered(object),
+         await(rti[2], () -> recorders[2].discoveredObject != null,
             "first-only subscriber did not discover the object before the deadline");
-         await(rti[3], () -> recorders[3].discovered(object),
+         await(rti[3], () -> recorders[3].discoveredObject != null,
             "second-only subscriber did not discover the object before the deadline");
          for (int i = 1; i < rti.length; ++i) {
-            JavaTckSupport.check(recorders[i].discoveredObject.equals(object),
-               "multi-attribute subscriber discovered a different object handle");
+            ObjectInstanceHandle localObject = recorders[i].discoveredObject;
+            JavaTckSupport.check(objectName.equals(rti[i].getObjectInstanceName(localObject))
+                  && localObject.equals(rti[i].getObjectInstanceHandle(objectName))
+                  && classes[i].equals(rti[i].getKnownObjectClassHandle(localObject)),
+               "multi-attribute subscriber did not preserve its discovered object identity");
          }
          for (Recorder recorder : recorders) {
             recorder.clearReflections();
@@ -114,13 +111,13 @@ final class MultiAttributeSubscriptionProjectionTck {
             "first-only subscriber missed the combined update");
          await(rti[3], () -> recorders[3].reflections().size() >= 1,
             "second-only subscriber missed the combined update");
-         assertReflection(rti[1], recorders[1].reflections().get(0), object,
+         assertReflection(rti[1], recorders[1].reflections().get(0), recorders[1].discoveredObject,
             firstAttributes[1], secondAttributes[1], new byte[] {0x11},
             new byte[] {0x22}, bothTag, producer, "both-attribute subscriber");
-         assertReflection(rti[2], recorders[2].reflections().get(0), object,
+         assertReflection(rti[2], recorders[2].reflections().get(0), recorders[2].discoveredObject,
             firstAttributes[2], secondAttributes[2], new byte[] {0x11}, null,
             bothTag, producer, "first-only subscriber");
-         assertReflection(rti[3], recorders[3].reflections().get(0), object,
+         assertReflection(rti[3], recorders[3].reflections().get(0), recorders[3].discoveredObject,
             firstAttributes[3], secondAttributes[3], null, new byte[] {0x22},
             bothTag, producer, "second-only subscriber");
 
@@ -130,13 +127,12 @@ final class MultiAttributeSubscriptionProjectionTck {
             "both-attribute subscriber missed the first-only update");
          await(rti[2], () -> recorders[2].reflections().size() >= 2,
             "first-only subscriber missed its attribute update");
-         drain(rti[3]);
-         JavaTckSupport.check(recorders[3].reflections().size() == 1,
+         observeCount(rti[3], recorders[3], 1,
             "second-only subscriber received an unrequested first-attribute update");
-         assertReflection(rti[1], recorders[1].reflections().get(1), object,
+         assertReflection(rti[1], recorders[1].reflections().get(1), recorders[1].discoveredObject,
             firstAttributes[1], secondAttributes[1], new byte[] {0x33}, null,
             firstTag, producer, "both-attribute subscriber first-only projection");
-         assertReflection(rti[2], recorders[2].reflections().get(1), object,
+         assertReflection(rti[2], recorders[2].reflections().get(1), recorders[2].discoveredObject,
             firstAttributes[2], secondAttributes[2], new byte[] {0x33}, null,
             firstTag, producer, "first-only subscriber projection");
 
@@ -146,12 +142,12 @@ final class MultiAttributeSubscriptionProjectionTck {
             "both-attribute subscriber missed the second-only update");
          await(rti[3], () -> recorders[3].reflections().size() >= 2,
             "second-only subscriber missed its attribute update");
-         JavaTckSupport.check(recorders[2].reflections().size() == 2,
+         observeCount(rti[2], recorders[2], 2,
             "first-only subscriber received an unrequested second-attribute update");
-         assertReflection(rti[1], recorders[1].reflections().get(2), object,
+         assertReflection(rti[1], recorders[1].reflections().get(2), recorders[1].discoveredObject,
             firstAttributes[1], secondAttributes[1], null, new byte[] {0x44},
             secondTag, producer, "both-attribute subscriber second-only projection");
-         assertReflection(rti[3], recorders[3].reflections().get(1), object,
+         assertReflection(rti[3], recorders[3].reflections().get(1), recorders[3].discoveredObject,
             firstAttributes[3], secondAttributes[3], null, new byte[] {0x44},
             secondTag, producer, "second-only subscriber projection");
          JavaTckSupport.check(recorders[0].reflections().isEmpty(),
@@ -224,8 +220,14 @@ final class MultiAttributeSubscriptionProjectionTck {
          description + " received the wrong projected values or delivery metadata");
    }
 
-   private static void drain(RTIambassador ambassador) throws Exception {
-      for (int i = 0; i < 8; ++i) JavaTckSupport.drain(ambassador);
+   private static void observeCount(RTIambassador ambassador, Recorder recorder,
+         int expected, String failure) throws Exception {
+      long deadline = System.nanoTime() + 250_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(ambassador);
+         JavaTckSupport.check(recorder.reflections().size() == expected, failure);
+         Thread.yield();
+      }
    }
 
    private static void await(RTIambassador ambassador, BooleanSupplier condition,
@@ -284,10 +286,6 @@ final class MultiAttributeSubscriptionProjectionTck {
                }
                return null;
             });
-      }
-
-      private boolean discovered(ObjectInstanceHandle object) {
-         return object.equals(discoveredObject);
       }
 
       private List<Reflection> reflections() { return List.copyOf(reflections); }

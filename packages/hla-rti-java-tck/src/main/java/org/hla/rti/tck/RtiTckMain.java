@@ -1393,7 +1393,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::multiAttributeSubscriptionProjection);
+            }, true), RtiTckMain::multiAttributeSubscriptionProjection);
       run(new Scenario("java-tck.subscription-initial-reflection-projection",
             "deliver current values only for subscribed attributes when subscribing to an existing object",
             "object-management",

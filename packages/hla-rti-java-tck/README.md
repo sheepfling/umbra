@@ -674,12 +674,14 @@ registration. Both passed the focused JNI gate in `HLA_EVOKED` and `HLA_IMMEDIAT
 without assuming discovery order or cross-federate equality of object, class, or
 attribute handles. This does not establish independent-provider conformance.
 
-The opt-in `java-tck.ordinary-multi-attribute-subscription-projection` scenario
+The default-run `java-tck.ordinary-multi-attribute-subscription-projection` scenario
 uses an adapter-supplied multi-attribute FOM and attribute names. It verifies the
 complete update for a two-attribute subscriber, selective value projection for
 single-attribute subscribers, preservation of per-update tags and producer
 metadata, and suppression of updates for an unsubscribed attribute and the
-publisher. Keep it unsupported by default until run against a Java provider.
+publisher. It passed the focused JNI gate in both callback models using an
+adapter-supplied two-attribute FOM. It remains internal API-contract evidence
+without a direct canonical requirement mapping or independent-provider claim.
 
 The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
 against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable

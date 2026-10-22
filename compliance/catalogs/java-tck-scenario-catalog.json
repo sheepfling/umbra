@@ -4735,8 +4735,9 @@
         "standard-ordinary-multi-attribute-subscription-projection-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#multiAttributeSubscriptionProjection",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied multi-attribute FOM/names and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted",
+      "mapping_note": "Internal standard-API contract evidence only: the two-attribute update is projected to each subscriber's declared attribute set and receive-order value/tag/producer/transport metadata are checked. Each subscriber resolves its own object handle; negative delivery is observed through a bounded callback window. The C++ and Java parity rows have no direct canonical requirement-to-section mapping, so this is not a conformance claim. The Java source compiles against the official API and passed the focused JNI gate in HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied FOM, attribute names, and callback model; independent-provider behavior remains unverified."
     },
     {
       "id": "java-tck.subscription-initial-reflection-projection",
