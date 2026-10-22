@@ -2838,7 +2838,7 @@
           "standard_section": "hla-1516.1-2025:clause-4"
         }
       ],
-      "mapping_note": "Direct Clause 4 assertions are limited to create, join, and destroy federation execution before connect; each must fail with NotConnected. Other portable typed-exception checks are not separately mapped here. The C++ InvalidResignAction/NotConnected precedence and cross-implementation logical-time mismatch are excluded because the Java API cannot construct those inputs portably; no internal exception-ordering requirement is claimed.",
+      "mapping_note": "Direct Clause 4 assertions are limited to create, join, and destroy federation execution before connect; each must fail with NotConnected. Other portable typed-exception checks are not separately mapped here. The C++ InvalidResignAction/NotConnected precedence and cross-implementation logical-time mismatch are excluded because the Java API cannot construct those inputs portably; no internal exception-ordering requirement is claimed. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models; no independent-provider or conformance claim.",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -2868,8 +2868,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#standardExceptionBoundaries",
       "parity": "cpp-tck.standard-exception-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Ports the portable typed-exception subset: FederateIsExecutionMember, AttributeAlreadyOwned, AttributeAcquisitionWasNotRequested, AttributeDivestitureWasNotRequested, DeletePrivilegeNotHeld, and ObjectInstanceNameInUse. Does not claim the C++ invalid-enum cases, which cannot be represented as Java enum values, or cross-implementation logical-time interval mismatch, which cannot be constructed portably through the Java standard API. Requires adapter-supplied provider JAR, FOM, time implementation, and callback model."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.federation-management-requires-connection",

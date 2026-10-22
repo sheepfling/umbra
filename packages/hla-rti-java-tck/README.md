@@ -534,6 +534,12 @@ The `java-tck.federation-management-requires-connection` case checks that
 Create, Destroy, Join, and Resign reject calls before Connect. The companion
 `java-tck.connect-before-federation-disconnect-after-resign` case checks Create
 both before Connect and after a successful Join, Resign, and Disconnect.
+The `java-tck.standard-exception-boundaries` case checks the portable Java
+subset of standard service exceptions, including disconnected federation
+operations, ownership-request boundaries, delete privilege, and duplicate
+object names. Both callback models passed focused JNI runs. C++ invalid-enum
+and cross-implementation logical-time inputs are not representable through the
+standard Java API and are not claimed as Java parity.
 
 The opt-in `java-tck.federation-mom-current-fdd` scenario consumes the
 adapter-supplied FOM, standard MIM, and an additional extension FOM

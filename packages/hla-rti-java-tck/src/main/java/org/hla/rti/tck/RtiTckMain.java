@@ -1015,7 +1015,7 @@ public final class RtiTckMain {
             "verify the portable subset of standard service exception boundaries",
             "api-surface",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes(active);RTIambassador.registerObjectInstance;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.confirmDivestiture;RTIambassador.deleteObjectInstance;RTIambassador.reserveObjectInstanceName;RTIambassador.resignFederationExecution;FederateAmbassador.discoverObjectInstance;FederateAmbassador.objectInstanceNameReservationSucceeded",
-            new String[] {"cpp-1516.1-standard-exception-boundary"}, false),
+            new String[] {"cpp-1516.1-standard-exception-boundary"}, true),
             RtiTckMain::standardExceptionBoundaries);
       run(new Scenario("java-tck.federation-management-requires-connection",
             "require an RTI connection for federation Create, Destroy, Join, and Resign services",
