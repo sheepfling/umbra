@@ -8654,6 +8654,22 @@
       "exclusion": "Configure hla.rti.tck.recordMemberValidFom, recordMemberOmittedFom, recordMemberBasicFieldFom, and recordMemberBasicAlternativeFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-variant-discriminant-category",
+      "category": "fom-composition",
+      "title": "Require enumerated variant-record Discriminant Types",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11"],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.20"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11", "standard_section": "hla-1516.2-2025:clause-6.2.20"}],
+      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance of enumerated and omitted discriminants, rejection of raw basic, simple, and NA categories, and valid retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-variant-discriminant-category-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantDiscriminantCategory",
+      "parity": "cpp-tck.fom-variant-discriminant-category",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.variantDiscriminantValidFom, variantDiscriminantOmittedFom, variantDiscriminantBasicFom, variantDiscriminantSimpleFom, and variantDiscriminantNaFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

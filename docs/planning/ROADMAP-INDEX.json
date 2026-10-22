@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_variant_discriminant_category_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 variant Discriminant Type category witness into public C++ primary/contract cases and Java scenario-ID parity using five neutral adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1172; packages/hla-rti-cpp-tck/src/tck_fom_variant_discriminant_category.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomVariantDiscriminantCategoryTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11 -> IEEE 1516.2-2025 clause 6.2.20"],
+    "evidence": "Native focused case passed 31 assertions; all five FOMs passed the pinned DIF XSD; Java compiled against the 2025 API-only JAR; installed-package C++ focused CTest and direct runner passed 4/4 each across evoked and immediate callback models; C++/Java catalog and parity validation passed. A memory-constrained focused relink used the new optional linker-flag forwarding rather than recompiling the RTI core.",
+    "scope_boundary": "Public Create accepts an enumerated discriminant and omitted incomplete row, rejects raw basic-data, simple-data, and NA discriminant types separately as InconsistentFOM, and permits valid federation-name reuse. Each alternative has a valid standard data type. Enumerator membership, range syntax, Java provider runtime, interoperability, and conformance are not claimed.",
+    "next": "Audit the native-green variant discriminant-enumerator syntax case at cpp/tests/libxml2_fom_composer_catch2.cpp:1237 (24 assertions, direct IEEE 1516.2-2025 clause 6.2.20 mappings) against portable coverage. Translate only distinct schema-valid public Create behavior with Java parity and installed-package gate; correct its stale plan source pointer and do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_record_member_category_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green 2025 fixed-record Field Type and variant-record Alternative Type category witness into public C++ primary/contract cases and Java scenario-ID parity using four neutral adapter-owned schema-valid FOMs.",
@@ -6,7 +15,7 @@
     "direct_mappings": ["requirement-candidate-sections-semantic-clause-4c-page-076-l52-2 -> IEEE 1516.2-2025 clause 4 (broad Lab metadata, RL-047)", "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7 -> IEEE 1516.2-2025 clause 4 (broad Lab metadata, RL-047)"],
     "evidence": "Native focused case passed 28 assertions; all four FOMs passed the pinned DIF XSD; Java compiled against the 2025 API-only JAR; installed-package C++ focused CTest and direct runner passed 4/4 each in evoked and immediate callback models; C++/Java catalog and parity validation passed.",
     "scope_boundary": "Public Create accepts named simple-data and omitted incomplete fixed/variant member types, rejects separately isolated raw basic-data Field Type and Alternative Type as InconsistentFOM, and permits valid federation-name reuse. The variant rejection FOM has a valid enumerated discriminant. No invented subsection, other record constraints, Java provider runtime, interoperability, or conformance is claimed.",
-    "next": "Audit the native-green variant-record Discriminant Type category case at cpp/tests/libxml2_fom_composer_catch2.cpp:1172 (31 assertions, direct IEEE 1516.2-2025 clause 6.2.20 mapping) against existing portable coverage. Translate only distinct public standard-API behavior with Java parity and installed-package gate; correct its stale plan source pointer and do not resynchronize unchanged Lab inputs."
+    "next": "The variant-record Discriminant Type category case at cpp/tests/libxml2_fom_composer_catch2.cpp:1172 is verified and promoted as cpp-tck.fom-variant-discriminant-category with Java parity. Continue to distinct enumerator syntax and membership rules without duplicating it; do not resynchronize unchanged Lab inputs."
   },
   "portable_tck_fom_array_element_category_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",

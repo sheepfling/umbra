@@ -98,6 +98,8 @@ def main() -> None:
     parser.add_argument("--scenario", action="append", required=True)
     parser.add_argument("--source", action="append", required=True, type=Path,
                         help="C++ source with a focused object that must be current")
+    parser.add_argument("--linker-flag", action="append", default=[],
+                        help="Optional linker driver flag for a constrained focused relink")
     parser.add_argument("--results", required=True, type=Path)
     args = parser.parse_args()
     build = args.build_directory.resolve()
@@ -117,6 +119,7 @@ def main() -> None:
         "hla_rti_cpp_tck_focused" + (".exe" if os.name == "nt" else ""))
     command = [compiler, *shlex.split(fields.get("FLAGS", "")),
                *shlex.split(fields.get("LINK_FLAGS", "")),
+               *args.linker_flag,
                f"@{rsp.relative_to(build)}", "-o", str(executable.relative_to(build))]
     if os.name == "nt":
         command.extend(["-Wl,--out-implib,portable-tck/libhla_rti_cpp_tck_focused.dll.a",

@@ -14004,7 +14004,7 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11"
       ],
       "test_case": "The FOM composition preflight requires enumerated data types for variant-record discriminants",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1325",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1172",
       "tags": [
         "unit",
         "fom",
@@ -14012,7 +14012,7 @@
         "variant-discriminant-data-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice rejects a raw basic-data representation, a simple data type, and NA in a supplied variant-record Discriminant Type after complete-model resolution, while retaining an omitted type for an incomplete DIF row and accepting the standard MIM/Restaurant records. Paired slices verify individual enumerators/range endpoints, declaration-order range expansion, overlapping named alternatives, and the HLAother complement model. Complete Annex C merge, dependency packaging, JUnit/protected review evidence, and conformance remain open."
+      "next_action": "This private composition slice rejects a raw basic-data representation, a simple data type, and NA in a supplied variant-record Discriminant Type after complete-model resolution, while retaining an omitted type for an incomplete DIF row and accepting the standard MIM/Restaurant records. Its public standard-API witness is cpp-tck.fom-variant-discriminant-category with Java scenario-ID parity; installed-package C++ focused CTest and direct runner passed 4/4 each across both callback models. Enumerator membership, range syntax, overlapping alternatives, HLAother, Java provider runtime, and conformance remain separate."
     },
     {
       "id": "umbra-cpp-fom-variant-discriminant-enumerator-composition-integration",

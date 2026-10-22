@@ -810,6 +810,16 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-field-tck.xml")),
             "record-member-basic-alternative="
             + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml")),
+            "variant-discriminant-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-tck.xml")),
+            "variant-discriminant-omitted="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-omitted-tck.xml")),
+            "variant-discriminant-basic="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-basic-tck.xml")),
+            "variant-discriminant-simple="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-simple-tck.xml")),
+            "variant-discriminant-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml")),
             "reference-attribute-consumer="
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
             "reference-attribute-provider="

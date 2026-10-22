@@ -194,6 +194,16 @@ public final class RtiTckMain {
       "hla.rti.tck.recordMemberBasicFieldFom";
    private static final String RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY =
       "hla.rti.tck.recordMemberBasicAlternativeFom";
+   private static final String VARIANT_DISCRIMINANT_VALID_FOM_PROPERTY =
+      "hla.rti.tck.variantDiscriminantValidFom";
+   private static final String VARIANT_DISCRIMINANT_OMITTED_FOM_PROPERTY =
+      "hla.rti.tck.variantDiscriminantOmittedFom";
+   private static final String VARIANT_DISCRIMINANT_BASIC_FOM_PROPERTY =
+      "hla.rti.tck.variantDiscriminantBasicFom";
+   private static final String VARIANT_DISCRIMINANT_SIMPLE_FOM_PROPERTY =
+      "hla.rti.tck.variantDiscriminantSimpleFom";
+   private static final String VARIANT_DISCRIMINANT_NA_FOM_PROPERTY =
+      "hla.rti.tck.variantDiscriminantNaFom";
    private static final String REFERENCE_ATTRIBUTE_CONSUMER_FOM_PROPERTY =
       "hla.rti.tck.referenceAttributeConsumerFom";
    private static final String REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY =
@@ -2002,6 +2012,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomRecordMemberCategory);
+      run(new Scenario("java-tck.fom-variant-discriminant-category",
+            "Accept enumerated and omitted variant discriminants and reject other categories",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomVariantDiscriminantCategory);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",
             "fom-composition",
@@ -11908,6 +11924,8 @@ public final class RtiTckMain {
             method = "fomArrayElementCategory"; break;
          case "java-tck.fom-record-member-category":
             method = "fomRecordMemberCategory"; break;
+         case "java-tck.fom-variant-discriminant-category":
+            method = "fomVariantDiscriminantCategory"; break;
          case "java-tck.fom-reference-attribute-resolution":
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
@@ -13677,6 +13695,16 @@ public final class RtiTckMain {
          requireAdapterFile(RECORD_MEMBER_OMITTED_FOM_PROPERTY),
          requireAdapterFile(RECORD_MEMBER_BASIC_FIELD_FOM_PROPERTY),
          requireAdapterFile(RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomVariantDiscriminantCategory() throws Exception {
+      FomVariantDiscriminantCategoryTck.run(factory(),
+         requireAdapterFile(VARIANT_DISCRIMINANT_VALID_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_DISCRIMINANT_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_DISCRIMINANT_BASIC_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_DISCRIMINANT_SIMPLE_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_DISCRIMINANT_NA_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 
