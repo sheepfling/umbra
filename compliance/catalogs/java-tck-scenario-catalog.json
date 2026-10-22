@@ -17766,6 +17766,16 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-source-refinement-send-interaction-published-class"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-source-refinement-send-interaction-published-class",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Direct mapping covers the timestamped Send Interaction published-class precondition in canonical §5.1.3: a published send succeeds, while a send after unpublication raises InteractionClassNotPublished. Callback absence before a receiver advance and time-role setup are supplemental observations. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unclaimed.",
       "contract_refs": [
         "timestamped-interaction-api-contract.json",
         "timestamped-interaction-requirements-contract.json",
@@ -17774,8 +17784,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionPublicationSendTransition",
       "parity": "cpp-tck.timestamped-interaction-publication-send-transition",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, logical-time implementation, endpoint, interaction/parameter names, and callback model are adapter-supplied. Java provider runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Provider, FOM, logical-time implementation, endpoint, interaction/parameter names, and callback model are adapter-supplied.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-cross-producer-order",

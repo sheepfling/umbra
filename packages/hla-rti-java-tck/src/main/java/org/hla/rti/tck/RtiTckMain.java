@@ -3600,9 +3600,8 @@ public final class RtiTckMain {
              "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(time);RTIambassador.unpublishInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time)",
              new String[] {
-                "java-1516.1-interaction-declaration-and-delivery",
-                "java-1516.1-time-advance-and-grant"
-             }, false), RtiTckMain::timestampedInteractionPublicationSendTransition);
+                "requirement-source-refinement-send-interaction-published-class"
+             }, true), RtiTckMain::timestampedInteractionPublicationSendTransition);
        run(new Scenario("java-tck.timestamped-interaction-cross-producer-order",
              "timestamp order across multiple producers and constrained receivers", "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",

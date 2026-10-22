@@ -1461,6 +1461,16 @@ designator terminalization are supplemental observations. Provider, FOM,
 endpoint, time implementation, interaction/parameter names, and callback model
 remain adapter inputs.
 
+The default-run `java-tck.timestamped-interaction-publication-send-transition`
+scenario checks that a published timestamped Send Interaction is accepted with
+a retraction handle, then that sending after unpublication raises
+`InteractionClassNotPublished`. It passed focused installed-provider runs under
+HLA_EVOKED and HLA_IMMEDIATE. Its direct mapping is limited to the §5.1.3
+published-class precondition; time-role setup and absence of a pre-advance
+receiver callback are supplemental. Provider, FOM, endpoint, logical-time
+implementation, interaction/parameter names, and callback model are adapter
+inputs.
+
 The `java-tck.timestamped-interaction-retraction` scenario follows the promoted
 C++ sequence: an unconstrained subscriber receives a timestamped interaction,
 then receives the matching Request Retraction callback; a constrained copy is

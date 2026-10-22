@@ -67,8 +67,10 @@ final class TimestampedInteractionPublicationSendTransitionTck {
          LogicalTimeInterval lookahead = (LogicalTimeInterval) timeFactory.makeEpsilon();
          publisher.enableTimeRegulation(lookahead);
          receiver.enableTimeConstrained();
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(receiver);
+         awaitCallback(publisher, () -> publisherRecorder.timeRegulationEnabled,
+            "publisher timeRegulationEnabled");
+         awaitCallback(receiver, () -> receiverRecorder.timeConstrainedEnabled,
+            "receiver timeConstrainedEnabled");
          JavaTckSupport.check(publisherRecorder.timeRegulationEnabled
                && receiverRecorder.timeConstrainedEnabled,
             "timestamped publication-transition time-role callbacks were not observed");
@@ -142,10 +144,26 @@ final class TimestampedInteractionPublicationSendTransitionTck {
       return result;
    }
 
+   private static void awaitCallback(RTIambassador ambassador, CallbackObserved observed,
+         String callback) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(ambassador);
+         if (observed.get()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(callback + " was not observed within 10 seconds");
+   }
+
+   @FunctionalInterface
+   private interface CallbackObserved {
+      boolean get();
+   }
+
    private static final class Recorder {
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private int timestampedInteractions;
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private volatile int timestampedInteractions;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
