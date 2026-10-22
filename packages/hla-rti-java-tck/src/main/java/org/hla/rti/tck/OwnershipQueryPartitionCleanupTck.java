@@ -34,8 +34,28 @@ final class OwnershipQueryPartitionCleanupTck {
    static void runNullification(RtiFactory factory, String fom, String objectClassName,
          String firstAttributeName, String secondAttributeName, CallbackModel callbackModel)
          throws Exception {
+      verifyConnectionBoundaries(factory, callbackModel);
       runConfigured(factory, fom, objectClassName, firstAttributeName,
          secondAttributeName, callbackModel, false);
+   }
+
+   private static void verifyConnectionBoundaries(RtiFactory factory,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador unjoined = factory.getRtiAmbassador();
+      ObjectInstanceHandle invalidObject =
+         JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+      AttributeHandleSet noAttributes = JavaTckSupport.attributeSet(unjoined);
+      JavaTckSupport.expectFailure(
+         () -> unjoined.queryAttributeOwnership(invalidObject, noAttributes),
+         "NotConnected", "querying ownership before Connect");
+      unjoined.connect(new Recorder().proxy(), callbackModel);
+      try {
+         JavaTckSupport.expectFailure(
+            () -> unjoined.queryAttributeOwnership(invalidObject, noAttributes),
+            "FederateNotExecutionMember", "querying ownership before Join");
+      } finally {
+         unjoined.disconnect();
+      }
    }
 
    private static void runConfigured(RtiFactory factory, String fom, String objectClassName,

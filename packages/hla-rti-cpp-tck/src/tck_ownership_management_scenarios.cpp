@@ -1741,6 +1741,22 @@ void scenarioOwnershipQueryPartitionCleanup(
       !options.multiAttributeFom.empty(),
       "Ownership-query testing requires an adapter-supplied multi-attribute FOM");
 
+  // The native public-API baseline checks these service-boundary exceptions
+  // before any federation exists. Keep them independent of valid FOM handles.
+  Session unjoined(options, model, "ownership-query-unjoined");
+  rti::ObjectInstanceHandle const invalidObject;
+  rti::AttributeHandleSet const noAttributes;
+  requireException(
+      [&] { unjoined.rtiAmbassador().queryAttributeOwnership(invalidObject, noAttributes); },
+      L"NotConnected",
+      "querying ownership before Connect");
+  unjoined.connect();
+  requireException(
+      [&] { unjoined.rtiAmbassador().queryAttributeOwnership(invalidObject, noAttributes); },
+      L"FederateNotExecutionMember",
+      "querying ownership before Join");
+  unjoined.disconnect();
+
   Session owner(options, model, "ownership-query-owner");
   Session requester(options, model, "ownership-query-requester");
   auto const federation = federationName(
@@ -1794,7 +1810,13 @@ void scenarioOwnershipQueryPartitionCleanup(
       options,
       "Ownership-query object discovery");
 
-  rti::ObjectInstanceHandle const invalidObject;
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterSecond),
+      "ownership-state read did not distinguish the owner, observer, and unowned attribute");
+
   rti::AttributeHandle const invalidAttribute;
   rti::AttributeHandleSet const invalidAttributes{invalidAttribute};
   requireException(
@@ -1847,6 +1869,12 @@ void scenarioOwnershipQueryPartitionCleanup(
   require(
       requester.recorder().ownershipOwnedByRtiEvents().empty(),
       "ownership query reported an ordinary unowned attribute as RTI-owned");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterSecond),
+      "ownership query changed the read-only ownership-state result");
 
   // Removing the object invalidates any query result that has not yet crossed
   // the callback boundary. Immediate delivery may already have produced the
