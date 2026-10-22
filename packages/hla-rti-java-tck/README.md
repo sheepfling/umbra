@@ -1654,9 +1654,11 @@ The `java-tck.directed-interaction-derived-object-target` scenario registers an
 adapter-selected derived object at the publisher, then verifies that a distinct
 federate with a universal directed-interaction subscription receives the send
 while an attribute-only observer does not. It checks target discovery and
-interaction callback metadata through the standard API. FOM/model names and
-callback configuration remain adapter inputs; the case is unsupported by
-default pending Java-provider execution.
+interaction callback metadata through receiver-local standard handles. The
+provider, typed FOM, time implementation, endpoint, names, and callback model
+remain adapter inputs. This default-run case passed focused installed JNI runs
+in both callback models. Derived-target identity and observer exclusion are
+supplemental checks, not independent-provider conformance claims.
 
 The `java-tck.timestamped-directed-interaction-derived-object-target` scenario
 registers an adapter-selected derived object class with an inherited identity

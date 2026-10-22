@@ -10056,14 +10056,22 @@
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.getAttributeName",
         "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -10071,11 +10079,7 @@
         "FederateAmbassador.receiveDirectedInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-publication",
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-interaction-parameter-delivery",
-        "java-1516.1-object-registration-discovery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2"
@@ -10086,7 +10090,7 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2", "standard_section": "hla-1516.1-2025:clause-5.1.5" }
       ],
-      "mapping_note": "Direct mapping to §5.1.5: the directed publisher's sendDirectedInteraction class handle is preserved by the targeted receiveDirectedInteraction callback. The discovered derived-class object target and directed eligibility checks are separate assertions.",
+      "mapping_note": "Direct mapping to §5.1.5: the published directed interaction class is resolved by standard name on each ambassador and delivered under the receiver-local class handle. Discovered derived-target identity and observer exclusion are supplemental assertions. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -10102,8 +10106,9 @@
         "subscribe-object-class-attributes-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionDerivedObjectTarget",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM/model-FOM, endpoint, callback model, derived object class, inherited identity attribute, directed interaction class, and integer parameter are adapter-supplied. Portable defaults target the repository's TckTypedObject/TckTypedDerivedObject and TckTypedInteraction/IntegerParameter declarations. Keep unsupported by default until executed against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, compatible typed FOM, logical-time implementation, endpoint, callback model, derived object class, inherited identity attribute, directed interaction class, and integer parameter.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.transport-order",
