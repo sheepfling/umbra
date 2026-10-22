@@ -2481,6 +2481,18 @@ to IEEE 1516.2-2025 §C.3. Supply two valid matching-declaration modules via
 installed JNI adapter passed both callback models, matching the
 C++ primary and contract evidence, but this is not cross-provider conformance.
 
+`java-tck.fom-data-type-forward-reference` and
+`java-tck.fom-data-type-conflicting-definition` are default-run, API-only
+§C.3 cases. Supply the consumer and provider FOM paths through
+`hla.rti.tck.dataTypeMergeConsumerFom` and
+`hla.rti.tck.dataTypeMergeProviderFom`; the conflict case also requires
+`hla.rti.tck.dataTypeMergeConflictingProviderFom`. The first case rejects an
+unresolved array element type and accepts the later module that defines it.
+The second accepts each compatible pair separately, rejects their conflicting
+combination, and checks valid federation-name reuse. The installed Java
+adapter passed both callback models, matching the C++ primary and contract
+evidence; independent-provider conformance is not claimed.
+
 `java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
 adapter-supplied application FOM and standard MIM. It reads the initial MOM
 `HLAasynchronousDelivery` value, toggles the standard services, and verifies

@@ -8617,8 +8617,8 @@
       "contract_refs": ["standard-fom-data-type-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeForwardReference",
       "parity": "cpp-tck.fom-data-type-forward-reference",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dataTypeMergeConsumerFom and hla.rti.tck.dataTypeMergeProviderFom; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-data-type-forward-reference-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes in out/mgw/fom-data-type-merge-20261021.json. The adapter supplies dataTypeMergeConsumerFom and dataTypeMergeProviderFom."
     },
     {
       "id": "java-tck.fom-data-type-conflicting-definition",
@@ -8635,8 +8635,8 @@
       "contract_refs": ["standard-fom-data-type-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeConflictingDefinition",
       "parity": "cpp-tck.fom-data-type-conflicting-definition",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.dataTypeMerge*Fom properties; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-data-type-conflicting-definition-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes in out/mgw/fom-data-type-merge-20261021.json. The adapter supplies dataTypeMergeConsumerFom, dataTypeMergeProviderFom, and dataTypeMergeConflictingProviderFom."
     },
     {
       "id": "java-tck.fom-variant-alternative-overlap",

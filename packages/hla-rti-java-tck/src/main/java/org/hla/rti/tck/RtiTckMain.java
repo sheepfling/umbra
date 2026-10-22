@@ -1879,13 +1879,13 @@ public final class RtiTckMain {
             "Resolve an array element type supplied by a later FOM module",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomDataTypeForwardReference);
       run(new Scenario("java-tck.fom-data-type-conflicting-definition",
             "Reject incompatible definitions of one named data type across FOM modules",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomDataTypeConflictingDefinition);
       run(new Scenario("java-tck.fom-variant-alternative-overlap",
             "Accept disjoint and reject overlapping named extendable-variant alternatives",
