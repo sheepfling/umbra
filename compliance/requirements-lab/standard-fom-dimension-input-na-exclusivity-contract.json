@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "Portable Dimension-table NA Input data type exclusivity preflight through official Federation Create and dimension lookup services. The adapter supplies the provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. Explicit NA mixed with named HLAcount is rejected; separate explicit-NA, empty-list with description, and named-type forms are accepted. Private diagnostics, Java provider runtime, and interoperability are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-dimension-input-na-exclusivity",
+      "language": "cpp",
+      "signature": "RTIambassador Create Federation Execution with MIM, Join, dimension handle/name/upper-bound lookups, Resign and Destroy",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp::scenarioFomDimensionInputNaExclusivity",
+        "packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp::scenarioFomDimensionInputNaExclusivityContract"
+      ]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2",
+      "standard_section": "hla-1516.2-2025:clause-4"
+    }
+  ]
+}

@@ -70,6 +70,8 @@ void scenarioFomDimensionInputType(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputTypeContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputDescription(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputDescriptionContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionInputNaExclusivity(Options const&, rti::CallbackModel);
+void scenarioFomDimensionInputNaExclusivityContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqual(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateNoteConflict(Options const&, rti::CallbackModel);

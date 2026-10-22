@@ -8622,6 +8622,22 @@
       "exclusion": "Configure hla.rti.tck.dimensionDescriptionNaInvalidFom, dimensionDescriptionTextFom, dimensionDescriptionNamedNaFom, dimensionDescriptionNamedTextFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-dimension-input-na-exclusivity",
+      "category": "fom-composition",
+      "title": "Keep NA dimension input exclusive of named types",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.getDimensionHandle", "RTIambassador.getDimensionName", "RTIambassador.getDimensionUpperBound", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Standard Java API parity for mixed NA plus named-type rejection and separate explicit-NA, empty-list, and named-type acceptance. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-dimension-input-na-exclusivity-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionInputNaExclusivity",
+      "parity": "cpp-tck.fom-dimension-input-na-exclusivity",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.dimensionInputMixedNaFom, dimensionInputNaFom, dimensionDescriptionTextFom, dimensionInputTableTypeFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-synchronization-duplicate-equal",
       "category": "fom-composition",
       "title": "Accept identical same-label synchronization declarations",
