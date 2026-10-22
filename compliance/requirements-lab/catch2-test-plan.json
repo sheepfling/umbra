@@ -13592,6 +13592,8 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4b-page-049-l58-6"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l58-6", "standard_section": "hla-1516.2-2025:clause-4"}],
       "test_case": "The FOM composition preflight requires unshared attributes to be not value-required",
       "tags": [
         "unit",
@@ -13600,7 +13602,7 @@
         "attribute-sharing-value-required"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2300",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1985",
       "next_action": "This private completed-model preflight rejects an explicit sharing=Neither/valueRequired=true combination, accepts sharing=Neither/valueRequired=false, and preserves an omitted Value Required field in a partial DIF attribute row. It does not infer defaults, FOM/SOM declaration state, other sharing modes, runtime behavior, dependency packaging, JUnit/protected review, or conformance. RL-052 records the source candidate's broad clause-4 provenance."
     },
     {

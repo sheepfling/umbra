@@ -760,6 +760,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-periodic-update-condition-na-tck.xml")),
             "attribute-conditional-update-condition-empty="
             + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-empty-tck.xml")),
+            "attribute-neither-value-required-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-valid-tck.xml")),
+            "attribute-neither-value-required-true="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-true-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

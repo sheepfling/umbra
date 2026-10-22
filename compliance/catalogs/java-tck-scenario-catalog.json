@@ -8526,6 +8526,22 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-attribute-value-required-sharing",
+      "category": "fom-composition",
+      "title": "Reject value-required attributes when sharing is Neither",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-049-l58-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l58-6", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Java public-API parity for accepted explicit-false/omitted Value Required rows, explicit-true rejection, and valid federation-name retry. Java provider runtime unverified; RL-052 records broad clause-4 provenance.",
+      "contract_refs": ["standard-fom-attribute-value-required-sharing-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeValueRequiredSharing",
+      "parity": "cpp-tck.fom-attribute-value-required-sharing",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.attributeNeitherValueRequiredValidFom and attributeNeitherValueRequiredTrueFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-dynamic-update-condition-valid",
       "category": "fom-composition",
       "title": "Accept supplied dynamic update conditions and an omitted partial condition",

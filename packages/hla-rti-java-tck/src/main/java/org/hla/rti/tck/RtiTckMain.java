@@ -144,6 +144,10 @@ public final class RtiTckMain {
       "hla.rti.tck.periodicUpdateConditionNaFom";
    private static final String CONDITIONAL_UPDATE_CONDITION_EMPTY_FOM_PROPERTY =
       "hla.rti.tck.conditionalUpdateConditionEmptyFom";
+   private static final String ATTRIBUTE_NEITHER_VALUE_REQUIRED_VALID_FOM_PROPERTY =
+      "hla.rti.tck.attributeNeitherValueRequiredValidFom";
+   private static final String ATTRIBUTE_NEITHER_VALUE_REQUIRED_TRUE_FOM_PROPERTY =
+      "hla.rti.tck.attributeNeitherValueRequiredTrueFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1862,6 +1866,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDynamicUpdateConditionRejections);
+      run(new Scenario("java-tck.fom-attribute-value-required-sharing",
+            "Reject value-required attributes when sharing is Neither",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomAttributeValueRequiredSharing);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11720,6 +11730,8 @@ public final class RtiTckMain {
             method = "fomDynamicUpdateConditionValid"; break;
          case "java-tck.fom-dynamic-update-condition-rejections":
             method = "fomDynamicUpdateConditionRejections"; break;
+         case "java-tck.fom-attribute-value-required-sharing":
+            method = "fomAttributeValueRequiredSharing"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13410,6 +13422,13 @@ public final class RtiTckMain {
             requireAdapterFile(PERIODIC_UPDATE_CONDITION_NA_FOM_PROPERTY),
             requireAdapterFile(CONDITIONAL_UPDATE_CONDITION_EMPTY_FOM_PROPERTY)
          }, timeImplementation(), callbackModel());
+   }
+
+   private static void fomAttributeValueRequiredSharing() throws Exception {
+      FomAttributeValueRequiredSharingTck.run(factory(),
+         requireAdapterFile(ATTRIBUTE_NEITHER_VALUE_REQUIRED_VALID_FOM_PROPERTY),
+         requireAdapterFile(ATTRIBUTE_NEITHER_VALUE_REQUIRED_TRUE_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
    }
 
    private static void fomDimensionDuplicateUnion() throws Exception {
