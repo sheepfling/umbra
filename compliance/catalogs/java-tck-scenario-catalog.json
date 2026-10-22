@@ -21901,6 +21901,7 @@
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
         "RTIambassador.isAttributeOwnedByFederate",
@@ -21935,7 +21936,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l155-50", "standard_section": "hla-1516.1-2025:clause-7.1.2.2"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52", "standard_section": "hla-1516.1-2025:clause-7.1.2.2"}
       ],
-      "mapping_note": "Pinned §7.9.1 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. Evoked mode tests identical and mixed pending repeats; immediate mode makes no pending-timing assertion. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. Java compiles against the official API-only JAR; runtime remains unverified. Negotiated-divestiture eligibility is not claimed.",
+      "mapping_note": "Pinned §7.9.1 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. Evoked mode tests identical and mixed pending repeats; immediate mode makes no pending-timing assertion. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. A standard local deletion yields a known-format handle unknown to the requester; a real attribute from an adapter-selectable foreign class tests AttributeNotDefined without a synthetic malformed handle. Java compiles against the official API-only JAR and passed focused JNI runs in both callback models with exact-one terminal callback checks (out/java-tck/ownership-acquisition-if-available-cardinality-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Negotiated-divestiture eligibility, independent-provider behavior, and conformance are not claimed.",
       "contract_refs": [
         "attribute-ownership-acquisition-if-available-api-contract.json",
         "attribute-ownership-acquisition-if-available-requirements-contract.json",
@@ -21947,8 +21948,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionIfAvailable",
       "parity": "cpp-tck.ownership-acquisition-if-available",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; exercises only standard IEEE 1516.1-2025 ownership services and callbacks."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-query-partition-cleanup",

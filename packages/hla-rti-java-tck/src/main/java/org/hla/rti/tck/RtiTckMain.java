@@ -5151,12 +5151,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.ownership-acquisition-if-available",
             "report unavailable ownership, acquire after unconditional divestiture, and reject reacquisition by the owner",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::ownershipAcquisitionIfAvailable);
+            }, true), RtiTckMain::ownershipAcquisitionIfAvailable);
       run(new Scenario("java-tck.ownership-query-partition-cleanup",
             "partition mixed ownership-query results and suppress stale results after object removal",
             "ownership",
@@ -8970,7 +8970,11 @@ public final class RtiTckMain {
 
    private static void ownershipAcquisitionIfAvailable() throws Exception {
       OwnershipAcquisitionIfAvailableTck.run(factory(), requireFom(), objectClassName(),
-         attributeName(), objectClassSecondAttributeName(), callbackModel());
+         attributeName(), objectClassSecondAttributeName(),
+         System.getProperty("hla.rti.tck.foreignAttributeClass",
+            "HLAobjectRoot.HLAmanager.HLAfederate"),
+         System.getProperty("hla.rti.tck.foreignAttribute", "HLAfederateHandle"),
+         callbackModel());
    }
 
    private static void ownershipQueryPartitionCleanup() throws Exception {

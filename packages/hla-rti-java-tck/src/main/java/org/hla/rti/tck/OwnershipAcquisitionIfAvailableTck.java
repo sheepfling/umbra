@@ -24,6 +24,7 @@ final class OwnershipAcquisitionIfAvailableTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, String secondaryAttributeName,
+         String foreignAttributeClassName, String foreignAttributeName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
@@ -93,10 +94,17 @@ final class OwnershipAcquisitionIfAvailableTck {
                && !requester.isAttributeOwnedByFederate(availableObject, requesterAttribute),
             "ownership setup did not leave both attributes with their registering federate");
 
-         ObjectInstanceHandle unknownObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-         AttributeHandle undefinedAttribute =
-            JavaTckSupport.invalidHandle(AttributeHandle.class);
+         ObjectInstanceHandle unknownObject = owner.registerObjectInstance(ownerClass);
+         await(requester, callbackModel,
+            () -> requesterRecorder.discoveries.contains(unknownObject),
+            "If Available local-delete fixture discovery");
+         requester.localDeleteObjectInstance(unknownObject);
+         AttributeHandle undefinedAttribute = requester.getAttributeHandle(
+            requester.getObjectClassHandle(foreignAttributeClassName),
+            foreignAttributeName);
+         JavaTckSupport.check(!undefinedAttribute.equals(requesterAttribute)
+               && !undefinedAttribute.equals(requesterSecondaryAttribute),
+            "adapter foreign attribute must not belong to the tested object class");
          AttributeHandleSet undefinedAttributes =
             JavaTckSupport.attributeSet(requester, undefinedAttribute);
          byte[] preconditionTag = new byte[0];
@@ -136,9 +144,9 @@ final class OwnershipAcquisitionIfAvailableTck {
             "If Available unavailable callback");
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.drain(requester);
-            JavaTckSupport.check(requesterRecorder.unavailable.size() == 1,
-               "repeating a pending If Available request produced another unavailable callback");
          }
+         JavaTckSupport.check(requesterRecorder.unavailable.size() == 1,
+            "If Available request produced duplicate unavailable callbacks");
          checkEvent(requesterRecorder.unavailable.get(0), unavailableObject,
             requesterAttributes, unavailableTag, "If Available unavailable callback");
          JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty()
@@ -162,6 +170,9 @@ final class OwnershipAcquisitionIfAvailableTck {
             availableObject, requesterAttributes, acquisitionTag);
          await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
             "If Available acquisition notification");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
+            "If Available request produced duplicate acquisition notifications");
          checkEvent(requesterRecorder.acquisitions.get(0), availableObject,
             requesterAttributes, acquisitionTag, "If Available acquisition notification");
          JavaTckSupport.check(requesterRecorder.unavailable.isEmpty()

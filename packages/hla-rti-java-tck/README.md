@@ -298,6 +298,12 @@ The ordinary subscription-lifecycle scenario also requires a distinct second
 attribute through `hla.rti.tck.objectClassSecondAttribute`; it publishes and
 updates both attributes while subscribing to only the primary one, checking
 that initial and subsequent reflection contain only the subscribed value.
+The ownership-acquisition-if-available scenario uses a locally deleted object
+as its unknown-instance fixture and a valid attribute from another class for
+its undefined-attribute boundary. The adapter may set
+`hla.rti.tck.foreignAttributeClass` and `hla.rti.tck.foreignAttribute`; their
+defaults are the standard MIM `HLAobjectRoot.HLAmanager.HLAfederate` class
+and `HLAfederateHandle` attribute.
 The opt-in `java-tck.attribute-subscription-invocations-accumulate` case
 subscribes to the configured primary attribute, waits for discovery, then
 subscribes to the distinct configured second attribute and verifies one update
