@@ -5119,7 +5119,7 @@ public final class RtiTckMain {
              "query the original owner, unowned state, and second federate owner",
              "ownership",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipReacquisitionQuery);
        run(new Scenario("java-tck.ownership-competing-if-available-query",
              "resolve two If Available contenders and query the actual winning owner",

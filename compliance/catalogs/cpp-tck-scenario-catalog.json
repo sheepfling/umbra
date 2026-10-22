@@ -68759,7 +68759,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
-      "mapping_note": "The native configured-process public-API case passed its focused CTest with host loopback access. The installed-package portable primary/contract pair passed 4/4 direct runs (out/mgw/ownership-reacquisition-query-candidate-20261021.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Standard APIs query original-owner, unowned, and second-owner states using adapter-supplied inputs. Seven direct pairs reproduce the native crosswalk; competing acquisition arbitration, Java provider runtime, and conformance are not claimed.",
+      "mapping_note": "The native configured-process public-API case passed its focused CTest with host loopback access. The installed-package portable primary/contract pair passed 4/4 current-source direct runs (out/mgw/tck-regulation-enable-20261021/ownership-reacquisition-query-20261022.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE. Standard APIs query original-owner, unowned, and second-owner states using adapter-supplied inputs. Seven direct pairs reproduce the native crosswalk; pure Java parity compiled against the official 2025 API JAR and passed 2/2 focused JNI runs. Competing acquisition arbitration, independent-provider behavior, and conformance are not claimed.",
       "parity": "java-tck.ownership-reacquisition-query",
       "contract_refs": ["standard-ownership-reacquisition-query-contract.json"],
       "native_equivalent_runner_ids": ["umbra-cpp-process-ownership-query-after-second-federate-acquisition"],
@@ -68785,7 +68785,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
-      "mapping_note": "The contract twin runs the same three-state standard ownership-query sequence under the adapter callback model. The installed-package pair passed 4/4 direct runs (out/mgw/ownership-reacquisition-query-candidate-20261021.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). No broader arbitration or conformance claim is made.",
+      "mapping_note": "The contract twin runs the same three-state standard ownership-query sequence under the adapter callback model. The installed-package pair passed 4/4 current-source direct runs (out/mgw/tck-regulation-enable-20261021/ownership-reacquisition-query-20261022.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE. Pure Java parity passed 2/2 focused JNI runs. No competing arbitration, independent-provider behavior, or conformance claim is made.",
       "contract_refs": ["standard-ownership-reacquisition-query-contract.json"],
       "cpp_test": "src/tck_ownership_reacquisition_query.cpp#scenarioOwnershipReacquisitionQueryContract",
       "runner_id": "cpp-tck.ownership-reacquisition-query-contract",

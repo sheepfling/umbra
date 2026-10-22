@@ -73,6 +73,7 @@ final class OwnershipReacquisitionQueryTck {
          owner.queryAttributeOwnership(object, ownerAttributes);
          await(owner, model, () -> !ownerEvents.information.isEmpty(),
             "original owner report");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          checkOwner(ownerEvents, object, ownerAttributes, originalOwner,
             "original owner query");
 
@@ -82,6 +83,7 @@ final class OwnershipReacquisitionQueryTck {
          owner.queryAttributeOwnership(object, ownerAttributes);
          await(owner, model, () -> !ownerEvents.notOwned.isEmpty(),
             "unowned attribute report");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(ownerEvents.notOwned.size() == 1
                && ownerEvents.information.isEmpty(),
             "query after divestiture did not exclusively report unowned");
@@ -94,6 +96,7 @@ final class OwnershipReacquisitionQueryTck {
             object, acquirerAttributes, new byte[] {(byte) 0xA7, 0x0C});
          await(acquirer, model, () -> !acquirerEvents.acquisitions.isEmpty(),
             "second-federate acquisition notification");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(acquirer);
          JavaTckSupport.check(acquirerEvents.acquisitions.size() == 1,
             "second federate did not receive exactly one acquisition notification");
          AttributeEvent acquisition = acquirerEvents.acquisitions.get(0);
@@ -105,6 +108,7 @@ final class OwnershipReacquisitionQueryTck {
          owner.queryAttributeOwnership(object, ownerAttributes);
          await(owner, model, () -> !ownerEvents.information.isEmpty(),
             "new owner report");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          checkOwner(ownerEvents, object, ownerAttributes, newOwner,
             "post-acquisition owner query");
          JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
