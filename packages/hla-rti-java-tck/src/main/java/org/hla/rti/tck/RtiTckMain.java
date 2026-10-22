@@ -1084,9 +1084,9 @@ public final class RtiTckMain {
             "time-management",
             "RTIambassador.enableTimeConstrained;RTIambassador.enableAsynchronousDelivery;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.sendInteraction;FederateAmbassador.receiveInteraction;FederateAmbassador.timeAdvanceGrant",
             new String[] {
-               "cpp-1516.1-interaction-management",
-               "cpp-1516.1-time-advance-request"
-            }, false), RtiTckMain::sendMessageTimeStatePreservationGranted);
+               "requirement-candidate-content-clauses-08-time-management-page-184-l37-8",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l40-9"
+            }, true), RtiTckMain::sendMessageTimeStatePreservationGranted);
       run(new Scenario("java-tck.logical-time-factory", "logical-time factory", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory(NotConnected/FederateNotExecutionMember boundaries);LogicalTimeFactory.getName;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeFinal;LogicalTimeFactory.makeZero;LogicalTimeFactory.makeEpsilon;LogicalTime.isInitial;LogicalTime.isFinal;LogicalTimeInterval.isZero;LogicalTimeInterval.isEpsilon;LogicalTime.encode/encodedLength;LogicalTimeFactory.decodeTime;LogicalTimeInterval.encode/encodedLength;LogicalTimeFactory.decodeInterval;LogicalTime.add/subtract/distance/compareTo;LogicalTimeInterval.add/subtract/compareTo;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect", new String[] {
                "java-1516.1-logical-time-factory-values"

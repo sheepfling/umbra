@@ -820,6 +820,12 @@ be retracted. Focused installed-provider runs pass under both callback models.
 The provider JAR, FOM, interaction/parameter names, endpoint, time, and
 callback model remain adapter inputs; other request variants are separate.
 
+The default `java-tck.send-message-time-state-preservation-granted` case
+checks the §8.1.5 ordinary Send Message rule: after a grant, the sender's
+logical time and grant history are unchanged by a receive-order interaction,
+and a later advance still grants. It passes focused installed-provider runs
+in both callback models using adapter-supplied FOM, names, endpoint, and time.
+
 The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
 checks the standard Table 5 `AttributeRegionAssociation` report value for one
 successful `AssociateRegionsForUpdates` call. Supply `hla.rti.tck.fom`,

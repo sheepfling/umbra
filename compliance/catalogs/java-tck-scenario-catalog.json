@@ -15671,12 +15671,23 @@
         "requirement-candidate-content-clauses-08-time-management-page-184-l40-9"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.5"],
-      "mapping_note": "Direct §8.1.5 state-preservation pairs; validates only the Time Granted state and ordinary receive-order Send Message. The provider, FOM, endpoint, callback model, and logical-time implementation are adapter inputs. Java code uses only the official 1516.1-2025 API and JDK.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l37-8",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l40-9",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        }
+      ],
+      "mapping_note": "Direct §8.1.5 state-preservation pairs; validates only the Time Granted state and ordinary receive-order Send Message. The installed provider passes focused runs in both callback models. The provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation remain adapter inputs. Java code uses only the official 1516.1-2025 API and JDK; other time states and independent-provider conformance remain unclaimed.",
       "contract_refs": ["standard-send-message-time-state-preservation-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#sendMessageTimeStatePreservationGranted",
       "parity": "cpp-tck.send-message-time-state-preservation-granted",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-preferred-receive-conversion",
