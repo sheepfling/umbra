@@ -1156,11 +1156,11 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.overlapping-object-class-subscriptions-single-discovery",
              "deliver one discovery when a federate subscribes to both a base and derived class",
              "object-management",
-             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
              new String[] {
                 "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
                 "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
-             }, false), RtiTckMain::overlappingObjectClassSubscriptionsSingleDiscovery);
+             }, true), RtiTckMain::overlappingObjectClassSubscriptionsSingleDiscovery);
       run(new Scenario("java-tck.inherited-object-attribute-projection",
             "project inherited and derived attribute updates through base and derived subscriptions",
             "object-attribute-inheritance",

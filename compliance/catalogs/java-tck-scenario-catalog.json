@@ -6704,6 +6704,7 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -6740,7 +6741,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Directly asserts the §5.8 at-most-one discovery requirement for one federate subscribed to both a base and its derived object class, and the registered-class requirement because the derived class is also subscribed. Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no conformance claim is made.",
+      "mapping_note": "Directly asserts the §5.8 at-most-one discovery requirement for one federate subscribed to both a base and its derived object class, and the registered-class requirement because the derived class is also subscribed. Java source uses only official IEEE 1516.1-2025 APIs, resolves class and object handles within each federate, and takes the typed FOM and logical time from the adapter. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -6752,8 +6753,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#overlappingObjectClassSubscriptionsSingleDiscovery",
       "parity": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied typed object-class hierarchy and Java IEEE 1516.1-2025 provider; source and catalog are portable, but provider runtime evidence is not recorded."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible typed object-class hierarchy and attribute names, provider, FOM, endpoint, logical-time implementation, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-interaction",

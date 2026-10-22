@@ -632,6 +632,14 @@ object and class handles only within each federate, without fabricated invalid
 handles. Focused installed JNI execution passed in both callback modes;
 independent-provider conformance remains unverified.
 
+The default `java-tck.overlapping-object-class-subscriptions-single-discovery`
+scenario registers a derived-class object while one federate actively subscribes
+to both the base and derived classes. It requires exactly one discovery reporting
+the registered class, then verifies receiver-local name and handle lookups. The
+adapter supplies the typed FOM, logical time, provider, endpoint, and callback
+model. Focused installed JNI runs passed in both callback modes; this is not an
+independent-provider conformance result.
+
 The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six
 ordinary object-attribute publication/subscription calls while joined and after

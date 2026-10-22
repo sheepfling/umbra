@@ -259,7 +259,11 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          JavaTckSupport.check(publisherClass != null && subscriberBaseClass != null
                && subscriberDerivedClass != null && !subscriberBaseClass.equals(subscriberDerivedClass)
                && publisherIdentity != null && publisherDerived != null
-               && subscriberBaseIdentity != null && subscriberDerivedAttribute != null,
+               && subscriberBaseIdentity != null && subscriberDerivedAttribute != null
+               && derivedClassName.equals(publisher.getObjectClassName(publisherClass))
+               && baseClassName.equals(subscriber.getObjectClassName(subscriberBaseClass))
+               && derivedClassName.equals(
+                  subscriber.getObjectClassName(subscriberDerivedClass)),
             "adapter hierarchy FOM did not resolve the overlapping subscription handles");
 
          publisherAttributes = JavaTckSupport.attributeSet(
@@ -300,11 +304,13 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             "one registration produced duplicate discovery callbacks for overlapping subscriptions");
          Discovery discovery = subscriberCallbacks.discoveries.get(0);
          String objectName = publisher.getObjectInstanceName(object);
-         JavaTckSupport.check(object.equals(discovery.object)
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(subscriberObject.equals(discovery.object)
                && subscriberDerivedClass.equals(discovery.objectClass)
                && objectName.equals(discovery.name)
-               && subscriberDerivedClass.equals(subscriber.getKnownObjectClassHandle(object))
-               && object.equals(subscriber.getObjectInstanceHandle(objectName)),
+               && subscriberDerivedClass.equals(
+                  subscriber.getKnownObjectClassHandle(subscriberObject))
+               && objectName.equals(subscriber.getObjectInstanceName(subscriberObject)),
             "overlapping subscriptions did not report the registered class and object identity");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberDerivedClass,
