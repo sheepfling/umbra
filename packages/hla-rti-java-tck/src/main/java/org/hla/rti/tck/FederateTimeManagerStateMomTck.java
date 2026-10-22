@@ -169,7 +169,7 @@ final class FederateTimeManagerStateMomTck {
       List<Reflection> stateReflections = monitorRecorder.valueReflectionsSince(
          reflectionBefore, momObject, stateAttribute);
       for (Reflection reflection : stateReflections) {
-         int state = decodeState(reflection, momObject, stateAttribute, reliable, encoder,
+         int state = decodeState(monitor, reflection, momObject, stateAttribute, reliable, encoder,
             advance.displayName);
          JavaTckSupport.check(state == 0 || state == 1,
             advance.displayName + " returned a value outside the standard time-state enum");
@@ -180,15 +180,17 @@ final class FederateTimeManagerStateMomTck {
          advance.displayName + " did not report both TimeAdvancing and TimeGranted");
    }
 
-   private static int decodeState(Reflection reflection, ObjectInstanceHandle object,
+   private static int decodeState(RTIambassador monitor, Reflection reflection,
+         ObjectInstanceHandle object,
          AttributeHandle attribute, TransportationTypeHandle reliable, EncoderFactory encoder,
          String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(new byte[0], reflection.tag)
-            && reliable.equals(reflection.transportation) && reflection.producer == null
+            && reliable.equals(reflection.transportation)
             && (reflection.regions == null || reflection.regions.isEmpty())
             && !reflection.timestampOrdered,
          description + " had non-standard time-manager-state reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(monitor, reflection.producer, description);
       HLAinteger32BE state = encoder.createHLAinteger32BE();
       state.decode(reflection.values.get(attribute));
       return state.getValue();

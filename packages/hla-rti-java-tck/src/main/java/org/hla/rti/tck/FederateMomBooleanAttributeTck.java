@@ -16,7 +16,6 @@ import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
-import hla.rti1516_2025.exceptions.InvalidFederateHandle;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -247,16 +246,7 @@ final class FederateMomBooleanAttributeTck {
             + ", reliable=" + reliable.equals(reflection.transportation)
             + ", regionsEmpty=" + (regions == null || regions.isEmpty())
             + ", timestampOrdered=" + reflection.timestampOrdered);
-      if (reflection.producer != null) {
-         boolean invalidProducer = false;
-         try {
-            monitor.getFederateName(reflection.producer);
-         } catch (InvalidFederateHandle expectedInvalidHandle) {
-            invalidProducer = true;
-         }
-         JavaTckSupport.check(invalidProducer,
-            description + " supplied a valid producing FederateHandle for an RTI-originated MOM reflection");
-      }
+      JavaTckSupport.requireNoProducingFederate(monitor, reflection.producer, description);
       boolean actual;
       if (booleanEncoding) {
          HLAboolean value = encoder.createHLAboolean();

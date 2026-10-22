@@ -2274,6 +2274,13 @@ the regulation case obtains epsilon lookahead from the standard time factory.
 Both passed the installed JNI adapter in evoked and immediate callback modes,
 matching their C++ primary and contract evidence.
 
+`java-tck.federate-time-manager-state-mim-attribute` is also default-run with
+the adapter-supplied standard MIM. It checks TimeAdvancing and TimeGranted MOM
+reflections for TAR, TARA, NMR, NMRA, and Flush Queue Request, including the
+distinct Flush Queue Grant callback. Its RTI-originated producer check uses
+only the standard handle lookup API. The installed JNI adapter and matching
+C++ primary/contract passed both callback models.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 

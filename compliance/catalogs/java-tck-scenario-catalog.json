@@ -37145,6 +37145,7 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.getTimeFactory",
         "LogicalTimeFactory.getName",
         "LogicalTimeFactory.makeInitial",
@@ -37182,8 +37183,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateTimeManagerStateMomAttribute",
       "parity": "cpp-tck.federate-time-manager-state-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-time-manager-state-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-time-manager-state-mim-attribute-verified-20261016.json. All five standard advance services produce TimeAdvancing and TimeGranted MOM values; Flush Queue Request uses Flush Queue Grant. Non-null RTI-originated producer handles are checked via the standard Get Federate Name invalid-handle service. Application FOM, standard MIM, endpoint, time, and callback model remain adapter-owned. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-logical-time-mim-periodic",

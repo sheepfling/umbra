@@ -2,9 +2,11 @@ package org.hla.rti.tck;
 
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.InteractionClassHandleSet;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.exceptions.InvalidFederateHandle;
 import java.lang.reflect.Proxy;
 
 /** Small provider-neutral helpers shared by the P1/P2 Java contract slices. */
@@ -31,6 +33,19 @@ final class JavaTckSupport {
       if (!condition) {
          throw new AssertionError(message);
       }
+   }
+
+   static void requireNoProducingFederate(RTIambassador ambassador,
+         FederateHandle producer, String description) throws Exception {
+      if (producer == null) return;
+      boolean invalidProducer = false;
+      try {
+         ambassador.getFederateName(producer);
+      } catch (InvalidFederateHandle expectedInvalidHandle) {
+         invalidProducer = true;
+      }
+      check(invalidProducer,
+         description + " supplied a valid producing FederateHandle for an RTI-originated MOM reflection");
    }
 
    static void expectFailure(CheckedOperation operation, String expected,

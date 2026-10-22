@@ -6249,7 +6249,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-time-manager-state-mim-attribute",
             "observe HLAtimeManagerState transitions across all five standard advance services",
             "time-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeEpsilon;LogicalTime.add;RTIambassador.timeAdvanceRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequest;RTIambassador.nextMessageRequestAvailable;RTIambassador.flushQueueRequest;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.flushQueueGrant;HLAinteger32BE.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeEpsilon;LogicalTime.add;RTIambassador.timeAdvanceRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequest;RTIambassador.nextMessageRequestAvailable;RTIambassador.flushQueueRequest;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.flushQueueGrant;HLAinteger32BE.decode",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-time-management",
@@ -6261,7 +6261,7 @@ public final class RtiTckMain {
                "cpp-1516.1-time-advance-and-grant",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateTimeManagerStateMomAttribute);
+            }, true), RtiTckMain::federateTimeManagerStateMomAttribute);
       run(new Scenario("java-tck.federate-logical-time-mim-periodic",
             "observe periodic HLAlogicalTime MOM values after timing configuration and successive standard time advances",
             "time-management",
