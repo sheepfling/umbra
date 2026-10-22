@@ -53,6 +53,7 @@ final class OwnershipTransitionQueryTck {
          owner.queryAttributeOwnership(object, attributes);
          await(owner, callbackModel, () -> !callbacks.information.isEmpty(),
             "initial owner report");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(callbacks.information.size() == 1
                && callbacks.notOwned.isEmpty(),
             "initial ownership query did not report one exclusive owner");
@@ -69,6 +70,7 @@ final class OwnershipTransitionQueryTck {
          owner.queryAttributeOwnership(object, attributes);
          await(owner, callbackModel, () -> !callbacks.notOwned.isEmpty(),
             "post-divestiture unowned report");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(callbacks.notOwned.size() == 1
                && callbacks.information.isEmpty(),
             "post-divestiture query did not report the attribute as unowned exclusively");

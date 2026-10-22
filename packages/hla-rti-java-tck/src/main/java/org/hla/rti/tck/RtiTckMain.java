@@ -5113,7 +5113,7 @@ public final class RtiTckMain {
              "query the attribute owner before and after unconditional divestiture",
              "ownership",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipTransitionQuery);
        run(new Scenario("java-tck.ownership-reacquisition-query",
              "query the original owner, unowned state, and second federate owner",

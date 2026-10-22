@@ -40071,13 +40071,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
       ],
-      "mapping_note": "Standard-API Java parity for the native-green before/after ownership-query transition. The source compiles against the official 2025 API JAR; no Java provider runtime or conformance is claimed.",
+      "mapping_note": "Standard-API Java parity queries the original federate owner, unconditionally divests the attribute, and then queries the unowned state. Evoked delivery is drained before exact-one owner/unowned callback checks. The source compiles against the official 2025 API JAR and passed focused JNI runs in both callback models (out/java-tck/ownership-transition-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused CTests. No independent-provider or conformance claim.",
       "contract_refs": ["standard-ownership-transition-query-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipTransitionQuery",
       "parity": "cpp-tck.ownership-transition-query",
-      "default_status": "unsupported",
-      "promotion": "candidate",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-reacquisition-query",
