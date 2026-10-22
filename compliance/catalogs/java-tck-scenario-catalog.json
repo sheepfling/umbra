@@ -9569,12 +9569,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6"],
       "standard_sections": ["hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for equivalent FOM-supplied support switches. One focused packaged Umbra JNI runtime run passed (out/java-tck/switch-duplicate-equal-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for equivalent FOM-supplied support switches. Matching C++ primary and contract cases passed 4/4 at out/mgw/switch-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomSwitchDuplicateEqual",
       "parity": "cpp-tck.fom-switch-duplicate-equal",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures switchDuplicateDisabledFom and switchDuplicateEqualFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-switch-duplicate-equal-{evoked,immediate}-default-20261022.json. Adapter supplies the Disabled and equivalent switch FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-switch-duplicate-order",
@@ -9585,12 +9585,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5"],
       "standard_sections": ["hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for first-switch declaration across both module orders. One focused packaged Umbra JNI runtime run passed (out/java-tck/switch-duplicate-order-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for first-switch declaration across both module orders. Matching C++ primary and contract cases passed 4/4 at out/mgw/switch-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomSwitchDuplicateOrder",
       "parity": "cpp-tck.fom-switch-duplicate-order",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures switchDuplicateDisabledFom and switchDuplicateEnabledFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-switch-duplicate-order-{evoked,immediate}-default-20261022.json. Adapter supplies the Disabled and Enabled switch FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-switch-duplicate-omitted",
@@ -9601,12 +9601,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-067-l50-4", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.13.3", "hla-1516.2-2025:clause-C.8"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4", "standard_section": "hla-1516.2-2025:clause-4.13.3"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6", "standard_section": "hla-1516.2-2025:clause-C.8"}],
-      "mapping_note": "Standard Java API parity for omitted isEnabled default and equivalent explicit Disabled setting. One focused packaged Umbra JNI runtime run passed (out/java-tck/switch-duplicate-omitted-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for omitted isEnabled default and equivalent explicit Disabled setting. Matching C++ primary and contract cases passed 4/4 at out/mgw/switch-duplicate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-switch-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomSwitchDuplicateOmitted",
       "parity": "cpp-tck.fom-switch-duplicate-omitted",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures switchDuplicateDisabledFom and switchDuplicateOmittedFom; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-switch-duplicate-omitted-{evoked,immediate}-default-20261022.json. Adapter supplies the explicit Disabled and omitted-setting switch FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-advisory-switch-duplicate-equal",

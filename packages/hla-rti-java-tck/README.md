@@ -582,6 +582,14 @@ rejected with `InconsistentFOM`, followed by a valid retry. Both passed
 installed-provider evoked and immediate runs with adapter-supplied FOM modules.
 Independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-switch-duplicate-equal`,
+`java-tck.fom-switch-duplicate-order`, and
+`java-tck.fom-switch-duplicate-omitted` cases cover Annex C.8 support-switch
+composition: equivalent declarations agree, conflicting values follow the
+first FOM in either order, and an omitted `isEnabled` defaults to Disabled.
+All three passed installed-provider evoked and immediate runs with
+adapter-supplied FOM modules. Independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

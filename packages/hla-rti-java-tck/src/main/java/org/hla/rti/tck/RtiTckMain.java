@@ -2214,19 +2214,19 @@ public final class RtiTckMain {
             "Accept equivalent duplicate support-switch declarations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomSwitchDuplicateEqual);
       run(new Scenario("java-tck.fom-switch-duplicate-order",
             "Expose the first declaration in conflicting support-switch module order",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomSwitchDuplicateOrder);
       run(new Scenario("java-tck.fom-switch-duplicate-omitted",
             "Treat omitted switch isEnabled as Disabled in either module order",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomSwitchDuplicateOmitted);
       run(new Scenario("java-tck.fom-advisory-switch-duplicate-equal",
             "Accept equivalent duplicate known-class advisory declarations",
