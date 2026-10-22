@@ -23,7 +23,8 @@ final class AttributeSubscriptionModeTransitionsTck {
 
    private AttributeSubscriptionModeTransitionsTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String firstAttributeName, String secondAttributeName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -43,7 +44,7 @@ final class AttributeSubscriptionModeTransitionsTck {
          publisherConnected = true;
          subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
          subscriberConnected = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          federationCreated = true;
          publisher.joinFederationExecution("java-tck-subscription-mode-publisher", federation);
          publisherJoined = true;
@@ -58,7 +59,19 @@ final class AttributeSubscriptionModeTransitionsTck {
          subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondAttributeName);
          JavaTckSupport.check(publisherClass != null && subscriberClass != null
                && publisherFirst != null && publisherSecond != null
-               && subscriberFirst != null && subscriberSecond != null,
+               && subscriberFirst != null && subscriberSecond != null
+               && !publisherFirst.equals(publisherSecond)
+               && !subscriberFirst.equals(subscriberSecond)
+               && objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && firstAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherFirst))
+               && secondAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherSecond))
+               && firstAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberFirst))
+               && secondAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberSecond)),
             "adapter FOM did not resolve both class attributes");
 
          publisherAttributes = JavaTckSupport.attributeSet(
@@ -80,10 +93,14 @@ final class AttributeSubscriptionModeTransitionsTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "subscription-mode registration returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
          await(subscriber, callbackModel,
-            () -> subscriberCallbacks.discoveries.contains(object), "object discovery");
+            () -> subscriberCallbacks.discoveries.size() == 1, "object discovery");
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
          JavaTckSupport.check(subscriberCallbacks.discoveries.size() == 1,
             "subscription-mode registration produced an unexpected discovery count");
+         JavaTckSupport.check(subscriberObject.equals(subscriberCallbacks.discoveries.get(0)),
+            "subscription-mode discovery did not resolve to its local object handle");
 
          byte[] firstValue = {0x4D, 0x31};
          byte[] secondValue = {0x4D, 0x32};
@@ -93,7 +110,7 @@ final class AttributeSubscriptionModeTransitionsTck {
          await(subscriber, callbackModel,
             () -> !subscriberCallbacks.reflections.isEmpty(),
             "reflection for the initially active attribute");
-         assertOneAttribute(subscriberCallbacks, object, subscriberFirst,
+         assertOneAttribute(subscriberCallbacks, subscriberObject, subscriberFirst,
             subscriberSecond, firstValue, tag, "initial active/passive modes");
 
          subscriberCallbacks.reflections.clear();
@@ -107,7 +124,7 @@ final class AttributeSubscriptionModeTransitionsTck {
          await(subscriber, callbackModel,
             () -> !subscriberCallbacks.reflections.isEmpty(),
             "reflection for the newly active attribute");
-         assertOneAttribute(subscriberCallbacks, object, subscriberSecond,
+         assertOneAttribute(subscriberCallbacks, subscriberObject, subscriberSecond,
             subscriberFirst, secondValue, tag, "selected mode changes");
 
          subscriberCallbacks.reflections.clear();
@@ -120,7 +137,7 @@ final class AttributeSubscriptionModeTransitionsTck {
          await(subscriber, callbackModel,
             () -> !subscriberCallbacks.reflections.isEmpty(),
             "reflection after reactivating one attribute");
-         assertBothAttributes(subscriberCallbacks, object, subscriberFirst,
+         assertBothAttributes(subscriberCallbacks, subscriberObject, subscriberFirst,
             subscriberSecond, firstValue, secondValue, tag);
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);

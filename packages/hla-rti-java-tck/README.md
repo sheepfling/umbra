@@ -350,6 +350,15 @@ reflects both exact values and tag using the subscriber's locally resolved
 standard handles. Its FOM and names come from the adapter. Focused installed
 JNI runs passed in both callback modes; active/passive mode replacement and
 independent-provider conformance remain unverified.
+The default `java-tck.attribute-subscription-per-attribute-mode-transitions`
+case keeps both attribute subscriptions while switching their active/passive
+modes, including empty active and passive calls. It checks each reflected
+attribute set, value, and tag against receiver-local standard handles. The
+adapter supplies the FOM, logical-time implementation, names, provider,
+endpoint, and callback model. Focused installed JNI runs passed in both modes;
+only the C++ plan row's page-96 line-129 requirement is selected here, pending
+reconciliation of the wider C++ catalog mapping. Independent-provider
+conformance remains unverified.
 The opt-in `java-tck.passive-subscription-no-start-registration` case uses an
 active subscription as a positive control for the publisher's standard Start
 Registration callback, then clears the control and verifies that the passive

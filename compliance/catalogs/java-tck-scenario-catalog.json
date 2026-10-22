@@ -4256,7 +4256,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
@@ -4269,15 +4273,12 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
@@ -4287,19 +4288,11 @@
       ],
       "requirement_mappings": [
         {
-          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
-          "standard_section": "hla-1516.1-2025:clause-5.8"
-        },
-        {
-          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
-          "standard_section": "hla-1516.1-2025:clause-5.8"
-        },
-        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mappings: page-096-l117-36 asserts selected attributes take the mode of each invocation; page-096-l123-38 asserts empty-set active and passive invocations leave existing modes unchanged; page-096-l129-40 asserts selected mode changes preserve unselected subscriptions. The scenario starts A-active/B-passive, invokes both empty active and empty passive subscriptions, and observes A only; it then switches A passive/B active and observes B only, before reactivating A alone and observing both. The assertions use only the standard Java API; Java provider runtime remains unverified.",
+      "mapping_note": "Direct selected mapping follows the C++ plan row's page-096-l129-40 -> §5.8 additive and selected-mode-change rule. The standard-API scenario starts A-active/B-passive, invokes empty active and passive sets, observes A only, then switches A passive/B active and observes B only before reactivating A and observing both. The page-096-l117-36 and page-096-l123-38 behaviors are supplemental here until the C++ selected plan row is reconciled; no test behavior is removed. Class, attribute, and object identities use receiver-local standard lookups; FOM, logical time, provider, endpoint, and callback model are adapter inputs. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -4311,13 +4304,15 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeSubscriptionPerAttributeModeTransitions",
       "parity": "cpp-tck.attribute-subscription-per-attribute-mode-transitions",
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "provider Java API JAR and service-loaded RtiFactory",
         "adapter-supplied FOM with the selected object class and two distinct attributes",
-        "callback model selected by the adapter"
+        "callback model selected by the adapter",
+        "logical-time implementation and endpoint selected by the adapter"
       ],
-      "exclusion": "The scenario uses only the official IEEE 1516.1-2025 Java API; Java provider-runtime verification remains pending, so no Java conformance claim is made."
+      "exclusion": "Requires adapter-supplied FOM, class, distinct attributes, logical-time implementation, provider, endpoint, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.selective-attribute-unsubscription",
