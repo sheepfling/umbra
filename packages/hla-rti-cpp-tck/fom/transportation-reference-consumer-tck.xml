@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name><objectClass>
+        <name>TckTransportationReferenceObject</name>
+        <sharing>PublishSubscribe</sharing>
+        <attribute>
+            <name>Value</name><dataType>HLAunicodeString</dataType>
+            <updateType>Static</updateType><updateCondition>Fixture update.</updateCondition>
+            <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+            <sharing>PublishSubscribe</sharing>
+            <transportation>TckDeferredTransportation</transportation>
+            <order>Receive</order><semantics>Deferred transportation reference.</semantics>
+        </attribute>
+    </objectClass></objectClass></objects>
+    <interactions><interactionClass><name>HLAinteractionRoot</name><interactionClass>
+        <name>TckTransportationReferenceInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <transportation>TckDeferredTransportation</transportation>
+        <order>Receive</order><semantics>Deferred transportation reference.</semantics>
+    </interactionClass></interactionClass></interactions>
+</objectModel>

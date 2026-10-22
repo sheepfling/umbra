@@ -13761,6 +13761,8 @@
         "requirement-candidate-sections-semantic-clause-4b-page-053-l63-8",
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.11.2", "hla-1516.2-2025:clause-6.2.5", "hla-1516.2-2025:clause-6.2.6", "hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-C"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-063-l47-2", "standard_section": "hla-1516.2-2025:clause-4.11.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l82-17", "standard_section": "hla-1516.2-2025:clause-6.2.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l122-26", "standard_section": "hla-1516.2-2025:clause-6.2.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-050-l66-6", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l63-8", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2", "standard_section": "hla-1516.2-2025:clause-C"}],
       "test_case": "The FOM composition preflight resolves transportation names after the complete module set is merged",
       "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:315",
       "tags": [
@@ -13770,7 +13772,7 @@
         "reference-resolution",
         "transportation"
       ],
-      "assertions": 11,
+      "assertions": 19,
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This private composition guard proves that object-attribute and interaction-class transportation references supplied by a later compatible module resolve only against the merged transportation table, while an unresolved transportation name is rejected with a deterministic diagnostic. It is mapped to IEEE 1516.2 clauses 4.11.2, 6.2.5, 6.2.6, and Annex C through the pinned Lab candidates; broader transportation merge semantics, runtime order/transport behavior, dependency packaging, JUnit/protected review, and conformance remain open."
     },

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green 19-assertion FOM transportation reference witness. Public Create accepts object-attribute and interaction-class transportation names declared in a later compatible module; joined lookup exposes the classes, attribute, and transportation type. Public Create rejects an unresolved transportation name, then permits valid federation-name reuse. Direct mappings are to clauses 4.11.2, 6.2.5, 6.2.6, clause 4, and Annex C. The public RTI API does not expose the class-to-transportation table inspected privately by the native case; runtime delivery and broader transportation merge semantics are separate work. Java provider runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-transportation-reference-resolution",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules), joinFederationExecution, transportation/object/attribute/interaction handle lookup, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle and handle lookup services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_transportation_reference_resolution.cpp::scenarioFomTransportationReferenceResolutionContract"]
+    }
+  ]
+}

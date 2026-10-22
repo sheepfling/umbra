@@ -19448,6 +19448,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-reference-class-resolution-contract",
       "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-data-representation-resolution-contract",
+      "cpp-tck.fom-transportation-reference-resolution-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20191,6 +20192,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-reference-class-resolution",
       "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-data-representation-resolution",
+      "cpp-tck.fom-transportation-reference-resolution",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21092,6 +21094,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-data-representation-resolution-contract") {
     return scenarioFomDataRepresentationResolutionContract;
+  }
+  if (id == "cpp-tck.fom-transportation-reference-resolution-contract") {
+    return scenarioFomTransportationReferenceResolutionContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23456,6 +23461,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-data-representation-resolution") {
     return scenarioFomDataRepresentationResolution;
   }
+  if (id == "cpp-tck.fom-transportation-reference-resolution") {
+    return scenarioFomTransportationReferenceResolution;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -24088,6 +24096,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("reference-attribute-provider") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied data-representation FOM modules";
+      } else if ((scenario == "cpp-tck.fom-transportation-reference-resolution" ||
+                  scenario == "cpp-tck.fom-transportation-reference-resolution-contract") &&
+                 (options.scenarioFoms.count("transportation-reference-consumer") == 0U ||
+                  options.scenarioFoms.count("transportation-reference-provider") == 0U ||
+                  options.scenarioFoms.count("transportation-reference-missing") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied transportation-reference FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

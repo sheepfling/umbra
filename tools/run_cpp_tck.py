@@ -810,6 +810,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml")),
             "representation-invalid-basic="
             + str(default_path("packages/hla-rti-cpp-tck/fom/representation-invalid-basic-reference-tck.xml")),
+            "transportation-reference-consumer="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-consumer-tck.xml")),
+            "transportation-reference-provider="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-provider-tck.xml")),
+            "transportation-reference-missing="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-missing-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

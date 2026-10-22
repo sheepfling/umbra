@@ -194,6 +194,12 @@ public final class RtiTckMain {
       "hla.rti.tck.representationInvalidSpecialFom";
    private static final String REPRESENTATION_INVALID_BASIC_FOM_PROPERTY =
       "hla.rti.tck.representationInvalidBasicFom";
+   private static final String TRANSPORTATION_REFERENCE_CONSUMER_FOM_PROPERTY =
+      "hla.rti.tck.transportationReferenceConsumerFom";
+   private static final String TRANSPORTATION_REFERENCE_PROVIDER_FOM_PROPERTY =
+      "hla.rti.tck.transportationReferenceProviderFom";
+   private static final String TRANSPORTATION_REFERENCE_MISSING_FOM_PROPERTY =
+      "hla.rti.tck.transportationReferenceMissingFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1960,6 +1966,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDataRepresentationResolution);
+      run(new Scenario("java-tck.fom-transportation-reference-resolution",
+            "Resolve object and interaction transportation names from a later FOM module",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTransportationReferenceResolution);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11834,6 +11846,8 @@ public final class RtiTckMain {
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
             method = "fomDataRepresentationResolution"; break;
+         case "java-tck.fom-transportation-reference-resolution":
+            method = "fomTransportationReferenceResolution"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13589,6 +13603,14 @@ public final class RtiTckMain {
          requireAdapterFile(REPRESENTATION_INVALID_SPECIAL_FOM_PROPERTY),
          requireAdapterFile(REPRESENTATION_INVALID_BASIC_FOM_PROPERTY),
          requireAdapterFile(REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomTransportationReferenceResolution() throws Exception {
+      FomTransportationReferenceResolutionTck.run(factory(),
+         requireAdapterFile(TRANSPORTATION_REFERENCE_CONSUMER_FOM_PROPERTY),
+         requireAdapterFile(TRANSPORTATION_REFERENCE_PROVIDER_FOM_PROPERTY),
+         requireAdapterFile(TRANSPORTATION_REFERENCE_MISSING_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 
