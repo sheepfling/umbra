@@ -1596,8 +1596,11 @@ federate to advance the frontier. It verifies that resignation does not release
 the callback prematurely, that retraction through the resigned producer fails
 with `FederateNotExecutionMember`, and that the receiver eventually gets the
 original target and message metadata before its requested-time grant. The case
-uses adapter-selected FOM names and callback model and remains unsupported by
-default pending Java-provider execution.
+uses adapter-selected FOM names and callback model. Its P0 default object class
+is `HLAobjectRoot.TckObject.TckSecondaryObject`. A focused Java provider run
+passed in evoked mode but delivered the callback before the clock advance in
+immediate mode; the case remains unsupported by default pending a fresh green
+gate in both modes.
 
 The `java-tck.timestamped-directed-interaction-source-resignation-fanout`
 scenario extends that lifecycle to two independently constrained recipients.

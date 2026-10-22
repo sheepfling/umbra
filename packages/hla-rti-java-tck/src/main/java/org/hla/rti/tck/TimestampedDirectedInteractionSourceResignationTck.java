@@ -21,10 +21,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Delivers a queued timestamped directed interaction after its producer resigns. */
 final class TimestampedDirectedInteractionSourceResignationTck {
@@ -114,7 +115,7 @@ final class TimestampedDirectedInteractionSourceResignationTck {
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
          directedPublished = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction));
          receiverDirectedSubscribed = true;
 
@@ -140,17 +141,17 @@ final class TimestampedDirectedInteractionSourceResignationTck {
          receiver.enableTimeConstrained();
          receiverConstrained = true;
          JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
+         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount.get() == 1,
             "receiver did not report Time Constrained enable");
          publisher.enableTimeRegulation(publisherLookahead);
          publisherRegulating = true;
          JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
+         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount.get() == 1,
             "publisher did not report Time Regulation enable");
          clock.enableTimeRegulation(clockLookahead);
          clockRegulating = true;
          JavaTckSupport.drain(clock);
-         JavaTckSupport.check(clockRecorder.timeRegulationEnabledCount == 1,
+         JavaTckSupport.check(clockRecorder.timeRegulationEnabledCount.get() == 1,
             "clock did not report Time Regulation enable");
 
          LogicalTime initial = publisher.queryLogicalTime();
@@ -170,20 +171,19 @@ final class TimestampedDirectedInteractionSourceResignationTck {
             publisherInteraction, target, parameters, tag, messageTime);
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
             "timestamped directed send returned no valid retraction handle");
-         JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "receiver got the directed message before its time frontier");
 
          receiver.timeAdvanceRequest(receiverTarget);
-         JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.timeAdvanceGrants.isEmpty(),
             "receiver was granted before the producer frontier");
          publisher.resignFederationExecution(ResignAction.NO_ACTION);
          publisherJoined = false;
-         JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
                && receiverRecorder.timeAdvanceGrants.isEmpty(),
-            "producer resignation released the queued directed callback too early");
+            "producer resignation released the queued directed callback too early: directed="
+               + receiverRecorder.interactions.size() + ", grants="
+               + receiverRecorder.timeAdvanceGrants.size());
          expectException(() -> publisher.retract(sent.handle), "FederateNotExecutionMember",
             "retracting through the resigned producer");
 
@@ -356,12 +356,12 @@ final class TimestampedDirectedInteractionSourceResignationTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabledCount;
-      private int timeConstrainedEnabledCount;
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrants = new ArrayList<>();
+      private final AtomicInteger timeRegulationEnabledCount = new AtomicInteger();
+      private final AtomicInteger timeConstrainedEnabledCount = new AtomicInteger();
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrants = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -369,9 +369,9 @@ final class TimestampedDirectedInteractionSourceResignationTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("timeRegulationEnabled".equals(name)) {
-                  ++timeRegulationEnabledCount;
+                  timeRegulationEnabledCount.incrementAndGet();
                } else if ("timeConstrainedEnabled".equals(name)) {
-                  ++timeConstrainedEnabledCount;
+                  timeConstrainedEnabledCount.incrementAndGet();
                } else if ("discoverObjectInstance".equals(name) && arguments != null
                      && arguments.length >= 3) {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);

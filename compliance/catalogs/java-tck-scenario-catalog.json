@@ -18671,7 +18671,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDirectedInteractionSourceResignation",
       "default_status": "unsupported",
-      "exclusion": "Provider, FOM, logical-time implementation, endpoint, callback model, and timestamped-directed object/attribute/interaction/parameter names are adapter-supplied. The portable defaults target the P0 TckSecondaryObject/Value/TckSecondaryDirectedInteraction/SecondaryPayload declarations. Keep unsupported by default until executed against a Java IEEE 1516.1-2025 provider."
+      "exclusion": "Requires adapter-supplied provider, FOM, logical-time implementation, endpoint, callback model, and directed object/attribute/interaction/parameter names. The P0 default object class is HLAobjectRoot.TckObject.TckSecondaryObject. Focused JNI execution passed in HLA_EVOKED but failed in HLA_IMMEDIATE when the directed callback arrived before the independent clock advance; keep unsupported until both modes pass a fresh gate."
     },
     {
       "id": "java-tck.timestamped-directed-interaction-immediate-source-resignation",

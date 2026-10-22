@@ -15260,7 +15260,7 @@ public final class RtiTckMain {
 
    private static String timestampedDirectedObjectClassName() {
       return System.getProperty(TIMESTAMPED_DIRECTED_OBJECT_CLASS_PROPERTY,
-         "HLAobjectRoot.TckSecondaryObject");
+         "HLAobjectRoot.TckObject.TckSecondaryObject");
    }
 
    private static String timestampedDirectedAttributeName() {
