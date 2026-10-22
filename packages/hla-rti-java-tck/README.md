@@ -1797,6 +1797,15 @@ that advance and needs a separate fresh runtime audit; no exact-sequence
 parity or independent-provider conformance is claimed. FOM, object/attribute
 names, endpoint, time, and callback model remain adapter inputs.
 
+The default `java-tck.time-constrained-enable-receive-order-boundary` case
+checks two timestamped interactions delivered with RECEIVE order before
+Time Constrained Enabled (including one at the receiver's current time),
+then a timestamp-7 interaction delivered with TIMESTAMP order before TAR(8)'s
+grant. The Java recorder now reads sent order from the official timed
+callback field. Focused installed-provider runs pass under both callback
+models with adapter-supplied FOM, interaction/parameter names, endpoint, and
+time implementation. This is a bounded §8.6 result, not conformance.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

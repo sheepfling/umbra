@@ -3156,9 +3156,10 @@ public final class RtiTckMain {
             "preserve receive-order delivery before and timestamp-order delivery after Time Constrained enablement",
             "time-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-time-role-callbacks",
+            new String[] {"requirement-candidate-content-clauses-08-time-management-page-192-l99-29",
+               "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-timestamped-interaction-delivery",
-               "cpp-1516.1-time-advance-request"}, false),
+               "cpp-1516.1-time-advance-request"}, true),
          RtiTckMain::timeConstrainedEnableReceiveOrderBoundary);
       run(new Scenario("java-tck.time-constrained-disable-queued-interaction-to-ro",
             "deliver queued and subsequent timestamped interactions in receive order after disabling Time Constrained",

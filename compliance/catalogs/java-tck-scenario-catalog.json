@@ -14690,12 +14690,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.6"
         }
       ],
-      "mapping_note": "Direct §8.6 boundary witness: a future timestamped interaction and one at the unconstrained receiver's exact current time are received with RECEIVE order before Time Constrained Enabled; a post-transition timestamp-7 interaction is received with TIMESTAMP order before TAR(8)'s grant. This does not prescribe a GALT formula or claim complete time-management coverage or provider conformance.",
+      "mapping_note": "Direct §8.6 boundary witness: a future timestamped interaction and one at the unconstrained receiver's exact current time are received with RECEIVE order before Time Constrained Enabled; a post-transition timestamp-7 interaction is received with TIMESTAMP order before TAR(8)'s grant. The Java recorder reads sent order from the official timed Receive Interaction callback argument; focused installed-provider runs pass in both callback models. This does not prescribe a GALT formula or claim complete time-management coverage or independent-provider conformance.",
       "contract_refs": ["standard-time-constrained-enable-receive-order-boundary-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableReceiveOrderBoundary",
       "parity": "cpp-tck.time-constrained-enable-receive-order-boundary",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-disable-queued-interaction-to-ro",
