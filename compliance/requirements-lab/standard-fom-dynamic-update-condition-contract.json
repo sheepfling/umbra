@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green focused supplied dynamic attribute Update Condition witness. Public Create accepts schema-valid Conditional and Periodic attributes with supplied non-NA text and a partial Conditional row with its condition omitted; rejects supplied NA or empty conditions and proves valid federation-name reuse. The pinned Requirements Lab candidate resolves only to IEEE 1516.2-2025 clause 4. Static/NA direction and Periodic rate grammar are outside this predicate. FOM and time configuration are adapter-owned. Installed-package C++ and Java runtime outcomes are recorded separately. No private composition API, diagnostic text, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-dynamic-update-condition-valid",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_attribute_dynamic_update_condition.cpp::scenarioFomDynamicUpdateConditionValidContract"]
+    },
+    {
+      "id": "standard-cpp-fom-dynamic-update-condition-rejections",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_attribute_dynamic_update_condition.cpp::scenarioFomDynamicUpdateConditionRejectionsContract"]
+    }
+  ]
+}

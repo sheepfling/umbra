@@ -136,6 +136,14 @@ public final class RtiTckMain {
       "hla.rti.tck.attributeNaOmittedCompanionsFom";
    private static final String ATTRIBUTE_NA_OMITTED_COMPANIONS_EXTENSION_FOM_PROPERTY =
       "hla.rti.tck.attributeNaOmittedCompanionsExtensionFom";
+   private static final String DYNAMIC_UPDATE_CONDITION_VALID_FOM_PROPERTY =
+      "hla.rti.tck.dynamicUpdateConditionValidFom";
+   private static final String CONDITIONAL_UPDATE_CONDITION_NA_FOM_PROPERTY =
+      "hla.rti.tck.conditionalUpdateConditionNaFom";
+   private static final String PERIODIC_UPDATE_CONDITION_NA_FOM_PROPERTY =
+      "hla.rti.tck.periodicUpdateConditionNaFom";
+   private static final String CONDITIONAL_UPDATE_CONDITION_EMPTY_FOM_PROPERTY =
+      "hla.rti.tck.conditionalUpdateConditionEmptyFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1842,6 +1850,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomAttributeNaCompanionRejections);
+      run(new Scenario("java-tck.fom-dynamic-update-condition-valid",
+            "Accept supplied dynamic update conditions and an omitted partial condition",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDynamicUpdateConditionValid);
+      run(new Scenario("java-tck.fom-dynamic-update-condition-rejections",
+            "Reject NA or empty supplied conditions for dynamic attributes",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDynamicUpdateConditionRejections);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11696,6 +11716,10 @@ public final class RtiTckMain {
             method = "fomAttributeNaCompanionCompletion"; break;
          case "java-tck.fom-attribute-na-companion-rejections":
             method = "fomAttributeNaCompanionRejections"; break;
+         case "java-tck.fom-dynamic-update-condition-valid":
+            method = "fomDynamicUpdateConditionValid"; break;
+         case "java-tck.fom-dynamic-update-condition-rejections":
+            method = "fomDynamicUpdateConditionRejections"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13369,6 +13393,22 @@ public final class RtiTckMain {
             requireAdapterFile(ATTRIBUTE_NA_INVALID_UPDATE_TYPE_FOM_PROPERTY),
             requireAdapterFile(ATTRIBUTE_NA_INVALID_UPDATE_CONDITION_FOM_PROPERTY),
             requireAdapterFile(ATTRIBUTE_NA_INVALID_TRANSPORTATION_FOM_PROPERTY)
+         }, timeImplementation(), callbackModel());
+   }
+
+   private static void fomDynamicUpdateConditionValid() throws Exception {
+      FomDynamicUpdateConditionTck.run(factory(),
+         requireAdapterFile(DYNAMIC_UPDATE_CONDITION_VALID_FOM_PROPERTY),
+         new String[0], timeImplementation(), callbackModel());
+   }
+
+   private static void fomDynamicUpdateConditionRejections() throws Exception {
+      FomDynamicUpdateConditionTck.run(factory(),
+         requireAdapterFile(DYNAMIC_UPDATE_CONDITION_VALID_FOM_PROPERTY),
+         new String[] {
+            requireAdapterFile(CONDITIONAL_UPDATE_CONDITION_NA_FOM_PROPERTY),
+            requireAdapterFile(PERIODIC_UPDATE_CONDITION_NA_FOM_PROPERTY),
+            requireAdapterFile(CONDITIONAL_UPDATE_CONDITION_EMPTY_FOM_PROPERTY)
          }, timeImplementation(), callbackModel());
    }
 

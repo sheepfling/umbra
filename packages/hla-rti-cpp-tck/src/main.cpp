@@ -19438,6 +19438,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-member-data-type-categories-contract",
       "cpp-tck.fom-attribute-na-companion-completion-contract",
       "cpp-tck.fom-attribute-na-companion-rejections-contract",
+      "cpp-tck.fom-dynamic-update-condition-valid-contract",
+      "cpp-tck.fom-dynamic-update-condition-rejections-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20171,6 +20173,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-member-data-type-categories",
       "cpp-tck.fom-attribute-na-companion-completion",
       "cpp-tck.fom-attribute-na-companion-rejections",
+      "cpp-tck.fom-dynamic-update-condition-valid",
+      "cpp-tck.fom-dynamic-update-condition-rejections",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21042,6 +21046,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-attribute-na-companion-rejections-contract") {
     return scenarioFomAttributeNaCompanionRejectionsContract;
+  }
+  if (id == "cpp-tck.fom-dynamic-update-condition-valid-contract") {
+    return scenarioFomDynamicUpdateConditionValidContract;
+  }
+  if (id == "cpp-tck.fom-dynamic-update-condition-rejections-contract") {
+    return scenarioFomDynamicUpdateConditionRejectionsContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23376,6 +23386,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-attribute-na-companion-rejections") {
     return scenarioFomAttributeNaCompanionRejections;
   }
+  if (id == "cpp-tck.fom-dynamic-update-condition-valid") {
+    return scenarioFomDynamicUpdateConditionValid;
+  }
+  if (id == "cpp-tck.fom-dynamic-update-condition-rejections") {
+    return scenarioFomDynamicUpdateConditionRejections;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -23938,6 +23954,18 @@ int run(Options const& options) {
                     options.scenarioFoms.count("attribute-na-invalid-transportation") == 0U)))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied NA attribute companion FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dynamic-update-condition-valid" ||
+                  scenario == "cpp-tck.fom-dynamic-update-condition-valid-contract" ||
+                  scenario == "cpp-tck.fom-dynamic-update-condition-rejections" ||
+                  scenario == "cpp-tck.fom-dynamic-update-condition-rejections-contract") &&
+                 (options.scenarioFoms.count("attribute-dynamic-update-condition-valid") == 0U ||
+                  ((scenario == "cpp-tck.fom-dynamic-update-condition-rejections" ||
+                    scenario == "cpp-tck.fom-dynamic-update-condition-rejections-contract") &&
+                   (options.scenarioFoms.count("attribute-conditional-update-condition-na") == 0U ||
+                    options.scenarioFoms.count("attribute-periodic-update-condition-na") == 0U ||
+                    options.scenarioFoms.count("attribute-conditional-update-condition-empty") == 0U)))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied dynamic update-condition FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

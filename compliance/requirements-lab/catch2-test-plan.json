@@ -13574,8 +13574,10 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2", "standard_section": "hla-1516.2-2025:clause-4"}],
       "test_case": "The FOM composition preflight requires supplied dynamic update conditions",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2236",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1921",
       "tags": [
         "unit",
         "fom",

@@ -752,6 +752,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-tck.xml")),
             "attribute-na-omitted-companions-extension="
             + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-extension-tck.xml")),
+            "attribute-dynamic-update-condition-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-dynamic-update-condition-valid-tck.xml")),
+            "attribute-conditional-update-condition-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-na-tck.xml")),
+            "attribute-periodic-update-condition-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-periodic-update-condition-na-tck.xml")),
+            "attribute-conditional-update-condition-empty="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-empty-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_dynamic_update_condition_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 supplied dynamic Update Condition rule into public C++ TCK primary/contract cases and Java scenario-ID parity with four adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1921; packages/hla-rti-cpp-tck/src/tck_fom_attribute_dynamic_update_condition.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDynamicUpdateConditionTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-049-l26-2 -> IEEE 1516.2-2025 clause 4 (pinned Lab granularity)"],
+    "evidence": "Native focused case passed 28 assertions; four adapter FOMs passed the pinned DIF XSD. C++ compiled against installed official IEEE API headers. Isolated installed-package CTest passed 8/8 and direct runs passed 8/8 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/dynamic-update-condition-20261021.json). Java compiles against the API-only JAR; catalog and parity validators pass. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create accepts supplied non-NA Conditional/Periodic update-condition text and a partial Conditional row with its condition omitted; rejects supplied Conditional/NA, Periodic/NA, and Conditional/empty values as InconsistentFOM and permits valid federation-name reuse. It does not claim the unresolved Static/NA direction, Periodic rate grammar, Java runtime, interoperability, or conformance. The focused link reused existing objects and compiled only the entry point and new scenario source; it is not a full rebuild.",
+    "next": "Audit the native-green unshared-attribute/value-required rule at cpp/tests/libxml2_fom_composer_catch2.cpp:1986 and its pinned mapping against existing portable C++/Java coverage. Translate uncovered schema-valid public Create cases with Java parity and installed-package gate. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_attribute_na_companions_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 NA attribute companion rule into public C++ TCK primary/contract cases and Java scenario-ID parity with six adapter-owned schema-valid FOMs.",

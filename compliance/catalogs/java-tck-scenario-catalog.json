@@ -8526,6 +8526,38 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-dynamic-update-condition-valid",
+      "category": "fom-composition",
+      "title": "Accept supplied dynamic update conditions and an omitted partial condition",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Standard Java API parity for accepted supplied Conditional/Periodic conditions and an omitted partial Conditional condition. Java provider runtime unverified; pinned source candidate resolves to clause 4 only.",
+      "contract_refs": ["standard-fom-dynamic-update-condition-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDynamicUpdateConditionValid",
+      "parity": "cpp-tck.fom-dynamic-update-condition-valid",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.dynamicUpdateConditionValidFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-dynamic-update-condition-rejections",
+      "category": "fom-composition",
+      "title": "Reject NA or empty supplied conditions for dynamic attributes",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"],
+      "standard_sections": ["hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Standard Java API parity for three schema-valid invalid dynamic conditions and valid federation-name retry. Java provider runtime unverified; pinned source candidate resolves to clause 4 only.",
+      "contract_refs": ["standard-fom-dynamic-update-condition-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDynamicUpdateConditionRejections",
+      "parity": "cpp-tck.fom-dynamic-update-condition-rejections",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.dynamicUpdateConditionValidFom, conditionalUpdateConditionNaFom, periodicUpdateConditionNaFom, and conditionalUpdateConditionEmptyFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-attribute-na-companion-completion",
       "category": "fom-composition",
       "title": "Accept explicit and cross-module completed NA attribute companions",

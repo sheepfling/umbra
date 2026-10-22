@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name>
+        <attribute><name>TckConditionalCondition</name>
+            <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
+            <updateCondition>At caller request</updateCondition>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+        </attribute>
+        <attribute><name>TckPeriodicCondition</name>
+            <dataType>HLAunicodeString</dataType><updateType>Periodic</updateType>
+            <updateCondition>10 updates/minute</updateCondition>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+        </attribute>
+        <attribute><name>TckPartialConditionalCondition</name>
+            <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+        </attribute>
+    </objectClass></objects>
+</objectModel>
