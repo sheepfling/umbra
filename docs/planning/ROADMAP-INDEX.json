@@ -1,4 +1,13 @@
 {
+  "portable_tck_java_switch_duplicate_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Run six already-promoted C++ FOM support-switch and advisory-switch duplicate cases through pure IEEE 1516.1-2025 Java parity scenarios using adapter-owned 2025 modules.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomSwitchDuplicateTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomAdvisorySwitchDuplicateTck.java; compliance/catalogs/java-tck-scenario-catalog.json",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-067-l50-4 -> IEEE 1516.2-2025 clause 4.13.3", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5 -> IEEE 1516.2-2025 clause C.8", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6 -> IEEE 1516.2-2025 clause C.8"],
+    "evidence": "Six focused Python-launched Java TCK runs each reported one pass and zero failures against the packaged Umbra JNI C++ RTI 2025 provider: out/java-tck/switch-duplicate-equal-jni-20261021.json, switch-duplicate-order-jni-20261021.json, switch-duplicate-omitted-jni-20261021.json, advisory-switch-duplicate-equal-jni-20261021.json, advisory-switch-duplicate-order-jni-20261021.json, and advisory-switch-duplicate-omitted-jni-20261021.json. The first compiled the Java TCK against the API-only JAR; the other five reused those classes. All used adapter-supplied FOM modules; no C++ core rebuild or portable Java source change was needed.",
+    "scope_boundary": "These are one-ID runtime checks on one packaged provider, not a full Java suite, second-provider interoperability check, or conformance claim. Keep all six scenarios default-disabled until another adapter supplies and attests the needed modules. Concurrent Table 5 C++ edits remain untouched.",
+    "next": "Run the already-promoted C++ FOM service-usage merge parity ID java-tck.fom-service-usage-merge with its two adapter-owned 2025 FOM modules and pinned MIM; promote Java runtime notes only on green focused evidence."
+  },
   "portable_tck_restore_mixed_pending_time_role_promotion_2026_10_21": {
     "status": "verified-focused-installed-package-and-java-parity",
     "scope": "Promote the official-header-only C++ primary and contract twins for restoring two members' distinct pending time-role callbacks after a fresh installed-package gate, then verify their pure Java scenario-ID parity across callback models and two adapter-supported logical-time factories.",

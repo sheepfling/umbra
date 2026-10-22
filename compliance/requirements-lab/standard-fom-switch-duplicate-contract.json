@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Pure public-API Annex C.8 and clause 4.13.3 witnesses use four schema-valid, adapter-owned FOM modules to compare equivalent, conflicting, and omitted Non-Regulated-Grant settings. The two native private preflight cases passed 2/2; the separate installed-package portable CTest/direct gate passed 12/12 each across both callback models. Java parity compiles against the API-only JAR but provider runtime is unverified. The portable cases check only publicly observable Create, joined getNonRegulatedGrantSwitch, Resign, and Destroy outcomes. Private warning text, unrelated switches, TAR policy, interoperability, and conformance are not claimed.",
+  "notes": "Pure public-API Annex C.8 and clause 4.13.3 witnesses use four schema-valid, adapter-owned FOM modules to compare equivalent, conflicting, and omitted Non-Regulated-Grant settings. The two native private preflight cases passed 2/2; the separate installed-package portable CTest/direct gate passed 12/12 each across both callback models. Java parity compiles against the API-only JAR, and three focused packaged Umbra JNI runtime scenarios passed (out/java-tck/switch-duplicate-equal-jni-20261021.json, switch-duplicate-order-jni-20261021.json, and switch-duplicate-omitted-jni-20261021.json). The portable cases check only publicly observable Create, joined getNonRegulatedGrantSwitch, Resign, and Destroy outcomes. Other Java providers, private warning text, unrelated switches, TAR policy, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-switch-duplicate-equal",

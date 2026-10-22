@@ -1666,6 +1666,15 @@ with either `*DuplicateEqualFom` or `*DuplicateNoteConflictFom`; use the
 modules. The default-disabled status remains until that provider supplies
 and attests the fixtures.
 
+The FOM switch-duplicate parity cases use adapter-owned modules for explicit
+Disabled, equivalent, Enabled, and omitted values. Supply the properties
+`switchDuplicateDisabledFom` paired with `switchDuplicateEqualFom`,
+`switchDuplicateEnabledFom`, or `switchDuplicateOmittedFom`; the advisory
+variants use the analogous `advisorySwitchDuplicate*Fom` names. Prefix each
+name with `hla.rti.tck.` when passing it as a Java property. These cases
+remain default-disabled until the selected provider supplies and attests
+schema-valid 2025 modules.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set
