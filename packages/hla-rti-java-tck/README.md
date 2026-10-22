@@ -1621,6 +1621,19 @@ These inputs enable `java-tck.fom-default-logical-time-selection`,
 `java-tck.fom-time-representation-rejections`. Leave a case default-disabled
 when its provider adapter cannot attest the required input.
 
+The adjacent array-cardinality and dimension-duplicate cases also use
+adapter-supplied FOM paths. `arrayCardinalityValidFom` supplies the accepted
+scalar/list/range/Dynamic/mixed forms; `arrayCardinalityReversedRangeFom`,
+`arrayCardinalityFixedMismatchFom`, and
+`arrayCardinalityVariableMismatchFom` supply the three independent rejection
+branches. `dimensionDuplicateBaseFom` pairs with
+`dimensionDuplicateEqualUniqueFom` for the accepted union or with
+`dimensionDuplicateConflictFom` for the upper-bound conflict. Prefix each
+name with `hla.rti.tck.` when passing it as a Java property. These fixtures
+enable the four corresponding `java-tck.fom-array-cardinality-*` and
+`java-tck.fom-dimension-duplicate-*` scenarios only for adapters that supply
+and attest the relevant 2025 modules.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set

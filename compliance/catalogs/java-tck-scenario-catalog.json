@@ -8982,12 +8982,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
-      "mapping_note": "Standard Java API parity for schema-valid scalar, list, range, Dynamic, and mixed array cardinalities. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for schema-valid scalar, list, range, Dynamic, and mixed array cardinalities. One focused packaged Umbra JNI runtime run passed (out/java-tck/array-cardinality-forms-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-array-cardinality-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityForms",
       "parity": "cpp-tck.fom-array-cardinality-forms",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.arrayCardinalityValidFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.arrayCardinalityValidFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-array-cardinality-rejections",
@@ -8998,12 +8998,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
-      "mapping_note": "Standard Java API parity for three schema-valid invalid array modules and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for three schema-valid invalid array modules and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/array-cardinality-rejections-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-array-cardinality-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityRejections",
       "parity": "cpp-tck.fom-array-cardinality-rejections",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.arrayCardinalityValidFom, arrayCardinalityReversedRangeFom, arrayCardinalityFixedMismatchFom, and arrayCardinalityVariableMismatchFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures arrayCardinalityValidFom, arrayCardinalityReversedRangeFom, arrayCardinalityFixedMismatchFom, and arrayCardinalityVariableMismatchFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-dimension-duplicate-union",
@@ -9014,12 +9014,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8"],
       "standard_sections": ["hla-1516.2-2025:clause-C.4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2", "standard_section": "hla-1516.2-2025:clause-C.4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8", "standard_section": "hla-1516.2-2025:clause-C.4"}],
-      "mapping_note": "Standard Java API parity for accepted identical duplicate and joined dimension-handle/upper-bound lookups. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for accepted identical duplicate and joined dimension-handle/upper-bound lookups. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-duplicate-union-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-dimension-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDuplicateUnion",
       "parity": "cpp-tck.fom-dimension-duplicate-union",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateEqualUniqueFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateEqualUniqueFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-dimension-duplicate-conflict",
@@ -9030,12 +9030,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5"],
       "standard_sections": ["hla-1516.2-2025:clause-C.4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3", "standard_section": "hla-1516.2-2025:clause-C.4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5", "standard_section": "hla-1516.2-2025:clause-C.4"}],
-      "mapping_note": "Standard Java API parity for upperBound-only conflict and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for upperBound-only conflict and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-duplicate-conflict-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-dimension-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDuplicateConflict",
       "parity": "cpp-tck.fom-dimension-duplicate-conflict",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateConflictFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateConflictFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-dimension-input-type",

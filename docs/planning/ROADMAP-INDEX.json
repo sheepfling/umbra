@@ -1,4 +1,13 @@
 {
+  "portable_tck_java_array_dimension_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Run four already-promoted C++ FOM array-cardinality and duplicate-dimension cases through their pure IEEE 1516.1-2025 Java parity scenarios with adapter-owned modules.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomArrayCardinalityTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionDuplicateTck.java; compliance/catalogs/java-tck-scenario-catalog.json",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4 -> IEEE 1516.2-2025 clause 4.14.6", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6 -> IEEE 1516.2-2025 clause 4.14.6", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2 -> IEEE 1516.2-2025 clause C.4", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3 -> IEEE 1516.2-2025 clause C.4"],
+    "evidence": "Four focused Python-launched Java TCK runs each reported one pass and zero failures against the packaged Umbra JNI C++ RTI 2025 provider: out/java-tck/array-cardinality-forms-jni-20261021.json, array-cardinality-rejections-jni-20261021.json, dimension-duplicate-union-jni-20261021.json, and dimension-duplicate-conflict-jni-20261021.json. Each run compiled the Java TCK against the API-only JAR and used provider JAR/native bridge plus adapter-supplied 2025 FOMs. No C++ core rebuild or portable Java source change was needed.",
+    "scope_boundary": "These are one-ID runtime checks on one packaged provider, not a full Java suite, second-provider interoperability check, or conformance claim. Keep all four scenarios default-disabled until another adapter supplies the requisite module paths. Concurrent C++ and Table 5 edits remain untouched.",
+    "next": "Try the already-promoted C++ dimension-input-type parity ID java-tck.fom-dimension-input-type using the three adapter-supplied raw-basic, NA, and table-type FOMs plus pinned MIM. Only record Java runtime success after a focused green run; otherwise diagnose without altering the standard contract or concurrent C++ work."
+  },
   "portable_tck_java_time_runtime_gate_2026_10_21": {
     "status": "verified-focused-java-provider-runtime",
     "scope": "Run four already-green C++ time/FOM slices through their pure IEEE 1516.1-2025 Java scenario IDs using a packaged 2025 Java provider and adapter-owned FOM/time inputs.",
