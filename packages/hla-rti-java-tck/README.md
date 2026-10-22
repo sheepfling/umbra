@@ -198,6 +198,18 @@ adapter-supplied multi-attribute FOM configured with
 name properties. It saves an owner/unowned split, changes the live owner,
 restores the saved state, then checks federate-owned, unowned, and RTI-owned
 MOM query results through the standard callbacks.
+The `java-tck.ownership-acquisition-cancellation-transfer-race` case uses the
+adapter's ordinary object class and attribute. With evoked callbacks, it
+cancels while the owner's release callback is active, then checks the exact
+transfer notification and absence of a stale cancellation confirmation.
+Immediate callbacks verify the transfer result without a concurrent
+cancellation. Both modes passed focused JNI runs; this is not an
+independent-provider or conformance claim.
+The separate `java-tck.ownership-acquisition-cancellation-denial-race` case
+checks the exact unavailable reply when the owner denies release after the
+requester's cancellation call completes. It runs with evoked callbacks only;
+immediate mode reports unsupported because it cannot express this callback
+boundary race. It does not claim the three-reply aggregate obligation.
 The `java-tck.auto-provide` case verifies the configured standard Auto Provide
 switch and two object discoveries, first with Attribute Scope Advisory disabled
 and then enabled. Each discovery yields one provider callback carrying the same
