@@ -495,6 +495,14 @@ conflicting alternatives, and valid federation-name retry through standard
 Create services. Their FOM modules are adapter-supplied. All three passed
 focused installed-provider evoked and immediate runs; the membership and
 range Lab mappings retain their recorded broad provenance limits.
+The default-run `java-tck.fom-reference-attribute-resolution`,
+`java-tck.fom-data-representation-resolution`, and
+`java-tck.fom-transportation-reference-resolution` cases validate later-module
+references, standard joined lookups where available, invalid reference
+rejection, and valid federation-name retry. They consume adapter-supplied FOM
+modules and passed focused installed-provider evoked and immediate runs. The
+transportation case does not claim runtime delivery or class-to-transportation
+introspection, and no independent-provider conformance is claimed.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

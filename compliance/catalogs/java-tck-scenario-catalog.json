@@ -8833,12 +8833,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-094-l98-19", "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "requirement-candidate-sections-semantic-clause-4c-page-079-l49-3", "requirement-candidate-sections-semantic-clause-4b-page-048-l97-2"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9", "hla-1516.2-2025:clause-4.5.2"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l98-19", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "standard_section": "hla-1516.2-2025:clause-4.14.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l49-3", "standard_section": "hla-1516.2-2025:clause-4.14.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l97-2", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
-      "mapping_note": "Standard Java API parity for matching later-module referenced attributes, missing-attribute and mismatched-representation rejections, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for matching later-module referenced attributes, missing-attribute and mismatched-representation rejections, and valid federation-name retry. Matching C++ primary and contract passed 4/4 at out/mgw/reference-attribute-resolution-20261021.json.",
       "contract_refs": ["standard-fom-reference-attribute-resolution-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomReferenceAttributeResolution",
       "parity": "cpp-tck.fom-reference-attribute-resolution",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.referenceAttributeConsumerFom, referenceAttributeProviderFom, referenceAttributeMissingFom, and referenceAttributeMismatchedFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-reference-attribute-resolution-{evoked,immediate}-default-20261022.json. Adapter supplies consumer, provider, missing-attribute, and mismatched-representation FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-data-representation-resolution",
@@ -8849,12 +8849,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10", "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13", "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17", "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.15", "hla-1516.2-2025:clause-6.2.16", "hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10", "standard_section": "hla-1516.2-2025:clause-6.2.15"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13", "standard_section": "hla-1516.2-2025:clause-6.2.16"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "standard_section": "hla-1516.2-2025:clause-4.14.9"}],
-      "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for special-reference acceptance, unresolved simple/enumerated representation rejection, invalid special and ordinary reference representation rejection, and valid retry. Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for special-reference acceptance, unresolved simple/enumerated representation rejection, invalid special and ordinary reference representation rejection, and valid retry. Matching C++ primary and contract passed 4/4 at out/mgw/data-representation-resolution-20261021.json.",
       "contract_refs": ["standard-fom-data-representation-resolution-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDataRepresentationResolution",
       "parity": "cpp-tck.fom-data-representation-resolution",
-      "default_status": "unsupported",
-      "exclusion": "Configure the representationSpecialFom, representationMissingSimpleFom, representationMissingEnumeratedFom, representationInvalidSpecialFom, representationInvalidBasicFom, and referenceAttributeProviderFom adapter properties for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-data-representation-resolution-{evoked,immediate}-default-20261022.json. Adapter supplies special, missing-simple, missing-enumerated, invalid-special, invalid-basic, and attribute-provider FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-transportation-reference-resolution",
@@ -8865,12 +8865,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-063-l47-2", "requirement-candidate-sections-semantic-clauses-5-6-page-092-l82-17", "requirement-candidate-sections-semantic-clauses-5-6-page-092-l122-26", "requirement-candidate-sections-semantic-clause-4b-page-050-l66-6", "requirement-candidate-sections-semantic-clause-4b-page-053-l63-8", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2"],
       "standard_sections": ["hla-1516.2-2025:clause-4.11.2", "hla-1516.2-2025:clause-6.2.5", "hla-1516.2-2025:clause-6.2.6", "hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-C"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-063-l47-2", "standard_section": "hla-1516.2-2025:clause-4.11.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l82-17", "standard_section": "hla-1516.2-2025:clause-6.2.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l122-26", "standard_section": "hla-1516.2-2025:clause-6.2.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-050-l66-6", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l63-8", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2", "standard_section": "hla-1516.2-2025:clause-C"}],
-      "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for later-module transportation acceptance, lookup, missing-name rejection, and valid retry. No class-to-transportation introspection or runtime delivery claim; Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for later-module transportation acceptance, lookup, missing-name rejection, and valid retry. No class-to-transportation introspection or runtime delivery claim. Matching C++ primary and contract passed 4/4 at out/mgw/transportation-reference-resolution-20261021.json.",
       "contract_refs": ["standard-fom-transportation-reference-resolution-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomTransportationReferenceResolution",
       "parity": "cpp-tck.fom-transportation-reference-resolution",
-      "default_status": "unsupported",
-      "exclusion": "Configure transportationReferenceConsumerFom, transportationReferenceProviderFom, and transportationReferenceMissingFom adapter properties for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-transportation-reference-resolution-{evoked,immediate}-default-20261022.json. Adapter supplies consumer, provider, and missing-transportation FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-directed-reference-resolution",
