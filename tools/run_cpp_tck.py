@@ -796,6 +796,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-representation-omitted-tck.xml")),
             "enumerated-representation-nonbasic="
             + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-representation-nonbasic-tck.xml")),
+            "array-element-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-valid-tck.xml")),
+            "array-element-omitted="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-omitted-tck.xml")),
+            "array-element-basic="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml")),
             "reference-attribute-consumer="
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
             "reference-attribute-provider="

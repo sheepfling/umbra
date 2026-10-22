@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Schema-valid FOM modules exercise the array Element Type category at the public Create Federation Execution boundary. A named simple data type is accepted, an omitted Element Type remains an accepted incomplete DIF row, and a raw basic-data representation is rejected as InconsistentFOM. This does not claim all array constraints, Java provider runtime, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-array-element-category",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_array_element_category.cpp::scenarioFomArrayElementCategoryContract"]
+    }
+  ]
+}

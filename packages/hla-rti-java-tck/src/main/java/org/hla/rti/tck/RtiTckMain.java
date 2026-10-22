@@ -180,6 +180,12 @@ public final class RtiTckMain {
       "hla.rti.tck.enumeratedRepresentationOmittedFom";
    private static final String ENUMERATED_REPRESENTATION_NONBASIC_FOM_PROPERTY =
       "hla.rti.tck.enumeratedRepresentationNonbasicFom";
+   private static final String ARRAY_ELEMENT_VALID_FOM_PROPERTY =
+      "hla.rti.tck.arrayElementValidFom";
+   private static final String ARRAY_ELEMENT_OMITTED_FOM_PROPERTY =
+      "hla.rti.tck.arrayElementOmittedFom";
+   private static final String ARRAY_ELEMENT_BASIC_FOM_PROPERTY =
+      "hla.rti.tck.arrayElementBasicFom";
    private static final String REFERENCE_ATTRIBUTE_CONSUMER_FOM_PROPERTY =
       "hla.rti.tck.referenceAttributeConsumerFom";
    private static final String REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY =
@@ -1976,6 +1982,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomEnumeratedRepresentation);
+      run(new Scenario("java-tck.fom-array-element-category",
+            "Accept named and omitted array Element Types and reject raw basic-data elements",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomArrayElementCategory);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",
             "fom-composition",
@@ -11878,6 +11890,8 @@ public final class RtiTckMain {
             method = "fomReferenceClassResolution"; break;
          case "java-tck.fom-enumerated-representation":
             method = "fomEnumeratedRepresentation"; break;
+         case "java-tck.fom-array-element-category":
+            method = "fomArrayElementCategory"; break;
          case "java-tck.fom-reference-attribute-resolution":
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
@@ -13630,6 +13644,14 @@ public final class RtiTckMain {
       FomEnumeratedRepresentationTck.run(factory(),
          requireAdapterFile(ENUMERATED_REPRESENTATION_OMITTED_FOM_PROPERTY),
          requireAdapterFile(ENUMERATED_REPRESENTATION_NONBASIC_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomArrayElementCategory() throws Exception {
+      FomArrayElementCategoryTck.run(factory(),
+         requireAdapterFile(ARRAY_ELEMENT_VALID_FOM_PROPERTY),
+         requireAdapterFile(ARRAY_ELEMENT_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(ARRAY_ELEMENT_BASIC_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

@@ -13978,8 +13978,8 @@
         "array-element-data-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1218",
-      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied array Element Type after complete-model resolution, while retaining an omitted element type for an incomplete DIF row and accepting the standard MIM/Restaurant arrays. Remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1065",
+      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied array Element Type after complete-model resolution, while retaining an omitted element type for an incomplete DIF row and accepting the standard MIM/Restaurant arrays. Its public standard-API witness is cpp-tck.fom-array-element-category with Java scenario-ID parity; the installed-package C++ pair passed 4/4 focused CTest and direct runs across both callback models. Other array constraints, complete Annex C merge, Java provider runtime, and conformance remain open."
     },
     {
       "id": "umbra-cpp-fom-record-member-data-type-composition-integration",
