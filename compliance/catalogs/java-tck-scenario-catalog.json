@@ -8670,6 +8670,22 @@
       "exclusion": "Configure hla.rti.tck.variantDiscriminantValidFom, variantDiscriminantOmittedFom, variantDiscriminantBasicFom, variantDiscriminantSimpleFom, and variantDiscriminantNaFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-variant-enumerator-syntax",
+      "category": "fom-composition",
+      "title": "Validate variant discriminant enumerator syntax",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12", "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13", "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14"],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.20"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12", "standard_section": "hla-1516.2-2025:clause-6.2.20"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13", "standard_section": "hla-1516.2-2025:clause-6.2.20"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14", "standard_section": "hla-1516.2-2025:clause-6.2.20"}],
+      "mapping_note": "Java 2025 API-only compile passed for named range, standalone HLAother, omitted incomplete enumerator, malformed range, composite HLAother, and valid retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-variant-enumerator-syntax-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantEnumeratorSyntax",
+      "parity": "cpp-tck.fom-variant-enumerator-syntax",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.variantEnumeratorRangeFom, variantEnumeratorHlaotherFom, variantEnumeratorOmittedFom, variantEnumeratorMalformedRangeFom, and variantEnumeratorCompositeHlaotherFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

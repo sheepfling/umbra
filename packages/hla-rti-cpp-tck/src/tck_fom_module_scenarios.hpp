@@ -96,6 +96,8 @@ void scenarioFomRecordMemberCategory(Options const&, rti::CallbackModel);
 void scenarioFomRecordMemberCategoryContract(Options const&, rti::CallbackModel);
 void scenarioFomVariantDiscriminantCategory(Options const&, rti::CallbackModel);
 void scenarioFomVariantDiscriminantCategoryContract(Options const&, rti::CallbackModel);
+void scenarioFomVariantEnumeratorSyntax(Options const&, rti::CallbackModel);
+void scenarioFomVariantEnumeratorSyntaxContract(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolution(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomDataRepresentationResolution(Options const&, rti::CallbackModel);

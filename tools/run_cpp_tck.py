@@ -820,6 +820,16 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-simple-tck.xml")),
             "variant-discriminant-na="
             + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml")),
+            "variant-enumerator-range="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-range-tck.xml")),
+            "variant-enumerator-hlaother="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-hlaother-tck.xml")),
+            "variant-enumerator-omitted="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-omitted-tck.xml")),
+            "variant-enumerator-malformed-range="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-malformed-range-tck.xml")),
+            "variant-enumerator-composite-hlaother="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-composite-hlaother-tck.xml")),
             "reference-attribute-consumer="
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
             "reference-attribute-provider="

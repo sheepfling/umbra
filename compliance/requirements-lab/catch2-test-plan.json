@@ -14022,7 +14022,7 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14"
       ],
       "test_case": "The FOM composition preflight validates variant-record discriminant-enumerator syntax",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1390",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1237",
       "tags": [
         "unit",
         "fom",
@@ -14030,7 +14030,7 @@
         "variant-discriminant-enumerator"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice rejects malformed discriminant-enumerator ranges and composite HLAother forms, retains an omitted field for incomplete DIF, and accepts the official Restaurant range and standalone HLAother vectors. Paired slices verify supplied identifiers/endpoints, declaration-order range expansion, overlapping named alternatives, and the HLAother complement model. Complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+      "next_action": "This private composition slice rejects malformed discriminant-enumerator ranges and composite HLAother forms, retains an omitted field for incomplete DIF, and accepts the official Restaurant range and standalone HLAother vectors. Its public standard-API witness is cpp-tck.fom-variant-enumerator-syntax with Java scenario-ID parity; installed-package C++ focused CTest and direct runner passed 4/4 each across both callback models. Enumerator membership, declaration-order range expansion, overlapping named alternatives, HLAother complement, Java provider runtime, and conformance remain separate."
     },
     {
       "id": "umbra-cpp-fom-variant-discriminant-enumerator-membership-composition-integration",

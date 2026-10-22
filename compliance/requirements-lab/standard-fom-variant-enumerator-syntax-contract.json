@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Five adapter-owned schema-valid FOMs exercise variant-record discriminant-enumerator syntax at public Create Federation Execution. A named range, standalone HLAother, and omitted incomplete row are accepted; an unclosed range and composite HLAother are rejected as InconsistentFOM. This does not claim enumerator membership, merge rules, Java provider runtime, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-variant-enumerator-syntax",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_variant_enumerator_syntax.cpp::scenarioFomVariantEnumeratorSyntaxContract"]
+    }
+  ]
+}

@@ -204,6 +204,16 @@ public final class RtiTckMain {
       "hla.rti.tck.variantDiscriminantSimpleFom";
    private static final String VARIANT_DISCRIMINANT_NA_FOM_PROPERTY =
       "hla.rti.tck.variantDiscriminantNaFom";
+   private static final String VARIANT_ENUMERATOR_RANGE_FOM_PROPERTY =
+      "hla.rti.tck.variantEnumeratorRangeFom";
+   private static final String VARIANT_ENUMERATOR_HLAOTHER_FOM_PROPERTY =
+      "hla.rti.tck.variantEnumeratorHlaotherFom";
+   private static final String VARIANT_ENUMERATOR_OMITTED_FOM_PROPERTY =
+      "hla.rti.tck.variantEnumeratorOmittedFom";
+   private static final String VARIANT_ENUMERATOR_MALFORMED_RANGE_FOM_PROPERTY =
+      "hla.rti.tck.variantEnumeratorMalformedRangeFom";
+   private static final String VARIANT_ENUMERATOR_COMPOSITE_HLAOTHER_FOM_PROPERTY =
+      "hla.rti.tck.variantEnumeratorCompositeHlaotherFom";
    private static final String REFERENCE_ATTRIBUTE_CONSUMER_FOM_PROPERTY =
       "hla.rti.tck.referenceAttributeConsumerFom";
    private static final String REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY =
@@ -2018,6 +2028,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomVariantDiscriminantCategory);
+      run(new Scenario("java-tck.fom-variant-enumerator-syntax",
+            "Accept range, standalone HLAother, and omitted variant enumerators; reject malformed forms",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomVariantEnumeratorSyntax);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",
             "fom-composition",
@@ -11926,6 +11942,8 @@ public final class RtiTckMain {
             method = "fomRecordMemberCategory"; break;
          case "java-tck.fom-variant-discriminant-category":
             method = "fomVariantDiscriminantCategory"; break;
+         case "java-tck.fom-variant-enumerator-syntax":
+            method = "fomVariantEnumeratorSyntax"; break;
          case "java-tck.fom-reference-attribute-resolution":
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
@@ -13705,6 +13723,16 @@ public final class RtiTckMain {
          requireAdapterFile(VARIANT_DISCRIMINANT_BASIC_FOM_PROPERTY),
          requireAdapterFile(VARIANT_DISCRIMINANT_SIMPLE_FOM_PROPERTY),
          requireAdapterFile(VARIANT_DISCRIMINANT_NA_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomVariantEnumeratorSyntax() throws Exception {
+      FomVariantEnumeratorSyntaxTck.run(factory(),
+         requireAdapterFile(VARIANT_ENUMERATOR_RANGE_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ENUMERATOR_HLAOTHER_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ENUMERATOR_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ENUMERATOR_MALFORMED_RANGE_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ENUMERATOR_COMPOSITE_HLAOTHER_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 
