@@ -647,6 +647,14 @@ derived attribute values. It resolves names and handles within each federate,
 uses the adapter's typed FOM and logical time, and passed focused installed JNI
 runs in both callback modes. Independent-provider conformance is unverified.
 
+The default `java-tck.attribute-value-request-service-boundaries` case covers
+ordinary instance- and class-scoped value requests, owner callbacks with request
+tags, and the subsequent update/reflect responses. It uses each federate's own
+object and attribute handles and the adapter's object class, attribute, FOM,
+logical time, provider, endpoint, and callback model. Fabricated invalid-handle
+checks are excluded from this portable Java subset. Focused installed JNI runs
+passed in both callback modes; independent-provider conformance is unverified.
+
 The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six
 ordinary object-attribute publication/subscription calls while joined and after

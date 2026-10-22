@@ -3641,16 +3641,20 @@
     {
       "id": "java-tck.attribute-value-request-service-boundaries",
       "category": "object-management",
-      "title": "Verify instance and class value-request responses plus invalid class and attribute boundaries",
+      "title": "Verify ordinary instance- and class-scoped value requests and responses",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.requestAttributeValueUpdate(instance)",
         "RTIambassador.requestAttributeValueUpdate(class)",
         "RTIambassador.updateAttributeValues",
@@ -3664,10 +3668,12 @@
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l155-42",
+        "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
@@ -3690,7 +3696,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
       ],
-      "mapping_note": "Direct mappings cover instance- and class-scoped Request Attribute Value Update solicitation and the owner callback (6.21), request-tag propagation (6.21.5), and the provider's ordinary Update/Reflect response content and tag (6.10). Invalid ObjectClass/Attribute failures and no-callback checks after invalid requests are supplemental; adapter setup, discovery, and cleanup are setup. The class overload exercises one base-class object only; subclass expansion and multi-instance fan-out are not claimed. The Java scenario remains opt-in until run against a Java IEEE 1516.1-2025 provider.",
+      "mapping_note": "Direct mappings cover instance- and class-scoped Request Attribute Value Update solicitation and the owner callback (§6.21), request-tag propagation (§6.21.5), and the provider's ordinary Update/Reflect response content and tag (§6.10). The portable Java subset omits fabricated invalid ObjectClass/Attribute handles and does not claim those C++ supplemental assertions. Adapter setup, discovery, and cleanup are setup. The class overload exercises one base-class object only; subclass expansion and multi-instance fan-out are not claimed. The Java source uses only official IEEE 1516.1-2025 APIs and receiver-local handles. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3710,8 +3716,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeValueRequestServiceBoundaries",
       "parity": "cpp-tck.attribute-value-request-service-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; execute only through adapter-supplied configuration."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM, provider, endpoint, logical-time implementation, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-value-update-request-multi-requester",

@@ -1205,15 +1205,17 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, true), RtiTckMain::attributeValueUpdateResponse);
       run(new Scenario("java-tck.attribute-value-request-service-boundaries",
-            "verify instance and class value-request responses plus invalid class and attribute boundaries",
+            "verify ordinary instance- and class-scoped value requests and responses",
             "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.requestAttributeValueUpdate(class);RTIambassador.updateAttributeValues;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.requestAttributeValueUpdate(class);RTIambassador.updateAttributeValues;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
             new String[] {
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-attribute-value-update-request",
-               "cpp-1516.1-attribute-value-update-response",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::attributeValueRequestServiceBoundaries);
+               "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+               "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+               "requirement-candidate-content-clauses-06-object-management-page-135-l155-42",
+               "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
+            }, true), RtiTckMain::attributeValueRequestServiceBoundaries);
       run(new Scenario("java-tck.attribute-value-update-request-multi-requester",
             "deliver independent value requests to one provider and fan out its response",
             "object-management",

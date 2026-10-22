@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Verifies instance- and class-scoped value requests and invalid handle boundaries. */
+/** Verifies ordinary instance- and class-scoped value requests and responses. */
 final class AttributeValueRequestServiceBoundariesTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
 
@@ -60,7 +60,11 @@ final class AttributeValueRequestServiceBoundariesTck {
          AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          AttributeHandle memberAttribute = member.getAttributeHandle(memberClass, attributeName);
          JavaTckSupport.check(ownerClass != null && memberClass != null
-               && ownerAttribute != null && memberAttribute != null,
+               && ownerAttribute != null && memberAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(member.getObjectClassName(memberClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(member.getAttributeName(memberClass, memberAttribute)),
             "adapter FOM did not resolve value-request object class and attribute");
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          memberAttributes = JavaTckSupport.attributeSet(member, memberAttribute);
@@ -70,39 +74,25 @@ final class AttributeValueRequestServiceBoundariesTck {
          subscribed = true;
 
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
-         await(member, callbackModel, () -> memberRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(member, callbackModel, () -> memberRecorder.discoveries.size() == 1,
             "value-request object discovery");
-         JavaTckSupport.check(object.equals(memberRecorder.discoveries.get(0)),
+         ObjectInstanceHandle memberObject = member.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(memberObject.equals(memberRecorder.discoveries.get(0)),
             "value-request discovery returned the wrong object");
-
-         ObjectClassHandle invalidClass = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-         AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
-         AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(member,
-            invalidAttribute);
-         ObjectClassHandle resolvedMemberClass = memberClass;
-         AttributeHandleSet resolvedMemberAttributes = memberAttributes;
-         JavaTckSupport.expectFailure(() -> member.requestAttributeValueUpdate(
-            invalidClass, resolvedMemberAttributes, new byte[0]),
-            "ObjectClassNotDefined", "class value request with an invalid object class");
-         JavaTckSupport.expectFailure(() -> member.requestAttributeValueUpdate(
-            resolvedMemberClass, invalidAttributes, new byte[0]),
-            "AttributeNotDefined", "class value request with an invalid attribute");
-         JavaTckSupport.expectFailure(() -> member.requestAttributeValueUpdate(
-            object, invalidAttributes, new byte[0]),
-            "AttributeNotDefined", "instance value request with an invalid attribute");
-         JavaTckSupport.check(ownerRecorder.provided.isEmpty(),
-            "invalid value-request handles solicited a provider callback");
 
          byte[] instanceRequestTag = new byte[] {0x31, 0x32};
          byte[] instanceValue = new byte[] {0x41, 0x42, 0x43};
          byte[] instanceUpdateTag = new byte[] {0x51, 0x52};
          ownerRecorder.provided.clear();
-         member.requestAttributeValueUpdate(object, memberAttributes, instanceRequestTag);
+         member.requestAttributeValueUpdate(
+            memberObject, memberAttributes, instanceRequestTag);
          await(owner, callbackModel, () -> ownerRecorder.provided.size() == 1,
             "instance value-request provider callback");
          checkProvided(ownerRecorder.provided.get(0), object, ownerAttributes,
             instanceRequestTag, "instance value-request provider callback");
-         respond(owner, member, memberRecorder, object, ownerAttribute, memberAttribute,
+         respond(owner, member, memberRecorder, object, memberObject,
+            ownerAttribute, memberAttribute,
             instanceValue, instanceUpdateTag, callbackModel, "instance value-request response");
 
          byte[] classRequestTag = new byte[] {0x61, 0x62};
@@ -114,7 +104,8 @@ final class AttributeValueRequestServiceBoundariesTck {
             "class value-request provider callback");
          checkProvided(ownerRecorder.provided.get(0), object, ownerAttributes,
             classRequestTag, "class value-request provider callback");
-         respond(owner, member, memberRecorder, object, ownerAttribute, memberAttribute,
+         respond(owner, member, memberRecorder, object, memberObject,
+            ownerAttribute, memberAttribute,
             classValue, classUpdateTag, callbackModel, "class value-request response");
       } finally {
          if (memberJoined && subscribed) {
@@ -151,17 +142,19 @@ final class AttributeValueRequestServiceBoundariesTck {
    }
 
    private static void respond(RTIambassador owner, RTIambassador member, Recorder recorder,
-         ObjectInstanceHandle object, AttributeHandle ownerAttribute,
+         ObjectInstanceHandle ownerObject, ObjectInstanceHandle memberObject,
+         AttributeHandle ownerAttribute,
          AttributeHandle memberAttribute, byte[] value, byte[] tag,
          CallbackModel callbackModel, String description) throws Exception {
       recorder.reflections.clear();
       AttributeHandleValueMap values = owner.getAttributeHandleValueMapFactory().create(1);
       values.put(ownerAttribute, value);
-      owner.updateAttributeValues(object, values, tag);
+      owner.updateAttributeValues(ownerObject, values, tag);
       await(member, callbackModel, () -> recorder.reflections.size() == 1,
          description + " reflection");
       Reflection reflection = recorder.reflections.get(0);
-      JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
+      JavaTckSupport.check(memberObject.equals(reflection.object)
+            && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(memberAttribute))
             && Arrays.equals(tag, reflection.tag),
          description + " returned the wrong object, attribute value, or update tag");
