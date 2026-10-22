@@ -17,10 +17,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Preserves queued timestamped interaction delivery across Time Constrained re-enable. */
 final class TimestampedInteractionConstrainedReenableTck {
@@ -78,11 +79,15 @@ final class TimestampedInteractionConstrainedReenableTck {
             "publisher and receiver selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          receiver.enableTimeConstrained();
-         JavaTckSupport.drain(receiver);
+         awaitPair(publisher, receiver,
+            () -> receiverRecorder.timeConstrainedEnabledCount == 1,
+            "initial Time Constrained callback");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
             "receiver did not report its initial Time Constrained enable callback");
          publisher.enableTimeRegulation(epsilon);
-         JavaTckSupport.drain(publisher);
+         awaitPair(publisher, receiver,
+            () -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "Time Regulation callback");
          JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
             "publisher did not report its Time Regulation enable callback");
 
@@ -106,7 +111,9 @@ final class TimestampedInteractionConstrainedReenableTck {
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "queued interaction was delivered while Time Constrained was disabled");
          receiver.enableTimeConstrained();
-         JavaTckSupport.drain(receiver);
+         awaitPair(publisher, receiver,
+            () -> receiverRecorder.timeConstrainedEnabledCount == 2,
+            "second Time Constrained callback");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 2,
             "receiver did not report its second Time Constrained enable callback");
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
@@ -116,8 +123,18 @@ final class TimestampedInteractionConstrainedReenableTck {
          publisherRecorder.callbackOrder.clear();
          receiver.timeAdvanceRequest(messageTime);
          publisher.timeAdvanceRequest(publisherTarget);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.drain(publisher);
+         try {
+            awaitPair(publisher, receiver,
+               () -> publisherRecorder.timeAdvanceGrant != null
+                  && receiverRecorder.timeAdvanceGrant != null
+                  && receiverRecorder.interactions.size() == 1,
+               "post-re-enable interaction delivery and grants");
+         } catch (AssertionError timeout) {
+            throw new AssertionError(timeout.getMessage()
+               + " (publisher grant=" + (publisherRecorder.timeAdvanceGrant != null)
+               + ", receiver grant=" + (receiverRecorder.timeAdvanceGrant != null)
+               + ", interactions=" + receiverRecorder.interactions.size() + ")", timeout);
+         }
          JavaTckSupport.check(receiverRecorder.interactions.size() == 1,
             "queued interaction was not delivered exactly once after re-enable");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(
@@ -190,6 +207,18 @@ final class TimestampedInteractionConstrainedReenableTck {
       return result;
    }
 
+   private static void awaitPair(RTIambassador publisher, RTIambassador receiver,
+         BooleanSupplier observed, String phase) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.drain(receiver);
+         if (observed.getAsBoolean()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(phase + " did not complete within 10 seconds");
+   }
+
    private static void checkInteraction(Interaction interaction,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          byte[] expectedPayload, byte[] expectedTag, FederateHandle expectedProducer,
@@ -245,11 +274,11 @@ final class TimestampedInteractionConstrainedReenableTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabledCount;
-      private int timeConstrainedEnabledCount;
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private LogicalTime<?, ?> timeAdvanceGrant;
+      private volatile int timeRegulationEnabledCount;
+      private volatile int timeConstrainedEnabledCount;
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

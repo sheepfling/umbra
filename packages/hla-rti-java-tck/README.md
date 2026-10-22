@@ -1644,8 +1644,19 @@ The `java-tck.timestamped-interaction-reenable` scenario keeps a timestamped
 interaction queued while the receiver disables and re-enables Time Constrained.
 It checks suppression during both boundaries, delivery before the later grant,
 the original payload/tag/producer/time/order/transport/retraction metadata, and
-the terminal retraction exception. It remains unsupported by default pending
-Java provider execution.
+the terminal retraction exception. It remains unsupported by default: focused
+installed-provider opt-in runs in both callback models observed the publisher
+grant, but neither receiver delivery nor grant after the re-enable. Bounded
+callback waits and thread-safe observations rule out a one-shot drain.
+
+The `java-tck.timestamped-attribute-update-regulation-reenable` peer also
+remains unsupported. After bounded waits, its evoked run reflected the queued
+value and granted the publisher, but withheld the receiver grant at the time-5
+boundary. Its immediate run reflected the value while the producer advance was
+still pending. The promoted C++ peer currently expects a time-5 receiver grant
+after publisher TAR(2) with three-epsilon lookahead; compare that expectation
+with the adjacent interaction peer's explicit second-advance boundary before
+promoting Java or attributing the difference to the provider.
 
 The `java-tck.timestamped-directed-interaction-reenable` scenario preserves a
 timestamped directed interaction queued for a registered target while its

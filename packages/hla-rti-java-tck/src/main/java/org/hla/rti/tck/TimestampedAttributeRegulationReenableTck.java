@@ -20,11 +20,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Preserves a queued timestamped attribute update across Time Regulation re-enable. */
 final class TimestampedAttributeRegulationReenableTck {
@@ -81,7 +81,9 @@ final class TimestampedAttributeRegulationReenableTck {
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = true;
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
-         JavaTckSupport.drain(receiver);
+         awaitPair(publisher, receiver,
+            () -> object.equals(receiverRecorder.discoveredObject),
+            "object discovery");
          JavaTckSupport.check(object.equals(receiverRecorder.discoveredObject),
             "receiver did not discover the registered object");
 
@@ -91,12 +93,16 @@ final class TimestampedAttributeRegulationReenableTck {
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          receiver.enableTimeConstrained();
          constrained = true;
-         JavaTckSupport.drain(receiver);
+         awaitPair(publisher, receiver,
+            () -> receiverRecorder.timeConstrainedEnabledCount == 1,
+            "initial Time Constrained callback");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
             "receiver did not report its initial Time Constrained enable callback");
          publisher.enableTimeRegulation(epsilon);
          regulating = true;
-         JavaTckSupport.drain(publisher);
+         awaitPair(publisher, receiver,
+            () -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "initial Time Regulation callback");
          JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
             "publisher did not report its initial Time Regulation enable callback");
 
@@ -122,7 +128,9 @@ final class TimestampedAttributeRegulationReenableTck {
          regulating = false;
          publisher.enableTimeRegulation(changedLookahead);
          regulating = true;
-         JavaTckSupport.drain(publisher);
+         awaitPair(publisher, receiver,
+            () -> publisherRecorder.timeRegulationEnabledCount == 2,
+            "second Time Regulation callback");
          JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 2,
             "publisher did not report its second Time Regulation enable callback");
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
@@ -136,8 +144,19 @@ final class TimestampedAttributeRegulationReenableTck {
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
             "queued reflection was delivered while the producer boundary was pending");
          publisher.timeAdvanceRequest(publisherTarget);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.drain(publisher);
+         try {
+            awaitPair(publisher, receiver,
+               () -> receiverRecorder.reflections.size() == 1
+                  && receiverRecorder.timeAdvanceGrant != null
+                  && publisherRecorder.timeAdvanceGrant != null,
+               "queued reflection and grants");
+         } catch (AssertionError timeout) {
+            throw new AssertionError(timeout.getMessage()
+               + " (reflections=" + receiverRecorder.reflections.size()
+               + ", receiver grant=" + (receiverRecorder.timeAdvanceGrant != null)
+               + ", publisher grant=" + (publisherRecorder.timeAdvanceGrant != null)
+               + ")", timeout);
+         }
          JavaTckSupport.check(receiverRecorder.reflections.size() == 1
                && publisherRecorder.timeRegulationEnabledCount == 2,
             "re-enabled producer did not deliver exactly one timestamped reflection");
@@ -232,6 +251,18 @@ final class TimestampedAttributeRegulationReenableTck {
       LogicalTimeInterval result = start;
       for (int i = 1; i < steps; ++i) result = (LogicalTimeInterval) result.add(start);
       return result;
+   }
+
+   private static void awaitPair(RTIambassador publisher, RTIambassador receiver,
+         BooleanSupplier observed, String phase) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.drain(receiver);
+         if (observed.getAsBoolean()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(phase + " did not complete within 10 seconds");
    }
 
    private static final class Reflection {
