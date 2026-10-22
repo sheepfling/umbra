@@ -13461,6 +13461,10 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8"
       ],
       "test_case": "The FOM composition preflight enforces the YYYY-MM-DD modification-date form",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1617",
+      "standard_sections": [
+        "hla-1516.2-2025:clause-6.2.1"
+      ],
       "tags": [
         "unit",
         "fom",

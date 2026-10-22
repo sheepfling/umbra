@@ -76,6 +76,8 @@ void scenarioFomDimensionNameUniqueness(Options const&, rti::CallbackModel);
 void scenarioFomDimensionNameUniquenessContract(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassNameConventions(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassNameConventionsContract(Options const&, rti::CallbackModel);
+void scenarioFomModelModificationDate(Options const&, rti::CallbackModel);
+void scenarioFomModelModificationDateContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqual(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateNoteConflict(Options const&, rti::CallbackModel);

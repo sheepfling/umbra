@@ -750,6 +750,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-reserved-na-tck.xml")),
             "object-class-name-allowed-punctuation="
             + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-allowed-punctuation-tck.xml")),
+            "model-modification-date-timezone="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-timezone-tck.xml")),
+            "model-modification-date-exact="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-exact-tck.xml")),
             "dimension-input-table-type="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "dimension-input-description-na-invalid="

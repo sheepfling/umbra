@@ -1443,4 +1443,50 @@ void scenarioFomObjectClassNameConventionsContract(Options const& options,
   scenarioFomObjectClassNameConventions(options, model);
 }
 
+void scenarioFomModelModificationDate(Options const& options,
+                                      rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Model modification date requires adapter-supplied MIM and logical time");
+  auto const requiredFom = [&](std::string const& key)
+      -> std::filesystem::path const& {
+    auto const found = options.scenarioFoms.find(key);
+    require(found != options.scenarioFoms.end(),
+            "Model modification date requires adapter-supplied FOM modules");
+    return found->second;
+  };
+  auto const& timezone = requiredFom("model-modification-date-timezone");
+  auto const& exact = requiredFom("model-modification-date-exact");
+  Session creator(options, model, "model-modification-date-creator");
+  Session member(options, model, "model-modification-date-member");
+  auto const federation = federationName(options, "fom-model-modification-date");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(timezone); }, L"InconsistentFOM",
+                   "a timezone suffix on a model modification date");
+
+  // The accepted form also confirms failed Create left the name reusable.
+  createWithMim(exact);
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto& rti = member.rtiAmbassador();
+  auto const name = std::wstring(L"HLAobjectRoot.TckDateModelObject");
+  auto const objectClass = rti.getObjectClassHandle(name);
+  require(objectClass.isValid() && rti.getObjectClassName(objectClass) == name,
+          "a model with an exact modification date did not compose publicly");
+  member.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomModelModificationDateContract(Options const& options,
+                                              rti::CallbackModel model) {
+  scenarioFomModelModificationDate(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

@@ -128,6 +128,10 @@ public final class RtiTckMain {
       "hla.rti.tck.objectClassNameReservedNaFom";
    private static final String OBJECT_CLASS_NAME_ALLOWED_FOM_PROPERTY =
       "hla.rti.tck.objectClassNameAllowedFom";
+   private static final String MODEL_MODIFICATION_DATE_TIMEZONE_FOM_PROPERTY =
+      "hla.rti.tck.modelModificationDateTimezoneFom";
+   private static final String MODEL_MODIFICATION_DATE_EXACT_FOM_PROPERTY =
+      "hla.rti.tck.modelModificationDateExactFom";
    private static final String DIMENSION_INPUT_RAW_BASIC_FOM_PROPERTY =
       "hla.rti.tck.dimensionInputRawBasicFom";
    private static final String DIMENSION_INPUT_NA_FOM_PROPERTY =
@@ -1818,6 +1822,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomObjectClassNameConventions);
+      run(new Scenario("java-tck.fom-model-modification-date",
+            "Reject a timezone-suffixed modification date and accept YYYY-MM-DD",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomModelModificationDate);
       run(new Scenario("java-tck.fom-synchronization-duplicate-equal",
             "Accept identical same-label synchronization declarations",
             "fom-composition",
@@ -11616,6 +11626,8 @@ public final class RtiTckMain {
             method = "fomDimensionNameUniqueness"; break;
          case "java-tck.fom-object-class-name-conventions":
             method = "fomObjectClassNameConventions"; break;
+         case "java-tck.fom-model-modification-date":
+            method = "fomModelModificationDate"; break;
          case "java-tck.fom-synchronization-duplicate-equal":
             method = "fomSynchronizationDuplicateEqual"; break;
          case "java-tck.fom-synchronization-duplicate-note-conflict":
@@ -13284,6 +13296,13 @@ public final class RtiTckMain {
          requireAdapterFile(OBJECT_CLASS_NAME_RESERVED_HLA_FOM_PROPERTY),
          requireAdapterFile(OBJECT_CLASS_NAME_RESERVED_NA_FOM_PROPERTY),
          requireAdapterFile(OBJECT_CLASS_NAME_ALLOWED_FOM_PROPERTY),
+         requireMim(), timeImplementation(), callbackModel());
+   }
+
+   private static void fomModelModificationDate() throws Exception {
+      FomModelModificationDateTck.run(factory(),
+         requireAdapterFile(MODEL_MODIFICATION_DATE_TIMEZONE_FOM_PROPERTY),
+         requireAdapterFile(MODEL_MODIFICATION_DATE_EXACT_FOM_PROPERTY),
          requireMim(), timeImplementation(), callbackModel());
    }
 
