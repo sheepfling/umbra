@@ -1768,6 +1768,16 @@ with the adapter supplying a FOM-matching interaction, parameter, and
 HLAinteger64Time. The case uses only the official Java API; no independent-
 provider conformance or float64 result is claimed.
 
+The default `java-tck.disable-time-regulation-send-order` case is
+HLA_IMMEDIATE-only. After disabling Time Regulation, it observes that a
+timestamped Send Interaction arrives in receive order, allowing either
+standard receive callback overload. Its direct §8.4 mapping passed a fresh
+installed-provider integer64 run; existing focused evidence also covers
+float64 with a matching adapter FOM. HLA_EVOKED is reported as unsupported,
+not a test failure. Provider, FOM, interaction class, endpoint, time, and
+callback configuration remain adapter inputs; no cross-provider conformance
+is claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

@@ -14534,14 +14534,14 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-190-l106-26"],
       "standard_sections": ["hla-1516.1-2025:clause-8.4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l106-26", "standard_section": "hla-1516.1-2025:clause-8.4"}],
-      "mapping_note": "Pure 2025 Java API parity for the HLA_IMMEDIATE post-disable interaction-order transition. Accepts either the untimed receive callback or a timed callback whose explicit sent and received order fields are both RECEIVE. Focused installed-provider runs passed with integer64 and float64 after supplying the adapter FOM's interaction class (out/java-tck/disable-regulation-order-*-jni-20261022.json). It does not prescribe callback overload shape, claim other message families, or establish cross-provider interoperability.",
+      "mapping_note": "Pure 2025 Java API parity for the HLA_IMMEDIATE post-disable interaction-order transition. Accepts either the untimed receive callback or a timed callback whose explicit sent and received order fields are both RECEIVE. Focused installed-provider runs passed with integer64 and float64 after supplying the adapter FOM's interaction class (out/java-tck/disable-regulation-order-*-jni-20261022.json); a fresh integer64 default run also passes. HLA_EVOKED is explicitly unsupported for this callback-observation case. It does not prescribe callback overload shape, claim other message families, or establish cross-provider interoperability.",
       "callback_models": ["immediate"],
       "contract_refs": ["standard-disable-time-regulation-send-order-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#disableTimeRegulationSendOrder",
       "parity": "cpp-tck.disable-time-regulation-send-order",
-      "default_status": "unsupported",
-      "promotion": "candidate",
-      "exclusion": "Default-disabled for unconfigured adapters; requires a standard 2025 Java provider, FOM, interaction class, logical-time implementation, and HLA_IMMEDIATE callback configuration."
+      "default_status": "run",
+      "promotion": "promoted",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction class, endpoint, matching logical-time implementation, and HLA_IMMEDIATE callbacks; HLA_EVOKED is unsupported."
     },
     {
       "id": "java-tck.time-constrained-enable-retains-queued-tso",

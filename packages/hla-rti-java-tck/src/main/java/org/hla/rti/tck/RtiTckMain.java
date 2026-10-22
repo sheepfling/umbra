@@ -3133,7 +3133,7 @@ public final class RtiTckMain {
             "time-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.receiveInteraction",
             new String[] {"requirement-candidate-content-clauses-08-time-management-page-190-l106-26"},
-            false), RtiTckMain::disableTimeRegulationSendOrder);
+            true), RtiTckMain::disableTimeRegulationSendOrder);
       run(new Scenario("java-tck.time-constrained-enable-retains-queued-tso",
             "retain a queued timestamped interaction across pending Time Constrained enablement",
             "time-management",
@@ -9387,6 +9387,10 @@ public final class RtiTckMain {
    }
 
    private static void disableTimeRegulationSendOrder() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_IMMEDIATE) {
+         throw new UnsupportedPortableScenario(
+            "post-disable send-order callback observation requires HLA_IMMEDIATE callbacks");
+      }
       DisableTimeRegulationSendOrderTck.run(factory(), requireFom(),
          timeImplementation(), interactionClassName(), callbackModel());
    }
