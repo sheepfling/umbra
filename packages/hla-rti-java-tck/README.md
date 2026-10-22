@@ -283,6 +283,12 @@ default-run after evoked and immediate installed-package passes. It checks
 that disabling then re-enabling asynchronous delivery releases the RO control
 without bypassing the TSO time gate, and that TAR releases the timestamped
 event before its grant (§§8.1.5, 8.14.4, 8.15.3, 8.16.5).
+Two further default-run Time Advancing RO cases check the pending-TAR
+boundary: enabling asynchronous delivery releases an RO interaction before
+the grant (§8.15.3), and disabling it during Time Advancing does not revoke
+that RO callback's eligibility (§8.16.5). Both passed evoked and immediate
+installed-package runs on 2026-10-22; neither asserts TSO delivery or
+network-arrival timing.
 The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
 rate lookup, active and passive named subscriptions, default-rate behavior,
 per-attribute rate reset, and invalid designator/object/attribute failures.

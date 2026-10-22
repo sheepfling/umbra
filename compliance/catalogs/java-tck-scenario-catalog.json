@@ -32054,7 +32054,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.15.3"
         }
       ],
-      "mapping_note": "Direct pair to §8.15.3: the receiver submits TAR(6), remains Time Advancing because the regulated sender's lower bound is below 6, then invokes Enable Asynchronous Delivery. A receive-order interaction callback arrives before the pending grant. The sender's later TAR advances the lower bound and releases the receiver's request. This asserts receive-order delivery only; no timestamped-message or future-network-arrival behavior is claimed.",
+      "mapping_note": "Direct pair to §8.15.3: the receiver submits TAR(6), remains Time Advancing because the regulated sender's lower bound is below 6, then invokes Enable Asynchronous Delivery. A receive-order interaction callback arrives before the pending grant. The sender's later TAR advances the lower bound and releases the receiver's request. This asserts receive-order delivery only; no timestamped-message or future-network-arrival behavior is claimed. Installed Java adapter passed both callback models on 2026-10-22, not independent-provider conformance.",
       "contract_refs": [
         "asynchronous-delivery-api-contract.json",
         "asynchronous-delivery-requirements-contract.json",
@@ -32062,8 +32062,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#asynchronousDeliveryTimeAdvancingRo",
       "parity": "cpp-tck.asynchronous-delivery-time-advancing-ro",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model. Only official IEEE 1516.1-2025 Java API and JDK APIs are used; no provider-specific classes or DDM regions."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/asynchronous-time-advancing-ro-{evoked,immediate}-default-20261022.json. Matching C++ peer passed both modes in out/mgw/cpp-tck-asynchronous-delivery-time-advancing-ro-20261017/results.json. Provider, FOM, endpoint, time, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.asynchronous-delivery-disabled-time-advancing-ro",
@@ -32112,15 +32112,15 @@
           "standard_section": "hla-1516.1-2025:clause-8.16.5"
         }
       ],
-      "mapping_note": "Direct pair to §8.16.5: after the time-constrained receiver has an outstanding TAR and is Time Advancing, it disables asynchronous delivery. A newly received receive-order interaction callback remains eligible and arrives before the pending grant. The sender then advances its lower bound to release the TAR. This asserts only the received RO callback path, not asynchronous TSO delivery or network-arrival coordination.",
+      "mapping_note": "Direct pair to §8.16.5: after the time-constrained receiver has an outstanding TAR and is Time Advancing, it disables asynchronous delivery. A newly received receive-order interaction callback remains eligible and arrives before the pending grant. The sender then advances its lower bound to release the TAR. This asserts only the received RO callback path, not asynchronous TSO delivery or network-arrival coordination. Installed Java adapter passed both callback models on 2026-10-22, not independent-provider conformance.",
       "contract_refs": [
         "asynchronous-delivery-api-contract.json",
         "asynchronous-delivery-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#asynchronousDeliveryDisabledTimeAdvancingRo",
       "parity": "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model. Only official IEEE 1516.1-2025 Java API and JDK APIs are used; no provider-specific classes or DDM regions."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/asynchronous-disabled-time-advancing-ro-{evoked,immediate}-default-20261022.json. Matching C++ peer passed both modes in out/mgw/cpp-tck-asynchronous-delivery-disabled-time-advancing-ro-20261017/results.json. Provider, FOM, endpoint, time, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.federation-restore-abort",

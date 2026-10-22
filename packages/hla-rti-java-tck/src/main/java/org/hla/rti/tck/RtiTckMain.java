@@ -1071,13 +1071,13 @@ public final class RtiTckMain {
             "deliver receive-order interactions when asynchronous delivery is enabled during Time Advancing",
             "asynchronous-delivery",
             "RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableAsynchronousDelivery;RTIambassador.sendInteraction;FederateAmbassador.receiveInteraction;FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-asynchronous-delivery-enable"}, false),
+            new String[] {"cpp-1516.1-asynchronous-delivery-enable"}, true),
             RtiTckMain::asynchronousDeliveryTimeAdvancingRo);
       run(new Scenario("java-tck.asynchronous-delivery-disabled-time-advancing-ro",
             "retain receive-order callback eligibility after disabling asynchronous delivery during Time Advancing",
             "asynchronous-delivery",
             "RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableAsynchronousDelivery;RTIambassador.disableAsynchronousDelivery;RTIambassador.sendInteraction;FederateAmbassador.receiveInteraction;FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-asynchronous-delivery-disable"}, false),
+            new String[] {"cpp-1516.1-asynchronous-delivery-disable"}, true),
             RtiTckMain::asynchronousDeliveryDisabledTimeAdvancingRo);
       run(new Scenario("java-tck.send-message-time-state-preservation-granted",
             "preserve the sender's Time Granted state across ordinary Send Message",
