@@ -14448,15 +14448,16 @@
           "standard_section": "hla-1516.1-2025:clause-8.6"
         }
       ],
-      "mapping_note": "Direct §8.6.3 mappings page-192 l66/l69 cover the Time Constrained Enabled argument equaling the already-regulating federate's new/current logical time after it advances to five. The l69 fragment uses its page-level continuation (RL-333); RL-354 records removal of a prior false TAG-test link. The §8.6 mapping remains limited to this regulating-federate branch. No GALT formula or complete service algorithm is claimed. Java provider runtime remains unverified.",
+      "mapping_note": "Direct §8.6.3 mappings page-192 l66/l69 cover the Time Constrained Enabled argument equaling the already-regulating federate's new/current logical time after it advances to five. The l69 fragment uses its page-level continuation (RL-333); RL-354 records removal of a prior false TAG-test link. The §8.6 mapping remains limited to this regulating-federate branch. Focused installed-provider Java runs pass in both callback models; no GALT formula, complete service algorithm, or independent-provider conformance is claimed.",
       "contract_refs": [
         "time-role-api-contract.json",
         "time-role-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableRegulatingFederateCurrentTime",
       "parity": "cpp-tck.time-constrained-enable-regulating-federate-current-time",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-regulation-enable-actual-lookahead-tso-send",

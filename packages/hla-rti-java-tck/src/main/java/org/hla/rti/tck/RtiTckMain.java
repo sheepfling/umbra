@@ -3104,7 +3104,12 @@ public final class RtiTckMain {
             "report the regulating federate's current logical time when Time Constrained is enabled",
             "time-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled",
-            new String[] {"cpp-1516.1-time-role-callbacks"}, false),
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+               "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+               "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
+               "cpp-1516.1-time-role-callbacks"
+            }, true),
          RtiTckMain::timeConstrainedEnableRegulatingFederateCurrentTime);
       run(new Scenario("java-tck.time-regulation-enable-actual-lookahead-tso-send",
             "assign actual lookahead and admit timestamped interactions at the post-enable floor",

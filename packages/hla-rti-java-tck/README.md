@@ -1753,6 +1753,13 @@ provider runs in both callback models. Provider, FOM, endpoint, time, and
 callback configuration remain adapter inputs; this is not an independent-
 provider conformance claim.
 
+The default `java-tck.time-constrained-enable-regulating-federate-current-time`
+case checks that Time Constrained Enabled reports the already-regulating
+federate's current logical time after an advance. Its three direct §8.6/§8.6.3
+mappings and focused installed-provider runs pass under both callback models.
+The provider, FOM, endpoint, time, and callback model come from the adapter;
+this does not establish an independent-provider conformance result.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
