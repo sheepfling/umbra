@@ -9366,12 +9366,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"],
       "standard_sections": ["hla-1516.2-2025:clause-C.10"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12", "standard_section": "hla-1516.2-2025:clause-C.10"}],
-      "mapping_note": "Standard Java API and JDK XML-parser parity for public current-FDD service-usage OR. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API and JDK XML-parser parity for public current-FDD service-usage OR. Four module sets passed focused packaged-provider runtime in both callback models; the separate broader MOM metadata scenario remains unchanged.",
       "contract_refs": ["standard-fom-service-usage-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomServiceUsageMerge",
       "parity": "cpp-tck.fom-service-usage-merge",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.serviceUsageFirstFom, hla.rti.tck.serviceUsageSecondFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.serviceUsageFirstFom, hla.rti.tck.serviceUsageSecondFom, and hla.rti.tck.mim; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-note-collision-remap",
@@ -9382,12 +9382,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11"],
       "standard_sections": ["hla-1516.2-2025:clause-C.9"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11", "standard_section": "hla-1516.2-2025:clause-C.9"}],
-      "mapping_note": "Java API and JDK DOM-parser parity for both FOM orders; label spelling is not asserted. Java provider runtime unverified.",
+      "mapping_note": "Java API and JDK DOM-parser parity for both FOM orders; label spelling is not asserted. Focused packaged-provider runtime passed in both callback models; the separate broader MOM metadata scenario remains unchanged.",
       "contract_refs": ["standard-fom-note-collision-remap-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomNoteCollisionRemap",
       "parity": "cpp-tck.fom-note-collision-remap",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.noteCollisionFirstFom, hla.rti.tck.noteCollisionSecondFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.noteCollisionFirstFom, hla.rti.tck.noteCollisionSecondFom, and hla.rti.tck.mim; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-standard-invalid-input-corpus",

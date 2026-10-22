@@ -1,4 +1,16 @@
 {
+  "portable_tck_java_fom_annex_c9_c10_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Match promoted C++ Annex C.9 note-collision and C.10 service-utilization witnesses with focused pure IEEE 1516.1-2025 Java scenarios over adapter-owned FOM module combinations.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomServiceUsageMergeTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNoteCollisionRemapTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/catalogs/java-tck-scenario-catalog.json; compliance/requirements-lab/standard-fom-service-usage-merge-contract.json; compliance/requirements-lab/standard-fom-note-collision-remap-contract.json",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11 -> IEEE 1516.2-2025 clause C.9",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12 -> IEEE 1516.2-2025 clause C.10"
+    ],
+    "evidence": "The dedicated Java scenarios compiled against the API-only JAR and passed on the packaged provider in HLA_EVOKED and HLA_IMMEDIATE: out/java-tck/service-usage-merge-jni-20261021.json, service-usage-merge-immediate-jni-20261021.json, note-collision-remap-jni-20261021.json, and note-collision-remap-immediate-jni-20261021.json. C.10 covers four module sets; C.9 covers both module orders. Both promoted C++ primary/contract pairs previously passed installed-package gates in both callback models; cpp_tck.py --scenario reports no findings for each.",
+    "scope_boundary": "These C.9/C.10 witnesses check composed HLAcurrentFDD content; unrelated MOM reflection metadata and dynamic additional-FOM Join assertions remain in the separate broader MOM test. One packaged provider does not establish interoperability or full conformance. Provider, FOM, MIM, time, endpoint, and callback settings remain adapter-owned. Concurrent C++ and Table 5 changes remain untouched.",
+    "next": "Audit the next native-green FOM composition row for a distinct normative public-API boundary; translate only after verifying the C++ source and mapping, then run focused Java parity in both callback models without rebuilding the C++ core."
+  },
   "portable_tck_java_switch_duplicate_runtime_gate_2026_10_21": {
     "status": "verified-focused-java-provider-runtime",
     "scope": "Run six already-promoted C++ FOM support-switch and advisory-switch duplicate cases through pure IEEE 1516.1-2025 Java parity scenarios using adapter-owned 2025 modules.",

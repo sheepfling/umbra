@@ -14045,7 +14045,7 @@ public final class RtiTckMain {
    }
 
    private static void fomServiceUsageMerge() throws Exception {
-      FederationMomCurrentFddTck.runServiceUsageMerge(factory(),
+      FomServiceUsageMergeTck.run(factory(),
          requireAdapterFile(SERVICE_USAGE_FIRST_FOM_PROPERTY),
          requireAdapterFile(SERVICE_USAGE_SECOND_FOM_PROPERTY), requireMim(),
          timeImplementation(), callbackModel(),
@@ -14053,7 +14053,7 @@ public final class RtiTckMain {
    }
 
    private static void fomNoteCollisionRemap() throws Exception {
-      FederationMomCurrentFddTck.runNoteCollisionRemap(factory(),
+      FomNoteCollisionRemapTck.run(factory(),
          requireAdapterFile(NOTE_COLLISION_FIRST_FOM_PROPERTY),
          requireAdapterFile(NOTE_COLLISION_SECOND_FOM_PROPERTY), requireMim(),
          timeImplementation(), callbackModel(),

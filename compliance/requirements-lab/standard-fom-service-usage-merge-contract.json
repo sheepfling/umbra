@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable official-API service-utilization OR witness. The adapter supplies the provider package, standard MIM, two FOM modules, endpoint, logical time, and callback model. The public HLAcurrentFDD federation MOM attribute exposes the composed FDD. C.9 note-label remapping, provider-specific labels, Java provider runtime, and interoperability are not claimed.",
+  "notes": "Portable official-API service-utilization OR witness. The adapter supplies the provider package, standard MIM, two FOM modules, endpoint, logical time, and callback model. The public HLAcurrentFDD federation MOM attribute exposes the composed FDD. Focused Java packaged-provider runtime passed in evoked and immediate callback models. Broader MOM reflection metadata, C.9 note-label remapping, provider-specific labels, and interoperability are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-service-usage-merge",
@@ -14,6 +14,16 @@
       "tests": [
         "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomServiceUsageMerge",
         "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomServiceUsageMergeContract"
+      ]
+    },
+    {
+      "id": "standard-java-fom-service-usage-merge",
+      "language": "java",
+      "signature": "RTIambassador Create/Join, federation MOM HLAcurrentFDD subscription and request; FederateAmbassador discovery and reflection",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "IEEE 1516.1-2025 Java RTIambassador and FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomServiceUsageMergeTck.java::run"
       ]
     }
   ],

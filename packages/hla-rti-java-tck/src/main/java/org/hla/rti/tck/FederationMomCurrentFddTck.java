@@ -186,7 +186,7 @@ final class FederationMomCurrentFddTck {
       }
    }
 
-   private static boolean disconnectServiceUsed(String fdd) throws Exception {
+   static boolean disconnectServiceUsed(String fdd) throws Exception {
       NodeList rows = parseFdd(fdd).getElementsByTagNameNS("*", "disconnect");
       Boolean found = null;
       for (int index = 0; index < rows.getLength(); index++) {
@@ -212,7 +212,7 @@ final class FederationMomCurrentFddTck {
       return builder.newDocumentBuilder().parse(new InputSource(new StringReader(fdd)));
    }
 
-   private static void requireDistinctReferencedNotes(String fdd) throws Exception {
+   static void requireDistinctReferencedNotes(String fdd) throws Exception {
       Document document = parseFdd(fdd);
       NodeList notes = document.getElementsByTagNameNS("*", "note");
       Map<String, String> labels = new LinkedHashMap<>();

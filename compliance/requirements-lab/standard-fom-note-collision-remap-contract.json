@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Annex C.9 note-label collision witness through standard federation MOM HLAcurrentFDD. The adapter supplies the provider package, standard MIM, both schema-valid FOM modules, endpoint, logical time, and callback model. Only distinct referenced labels and preserved note semantics are asserted; no provider-specific label spelling or private composer behavior is required. Java provider runtime and interoperability are unverified.",
+  "notes": "Portable Annex C.9 note-label collision witness through standard federation MOM HLAcurrentFDD. The adapter supplies the provider package, standard MIM, both schema-valid FOM modules, endpoint, logical time, and callback model. Only distinct referenced labels and preserved note semantics are asserted; no provider-specific label spelling or private composer behavior is required. Focused Java packaged-provider runtime passed in both callback models; interoperability is unverified.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-note-collision-remap",
@@ -14,6 +14,16 @@
       "tests": [
         "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomNoteCollisionRemap",
         "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomNoteCollisionRemapContract"
+      ]
+    },
+    {
+      "id": "standard-java-fom-note-collision-remap",
+      "language": "java",
+      "signature": "RTIambassador Create/Join, federation MOM HLAcurrentFDD subscription and request; FederateAmbassador discovery and reflection",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "IEEE 1516.1-2025 Java RTIambassador and FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNoteCollisionRemapTck.java::run"
       ]
     }
   ],
