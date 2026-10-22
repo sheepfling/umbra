@@ -16777,6 +16777,7 @@
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.retract",
         "RTIambassador.getTimeFactory",
         "LogicalTimeFactory.makeEpsilon",
         "RTIambassador.getParameterHandleValueMapFactory",
@@ -16838,7 +16839,7 @@
     "hla-1516.1-2025:clause-8.13",
     "hla-1516.1-2025:clause-8.1.5"
       ],
-  "mapping_note": "Direct parity mappings: §8.12 covers two TSO messages queued before FQR and delivered at timestamps 11 and 12 above request time 10; §8.13 covers OLT=min(request 10, delivered timestamps 11 and 12)=10; §8.1.5 covers rejecting timestamp 10 and accepting timestamp 11 at OLT plus optimistic lookahead. RL-349 locally maps the page-202 OLT result to the §8.13 service description rather than exported §8.13.3; RL-350 locally maps the page-182 floor to §8.1.5 rather than broad Clause 8. The pair makes no callback-start cutoff or post-invocation arrival claim, and Java provider runtime remains unsupported until an adapter supplies a provider.",
+  "mapping_note": "Direct parity mappings: §8.12 and §8.12.3 cover three TSO messages queued before FQR and delivered in timestamp order at boundary 10 and future times 11 and 12 before Flush Queue Grant. A fourth message at 13 is retracted before FQR and absent from this grant's callback sequence; retraction is supplemental evidence, not a new direct mapping. §8.13 covers OLT=min(request 10, delivered timestamps 10, 11, and 12)=10; §8.1.5 covers rejecting timestamp 10 and accepting timestamp 11 at OLT plus optimistic lookahead. RL-349 locally maps the page-202 OLT result to the §8.13 service description rather than exported §8.13.3; RL-350 locally maps the page-182 floor to §8.1.5 rather than broad Clause 8. The pair makes no callback-start cutoff, second FQR replay, or post-invocation arrival claim. The focused provider run requires adapter-supplied 2025 API, FOM, time, endpoint, and callback settings; default status remains unsupported without them.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",

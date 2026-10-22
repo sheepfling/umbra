@@ -87,23 +87,39 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
          LogicalTime receiverInitial = receiver.queryLogicalTime();
          LogicalTime firstTime = offset(initial, epsilon, 11);
          LogicalTime secondTime = offset(initial, epsilon, 12);
+         LogicalTime boundaryTime = offset(initial, epsilon, 10);
+         LogicalTime retractedTime = offset(initial, epsilon, 13);
          LogicalTime publisherTarget = offset(initial, epsilon, 4);
          LogicalTime requestBoundary = offset(receiverInitial, epsilon, 10);
-         JavaTckSupport.check(compareTime(requestBoundary, firstTime) < 0
-               && compareTime(firstTime, secondTime) < 0,
-            "both future TSO timestamps must be later than the Flush Queue request time");
+         JavaTckSupport.check(boundaryTime.equals(requestBoundary)
+               && compareTime(requestBoundary, firstTime) < 0
+               && compareTime(firstTime, secondTime) < 0
+               && compareTime(secondTime, retractedTime) < 0,
+            "Flush Queue scenario requires boundary, future, and retractable TSO timestamps");
+         byte[] boundaryPayload = new byte[] {0x42, 0x4f, 0x55, 0x4e, 0x44};
          byte[] firstPayload = new byte[] {0x46, 0x55, 0x54, 0x55, 0x52, 0x45};
          byte[] secondPayload = new byte[] {0x46, 0x55, 0x54, 0x55, 0x52, 0x45, 0x2d, 0x32};
+         byte[] boundaryTag = new byte[] {0x46, 0x51, 0x30};
          byte[] firstTag = new byte[] {0x46, 0x51, 0x31};
          byte[] secondTag = new byte[] {0x46, 0x51, 0x32};
+         byte[] retractedTag = new byte[] {0x46, 0x51, 0x52};
+         MessageRetractionReturn boundaryRetraction = publisher.sendInteraction(
+            publisherClass, oneParameter(publisher, publisherParameter, boundaryPayload),
+            boundaryTag, boundaryTime);
          MessageRetractionReturn firstRetraction = publisher.sendInteraction(
             publisherClass, oneParameter(publisher, publisherParameter, firstPayload),
             firstTag, firstTime);
          MessageRetractionReturn secondRetraction = publisher.sendInteraction(
             publisherClass, oneParameter(publisher, publisherParameter, secondPayload),
             secondTag, secondTime);
+         MessageRetractionReturn retractedRetraction = publisher.sendInteraction(
+            publisherClass, oneParameter(publisher, publisherParameter, firstPayload),
+            retractedTag, retractedTime);
+         checkRetraction(boundaryRetraction, "boundary interaction");
          checkRetraction(firstRetraction, "first future interaction");
          checkRetraction(secondRetraction, "second future interaction");
+         checkRetraction(retractedRetraction, "retractable future interaction");
+         publisher.retract(retractedRetraction.handle);
          JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "future interactions were delivered before Flush Queue Request");
@@ -120,17 +136,21 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
          JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
             "publisher received the wrong time-advance grant");
-         JavaTckSupport.check(receiverRecorder.interactions.size() == 2
+         JavaTckSupport.check(receiverRecorder.interactions.size() == 3
                && receiverRecorder.flushQueueGrantTimes.size() == 1
                && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
             "Flush Queue Request returned the wrong interaction or grant callback counts");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(Arrays.asList(
-               "receiveInteraction", "receiveInteraction", "flushQueueGrant")),
-            "Flush Queue Request granted before both queued future interactions");
+               "receiveInteraction", "receiveInteraction", "receiveInteraction",
+               "flushQueueGrant")),
+            "Flush Queue Request granted before queued boundary and future interactions");
          checkInteraction(receiver, receiverRecorder.interactions.get(0), receiverClass,
+            receiverParameter, boundaryPayload, boundaryTag, producer, boundaryTime,
+            boundaryRetraction.handle, "boundary interaction");
+         checkInteraction(receiver, receiverRecorder.interactions.get(1), receiverClass,
             receiverParameter, firstPayload, firstTag, producer, firstTime,
             firstRetraction.handle, "first future interaction");
-         checkInteraction(receiver, receiverRecorder.interactions.get(1), receiverClass,
+         checkInteraction(receiver, receiverRecorder.interactions.get(2), receiverClass,
             receiverParameter, secondPayload, secondTag, producer, secondTime,
             secondRetraction.handle, "second future interaction");
 

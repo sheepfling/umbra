@@ -542,6 +542,16 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *publisherTime.initial,
       *publisherTime.epsilon,
       12U);
+  auto const boundaryTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      10U);
+  auto const retractedTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      13U);
   auto const publisherTarget = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -553,15 +563,26 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *receiverTime.epsilon,
       10U);
   require(
-      *requestBoundary < *firstTime && *firstTime < *secondTime,
-      "Timestamped interaction Flush Queue future-input scenario must queue both TSO timestamps above the requested time");
+      encodeTime(*boundaryTime) == encodeTime(*requestBoundary) &&
+          *requestBoundary < *firstTime && *firstTime < *secondTime &&
+          *secondTime < *retractedTime,
+      "Timestamped interaction Flush Queue scenario requires boundary, future, and retractable TSO timestamps");
 
+  std::vector<std::uint8_t> const boundaryParameterBytes{0x42U, 0x4FU, 0x55U, 0x4EU, 0x44U};
   std::vector<std::uint8_t> const firstParameterBytes{
       0x46U, 0x55U, 0x54U, 0x55U, 0x52U, 0x45U};
   std::vector<std::uint8_t> const secondParameterBytes{
       0x46U, 0x55U, 0x54U, 0x55U, 0x52U, 0x45U, 0x2DU, 0x32U};
+  std::vector<std::uint8_t> const boundaryTagBytes{0x46U, 0x51U, 0x30U};
   std::vector<std::uint8_t> const firstTagBytes{0x46U, 0x51U, 0x31U};
   std::vector<std::uint8_t> const secondTagBytes{0x46U, 0x51U, 0x32U};
+  std::vector<std::uint8_t> const retractedTagBytes{0x46U, 0x51U, 0x52U};
+  rti::ParameterHandleValueMap boundaryParameters;
+  boundaryParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          boundaryParameterBytes.data(),
+          boundaryParameterBytes.size()));
   rti::ParameterHandleValueMap firstParameters;
   firstParameters.emplace(
       publisherParameter,
@@ -574,11 +595,21 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       rti::VariableLengthData(
           secondParameterBytes.data(),
           secondParameterBytes.size()));
+  rti::VariableLengthData boundaryTag(
+      boundaryTagBytes.data(), boundaryTagBytes.size());
   rti::VariableLengthData firstTag(firstTagBytes.data(), firstTagBytes.size());
   rti::VariableLengthData secondTag(secondTagBytes.data(), secondTagBytes.size());
+  rti::VariableLengthData retractedTag(
+      retractedTagBytes.data(), retractedTagBytes.size());
 
-  // Queue two messages above the FQR request boundary. Delivery must precede
-  // the grant, and the FQG optimistic time must remain bounded by the request.
+  // Queue one message at the inclusive request boundary and two above it.
+  // Retract a later queued message before FQR; only the other three may cross
+  // the callback boundary before the grant.
+  auto const boundaryRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      boundaryParameters,
+      boundaryTag,
+      *boundaryTime);
   auto const firstRetraction = publisher.rtiAmbassador().sendInteraction(
       publisherInteraction,
       firstParameters,
@@ -589,9 +620,16 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       secondParameters,
       secondTag,
       *secondTime);
+  auto const retractedRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      firstParameters,
+      retractedTag,
+      *retractedTime);
   require(
-      firstRetraction.isValid() && secondRetraction.isValid(),
+      boundaryRetraction.isValid() && firstRetraction.isValid() &&
+          secondRetraction.isValid() && retractedRetraction.isValid(),
       "Timestamped interaction Flush Queue future-input send returned an invalid retraction handle");
+  publisher.rtiAmbassador().retract(retractedRetraction);
   require(
       receiver.recorder().timedInteractions().empty(),
       "Timestamped interaction Flush Queue future-input delivered before time-constrained servicing");
@@ -609,7 +647,7 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       {&publisher, &receiver},
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timedInteractions().size() >= 2U &&
+            receiver.recorder().timedInteractions().size() >= 3U &&
             receiver.recorder().flushQueueGrants().size() >= 1U;
       },
       options,
@@ -619,13 +657,13 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       publisher.recorder().timeAdvanceGrants().size() == 1U,
       "Timestamped interaction Flush Queue future-input publisher received the wrong grant count");
   require(
-      receiver.recorder().timedInteractions().size() == 2U &&
+      receiver.recorder().timedInteractions().size() == 3U &&
           receiver.recorder().flushQueueGrants().size() == 1U &&
           receiver.recorder().timeAdvanceGrants().empty(),
       "Timestamped interaction Flush Queue future-input returned the wrong callback counts");
   require(
       receiver.recorder().callbackOrder() ==
-          std::vector<std::string>{"interaction", "interaction", "flush-grant"},
+          std::vector<std::string>{"interaction", "interaction", "interaction", "flush-grant"},
       "Timestamped interaction Flush Queue future-input granted before queued delivery");
 
   require(
@@ -669,12 +707,18 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
   auto const interactions = receiver.recorder().timedInteractions();
   assertInteraction(
       interactions.at(0),
+      boundaryParameterBytes,
+      boundaryTagBytes,
+      encodeTime(*boundaryTime),
+      copyBytes(boundaryRetraction.encode()));
+  assertInteraction(
+      interactions.at(1),
       firstParameterBytes,
       firstTagBytes,
       encodeTime(*firstTime),
       copyBytes(firstRetraction.encode()));
   assertInteraction(
-      interactions.at(1),
+      interactions.at(2),
       secondParameterBytes,
       secondTagBytes,
       encodeTime(*secondTime),
