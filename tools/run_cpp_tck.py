@@ -822,6 +822,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-interaction-tck.xml")),
             "directed-reference-missing="
             + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml")),
+            "dimension-reference-consumer="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-consumer-tck.xml")),
+            "dimension-reference-provider="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-provider-tck.xml")),
+            "dimension-reference-missing="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-missing-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

@@ -13741,7 +13741,10 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-092-l118-25",
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.7.1", "hla-1516.2-2025:clause-6.2.5", "hla-1516.2-2025:clause-6.2.6", "hla-1516.2-2025:clause-C"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-054-l65-4", "standard_section": "hla-1516.2-2025:clause-4.7.1"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l78-16", "standard_section": "hla-1516.2-2025:clause-6.2.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l118-25", "standard_section": "hla-1516.2-2025:clause-6.2.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2", "standard_section": "hla-1516.2-2025:clause-C"}],
       "test_case": "The FOM composition preflight resolves available dimensions after the complete module set is merged",
+      "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:276",
       "tags": [
         "unit",
         "fom",
@@ -13750,7 +13753,7 @@
         "ddm",
         "available-dimensions"
       ],
-      "assertions": 11,
+      "assertions": 17,
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This private composition guard proves that object- and interaction-class Available Dimensions references supplied by a later compatible module resolve only against the merged dimension table, while an unresolved dimension is rejected with a deterministic diagnostic. It is mapped to IEEE 1516.2 clauses 4.7.1, 6.2.5, 6.2.6, and Annex C through the pinned Lab candidates; per-attribute/parameter dimension semantics, broader DDM behavior, dependency packaging, JUnit/protected review, and conformance remain open."
     },

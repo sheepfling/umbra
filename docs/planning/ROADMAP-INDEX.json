@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_dimension_reference_resolution_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 later-module available-dimension witness into public C++ TCK primary/contract cases and Java scenario-ID parity with three adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:276; packages/hla-rti-cpp-tck/src/tck_fom_dimension_reference_resolution.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionReferenceResolutionTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-054-l65-4 -> IEEE 1516.2-2025 clause 4.7.1", "requirement-candidate-sections-semantic-clauses-5-6-page-092-l78-16 -> IEEE 1516.2-2025 clause 6.2.5", "requirement-candidate-sections-semantic-clauses-5-6-page-092-l118-25 -> IEEE 1516.2-2025 clause 6.2.6", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l22-2 -> IEEE 1516.2-2025 clause C"],
+    "evidence": "Native focused case passed 17 assertions; three neutral FOMs passed the pinned DIF XSD; Java compiled against the API-only JAR; installed-package direct runner and focused CTest passed 4/4 across evoked and immediate callback modes; C++/Java catalog and parity validation passed.",
+    "scope_boundary": "Public Create accepts object- and interaction-class dimensions declared in a later module; joined public queries expose exactly the supplied dimension and its upper bound. Public Create rejects an unresolved name and permits valid federation-name reuse. Existing same-class dimension-union cases are distinct. Region operations, per-attribute/parameter dimension semantics, broader Annex C merge, Java runtime, interoperability, and conformance are not claimed.",
+    "next": "Audit the native-green cross-module data-type reference case at cpp/tests/fom_composer_reference_resolution_catch2.cpp:10 for distinct portable behavior. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_directed_reference_resolution_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 later-module directed-interaction reference witness into public C++ TCK primary/contract cases and Java scenario-ID parity with three adapter-owned schema-valid FOMs, including one ordinary directed delivery.",

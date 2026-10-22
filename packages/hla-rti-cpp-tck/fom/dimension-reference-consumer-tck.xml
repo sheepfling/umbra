@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name><objectClass>
+        <name>TckDimensionReferenceObject</name>
+        <sharing>PublishSubscribe</sharing>
+        <dimensions><dimension>TckDeferredDimension</dimension></dimensions>
+    </objectClass></objectClass></objects>
+    <interactions><interactionClass><name>HLAinteractionRoot</name><interactionClass>
+        <name>TckDimensionReferenceInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <dimensions><dimension>TckDeferredDimension</dimension></dimensions>
+        <transportation>HLAreliable</transportation>
+        <order>Receive</order><semantics>Later-module available dimension.</semantics>
+    </interactionClass></interactionClass></interactions>
+</objectModel>

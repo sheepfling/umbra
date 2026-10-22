@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green 17-assertion available-dimension reference witness. Public Create accepts object- and interaction-class available dimensions declared by a later compatible DIF module; joined object/interaction available-dimension queries expose exactly that dimension and its upper bound. Public Create rejects an unresolved dimension name, then permits valid federation-name reuse. Direct mappings are to 1516.2 clauses 4.7.1, 6.2.5, 6.2.6, and Annex C. Existing same-class dimension-union tests cover a different merge rule. Region operations, per-attribute dimension constraints, broader Annex C merge, Java runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-dimension-reference-resolution",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules), joinFederationExecution, getDimensionHandle, getDimensionUpperBound, getAvailableDimensionsForObjectClass, getAvailableDimensionsForInteractionClass, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle and available-dimension query services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_dimension_reference_resolution.cpp::scenarioFomDimensionReferenceResolutionContract"]
+    }
+  ]
+}

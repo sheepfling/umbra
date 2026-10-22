@@ -19450,6 +19450,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-data-representation-resolution-contract",
       "cpp-tck.fom-transportation-reference-resolution-contract",
       "cpp-tck.fom-directed-reference-resolution-contract",
+      "cpp-tck.fom-dimension-reference-resolution-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20195,6 +20196,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-data-representation-resolution",
       "cpp-tck.fom-transportation-reference-resolution",
       "cpp-tck.fom-directed-reference-resolution",
+      "cpp-tck.fom-dimension-reference-resolution",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21102,6 +21104,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-directed-reference-resolution-contract") {
     return scenarioFomDirectedReferenceResolutionContract;
+  }
+  if (id == "cpp-tck.fom-dimension-reference-resolution-contract") {
+    return scenarioFomDimensionReferenceResolutionContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23472,6 +23477,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-directed-reference-resolution") {
     return scenarioFomDirectedReferenceResolution;
   }
+  if (id == "cpp-tck.fom-dimension-reference-resolution") {
+    return scenarioFomDimensionReferenceResolution;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -24118,6 +24126,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("directed-reference-missing") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied directed-reference FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dimension-reference-resolution" ||
+                  scenario == "cpp-tck.fom-dimension-reference-resolution-contract") &&
+                 (options.scenarioFoms.count("dimension-reference-consumer") == 0U ||
+                  options.scenarioFoms.count("dimension-reference-provider") == 0U ||
+                  options.scenarioFoms.count("dimension-reference-missing") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied dimension-reference FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||
