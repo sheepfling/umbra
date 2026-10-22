@@ -6265,7 +6265,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-logical-time-mim-periodic",
             "observe periodic HLAlogicalTime MOM values after timing configuration and successive standard time advances",
             "time-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.decodeTime;LogicalTime.encode;LogicalTime.add;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.decodeTime;LogicalTime.encode;LogicalTime.add;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-time-management",
@@ -6274,18 +6274,18 @@ public final class RtiTckMain {
                "cpp-1516.1-time-advance-and-grant",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateLogicalTimeMomPeriodic);
+            }, true), RtiTckMain::federateLogicalTimeMomPeriodic);
       run(new Scenario("java-tck.federate-lookahead-mim-periodic",
             "observe periodic HLAlookahead MOM values before and after Modify Lookahead",
             "time-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.decodeInterval;RTIambassador.enableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.modifyLookahead;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeRegulationEnabled;HLAinteger32BE",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.decodeInterval;RTIambassador.enableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.modifyLookahead;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeRegulationEnabled;HLAinteger32BE",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-time-management",
                "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateLookaheadMomPeriodic);
+            }, true), RtiTckMain::federateLookaheadMomPeriodic);
       run(new Scenario("java-tck.federate-mom-galt-lits-periodic",
             "observe direct and periodic federate MOM GALT/LITS values and undefined bounds",
             "time-management",

@@ -255,7 +255,8 @@ final class FederateLogicalTimeMomPeriodicTck {
          matchesTime(reflection, object, attribute, timeFactory, expected)).findFirst().orElse(null);
       JavaTckSupport.check(match != null,
          description + " was not recorded after callback servicing");
-      validateTimeReflection(match, object, attribute, reliable, timeFactory, expected, description);
+      validateTimeReflection(monitor, match, object, attribute, reliable, timeFactory,
+         expected, description);
    }
 
    private static boolean matchesTime(Reflection reflection, ObjectInstanceHandle object,
@@ -269,16 +270,18 @@ final class FederateLogicalTimeMomPeriodicTck {
       }
    }
 
-   private static void validateTimeReflection(Reflection reflection, ObjectInstanceHandle object,
+   private static void validateTimeReflection(RTIambassador monitor, Reflection reflection,
+         ObjectInstanceHandle object,
          AttributeHandle attribute, TransportationTypeHandle reliable,
          LogicalTimeFactory<?, ?> timeFactory, LogicalTime expected, String description)
          throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && reflection.values.containsKey(attribute) && reflection.tag.length == 0
-            && reliable.equals(reflection.transportation) && reflection.producer == null
+            && reliable.equals(reflection.transportation)
             && (reflection.regions == null || reflection.regions.isEmpty())
             && !reflection.timestampOrdered,
          description + " had non-standard HLAlogicalTime reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(monitor, reflection.producer, description);
       Object decoded = timeFactory.decodeTime(reflection.values.get(attribute), 0);
       JavaTckSupport.check(expected.equals(decoded),
          description + " did not contain the encoded standard logical time");

@@ -2281,6 +2281,15 @@ distinct Flush Queue Grant callback. Its RTI-originated producer check uses
 only the standard handle lookup API. The installed JNI adapter and matching
 C++ primary/contract passed both callback models.
 
+The default-run periodic `java-tck.federate-logical-time-mim-periodic` and
+`java-tck.federate-lookahead-mim-periodic` cases use standard `HLAsetTiming`
+reports and the adapter-selected logical-time factory. They compare decoded
+MOM values with the corresponding Query Logical Time or Query Lookahead
+services, including successful advances or a changed lookahead. Both passed
+the installed JNI adapter in evoked and immediate modes, with matching green
+C++ primary/contract evidence. Provider, FOM, MIM, endpoint, time factory, and
+callback model remain adapter configuration.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 

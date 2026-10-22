@@ -37202,6 +37202,7 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -37246,8 +37247,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateLogicalTimeMomPeriodic",
       "parity": "cpp-tck.federate-logical-time-mim-periodic",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-logical-time-periodic-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-logical-time-mim-periodic-verified-20261016.json. Periodic HLAlogicalTime is decoded with the adapter-selected standard time factory and compared to successful grants and Query Logical Time. Non-null RTI-originated producer handles use the standard invalid-handle oracle. Application FOM, standard MIM, endpoint, time, and callback model remain adapter-owned; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-lookahead-mim-periodic",
@@ -37264,6 +37265,7 @@
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getFederateName",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.getTimeFactory",
@@ -37300,8 +37302,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateLookaheadMomPeriodic",
       "parity": "cpp-tck.federate-lookahead-mim-periodic",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-lookahead-periodic-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-lookahead-mim-periodic-verified-20261016.json. Periodic HLAlookahead is decoded with the adapter-selected standard time factory and compared to Query Lookahead before and after Modify Lookahead; non-null RTI-originated producer handles use the standard invalid-handle oracle. Application FOM, standard MIM, endpoint, time, and callback model remain adapter-owned; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-galt-lits-periodic",

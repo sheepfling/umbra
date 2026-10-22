@@ -191,9 +191,10 @@ final class FederateLookaheadMomPeriodicTck {
       JavaTckSupport.check(match != null,
          description + " was not recorded after callback servicing");
       JavaTckSupport.check(match.values.size() == 1 && match.tag.length == 0
-            && reliable.equals(match.transportation) && match.producer == null
+            && reliable.equals(match.transportation)
             && (match.regions == null || match.regions.isEmpty()) && !match.timestampOrdered,
          description + " had non-standard HLAlookahead reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(monitor, match.producer, description);
       JavaTckSupport.check(expected.equals(timeFactory.decodeInterval(
             match.values.get(attribute), 0)),
          description + " did not contain the encoded standard logical-time interval");
