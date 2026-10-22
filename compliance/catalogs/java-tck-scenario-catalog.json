@@ -36556,6 +36556,7 @@
         "RTIambassador.getParameterHandle",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
         "ParameterHandleValueMapFactory.create",
@@ -36582,8 +36583,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomExceptionMissingFomModuleIndicator",
       "parity": "cpp-tck.federation-mom-exception-missing-fom-module-indicator",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federation-mom-exception-missing-fom-module-indicator-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federation-mom-exception-missing-fom-module-indicator-verified-20261016.json. The standard MIM report identifies the fully qualified FOM-module-data request, joined federate, and missing HLAFOMmoduleIndicator parameter error; synchronous exception type and wording are not constrained. Provider, FOM, standard MIM, endpoint, time, and callback model remain adapter-owned. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-exception-report-service-precondition",

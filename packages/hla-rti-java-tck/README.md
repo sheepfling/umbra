@@ -2312,6 +2312,12 @@ synchronous exception type or report wording. Their RTI-originated producer
 check uses only standard handle lookup. Each passed the installed JNI adapter
 in both callback modes, matching its C++ primary and contract evidence.
 
+`java-tck.federation-mom-exception-missing-fom-module-indicator` is a separate
+default-run federation-level request case. It omits the standard
+`HLAFOMmoduleIndicator`, then verifies the resulting `HLAreportMOMexception`
+service identity, joined-federate identity, and parameter-error value. The
+installed JNI adapter and C++ primary/contract passed both callback models.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 
