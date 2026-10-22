@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes><referenceDataTypes><referenceDataType>
+        <name>TckInvalidBasicRepresentationReference</name>
+        <representation>HLAinteger32BE</representation>
+        <referenceClass>HLAobjectRoot.TckReferenceAttributeBase.TckReferenceAttributeChild</referenceClass>
+        <referencedAttribute>Identifier</referencedAttribute>
+        <semantics>Invalid basic-data representation for an ordinary reference.</semantics>
+    </referenceDataType></referenceDataTypes></dataTypes>
+</objectModel>

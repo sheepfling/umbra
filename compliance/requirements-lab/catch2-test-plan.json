@@ -13521,6 +13521,8 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20",
         "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.15", "hla-1516.2-2025:clause-6.2.16", "hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10", "standard_section": "hla-1516.2-2025:clause-6.2.15"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13", "standard_section": "hla-1516.2-2025:clause-6.2.16"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "standard_section": "hla-1516.2-2025:clause-4.14.9"}],
       "test_case": "The FOM composition preflight resolves representations and special instance identifiers",
       "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:129",
       "tags": [
@@ -13529,6 +13531,7 @@
         "composition",
         "reference-resolution"
       ],
+      "assertions": 31,
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This private composition slice rejects unresolved simple/enumerated representations and invalid ordinary reference representations, while applying the reviewed HLAobjectInstanceName/HLAobjectInstanceHandle exception. The exact clause-4.14.9 candidate is selected here and has a dedicated private requirements contract; RL-087 records that the prior plan omitted it. RL-009 records the source/schema/example tension for simple-data representation wording; the separate enumerated-representation test now applies the exact 2025 basic-data predicate. Remaining lookahead non-negative inference, full table constraints, directed-interaction materialization, dependency packaging, JUnit/protected review, and conformance remain open."
     },
