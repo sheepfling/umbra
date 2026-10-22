@@ -5137,7 +5137,7 @@ public final class RtiTckMain {
              "unpublishing one owned class attribute releases only its instance attribute",
              "ownership",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.queryAttributeOwnership;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipUnpublishOwned);
        run(new Scenario("java-tck.attribute-ownership-query-owner-report",
              "query a published object's attribute owner and verify the standard ownership report",

@@ -103,6 +103,7 @@ final class OwnershipUnpublishOwnedTck {
             () -> !observerEvents.information.isEmpty()
                && !observerEvents.notOwned.isEmpty(),
             "selective unpublication ownership reports");
+         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
          JavaTckSupport.check(observerEvents.information.size() == 1
                && observerEvents.notOwned.size() == 1,
             "ownership query did not partition removed and retained attributes");

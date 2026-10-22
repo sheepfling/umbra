@@ -40167,13 +40167,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "standard_section": "hla-1516.1-2025:clause-7.1.1"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27", "standard_section": "hla-1516.1-2025:clause-7.1.2.1"}
       ],
-      "mapping_note": "Standard-API Java parity for selective unpublication of one owned attribute with a separate observer's ownership query. Source is compiled against the official 2025 API JAR; Java provider runtime and conformance remain unverified.",
+      "mapping_note": "Standard-API Java parity for selective unpublication of one owned attribute with a separate observer's ownership query. Immediate ownership checks and the observer's exact unowned/original-owner callbacks confirm that only the unpublished attribute is released. Evoked callbacks are drained before exact-one assertions. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-unpublish-owned-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Other unpublication transitions, independent-provider interoperability, and conformance remain unverified.",
       "contract_refs": ["standard-ownership-unpublish-owned-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipUnpublishOwned",
       "parity": "cpp-tck.ownership-unpublish-owned",
-      "default_status": "unsupported",
-      "promotion": "candidate",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+      "default_status": "run",
+      "promotion": "promoted"
     }
   ],
   "exclusions": [
