@@ -736,7 +736,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomInteractionClassWholeUnpublicationQuery);
+            }, true), RtiTckMain::federateMomInteractionClassWholeUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-interaction-class-partial-unpublication-query",
             "after unpublishing one of two ordinary interaction classes, verify the exact remaining class in the standard MIM report",
             "federate-mom",
@@ -744,7 +744,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomInteractionClassPartialUnpublicationQuery);
+            }, true), RtiTckMain::federateMomInteractionClassPartialUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-multiple-interaction-class-full-unpublication-query",
             "after unpublishing both ordinary interaction classes, verify the exact standard MIM NULL publication report",
             "federate-mom",
@@ -752,7 +752,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomMultipleInteractionClassFullUnpublicationQuery);
+            }, true), RtiTckMain::federateMomMultipleInteractionClassFullUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-multiple-directed-publication-query",
             "verify standard MIM reports for directed publications across two object classes",
             "federate-mom",

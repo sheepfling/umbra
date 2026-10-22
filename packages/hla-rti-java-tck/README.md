@@ -687,6 +687,14 @@ the publication set after one attribute, all application attributes, or the
 whole class is unpublished. They use the same adapter-owned FOM and standard
 MIM configuration and passed installed-provider runs in both callback models.
 
+The default-run `java-tck.federate-mom-interaction-class-whole-unpublication-query`,
+`java-tck.federate-mom-interaction-class-partial-unpublication-query`, and
+`java-tck.federate-mom-multiple-interaction-class-full-unpublication-query`
+scenarios check standard MOM publication reports after one or both ordinary
+interaction classes are unpublished. The adapter supplies the interaction
+names and runtime configuration; installed-provider runs passed in both
+callback models.
+
 The opt-in `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It checks standard federation-MOM handle/name round trips and object
