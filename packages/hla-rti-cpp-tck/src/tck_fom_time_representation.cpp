@@ -64,4 +64,40 @@ void scenarioFomTimeRepresentationRejectionsContract(Options const& options,
   scenarioFomTimeRepresentationRejections(options, model);
 }
 
+void scenarioFomDefaultLogicalTimeSelection(Options const& options,
+                                            rti::CallbackModel model) {
+  auto const& unconstrained = requiredFom(options, "default-logical-time");
+  auto const& integerTime = requiredFom(options, "time-representation-valid");
+  Session member(options, model, "fom-default-logical-time-member");
+  auto const federation = federationName(options, "fom-default-logical-time");
+  member.connect();
+
+  // Omitting the time name selects the standard default, which conflicts with
+  // an FDD that explicitly documents HLAinteger64Time.
+  requireException(
+      [&] {
+        member.rtiAmbassador().createFederationExecution(
+            federation, integerTime.wstring());
+      },
+      L"InconsistentFOM",
+      "default logical time against an integer64 FDD");
+
+  // A rejected Create must not reserve the name. The adapter supplies a FOM
+  // without a declared time representation for the positive default path.
+  member.rtiAmbassador().createFederationExecution(
+      federation, unconstrained.wstring());
+  member.join(options.ownerFederateName, options.federateType, federation);
+  auto factory = member.rtiAmbassador().getTimeFactory();
+  require(factory != nullptr && factory->getName() == L"HLAfloat64Time",
+          "Create without a time name did not select HLAfloat64Time");
+  member.resign(rti::NO_ACTION);
+  member.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+}
+
+void scenarioFomDefaultLogicalTimeSelectionContract(Options const& options,
+                                                    rti::CallbackModel model) {
+  scenarioFomDefaultLogicalTimeSelection(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

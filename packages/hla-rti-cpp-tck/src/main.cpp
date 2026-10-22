@@ -19435,6 +19435,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-cardinality-rejections-contract",
       "cpp-tck.fom-time-representation-valid-contract",
       "cpp-tck.fom-time-representation-rejections-contract",
+      "cpp-tck.fom-default-logical-time-selection-contract",
       "cpp-tck.fom-member-data-type-categories-contract",
       "cpp-tck.fom-attribute-na-companion-completion-contract",
       "cpp-tck.fom-attribute-na-companion-rejections-contract",
@@ -20189,6 +20190,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-cardinality-rejections",
       "cpp-tck.fom-time-representation-valid",
       "cpp-tck.fom-time-representation-rejections",
+      "cpp-tck.fom-default-logical-time-selection",
       "cpp-tck.fom-member-data-type-categories",
       "cpp-tck.fom-attribute-na-companion-completion",
       "cpp-tck.fom-attribute-na-companion-rejections",
@@ -21075,6 +21077,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-time-representation-rejections-contract") {
     return scenarioFomTimeRepresentationRejectionsContract;
+  }
+  if (id == "cpp-tck.fom-default-logical-time-selection-contract") {
+    return scenarioFomDefaultLogicalTimeSelectionContract;
   }
   if (id == "cpp-tck.fom-member-data-type-categories-contract") {
     return scenarioFomMemberDataTypeCategoriesContract;
@@ -23472,6 +23477,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-time-representation-rejections") {
     return scenarioFomTimeRepresentationRejections;
   }
+  if (id == "cpp-tck.fom-default-logical-time-selection") {
+    return scenarioFomDefaultLogicalTimeSelection;
+  }
   if (id == "cpp-tck.fom-member-data-type-categories") {
     return scenarioFomMemberDataTypeCategories;
   }
@@ -24083,6 +24091,12 @@ int run(Options const& options) {
                     options.scenarioFoms.count("time-representation-reference-data") == 0U)))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied time-representation FOM modules";
+      } else if ((scenario == "cpp-tck.fom-default-logical-time-selection" ||
+                  scenario == "cpp-tck.fom-default-logical-time-selection-contract") &&
+                 (options.scenarioFoms.count("default-logical-time") == 0U ||
+                  options.scenarioFoms.count("time-representation-valid") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied default-time and integer64-time FOM modules";
       } else if ((scenario == "cpp-tck.fom-member-data-type-categories" ||
                   scenario == "cpp-tck.fom-member-data-type-categories-contract") &&
                  (options.scenarioFoms.count("member-data-type-valid") == 0U ||

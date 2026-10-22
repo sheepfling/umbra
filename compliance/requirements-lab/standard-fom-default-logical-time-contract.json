@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Public witness for the pinned Create default-selection and FDD time-representation rules. The adapter supplies one FOM with no time representation and one declaring HLAinteger64Time. The C++ TCK uses only official RTIambassador services and the returned standard LogicalTimeFactory; provider library, endpoint, FOMs, and callback model remain adapter inputs. Native selector passed 21 assertions; installed-package focused CTest and direct runner passed primary and contract in both callback models. Java compiled against the API-only JAR, but Java-provider runtime, standalone XSD-tool validation, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-default-logical-time-selection",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module, default logical time), joinFederationExecution, getTimeFactory, resignFederationExecution, destroyFederationExecution; LogicalTimeFactory.getName",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 federation creation and logical-time factory services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_time_representation.cpp::scenarioFomDefaultLogicalTimeSelectionContract"]
+    }
+  ]
+}

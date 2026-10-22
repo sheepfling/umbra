@@ -730,6 +730,8 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml")),
             "time-representation-valid="
             + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-valid-tck.xml")),
+            "default-logical-time="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/default-logical-time-tck.xml")),
             "time-representation-basic-data="
             + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-basic-data-tck.xml")),
             "time-representation-reference-data="

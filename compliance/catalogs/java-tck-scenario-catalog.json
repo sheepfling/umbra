@@ -8926,6 +8926,22 @@
       "exclusion": "Configure hla.rti.tck.timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-default-logical-time-selection",
+      "category": "fom-composition",
+      "title": "Select default HLAfloat64Time at federation creation and reject conflicting FDD time documentation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getTimeFactory", "LogicalTimeFactory.getName", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.1-federation-create-join-resign-destroy"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.5.5", "hla-1516.2-2025:clause-4.8.3"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18", "standard_section": "hla-1516.1-2025:clause-4.5.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4", "standard_section": "hla-1516.2-2025:clause-4.8.3"}],
+      "mapping_note": "Java standard-API scenario-ID parity for default Create time selection, incompatible FDD rejection, and valid federation-name reuse. API-only compilation passed; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-default-logical-time-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDefaultLogicalTimeSelection",
+      "parity": "cpp-tck.fom-default-logical-time-selection",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.defaultLogicalTimeFom and timeRepresentationValidFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-time-representation-rejections",
       "category": "fom-composition",
       "title": "Reject basic and reference data types as logical-time representations",
