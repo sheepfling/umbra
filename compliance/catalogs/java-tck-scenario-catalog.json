@@ -4196,7 +4196,13 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -4206,20 +4212,14 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
       ],
       "standard_sections": [
@@ -4231,7 +4231,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-096-l129-40 -> §5.8: the scenario subscribes to one attribute, waits for discovery, invokes the same service again with a disjoint second attribute, and verifies one later update reflects both values. It does not assert active/passive replacement behavior. Java provider runtime evidence is not recorded.",
+      "mapping_note": "Direct mapping is limited to page-096-l129-40 -> §5.8: the scenario subscribes to one attribute, waits for discovery, invokes the same service again with a disjoint second attribute, and verifies one later update reflects both exact values and tag using the receiver's local standard object and attribute handles. It does not assert the distinct active/passive-change permission in the source paragraph. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -4243,8 +4243,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeSubscriptionInvocationsAccumulate",
       "parity": "cpp-tck.attribute-subscription-invocations-accumulate",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-subscription-per-attribute-mode-transitions",

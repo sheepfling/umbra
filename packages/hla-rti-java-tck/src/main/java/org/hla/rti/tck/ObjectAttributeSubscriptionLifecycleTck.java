@@ -379,7 +379,17 @@ final class ObjectAttributeSubscriptionLifecycleTck {
                && publisherFirst != null && publisherSecond != null
                && subscriberFirst != null && subscriberSecond != null
                && !publisherFirst.equals(publisherSecond)
-               && !subscriberFirst.equals(subscriberSecond),
+               && !subscriberFirst.equals(subscriberSecond)
+               && objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && firstAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherFirst))
+               && secondAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherSecond))
+               && firstAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberFirst))
+               && secondAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberSecond)),
             "adapter FOM did not resolve distinct subscription attributes");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
@@ -393,9 +403,14 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "accumulating-subscription registration returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
          await(subscriber, callbackModel,
-            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            () -> subscriberCallbacks.discoveries.size() == 1,
             "first attribute subscription discovery");
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(findDiscovery(subscriberCallbacks.discoveries,
+               subscriberObject) != null,
+            "subscriber discovery did not resolve to its local object handle");
 
          subscriber.subscribeObjectClassAttributes(subscriberClass,
             JavaTckSupport.attributeSet(subscriber, subscriberSecond));
@@ -411,7 +426,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "accumulating subscription produced an unexpected reflection count");
          Reflection reflection = subscriberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(reflection.object)
+         JavaTckSupport.check(subscriberObject.equals(reflection.object)
                && reflection.values.size() == 2
                && reflection.values.containsKey(subscriberFirst)
                && reflection.values.containsKey(subscriberSecond)

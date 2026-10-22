@@ -343,11 +343,13 @@ and queries the real object handle after removal for its unknown-object boundary
 The ownership-query save/restore case uses the adapter's multi-attribute FOM,
 logical-time implementation, and callback model. It joins with explicit
 federate names so restored identity reports can be checked exactly.
-The opt-in `java-tck.attribute-subscription-invocations-accumulate` case
+The default `java-tck.attribute-subscription-invocations-accumulate` case
 subscribes to the configured primary attribute, waits for discovery, then
 subscribes to the distinct configured second attribute and verifies one update
-reflects both. Its FOM and names come from the adapter; Java provider runtime
-verification remains pending.
+reflects both exact values and tag using the subscriber's locally resolved
+standard handles. Its FOM and names come from the adapter. Focused installed
+JNI runs passed in both callback modes; active/passive mode replacement and
+independent-provider conformance remain unverified.
 The opt-in `java-tck.passive-subscription-no-start-registration` case uses an
 active subscription as a positive control for the publisher's standard Start
 Registration callback, then clears the control and verifies that the passive
