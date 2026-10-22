@@ -1334,18 +1334,15 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.object-publication-registration-fence",
             "fence object registration across whole-class unpublication and republication",
             "object-publication-registration-fence",
-            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClass;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClass;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
             new String[] {
                "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62",
                "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
                "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
                "requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37",
                "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
-               "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-registration-negative-boundaries",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectPublicationRegistrationFence);
+               "requirement-candidate-content-clauses-06-object-management-page-118-l28-5"
+            }, true), RtiTckMain::objectPublicationRegistrationFence);
       run(new Scenario("java-tck.named-registration-multi-recipient",
             "deliver two named objects to two active subscribers and preserve identity",
             "object-instance-named-registration-multi-recipient",

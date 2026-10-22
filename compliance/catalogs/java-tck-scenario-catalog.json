@@ -4611,10 +4611,12 @@
       "category": "object-publication-registration-fence",
       "title": "Fence ordinary object registration across whole-class unpublication and republication",
       "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClass",
@@ -4627,12 +4629,16 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance"
       ],
       "requirement_ids": [
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-registration-negative-boundaries",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62",
@@ -4648,7 +4654,15 @@
         "hla-1516.1-2025:clause-5.3",
         "hla-1516.1-2025:clause-6.8.4"
       ],
-      "mapping_note": "Direct mappings: declaration-management page-082-l191-62 -> §5.1.2 for publication being a prerequisite to object registration (ObjectClassNotPublished while the class is unpublished, followed by successful registration after republication); page-090-l79-22 -> §5.2 for whole-class unpublication; page-091-l121-35 and page-091-l127-37 -> §5.3 for active subscription and discovery of the republished instance; object-management page-118-l22-3 and page-118-l28-5 -> §6.8.4 for successful Register Object Instance and stable instance-name/handle/class lookups. Resignation and disconnect are fixture cleanup only and have no separate normative claim.",
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62", "standard_section": "hla-1516.1-2025:clause-5.1.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22", "standard_section": "hla-1516.1-2025:clause-5.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35", "standard_section": "hla-1516.1-2025:clause-5.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37", "standard_section": "hla-1516.1-2025:clause-5.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3", "standard_section": "hla-1516.1-2025:clause-6.8.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5", "standard_section": "hla-1516.1-2025:clause-6.8.4"}
+      ],
+      "mapping_note": "Direct mappings match the promoted C++ row: page-082-l191-62 -> §5.1.2 for publication as a registration prerequisite (ObjectClassNotPublished while unpublished, then successful registration after republication); page-090-l79-22 -> §5.2 for whole-class unpublication; page-091-l121-35 and page-091-l127-37 -> §5.3 for active subscription and discovery; page-118-l22-3 and page-118-l28-5 -> §6.8.4 for registration and instance-name/receiver-local handle/class lookups. Resignation and disconnect are fixture cleanup only. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "object-class-attribute-declaration-api-contract.json",
         "object-class-attribute-declaration-requirements-contract.json",
@@ -4660,8 +4674,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectPublicationRegistrationFence",
       "parity": "cpp-tck.object-publication-registration-fence",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.named-registration-multi-recipient",

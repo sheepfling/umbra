@@ -366,6 +366,12 @@ It clears that control and verifies that a passive subscription produces no new
 Start Registration callback. It does not claim a Stop Registration effect.
 Focused installed JNI runs passed in both callback models; independent-provider
 conformance remains unverified.
+The default `java-tck.object-publication-registration-fence` case rejects
+registration while a class is unpublished, then republishes it and confirms
+registration, discovery, and instance-name/class lookups. Discovery identity
+uses the subscriber's own standard object handle, resolved from the publisher's
+object name. Focused installed JNI runs passed in both callback models;
+independent-provider conformance remains unverified.
 The default `java-tck.selective-attribute-unsubscription` case first confirms
 that two federates independently receive both attributes, removes only the
 configured primary attribute for one, and verifies that its secondary value

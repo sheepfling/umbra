@@ -75,21 +75,23 @@ final class ObjectPublicationRegistrationFenceTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "registration after republication returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
+         JavaTckSupport.check(objectName != null && !objectName.isEmpty(),
+            "registration after republication returned an invalid object name");
          await(subscriber, callbackModel,
             () -> subscriberCallbacks.discoveries.stream()
-               .anyMatch(event -> object.equals(event.object)),
+               .anyMatch(event -> objectName.equals(event.objectName)),
             "discovery after republication");
          Discovery discovery = subscriberCallbacks.discoveries.stream()
-            .filter(event -> object.equals(event.object)).findFirst()
+            .filter(event -> objectName.equals(event.objectName)).findFirst()
             .orElseThrow(() -> new AssertionError("republication discovery was not recorded"));
-         JavaTckSupport.check(object.equals(discovery.object)
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(subscriberObject.equals(discovery.object)
                && subscriberClass.equals(discovery.objectClass)
                && producer.equals(discovery.producer),
             "republication returned the wrong discovery identity");
-         String objectName = publisher.getObjectInstanceName(object);
-         JavaTckSupport.check(objectName != null && !objectName.isEmpty()
-               && object.equals(subscriber.getObjectInstanceHandle(objectName))
-               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(object)),
+         JavaTckSupport.check(subscriberClass.equals(
+               subscriber.getKnownObjectClassHandle(subscriberObject)),
             "republication did not restore stable object identity lookups");
       } finally {
          if (subscriberJoined && subscribed) {
@@ -135,12 +137,14 @@ final class ObjectPublicationRegistrationFenceTck {
    private static final class Discovery {
       private final ObjectInstanceHandle object;
       private final ObjectClassHandle objectClass;
+      private final String objectName;
       private final FederateHandle producer;
 
       private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
-            FederateHandle producer) {
+            String objectName, FederateHandle producer) {
          this.object = object;
          this.objectClass = objectClass;
+         this.objectName = objectName;
          this.producer = producer;
       }
    }
@@ -156,7 +160,8 @@ final class ObjectPublicationRegistrationFenceTck {
                if ("discoverObjectInstance".equals(name) && arguments != null
                      && arguments.length == 4) {
                   discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
-                     (ObjectClassHandle) arguments[1], (FederateHandle) arguments[3]));
+                     (ObjectClassHandle) arguments[1], (String) arguments[2],
+                     (FederateHandle) arguments[3]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK publication-fence callbacks";
