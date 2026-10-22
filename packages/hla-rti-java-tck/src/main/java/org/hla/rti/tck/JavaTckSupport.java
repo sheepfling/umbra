@@ -38,12 +38,16 @@ final class JavaTckSupport {
       try {
          operation.run();
       } catch (Throwable error) {
+         StringBuilder chain = new StringBuilder();
          for (Throwable current = error; current != null; current = current.getCause()) {
             if (expected.equals(current.getClass().getSimpleName())) {
                return;
             }
+            if (chain.length() > 0) chain.append(" caused by ");
+            chain.append(current.getClass().getName());
+            if (current.getMessage() != null) chain.append(": ").append(current.getMessage());
          }
-         throw new AssertionError(description + " threw " + error, error);
+         throw new AssertionError(description + " threw " + chain, error);
       }
       throw new AssertionError(description + " completed without " + expected);
    }

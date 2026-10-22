@@ -13397,8 +13397,8 @@
         "standard-interaction-publication-send-transition-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#interactionPublicationSendTransition",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, endpoint, interaction/parameter names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider runs passed under HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22 using adapter-supplied P0 interaction and parameter names. This is local interoperability evidence, not independent-provider conformance."
     },
     {
       "id": "java-tck.interaction-multi-recipient-fifo",

@@ -2922,7 +2922,7 @@ public final class RtiTckMain {
              new String[] {
                 "java-1516.1-interaction-declaration-and-delivery",
                 "java-1516.1-interaction-parameter-delivery"
-             }, false), RtiTckMain::interactionPublicationSendTransition);
+             }, true), RtiTckMain::interactionPublicationSendTransition);
        run(new Scenario("java-tck.interaction-multi-recipient-fifo",
              "deliver ordinary receive-order interactions to two active subscribers in producer order",
              "interaction-management",

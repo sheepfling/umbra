@@ -12,10 +12,10 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Verifies ordinary send success, publication-loss rejection, and republish recovery. */
 final class InteractionPublicationSendTransitionTck {
@@ -171,7 +171,7 @@ final class InteractionPublicationSendTransitionTck {
    }
 
    private static final class Recorder {
-      private final List<Interaction> interactions = new ArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

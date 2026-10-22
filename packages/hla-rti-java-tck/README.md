@@ -1182,9 +1182,13 @@ The `java-tck.interaction-publication-send-transition` scenario verifies
 successful delivery while published, exact `InteractionClassNotPublished`
 rejection after withdrawal with no callback, and successful delivery recovery
 after republication. It checks payload, tag, producer, reliable transportation,
-empty region metadata, evoked callback timing, and publisher exclusion. FOM,
-names, and callback model are adapter-supplied; it remains unsupported by
-default pending Java-provider execution.
+empty region metadata, evoked callback timing, and publisher exclusion. It runs
+by default after focused installed-provider passes in both callback models on
+2026-10-22. For the P0 FOM, the adapter supplies
+`hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction` and
+`hla.rti.tck.parameter=Payload`; another provider supplies its own FOM names.
+FOM, names, endpoint, and callback model remain adapter-supplied. These local
+passes are not an independent-provider conformance claim.
 
 The `java-tck.interaction-multi-recipient-fifo` scenario sends two tagged
 interactions to two active subscribers and verifies each independently receives
