@@ -2526,6 +2526,32 @@ Both passed the installed Java adapter in both callback models, matching
 their C++ primary/contract evidence. Neither claims all class or attribute
 fields, nor independent-provider conformance.
 
+`java-tck.fom-object-class-dimension-merge` and
+`java-tck.fom-interaction-class-dimension-merge` are default-run, API-only
+Clause 7 cases. Supply the first and second FOM modules through
+`hla.rti.tck.objectDimensionMergeFirstFom` and
+`hla.rti.tck.objectDimensionMergeSecondFom` for the object case, or
+`hla.rti.tck.interactionDimensionMergeFirstFom` and
+`hla.rti.tck.interactionDimensionMergeSecondFom` for the interaction case.
+Each checks that both modules work separately and that a joined member sees
+exactly their two available dimensions after composition. The installed
+Java adapter and matching C++ primary/contract cases passed both callback
+models. Region operations, conflict branches, and cross-provider
+conformance are not claimed.
+
+`java-tck.fom-named-variant-alternative-merge` is a default-run positive
+§C.3 case: separately valid modules with disjoint enumerators on one named
+extendable-variant alternative also create together. Supply them through
+`hla.rti.tck.namedVariantAlternativeFirstFom` and
+`hla.rti.tck.namedVariantAlternativeSecondFom`. The default-run
+`java-tck.fom-extendable-variant-hlaother` instead checks the explicit
+page-111 HLAother rejection and a valid retry; supply
+`hla.rti.tck.extendableHlaOtherValidFom` and
+`hla.rti.tck.extendableHlaOtherInvalidFom`. Both passed the installed Java
+adapter and matching C++ primary/contract cases in both callback modes.
+RL-319 clips the separate variant conflict continuation: neither case
+claims complete variant-record merging or independent-provider conformance.
+
 `java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
 adapter-supplied application FOM and standard MIM. It reads the initial MOM
 `HLAasynchronousDelivery` value, toggles the standard services, and verifies

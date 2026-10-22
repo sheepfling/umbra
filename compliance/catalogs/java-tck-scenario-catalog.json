@@ -8737,12 +8737,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7"],
       "standard_sections": ["hla-1516.2-2025:clause-7"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7", "standard_section": "hla-1516.2-2025:clause-7"}],
-      "mapping_note": "Standard Java API parity for independent module acceptance and same-named object-class available-dimension union. No region operation; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for independent module acceptance and same-named object-class available-dimension union. No region operation or conflict branch. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-class-dimension-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassDimensionMerge",
       "parity": "cpp-tck.fom-object-class-dimension-merge",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.objectDimensionMergeFirstFom and objectDimensionMergeSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-object-class-dimension-merge-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/class-dimension-merge-20261021.json. The adapter supplies objectDimensionMergeFirstFom and objectDimensionMergeSecondFom."
     },
     {
       "id": "java-tck.fom-interaction-class-dimension-merge",
@@ -8753,12 +8753,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7"],
       "standard_sections": ["hla-1516.2-2025:clause-7"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7", "standard_section": "hla-1516.2-2025:clause-7"}],
-      "mapping_note": "Standard Java API parity for independent module acceptance and same-named interaction-class available-dimension union. No region operation; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for independent module acceptance and same-named interaction-class available-dimension union. No region operation or conflict branch. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-class-dimension-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionClassDimensionMerge",
       "parity": "cpp-tck.fom-interaction-class-dimension-merge",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.interactionDimensionMergeFirstFom and interactionDimensionMergeSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-interaction-class-dimension-merge-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/class-dimension-merge-20261021.json. The adapter supplies interactionDimensionMergeFirstFom and interactionDimensionMergeSecondFom."
     },
     {
       "id": "java-tck.fom-named-variant-alternative-merge",
@@ -8769,12 +8769,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20"],
       "standard_sections": ["hla-1516.2-2025:clause-C.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20", "standard_section": "hla-1516.2-2025:clause-C.3"}],
-      "mapping_note": "Standard Java API parity for positive acceptance of two modules with disjoint enumerators on one named extendable-variant alternative. RL-319 clips the separate failure continuation; no conflict or HLAother assertion is made. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for positive acceptance of two modules with disjoint enumerators on one named extendable-variant alternative. RL-319 clips the separate failure continuation; no conflict or HLAother assertion is made. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-named-variant-alternative-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomNamedVariantAlternativeMerge",
       "parity": "cpp-tck.fom-named-variant-alternative-merge",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.namedVariantAlternativeFirstFom and namedVariantAlternativeSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-named-variant-alternative-merge-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/named-variant-alternative-merge-20261021.json. The adapter supplies namedVariantAlternativeFirstFom and namedVariantAlternativeSecondFom; positive acceptance only."
     },
     {
       "id": "java-tck.fom-extendable-variant-hlaother",
@@ -8785,12 +8785,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"],
       "standard_sections": ["hla-1516.2-2025:clause-C.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1", "standard_section": "hla-1516.2-2025:clause-C.3"}],
-      "mapping_note": "Standard Java API parity for HLAother rejection in an extendable variant and valid federation-name retry. Pinned page 111 continues C.3 (RL-319); Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for HLAother rejection in an extendable variant and valid federation-name retry. Pinned page 111 continues C.3 (RL-319); the installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-extendable-variant-hlaother-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomExtendableVariantHlaOther",
       "parity": "cpp-tck.fom-extendable-variant-hlaother",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.extendableHlaOtherValidFom and extendableHlaOtherInvalidFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-extendable-variant-hlaother-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/extendable-variant-hlaother-20261021.json. The adapter supplies extendableHlaOtherValidFom and extendableHlaOtherInvalidFom; this covers only the explicit page-111 HLAother rule, not other variant conflicts."
     },
     {
       "id": "java-tck.fom-enumerated-value-collision",
