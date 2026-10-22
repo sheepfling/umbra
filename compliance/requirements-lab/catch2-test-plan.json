@@ -13962,8 +13962,8 @@
         "enumerated-representation"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1171",
-      "next_action": "This private composition slice rejects an enumerated data type whose supplied representation resolves to a non-basic declaration, while retaining omitted representation for an incomplete DIF row. It deliberately leaves the distinct simple-data representation tension under RL-009, remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance open."
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1018",
+      "next_action": "This private composition slice rejects an enumerated data type whose supplied representation resolves to a non-basic declaration, while retaining omitted representation for an incomplete DIF row. Its public standard-API witness is cpp-tck.fom-enumerated-representation with Java scenario-ID parity; the installed-package C++ pair passed 4/4 focused CTest and direct runs across both callback models. The private selector was not rerun for this checkpoint. The distinct simple-data representation tension under RL-009, remaining data-type/table constraints, complete Annex C merge, Java provider runtime, and conformance remain open."
     },
     {
       "id": "umbra-cpp-fom-array-element-data-type-composition-integration",

@@ -8606,6 +8606,22 @@
       "exclusion": "Configure dimensionReferenceConsumerFom, dimensionReferenceProviderFom, and dimensionReferenceMissingFom adapter properties for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-enumerated-representation",
+      "category": "fom-composition",
+      "title": "Accept omitted and reject non-basic enumerated representations",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-072-l128-3"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.14.5"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-072-l128-3", "standard_section": "hla-1516.2-2025:clause-4.14.5"}],
+      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance, non-basic representation rejection, and valid retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-enumerated-representation-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomEnumeratedRepresentation",
+      "parity": "cpp-tck.fom-enumerated-representation",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.enumeratedRepresentationOmittedFom and enumeratedRepresentationNonbasicFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

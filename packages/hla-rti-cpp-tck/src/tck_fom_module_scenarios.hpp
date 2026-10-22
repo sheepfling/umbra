@@ -88,6 +88,8 @@ void scenarioFomEquivalentClassConflict(Options const&, rti::CallbackModel);
 void scenarioFomEquivalentClassConflictContract(Options const&, rti::CallbackModel);
 void scenarioFomReferenceClassResolution(Options const&, rti::CallbackModel);
 void scenarioFomReferenceClassResolutionContract(Options const&, rti::CallbackModel);
+void scenarioFomEnumeratedRepresentation(Options const&, rti::CallbackModel);
+void scenarioFomEnumeratedRepresentationContract(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolution(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomDataRepresentationResolution(Options const&, rti::CallbackModel);

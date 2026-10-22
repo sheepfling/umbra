@@ -19446,6 +19446,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-inherited-member-names-contract",
       "cpp-tck.fom-equivalent-class-conflict-contract",
       "cpp-tck.fom-reference-class-resolution-contract",
+      "cpp-tck.fom-enumerated-representation-contract",
       "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-data-representation-resolution-contract",
       "cpp-tck.fom-transportation-reference-resolution-contract",
@@ -20192,6 +20193,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-inherited-member-names",
       "cpp-tck.fom-equivalent-class-conflict",
       "cpp-tck.fom-reference-class-resolution",
+      "cpp-tck.fom-enumerated-representation",
       "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-data-representation-resolution",
       "cpp-tck.fom-transportation-reference-resolution",
@@ -21092,6 +21094,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-reference-class-resolution-contract") {
     return scenarioFomReferenceClassResolutionContract;
+  }
+  if (id == "cpp-tck.fom-enumerated-representation-contract") {
+    return scenarioFomEnumeratedRepresentationContract;
   }
   if (id == "cpp-tck.fom-reference-attribute-resolution-contract") {
     return scenarioFomReferenceAttributeResolutionContract;
@@ -23465,6 +23470,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-reference-class-resolution") {
     return scenarioFomReferenceClassResolution;
   }
+  if (id == "cpp-tck.fom-enumerated-representation") {
+    return scenarioFomEnumeratedRepresentation;
+  }
   if (id == "cpp-tck.fom-reference-attribute-resolution") {
     return scenarioFomReferenceAttributeResolution;
   }
@@ -24094,6 +24102,12 @@ int run(Options const& options) {
                   options.scenarioFoms.count("reference-class-unresolved") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied reference-class FOM modules";
+      } else if ((scenario == "cpp-tck.fom-enumerated-representation" ||
+                  scenario == "cpp-tck.fom-enumerated-representation-contract") &&
+                 (options.scenarioFoms.count("enumerated-representation-omitted") == 0U ||
+                  options.scenarioFoms.count("enumerated-representation-nonbasic") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied enumerated-representation FOM modules";
       } else if ((scenario == "cpp-tck.fom-reference-attribute-resolution" ||
                   scenario == "cpp-tck.fom-reference-attribute-resolution-contract") &&
                  (options.scenarioFoms.count("reference-attribute-consumer") == 0U ||

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A schema-valid enumerated declaration with no supplied Representation is accepted as an incomplete FOM row; a schema-valid declaration whose Representation resolves to a non-basic data type is rejected. The public Create Federation Execution boundary is tested without private catalog inspection. This does not claim all enumerated-table constraints, Java provider runtime, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-enumerated-representation",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_enumerated_representation.cpp::scenarioFomEnumeratedRepresentationContract"]
+    }
+  ]
+}
