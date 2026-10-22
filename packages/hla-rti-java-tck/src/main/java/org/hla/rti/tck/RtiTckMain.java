@@ -3563,9 +3563,9 @@ public final class RtiTckMain {
             "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
             new String[] {
-               "java-1516.1-interaction-declaration-and-delivery",
-               "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::tarQueuedTsoBeforeGrant);
+               "requirement-candidate-content-clauses-08-time-management-page-178-l123-38",
+               "requirement-candidate-content-clauses-08-time-management-page-178-l126-39"
+            }, true), RtiTckMain::tarQueuedTsoBeforeGrant);
       run(new Scenario("java-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
             "deliver queued TSO below and at TAR's target before grant, then release later TSO on a later TAR",
             "time",

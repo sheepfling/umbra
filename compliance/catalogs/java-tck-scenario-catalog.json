@@ -17442,6 +17442,10 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l123-38",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l126-39"
+      ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l123-38",
@@ -17453,7 +17457,7 @@
         }
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8"],
-      "mapping_note": "Exact parity to the C++ one-message case's direct Clause 8 mapping: a queued TSO(5) callback precedes TAG(6), and the grant equals the requested time. The earlier §8.14.3 link was too broad for a single-message case with no post-grant cohort check; that rule is covered by the separate TAR strict-cutoff scenario. Provider, FOM, logical-time implementation, endpoint, and callback model are adapter supplied; this scenario uses only the official Java API and JDK.",
+      "mapping_note": "Exact parity to the C++ one-message case's direct Clause 8 mapping: a queued TSO(5) callback precedes TAG(6), and the grant equals the requested time. The earlier §8.14.3 link was too broad for a single-message case with no post-grant cohort check; that rule is covered by the separate TAR strict-cutoff scenario. Focused installed-provider runs pass in both callback models. Provider, FOM, interaction/parameter names, logical-time implementation, endpoint, and callback model are adapter supplied; this scenario uses only the official Java API and JDK, without an independent-provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -17462,8 +17466,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#tarQueuedTsoBeforeGrant",
       "parity": "cpp-tck.tar-queued-tso-before-grant",
-      "default_status": "unsupported",
-      "exclusion": "Requires a provider capability profile and time-managed FOM with the selected interaction/time factory; execute through adapter-supplied provider configuration."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, time-managed FOM, interaction/parameter names, endpoint, callback model, and matching logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-tar-strict-timestamp-cutoff",

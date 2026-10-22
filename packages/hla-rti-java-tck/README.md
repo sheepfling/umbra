@@ -826,6 +826,16 @@ logical time and grant history are unchanged by a receive-order interaction,
 and a later advance still grants. It passes focused installed-provider runs
 in both callback models using adapter-supplied FOM, names, endpoint, and time.
 
+The default `java-tck.tar-queued-tso-before-grant` case checks one bounded
+Clause 8 TAR path: a queued timestamp-5 interaction arrives before the
+receiver's grant at requested time 6. Focused installed-provider runs pass
+in both callback models. Cohort and equal-boundary behavior are separate tests.
+
+The opt-in preferred-RECEIVE timestamped interaction conversion currently
+fails against the installed Java provider in both callback models: the send
+returns a valid retraction designator where its promoted C++ peer expects
+none. It remains outside the default run pending a provider/adapter audit.
+
 The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
 checks the standard Table 5 `AttributeRegionAssociation` report value for one
 successful `AssociateRegionsForUpdates` call. Supply `hla.rti.tck.fom`,

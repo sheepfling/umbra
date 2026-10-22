@@ -112,7 +112,9 @@ final class TimestampedInteractionPreferredReceiveConversionTck {
             senderInteraction, values, tag.clone(), messageTime);
          JavaTckSupport.check(retraction != null && !retraction.retractionHandleIsValid
                && retraction.handle == null,
-            "timestamped send with preferred RECEIVE returned a retraction designator");
+            "timestamped send with preferred RECEIVE returned a retraction designator"
+               + " (valid=" + (retraction == null ? "null" : retraction.retractionHandleIsValid)
+               + ", handle=" + (retraction == null || retraction.handle == null ? "null" : "present") + ")");
 
          await(receiver, callbackModel, objectClassName,
             () -> receiverCallbacks.timestamped.size() == 1,
