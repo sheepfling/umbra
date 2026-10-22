@@ -1526,11 +1526,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.resign-multi-survivor-assumption-fanout",
             "queue an independent ownership-assumption callback for each eligible survivor",
             "ownership-management",
-            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.evokeCallback;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
+            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.evokeCallback;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
             new String[] {
                "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35",
                "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40"
-            }, false), RtiTckMain::resignMultiSurvivorAssumptionFanout);
+            }, true), RtiTckMain::resignMultiSurvivorAssumptionFanout);
       run(new Scenario("java-tck.ownership-assumption-transfer-epoch",
             "offer a previously offered candidate a fresh tagged assumption after ownership changes hands",
             "ownership-management",
@@ -14924,6 +14924,10 @@ public final class RtiTckMain {
    }
 
    private static void resignMultiSurvivorAssumptionFanout() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "independent resignation assumption queues require HLA_EVOKED callbacks");
+      }
       ResignMultiSurvivorAssumptionFanoutTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }

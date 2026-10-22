@@ -6241,7 +6241,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -6262,12 +6266,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35", "standard_section": "hla-1516.1-2025:clause-4.12"},
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
-      "mapping_note": "Standard-only Java parity for the native three-member resignation assumption fanout. Under HLA_EVOKED, servicing one survivor does not consume the other's queued offer. Official API-only JAR compilation passed; Java provider-runtime execution remains unverified. Installed-package C++ primary/contract passed 2/2 evoked twice with immediate explicitly skipped.",
+      "mapping_note": "Standard-only Java parity for the native three-member resignation assumption fanout. Under HLA_EVOKED, servicing one survivor does not consume the other's queued offer; each callback is checked against receiver-local object and attribute handles and an empty tag. Official API-only JAR compilation and focused installed JNI run passed in HLA_EVOKED; HLA_IMMEDIATE is explicitly unsupported for this independent-queue observation. Installed-package C++ primary/contract passed 2/2 evoked twice, with immediate explicitly skipped; independent-provider conformance is unverified.",
       "contract_refs": ["standard-resign-multi-survivor-assumption-fanout-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignMultiSurvivorAssumptionFanout",
       "parity": "cpp-tck.resign-multi-survivor-assumption-fanout",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied 2025 Java provider, FOM, class and attribute names, time implementation, and HLA_EVOKED callback model; provider-runtime execution is unverified."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, class and attribute names, time implementation, endpoint, and HLA_EVOKED callback model; HLA_IMMEDIATE is explicitly unsupported for this case.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-assumption-transfer-epoch",

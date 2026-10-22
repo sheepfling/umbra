@@ -67,7 +67,13 @@ final class ResignMultiSurvivorAssumptionFanoutTck {
          JavaTckSupport.check(ownerClass != null && firstClass != null && secondClass != null
                && ownerAttribute != null && firstAttribute != null
                && secondAttribute != null && firstPrivilege != null
-               && secondPrivilege != null,
+               && secondPrivilege != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(first.getObjectClassName(firstClass))
+               && objectClassName.equals(second.getObjectClassName(secondClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(first.getAttributeName(firstClass, firstAttribute))
+               && attributeName.equals(second.getAttributeName(secondClass, secondAttribute)),
             "adapter FOM did not resolve the object attribute and standard delete privilege");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(first, firstAttribute);
@@ -78,10 +84,17 @@ final class ResignMultiSurvivorAssumptionFanoutTck {
          second.subscribeObjectClassAttributes(secondClass, secondAttributes);
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null, "registration returned no object");
-         await(first, () -> firstRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(first, () -> firstRecorder.discoveries.size() == 1,
             "first survivor discovery");
-         await(second, () -> secondRecorder.discoveries.contains(object),
+         ObjectInstanceHandle firstObject = first.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(firstObject.equals(firstRecorder.discoveries.get(0)),
+            "first survivor discovery did not resolve to its local object handle");
+         await(second, () -> secondRecorder.discoveries.size() == 1,
             "second survivor discovery");
+         ObjectInstanceHandle secondObject = second.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(secondObject.equals(secondRecorder.discoveries.get(0)),
+            "second survivor discovery did not resolve to its local object handle");
          first.publishObjectClassAttributes(firstClass, firstAttributes);
          second.publishObjectClassAttributes(secondClass, secondAttributes);
 
@@ -95,7 +108,7 @@ final class ResignMultiSurvivorAssumptionFanoutTck {
          Set<AttributeHandle> firstExpected = new HashSet<>(
             JavaTckSupport.attributeSet(first, firstAttribute, firstPrivilege));
          JavaTckSupport.check(firstRecorder.assumptions.size() == 1
-               && firstRecorder.assumptions.get(0).matches(object, firstExpected)
+               && firstRecorder.assumptions.get(0).matches(firstObject, firstExpected)
                && secondRecorder.assumptions.isEmpty(),
             "first survivor did not receive its independent assumption offer");
          await(second, () -> secondRecorder.assumptions.size() == 1,
@@ -103,7 +116,7 @@ final class ResignMultiSurvivorAssumptionFanoutTck {
          Set<AttributeHandle> secondExpected = new HashSet<>(
             JavaTckSupport.attributeSet(second, secondAttribute, secondPrivilege));
          JavaTckSupport.check(secondRecorder.assumptions.size() == 1
-               && secondRecorder.assumptions.get(0).matches(object, secondExpected)
+               && secondRecorder.assumptions.get(0).matches(secondObject, secondExpected)
                && firstRecorder.assumptions.size() == 1,
             "second survivor did not receive its independent assumption offer");
 

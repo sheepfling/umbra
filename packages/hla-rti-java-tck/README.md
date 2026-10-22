@@ -1684,6 +1684,13 @@ handles are resolved per federate through standard API lookups. Focused
 installed JNI runs passed in both callback modes; independent-provider
 conformance remains unverified.
 
+The default `java-tck.resign-multi-survivor-assumption-fanout` case uses
+HLA_EVOKED callbacks to verify that servicing one surviving federate's queued
+assumption offer leaves the other's queue untouched. Each empty-tag offer is
+checked against receiver-local object and attribute handles. A focused
+installed JNI run passed in HLA_EVOKED; HLA_IMMEDIATE is explicitly unsupported
+for this queue-ordering assertion. Independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object
