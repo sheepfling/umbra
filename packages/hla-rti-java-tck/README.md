@@ -267,8 +267,11 @@ metadata, also without DDM.
 The focused `java-tck.asynchronous-delivery` scenario gates receive-order
 attribute reflection while asynchronous delivery is disabled, then verifies
 release on re-enablement, callback servicing in evoked mode, and the repeated
-disable/re-enable boundary. It uses only the 2025 Java API and remains
-unsupported by default until run against an adapter-supplied Java provider.
+disable/re-enable boundary. It uses only the 2025 Java API and is default-run
+after installed-package passes in both callback models on 2026-10-22. Its
+direct witnesses are §§8.15.3/8.16.5; it does not claim timestamped delivery
+or cross-provider conformance. Provider, FOM, endpoint, time, and callback
+configuration remain adapter inputs.
 The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
 rate lookup, active and passive named subscriptions, default-rate behavior,
 per-attribute rate reset, and invalid designator/object/attribute failures.
@@ -2021,8 +2024,11 @@ and withdrawn subscriber must receive the already-queued terminal removal. In
 immediate mode it checks callback delivery before withdrawal. Both paths verify
 object/tag/producer identity and suppress owner loopback. Its C++ base/contract
 pair passed two independent fresh GNU 15.2/Ninja installed-package builds,
-with 4/4 evoked/immediate CTest cases passing in each build. Java provider
-execution remains unsupported by default pending an IEEE 1516.1-2025 provider.
+with 4/4 evoked/immediate CTest cases passing in each build. Java diagnostic
+runs also passed both callback models on 2026-10-22. The case stays opt-in:
+its API-only contract does not pin a standard requirement for queued terminal
+removal delivery after subscription withdrawal, so adapter passes are not a
+portable conformance claim.
 
 The default `java-tck.resign-delete-objects-multi-recipient-fifo` scenario
 registers two objects, then resigns the producer with standard `DELETE_OBJECTS`.

@@ -3054,13 +3054,14 @@
           "standard_section": "hla-1516.1-2025:clause-8.16.5"
         }
       ],
-      "mapping_note": "Direct service assertions: enabling asynchronous delivery releases the queued receive-order attribute reflection; disabling it gates the next receive-order update until re-enabled. The scenario checks object, attribute, value, tag, and producer metadata under both callback models and makes no claim about timestamped delivery.",
+      "mapping_note": "Direct service assertions: enabling asynchronous delivery releases the queued receive-order attribute reflection (§8.15.3); disabling it gates the next receive-order update until re-enabled (§8.16.5). The scenario checks object, attribute, value, tag, and producer metadata under both callback models and makes no claim about timestamped delivery. Pure official-API Java source passed installed-adapter runs in both callback models on 2026-10-22; no independent-provider conformance claim.",
       "contract_refs": [
         "asynchronous-delivery-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#asynchronousDelivery",
-      "default_status": "unsupported",
-      "exclusion": "The scenario uses only the official IEEE 1516.1-2025 Java API but remains unsupported by default until behavioral execution against an adapter-supplied Java provider is recorded."
+      "parity": "cpp-tck.asynchronous-attribute-delivery",
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/asynchronous-delivery-{evoked,immediate}-default-20261022.json. Matching C++ peer passed both modes at out/mgw/cpp-tck-async-attribute-mingw-20261016/results.json. FOM, endpoint, logical-time implementation, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.logical-time-factory",
@@ -5221,6 +5222,9 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "mapping_note": "The queued removal after subscription withdrawal is an API-only implementation/compatibility witness. No pinned requirement currently establishes that post-withdrawal delivery rule. Ordinary subscribed removal delivery/tag/producer has a separate mapped Java case; this diagnostic case remains opt-in despite adapter passes and makes no IEEE conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -5237,7 +5241,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#receiveOrderObjectRemovalSubscriptionWithdrawal",
       "parity": "cpp-tck.receive-order-object-removal-subscription-withdrawal",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "exclusion": "Keep opt-in: the queued post-withdrawal terminal-removal assertion lacks a pinned direct normative mapping; installed-provider execution alone does not establish standard portability.",
+      "evidence_note": "Diagnostic installed-JNI adapter runs passed HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/object-removal-subscription-withdrawal-{evoked,immediate}-diagnostic-20261022.json. No default-run promotion or conformance claim."
     },
     {
       "id": "java-tck.resign-delete-objects-multi-recipient-fifo",

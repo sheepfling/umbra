@@ -13728,6 +13728,9 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "mapping_note": "The API-only contract records adapter-backed behavior for a queued terminal removal after active subscription withdrawal. No pinned requirement currently establishes that post-withdrawal delivery rule, so this is classified as implementation/compatibility evidence, not a direct IEEE 1516.1-2025 normative witness. The ordinary removal delivery/tag/producer requirements are mapped separately by cpp-tck.receive-order-object-removal. Existing installed-package primary and contract runs passed both callback models on 2026-10-16; no conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -13750,7 +13753,7 @@
     {
       "id": "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract",
       "category": "receive-order-object-removal-subscription-withdrawal",
-      "title": "Portable standard contract for delivering a queued terminal object removal after subscription withdrawal",
+      "title": "API-only compatibility check for queued terminal removal after subscription withdrawal",
       "api_methods": [
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
@@ -13772,6 +13775,9 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "mapping_note": "Contract twin of the primary adapter-backed diagnostic. It invokes only official API surfaces but the queued post-withdrawal delivery expectation has no pinned normative requirement; classify it as implementation/compatibility evidence, not a direct standards witness or conformance claim.",
       "contract_refs": [
         "standard-receive-order-object-removal-subscription-withdrawal-contract.json"
       ],

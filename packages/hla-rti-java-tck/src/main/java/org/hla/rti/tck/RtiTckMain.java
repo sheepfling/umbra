@@ -1038,7 +1038,7 @@ public final class RtiTckMain {
                "cpp-1516.1-asynchronous-delivery-enable",
                "cpp-1516.1-asynchronous-delivery-disable",
                "cpp-1516.1-callback-servicing"
-            }, false), RtiTckMain::asynchronousDelivery);
+            }, true), RtiTckMain::asynchronousDelivery);
       run(new Scenario("java-tck.asynchronous-interaction-delivery",
             "retain receive-order interactions until asynchronous delivery is enabled or time advances",
             "asynchronous-delivery",
