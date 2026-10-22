@@ -2575,13 +2575,11 @@ public final class RtiTckMain {
             "directed-interaction",
             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions(set and whole class);RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClassDirectedInteractions(set and whole class);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
-               "cpp-1516.1-publish-object-class-directed-interactions-membership-boundary-after-resignation",
-               "cpp-1516.1-unpublish-object-class-directed-interactions-set-membership-boundary-after-resignation",
-               "cpp-1516.1-unpublish-object-class-directed-interactions-whole-class-membership-boundary-after-resignation",
-               "cpp-1516.1-subscribe-object-class-directed-interactions-membership-boundary-after-resignation",
-               "cpp-1516.1-unsubscribe-object-class-directed-interactions-set-membership-boundary-after-resignation",
-               "cpp-1516.1-unsubscribe-object-class-directed-interactions-whole-class-membership-boundary-after-resignation"
-            }, false), RtiTckMain::directedInteractionDeclarationsAfterResignation);
+               "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
+               "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+               "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49"
+            }, true), RtiTckMain::directedInteractionDeclarationsAfterResignation);
       run(new Scenario("java-tck.interaction-declarations-valid-inputs-after-resignation",
             "check ordinary interaction declaration membership boundaries after resignation",
             "declaration-management",
@@ -14446,7 +14444,8 @@ public final class RtiTckMain {
 
    private static void directedInteractionDeclarationsAfterResignation() throws Exception {
       DirectedInteractionDeclarationsAfterResignationTck.run(factory(), requireFom(),
-         timeImplementation(), objectClassName(), interactionClassName(), callbackModel());
+         timeImplementation(), typedDerivedObjectClassName(), typedInteractionClassName(),
+         callbackModel());
    }
 
    private static void interactionDeclarationsAfterResignation() throws Exception {

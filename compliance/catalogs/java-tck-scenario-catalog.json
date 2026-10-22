@@ -9809,14 +9809,15 @@
           "standard_section": "hla-1516.1-2025:clause-5.13"
         }
       ],
-      "mapping_note": "Maps only the six intended post-resignation FederateNotExecutionMember outcomes across directed Publish (§5.6), both Unpublish overloads (§5.7), Subscribe (§5.12), and both Unsubscribe overloads (§5.13). The service-level candidates are shared by the tested overloads. FOM association, setup, lookups, and cleanup are supplemental; Java remains unsupported pending provider execution, so this row is not Java runtime or conformance evidence.",
+      "mapping_note": "Maps only the six intended post-resignation FederateNotExecutionMember outcomes across directed Publish (§5.6), both Unpublish overloads (§5.7), Subscribe (§5.12), and both Unsubscribe overloads (§5.13). The service-level candidates are shared by the tested overloads. FOM association, setup, lookups, and cleanup are supplemental. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-declarations-valid-inputs-after-resignation-api-contract.json",
         "directed-interaction-declarations-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionDeclarationsAfterResignation",
-      "default_status": "unsupported",
-      "exclusion": "The scenario requires an adapter FOM with a valid object-class/directed-interaction association plus a Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider, FOM with a valid object-class/directed-interaction association, logical-time implementation, endpoint, names, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.interaction-declarations-valid-inputs-after-resignation",

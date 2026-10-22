@@ -937,12 +937,14 @@ then checks `FederateNotExecutionMember` for the same query after requester
 resignation. It is paired with the promoted C++ scenario and remains unsupported
 by default until executed against a Java 1516.1-2025 provider.
 
-The opt-in `java-tck.directed-interaction-declarations-valid-inputs-after-resignation`
+The default `java-tck.directed-interaction-declarations-valid-inputs-after-resignation`
 scenario uses the adapter's valid object-class/directed-interaction FOM
 association and checks successful set and whole-class publication/subscription
 overloads while joined, then `FederateNotExecutionMember` for all six standard
 overloads after resignation. It is paired with the promoted C++ scenario and
-remains unsupported by default until run against a Java 1516.1-2025 provider.
+passed focused installed JNI runs in both callback models. FOM association and
+joined-state setup are supplemental; independent-provider conformance remains
+unverified.
 
 The opt-in `java-tck.service-report-interaction` scenario uses the adapter's
 ordinary FOM, standard MIM, logical-time implementation, and callback model.
