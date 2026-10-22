@@ -2250,7 +2250,7 @@ public final class RtiTckMain {
             "Logically OR service usage in the public composed current FDD",
             "fom-composition",
             "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomServiceUsageMerge);
       run(new Scenario("java-tck.fom-note-collision-remap",
             "Preserve distinct referenced notes after FOM label collision",

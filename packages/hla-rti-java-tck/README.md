@@ -598,6 +598,14 @@ standard public getter. All three passed installed-provider evoked and
 immediate runs with adapter-supplied FOM modules. Independent-provider
 conformance is not claimed.
 
+The default-run `java-tck.fom-service-usage-merge` case checks the logical OR
+of service-use declarations from two adapter-supplied FOM modules. It reads
+the standard federation MOM `HLAcurrentFDD` attribute through public callbacks
+and parses its XML semantically, without depending on quote style, whitespace,
+namespace prefixes, or attribute order. All four module combinations passed
+installed-provider evoked and immediate runs with the adapter's standard MIM;
+independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

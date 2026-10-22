@@ -9665,12 +9665,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"],
       "standard_sections": ["hla-1516.2-2025:clause-C.10"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12", "standard_section": "hla-1516.2-2025:clause-C.10"}],
-      "mapping_note": "Standard Java API and JDK XML-parser parity for public current-FDD service-usage OR. Four module sets passed focused packaged-provider runtime in both callback models; the separate broader MOM metadata scenario remains unchanged.",
+      "mapping_note": "Standard Java API and JDK XML-parser parity for public current-FDD service-usage OR. Matching C++ primary and contract cases passed 4/4 at out/mgw/service-usage-merge-20261021.json. The four module sets are asserted semantically, without XML quote, whitespace, namespace-prefix, or attribute-order requirements; the separate broader MOM metadata scenario remains unchanged. Independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-service-usage-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomServiceUsageMerge",
       "parity": "cpp-tck.fom-service-usage-merge",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.serviceUsageFirstFom, hla.rti.tck.serviceUsageSecondFom, and hla.rti.tck.mim; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-service-usage-merge-{evoked,immediate}-default-20261022.json. Adapter supplies both service-usage FOM modules, standard MIM, logical time, factory, endpoint, federate type, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-note-collision-remap",
