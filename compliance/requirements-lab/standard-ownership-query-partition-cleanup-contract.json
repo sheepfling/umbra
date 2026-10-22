@@ -3,7 +3,14 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for mixed ordinary attribute ownership queries. The source uses only the official IEEE RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, two-attribute FOM, endpoint, and callback configuration. It verifies exact owned and unowned attribute partitions, invalid object and attribute failures, and suppression of ownership-query results that have not crossed the callback boundary when the object is removed. It does not assert provider-specific names, registries, headers, callback ordering, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check and focused pure-Java parity for mixed ordinary attribute ownership queries. The sources use only the official IEEE RTIambassador and FederateAmbassador APIs plus their language standard libraries; adapters supply the provider package, two-attribute FOM, endpoint, and callback configuration. They verify exact owned and unowned attribute partitions and suppression of ownership-query results that have not crossed the callback boundary when the object is removed. The broader Java invalid-object/attribute scenario stays independent and currently fails on the provider's wrapped exception; no negative failure is suppressed or mapped as a normative claim. Callback order, private registries, interoperability, and conformance are not asserted.",
+  "requirement_mappings": [
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-ownership-query-partition-cleanup",
@@ -13,8 +20,17 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "RTIambassador::queryAttributeOwnership, FederateAmbassador::informAttributeOwnership, FederateAmbassador::attributeIsNotOwned, and FederateAmbassador::removeObjectInstance",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioOwnershipQueryPartitionCleanup"
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioOwnershipQueryPartitionCleanup"
       ]
+    },
+    {
+      "id": "standard-java-ownership-query-result-nullification",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador.queryAttributeOwnership, deleteObjectInstance; FederateAmbassador.informAttributeOwnership, attributeIsNotOwned, removeObjectInstance",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": ["packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/OwnershipQueryPartitionCleanupTck.java::runNullification"]
     }
   ]
 }

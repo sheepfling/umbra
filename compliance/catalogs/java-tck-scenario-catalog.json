@@ -21993,7 +21993,30 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipQueryPartitionCleanup",
       "parity": "cpp-tck.ownership-query-partition-cleanup",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied multi-attribute FOM and standard ownership services; the Java scenario uses only IEEE 1516.1-2025 APIs."
+      "exclusion": "Requires an adapter-supplied multi-attribute FOM and standard ownership services; the Java scenario uses only IEEE 1516.1-2025 APIs. The current JNI provider remains red on the separate invalid-object boundary (UndeclaredThrowableException instead of ObjectInstanceNotKnown); this test has not been weakened."
+    },
+    {
+      "id": "java-tck.ownership-query-result-nullification",
+      "category": "ownership",
+      "title": "Partition ownership-query results and nullify pending reports on object removal",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.queryAttributeOwnership", "RTIambassador.deleteObjectInstance", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.informAttributeOwnership", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.removeObjectInstance"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "Separate standard-API positive-path parity for exact owned/unowned query partitions and nullification of pending results when the owner removes the object. Focused installed-provider runs passed under HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-query-result-nullification-*-jni-20261022.json). The broader invalid-object boundary remains independently red; no failure was suppressed. No cross-provider or conformance claim.",
+      "callback_models": ["evoked", "immediate"],
+      "contract_refs": ["standard-ownership-query-partition-cleanup-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipQueryResultNullification",
+      "parity": "cpp-tck.ownership-query-partition-cleanup",
+      "default_status": "unsupported",
+      "exclusion": "Default-disabled for unconfigured adapters; requires an official 2025 Java provider and adapter-owned multi-attribute FOM and callback model."
     },
     {
       "id": "java-tck.ownership-state-save-restore",

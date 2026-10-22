@@ -5165,6 +5165,17 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
             }, false), RtiTckMain::ownershipQueryPartitionCleanup);
+      run(new Scenario("java-tck.ownership-query-result-nullification",
+            "partition ownership-query results and nullify pending reports on object removal",
+            "ownership",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15",
+               "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18",
+               "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20",
+               "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21",
+               "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"
+            }, false), RtiTckMain::ownershipQueryResultNullification);
       run(new Scenario("java-tck.pending-negotiated-ownership-save-restore",
             "Preserve an If Available acquisition and negotiated divestiture through federation save and restore, including deferred immediate callbacks",
             "ownership",
@@ -8956,6 +8967,13 @@ public final class RtiTckMain {
 
    private static void ownershipQueryPartitionCleanup() throws Exception {
       OwnershipQueryPartitionCleanupTck.run(factory(),
+         requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
+         multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+         callbackModel());
+   }
+
+   private static void ownershipQueryResultNullification() throws Exception {
+      OwnershipQueryPartitionCleanupTck.runNullification(factory(),
          requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
          multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
          callbackModel());
@@ -12967,6 +12985,8 @@ public final class RtiTckMain {
             method = "ownershipAcquisitionIfAvailable"; break;
          case "java-tck.ownership-query-partition-cleanup":
             method = "ownershipQueryPartitionCleanup"; break;
+         case "java-tck.ownership-query-result-nullification":
+            method = "ownershipQueryResultNullification"; break;
          case "java-tck.ownership-state-save-restore":
             method = "ownershipStateSaveRestore"; break;
          case "java-tck.pending-negotiated-ownership-save-restore":

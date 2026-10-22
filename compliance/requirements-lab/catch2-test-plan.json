@@ -33792,6 +33792,8 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/ieee1516_2025_embedded_query_attribute_ownership_catch2.cpp:4",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Query Attribute Ownership reports 2025 federate and unowned attributes$",
       "assertions": 49,
       "next_action": "This bounded aggregate case covers grouped federate-owned and unowned Query Attribute Ownership reports plus nullification of queued reports after receive-order Remove Object Instance begins. RTI-owned MOM reporting and the read-only Is Attribute Owned By Federate surface remain covered by their dedicated rows. Add ownership acquisition/divestiture mutation, full resign-action disposition, timestamped/retraction behavior, DDM, FOM sharing policy, save/restore, remote transport, package support, and JUnit/conformance promotion before making any claim."
     },

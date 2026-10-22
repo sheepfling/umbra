@@ -27,6 +27,20 @@ final class OwnershipQueryPartitionCleanupTck {
    static void run(RtiFactory factory, String fom, String objectClassName,
          String firstAttributeName, String secondAttributeName, CallbackModel callbackModel)
          throws Exception {
+      runConfigured(factory, fom, objectClassName, firstAttributeName,
+         secondAttributeName, callbackModel, true);
+   }
+
+   static void runNullification(RtiFactory factory, String fom, String objectClassName,
+         String firstAttributeName, String secondAttributeName, CallbackModel callbackModel)
+         throws Exception {
+      runConfigured(factory, fom, objectClassName, firstAttributeName,
+         secondAttributeName, callbackModel, false);
+   }
+
+   private static void runConfigured(RtiFactory factory, String fom, String objectClassName,
+         String firstAttributeName, String secondAttributeName, CallbackModel callbackModel,
+         boolean includeInvalidHandleBoundaries) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -92,20 +106,27 @@ final class OwnershipQueryPartitionCleanupTck {
                 && !requester.isAttributeOwnedByFederate(object, requesterSecond),
              "ownership-query setup did not establish the one-owned/one-unowned split");
 
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-         AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
-         AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(
-            requester, invalidAttribute);
-         JavaTckSupport.expectFailure(
-            () -> requester.queryAttributeOwnership(invalidObject, queryAttributes),
-            "ObjectInstanceNotKnown", "querying an unknown object");
-         JavaTckSupport.expectFailure(
-            () -> requester.queryAttributeOwnership(object, invalidAttributes),
-            "AttributeNotDefined", "querying an undefined attribute");
+         if (includeInvalidHandleBoundaries) {
+            ObjectInstanceHandle invalidObject =
+               JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+            AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
+            AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(
+               requester, invalidAttribute);
+            JavaTckSupport.expectFailure(
+               () -> requester.queryAttributeOwnership(invalidObject, queryAttributes),
+               "ObjectInstanceNotKnown", "querying an unknown object");
+            JavaTckSupport.expectFailure(
+               () -> requester.queryAttributeOwnership(object, invalidAttributes),
+               "AttributeNotDefined", "querying an undefined attribute");
+         }
 
          requesterRecorder.clearOwnershipEvents();
          requester.queryAttributeOwnership(object, requesterAttributes);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(requesterRecorder.information.isEmpty()
+                  && requesterRecorder.notOwned.isEmpty(),
+               "ownership-query result escaped before evoked callback service");
+         }
          await(requester, callbackModel,
             () -> requesterRecorder.information.size() == 1
                && requesterRecorder.notOwned.size() == 1,
@@ -129,6 +150,11 @@ final class OwnershipQueryPartitionCleanupTck {
 
          requesterRecorder.clearOwnershipEvents();
          requester.queryAttributeOwnership(object, requesterAttributes);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(requesterRecorder.information.isEmpty()
+                  && requesterRecorder.notOwned.isEmpty(),
+               "queued ownership-query result escaped before object removal");
+         }
          int informationBeforeRemoval = requesterRecorder.information.size();
          int notOwnedBeforeRemoval = requesterRecorder.notOwned.size();
          owner.deleteObjectInstance(object, new byte[0]);

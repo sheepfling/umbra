@@ -27447,17 +27447,27 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "The adapter-backed mixed query reports the exact federate-owned and unowned subsets. Under HLA_EVOKED, no ownership result escapes before callback service; a second query followed by object removal produces no stale report. These five direct pairs cover only the bounded §7.18.4 query-result and pending-result nullification statements. The separate invalid-handle checks remain API-contract details, not mapped normative claims. Installed-package primary/contract passed 4/4 across both callback models; no conformance or independent-provider claim.",
       "contract_refs": [
         "standard-ownership-query-partition-cleanup-contract.json",
         "attribute-ownership-query-api-contract.json",
         "attribute-ownership-query-requirements-contract.json"
       ],
       "native_equivalent_runner_ids": [
-        "cpp-tck.attribute-ownership-query"
+        "umbra-cpp-attribute-ownership-query-integration"
       ],
-      "cpp_test": "src/main.cpp#scenarioOwnershipQueryPartitionCleanup",
+      "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioOwnershipQueryPartitionCleanup",
       "runner_id": "cpp-tck.ownership-query-partition-cleanup",
-      "parity": "java-tck.ownership-query-partition-cleanup",
+      "parity": "java-tck.ownership-query-result-nullification",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -27483,12 +27493,22 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "Contract twin executes the same public-API body and five bounded §7.18.4 assertions as the primary; it is not independent evidence.",
       "contract_refs": [
         "standard-ownership-query-partition-cleanup-contract.json"
       ],
       "cpp_test": "src/main.cpp#scenarioOwnershipQueryPartitionCleanupContract",
       "runner_id": "cpp-tck.ownership-query-partition-cleanup-contract",
-      "parity": "java-tck.ownership-query-partition-cleanup",
+      "parity": "cpp-tck.ownership-query-partition-cleanup",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

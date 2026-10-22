@@ -1818,6 +1818,11 @@ void scenarioOwnershipQueryPartitionCleanup(
   // attribute subsets. Callback order is intentionally not part of the check.
   requester.recorder().clearOwnershipRecords();
   requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  if (model == rti::HLA_EVOKED) {
+    require(requester.recorder().ownershipInformationEvents().empty() &&
+                requester.recorder().ownershipNotOwnedEvents().empty(),
+            "ownership-query result escaped before evoked callback service");
+  }
   waitFor(
       requester,
       [&] {
@@ -1848,6 +1853,11 @@ void scenarioOwnershipQueryPartitionCleanup(
   // result; in either model removal must not append a stale second result.
   requester.recorder().clearOwnershipRecords();
   requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  if (model == rti::HLA_EVOKED) {
+    require(requester.recorder().ownershipInformationEvents().empty() &&
+                requester.recorder().ownershipNotOwnedEvents().empty(),
+            "queued ownership-query result escaped before object removal");
+  }
   auto const informationBeforeRemoval =
       requester.recorder().ownershipInformationEvents().size();
   auto const notOwnedBeforeRemoval =
