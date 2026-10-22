@@ -14987,6 +14987,22 @@
         "cpp-1516.1-timestamped-interaction-delivery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.18.1", "hla-1516.1-2025:clause-8.19.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+          "standard_section": "hla-1516.1-2025:clause-8.18.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+          "standard_section": "hla-1516.1-2025:clause-8.19.3"
+        }
+      ],
+      "mapping_note": "Direct Query GALT/LITS source/API witness under §§8.18.1 and 8.19.3: after a regulating source resigns, GALT is undefined but LITS remains defined at the queued interaction timestamp. The two Lab IDs and sections are pinned in time-bounds-requirements-contract.json. Focused installed-provider runs pass in both callback models with adapter-supplied FOM, time, and interaction names; this does not establish other LITS boundaries or independent-provider conformance.",
       "contract_refs": [
         "standard-query-lits-source-resignation-contract.json",
         "time-bounds-api-contract.json",
@@ -14998,8 +15014,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#queryLitsSourceResignation",
       "parity": "cpp-tck.query-lits-source-resignation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.next-message-request",

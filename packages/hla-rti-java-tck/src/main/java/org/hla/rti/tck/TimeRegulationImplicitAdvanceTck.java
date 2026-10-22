@@ -146,7 +146,8 @@ final class TimeRegulationImplicitAdvanceTck {
             "Enable Time Regulation did not assign the smallest feasible logical time");
          JavaTckSupport.check(enablingCallbacks.callbackOrder.equals(
                Arrays.asList("interaction", "regulation-enabled")),
-            "queued TSO was not delivered before the Time Regulation Enabled callback");
+            "queued TSO was not delivered before the Time Regulation Enabled callback: "
+               + enablingCallbacks.callbackOrder);
          JavaTckSupport.check(enablingCallbacks.grants.isEmpty(),
             "implicit Time Regulation advance incorrectly produced a separate Time Advance Grant");
          JavaTckSupport.check(enablingCallbacks.interactions.size() == 1,

@@ -3198,9 +3198,8 @@ public final class RtiTckMain {
             "Keep Query LITS defined for a queued timestamped interaction after source resignation",
             "time-bounds-query",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.queryGALT;RTIambassador.queryLITS;RTIambassador.sendInteraction(time);RTIambassador.resignFederationExecution;RTIambassador.disableTimeConstrained;RTIambassador.unsubscribeInteractionClass;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.receiveInteraction(time)",
-            new String[] {"cpp-1516.1-query-galt-lits",
-               "cpp-1516.1-timestamped-interaction-delivery",
-               "cpp-1516.1-federation-create-join-resign-destroy"}, false),
+            new String[] {"requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+               "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"}, true),
          RtiTckMain::queryLitsSourceResignation);
       run(new Scenario("java-tck.next-message-request",
             "Deliver the next queued timestamped interaction before the grant",

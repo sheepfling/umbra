@@ -802,7 +802,16 @@ checks that a queued future directed interaction arrives through the untimed
 receive-order callback after disabling Time Constrained, then checks a later
 timestamped directed send retains its time with receivedOrder=RECEIVE. Its C++
 pair passes both time implementations and callback models. Java compiles against
-the official API jar but remains unsupported until provider-runtime verification.
+the official API jar. An opt-in run with the directed-capable adapter FOM
+timed out waiting for the queued callback under both Java callback models;
+this case remains unsupported pending a focused provider/adapter investigation.
+
+The default `java-tck.query-lits-source-resignation` scenario checks that
+Query GALT becomes undefined after the regulating source resigns while Query
+LITS remains defined at a queued timestamped interaction's time. The Java
+case passes focused installed-provider runs in both callback models using
+adapter-supplied FOM, interaction/parameter names, endpoint, and logical time.
+This is a bounded §§8.18.1/8.19.3 witness, not a conformance claim.
 
 The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
 checks the standard Table 5 `AttributeRegionAssociation` report value for one
