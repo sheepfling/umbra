@@ -70,10 +70,17 @@ final class MultiAttributeValueUpdateRequestResponseTck {
          ownerSecond = owner.getAttributeHandle(ownerClass, secondAttributeName);
          requesterFirst = requester.getAttributeHandle(requesterClass, firstAttributeName);
          requesterSecond = requester.getAttributeHandle(requesterClass, secondAttributeName);
-         JavaTckSupport.check(ownerClass.equals(requesterClass)
-               && ownerFirst.equals(requesterFirst) && ownerSecond.equals(requesterSecond)
-               && !ownerFirst.equals(ownerSecond),
-            "adapter multi-attribute FOM returned inconsistent class or attribute handles");
+         JavaTckSupport.check(!ownerFirst.equals(ownerSecond)
+               && !requesterFirst.equals(requesterSecond)
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && firstAttributeName.equals(owner.getAttributeName(ownerClass, ownerFirst))
+               && secondAttributeName.equals(owner.getAttributeName(ownerClass, ownerSecond))
+               && firstAttributeName.equals(requester.getAttributeName(requesterClass,
+                  requesterFirst))
+               && secondAttributeName.equals(requester.getAttributeName(requesterClass,
+                  requesterSecond)),
+            "adapter multi-attribute FOM did not resolve its class or attribute names");
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerFirst, ownerSecond);
          requesterAttributes = JavaTckSupport.attributeSet(requester,
@@ -84,10 +91,14 @@ final class MultiAttributeValueUpdateRequestResponseTck {
          subscribed = true;
          ObjectInstanceHandle registeredObject = owner.registerObjectInstance(ownerClass);
          object = registeredObject;
-         await(requester, () -> requesterRecorder.discovered(registeredObject),
+         String objectName = owner.getObjectInstanceName(object);
+         await(requester, () -> requesterRecorder.discoveredObject != null,
             "requester did not discover the multi-attribute object before the deadline");
-         JavaTckSupport.check(object.equals(requesterRecorder.discoveredObject),
-            "multi-attribute object discovery returned the wrong handle");
+         ObjectInstanceHandle localObject = requesterRecorder.discoveredObject;
+         JavaTckSupport.check(objectName.equals(requester.getObjectInstanceName(localObject))
+               && localObject.equals(requester.getObjectInstanceHandle(objectName))
+               && requesterClass.equals(requester.getKnownObjectClassHandle(localObject)),
+            "requester did not preserve its discovered object identity");
 
          TransportationTypeHandle reliable =
             requester.getTransportationTypeHandle("HLAreliable");
@@ -215,7 +226,7 @@ final class MultiAttributeValueUpdateRequestResponseTck {
       JavaTckSupport.check(reflections.size() == 1,
          description + " produced an unexpected number of reflection callbacks");
       Reflection reflection = reflections.get(0);
-      JavaTckSupport.check(object.equals(reflection.object)
+      JavaTckSupport.check(knownObject.equals(reflection.object)
             && reflection.values.size() == expectedValues.size()
             && Arrays.equals(responseTag, reflection.tag)
             && reliable.equals(reflection.transportation)
@@ -304,10 +315,6 @@ final class MultiAttributeValueUpdateRequestResponseTck {
                }
                return null;
             });
-      }
-
-      private boolean discovered(ObjectInstanceHandle object) {
-         return object.equals(discoveredObject);
       }
 
       private List<ProvidedUpdate> provided() { return List.copyOf(provided); }

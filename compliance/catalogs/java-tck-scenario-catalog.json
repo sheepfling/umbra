@@ -4894,7 +4894,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
       ],
-      "mapping_note": "Parity covers full and selective object-instance requests (§6.21), request-tag propagation (§6.21.5), exactly one owner callback per request (§6.22), and ordinary Update/Reflect values and response tag (§6.10). Setup/discovery are controls, not separate claims; callback order, DDM behavior, and provider-internal delivery policy are outside scope. This Java source compiles against the official API; no Java provider-runtime result is claimed.",
+      "mapping_note": "Parity covers full and selective object-instance requests (§6.21), request-tag propagation (§6.21.5), exactly one owner callback per request (§6.22), and ordinary Update/Reflect values and response tag (§6.10). Setup/discovery are controls, not separate claims; callback order, DDM behavior, and provider-internal delivery policy are outside scope. Each federate resolves class, attribute, and object identity locally. The Java source compiles against the official API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied FOM/names; independent-provider conformance is not claimed.",
       "contract_refs": [
         "attribute-value-update-request-api-contract.json",
         "attribute-value-update-request-requirements-contract.json",
@@ -4911,8 +4911,8 @@
         "standard-ordinary-multi-attribute-value-update-request-response-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#multiAttributeValueUpdateRequestResponse",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied multi-attribute FOM/names and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-removal-multi-recipient-fifo",

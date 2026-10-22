@@ -1417,7 +1417,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::multiAttributeValueUpdateRequestResponse);
+            }, true), RtiTckMain::multiAttributeValueUpdateRequestResponse);
       run(new Scenario("java-tck.object-removal-multi-recipient-fifo",
             "deliver ordinary object removals to two active subscribers without owner loopback",
             "object-management",

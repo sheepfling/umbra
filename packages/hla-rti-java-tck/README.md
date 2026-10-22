@@ -745,12 +745,13 @@ Its C++ primary and contract pass the focused installed-package gate with
 `HLAinteger64Time`; Java compiles against the official API jar but awaits
 provider-runtime verification.
 
-The opt-in `java-tck.ordinary-multi-attribute-value-update-request-response`
+The default-run `java-tck.ordinary-multi-attribute-value-update-request-response`
 scenario uses the adapter-supplied multi-attribute FOM and names. It exercises
 full, first-only, and second-only instance requests, checks the provider callback
 attribute sets and request tags, and verifies each ordinary response's values,
-tag, producer, reliable transportation, and receive-order metadata. It remains
-unsupported by default until run against a Java provider.
+tag, producer, reliable transportation, and receive-order metadata. Both callback
+modes passed the focused JNI gate with adapter-supplied FOM/names. The direct
+standard claims are limited to §§6.21, 6.21.5, 6.22, and 6.10.
 
 The opt-in `java-tck.regional-multi-attribute-update` scenario uses an
 adapter-supplied multi-attribute FOM configured with
