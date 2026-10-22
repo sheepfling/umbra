@@ -3249,14 +3249,14 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Maps only the direct Clause 5.9.4 postcondition: after the federate unsubscribes the class's sole adapter-selected attribute, a subsequently registered instance does not produce Discover Object Instance for that federate. Initial discovery while subscribed is a positive control. Java provider runtime evidence is not yet available; this row is not evidence of conformance.",
+      "mapping_note": "Maps only the direct Clause 5.9.4 postcondition: after the federate unsubscribes the class's sole adapter-selected attribute, a subsequently registered instance does not produce Discover Object Instance for that federate. Initial discovery while subscribed is a positive control. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-declaration-management-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#unsubscribeLastAttributeStopsDiscovery",
       "parity": "cpp-tck.unsubscribe-last-attribute-stops-discovery",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, object class, attribute, and callback configuration; Java provider runtime evidence is not yet available."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-unsubscribe-stops-reflection",
@@ -3296,7 +3296,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Native reference umbra-cpp-attribute-unsubscribe-stops-reflection (focused embedded case: 24 assertions). A first ordinary update and reflection are the positive control; after unsubscribing the sole selected attribute, a later update must not produce another reflection during the adapter-configured callback observation window. The paired portable C++ TCK primary and contract passed an isolated installed-package gate under both callback models; this Java API-only case has not been executed against a provider and is not Java conformance evidence.",
+      "mapping_note": "Native reference umbra-cpp-attribute-unsubscribe-stops-reflection (focused embedded case: 24 assertions). A first ordinary update and reflection are the positive control; after unsubscribing the sole selected attribute, a later update must not produce another reflection during the adapter-configured callback observation window. The paired portable C++ TCK primary and contract passed an isolated installed-package gate under both callback models. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-attribute-unsubscribe-reflection-boundary-contract.json",
         "standard-declaration-management-contract.json",
@@ -3307,8 +3307,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeUnsubscribeStopsReflection",
       "parity": "cpp-tck.attribute-unsubscribe-stops-reflection",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, object class, attribute, callback model, and callback timeout; Java provider runtime evidence is not yet available."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.base-publication-rejects-derived-only-attribute",

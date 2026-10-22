@@ -1117,13 +1117,13 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-05-declaration-management-page-098-l146-43",
                "java-1516.1-object-registration-discovery"
-            }, false), RtiTckMain::unsubscribeLastAttributeStopsDiscovery);
+            }, true), RtiTckMain::unsubscribeLastAttributeStopsDiscovery);
       run(new Scenario("java-tck.attribute-unsubscribe-stops-reflection",
             "suppress later ordinary attribute reflection after unsubscription", "declarations",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
                "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"
-            }, false), RtiTckMain::attributeUnsubscribeStopsReflection);
+            }, true), RtiTckMain::attributeUnsubscribeStopsReflection);
       run(new Scenario("java-tck.base-publication-rejects-derived-only-attribute",
             "reject a derived-only attribute in a base-class publication", "declarations",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",

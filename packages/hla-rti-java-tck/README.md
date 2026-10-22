@@ -23,6 +23,12 @@ and transportation/order controls. The
 executions, joins multiple federates to each, and reuses one ambassador in the
 second execution after resignation. It runs by default after focused JNI
 passes in both callback models, using the adapter's FOM and time selection.
+The `java-tck.unsubscribe-last-attribute-stops-discovery` and
+`java-tck.attribute-unsubscribe-stops-reflection` cases now run by default.
+They first establish positive discovery/reflection, then verify that removing
+the selected attribute subscription suppresses later callbacks within a
+bounded observation window. Both passed focused JNI runs in evoked and
+immediate callback modes using the adapter's ordinary object FOM.
 The `java-tck.callback-reentrancy` case
 checks the official API's callback-service exception boundary; because the
 Requirements Lab has no standalone normative requirement for re-entry, it is
