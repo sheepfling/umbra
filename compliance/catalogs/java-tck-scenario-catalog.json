@@ -8929,12 +8929,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l56-3"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l56-3", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
-      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance of named and omitted Element Types, raw basic-data rejection, and valid retry. Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance of named and omitted Element Types, raw basic-data rejection, and valid retry. Matching C++ primary and contract passed 4/4 at out/mgw/fom-array-element-category-20261021.json.",
       "contract_refs": ["standard-fom-array-element-category-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayElementCategory",
       "parity": "cpp-tck.fom-array-element-category",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.arrayElementValidFom, arrayElementOmittedFom, and arrayElementBasicFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-array-element-category-{evoked,immediate}-default-20261022.json. Adapter supplies valid, omitted, and raw-basic FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-record-member-category",
@@ -8945,12 +8945,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-076-l52-2", "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-076-l52-2", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Compiles against the 2025 Java API for parity with named and omitted record member acceptance, separate raw basic-data Field/Alternative rejection, and valid retry. The pinned Lab candidates resolve only to broad clause 4 (RL-047); Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API for parity with named and omitted record member acceptance, separate raw basic-data Field/Alternative rejection, and valid retry. The pinned Lab candidates resolve only to broad clause 4 (RL-047). Matching C++ primary and contract passed 4/4 at out/mgw/fom-record-member-category-20261021.json.",
       "contract_refs": ["standard-fom-record-member-category-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomRecordMemberCategory",
       "parity": "cpp-tck.fom-record-member-category",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.recordMemberValidFom, recordMemberOmittedFom, recordMemberBasicFieldFom, and recordMemberBasicAlternativeFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-record-member-category-{evoked,immediate}-default-20261022.json. Adapter supplies valid, omitted, basic-Field, and basic-Alternative FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-variant-discriminant-category",
@@ -8961,12 +8961,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.20"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11", "standard_section": "hla-1516.2-2025:clause-6.2.20"}],
-      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance of enumerated and omitted discriminants, rejection of raw basic, simple, and NA categories, and valid retry. Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance of enumerated and omitted discriminants, rejection of raw basic, simple, and NA categories, and valid retry. Matching C++ primary and contract passed 4/4 at out/mgw/fom-variant-discriminant-category-20261021.json.",
       "contract_refs": ["standard-fom-variant-discriminant-category-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantDiscriminantCategory",
       "parity": "cpp-tck.fom-variant-discriminant-category",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.variantDiscriminantValidFom, variantDiscriminantOmittedFom, variantDiscriminantBasicFom, variantDiscriminantSimpleFom, and variantDiscriminantNaFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-variant-discriminant-category-{evoked,immediate}-default-20261022.json. Adapter supplies valid, omitted, basic, simple, and NA FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-variant-enumerator-syntax",

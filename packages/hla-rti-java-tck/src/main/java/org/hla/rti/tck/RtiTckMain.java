@@ -2052,19 +2052,19 @@ public final class RtiTckMain {
             "Accept named and omitted array Element Types and reject raw basic-data elements",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomArrayElementCategory);
       run(new Scenario("java-tck.fom-record-member-category",
             "Accept named and omitted record member types and reject raw basic-data members",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomRecordMemberCategory);
       run(new Scenario("java-tck.fom-variant-discriminant-category",
             "Accept enumerated and omitted variant discriminants and reject other categories",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomVariantDiscriminantCategory);
       run(new Scenario("java-tck.fom-variant-enumerator-syntax",
             "Accept range, standalone HLAother, and omitted variant enumerators; reject malformed forms",

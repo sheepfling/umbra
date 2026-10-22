@@ -479,6 +479,14 @@ adapter-supplied modules to accept an omitted representation, reject a
 non-basic representation, and retry a valid create. Both passed focused
 installed-provider runs under evoked and immediate callbacks; neither is an
 independent-provider conformance claim.
+The default-run `java-tck.fom-array-element-category`,
+`java-tck.fom-record-member-category`, and
+`java-tck.fom-variant-discriminant-category` cases similarly validate named
+or omitted type categories, reject invalid raw-basic or non-enumerated types,
+and retry a valid Create. Their FOM inputs remain adapter-owned. Each passed
+focused installed-provider evoked and immediate runs; independent-provider
+behavior remains unverified. The record-member Lab mapping remains at broad
+clause 4 pending a more precise source mapping.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
