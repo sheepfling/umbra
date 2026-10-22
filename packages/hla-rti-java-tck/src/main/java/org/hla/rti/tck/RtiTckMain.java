@@ -952,7 +952,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.callback-reentrancy",
             "callback servicing rejects re-entry from a federate callback", "connection",
             "RTIambassador.connect;RTIambassador.listFederationExecutions;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.disconnect;FederateAmbassador.reportFederationExecutions",
-            new String[] {}, false), RtiTckMain::callbackReentrancy);
+            new String[] {}, true), RtiTckMain::callbackReentrancy);
       run(new Scenario("java-tck.connection-loss-cleanup",
             "observe adapter-managed connection loss and verify survivor service",
             "connection",

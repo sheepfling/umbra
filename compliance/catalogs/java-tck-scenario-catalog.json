@@ -2819,8 +2819,9 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#callbackReentrancy",
       "parity": "cpp-tck.callback-reentrancy",
       "mapping_classification": "api-contract-only-not-normative-conformance",
-      "exclusion": "The Requirements Lab has no standalone callback-reentrancy requirement. This is API/exception traceability for the official Java API only, not normative conformance evidence; remains unsupported by default until exercised against an IEEE 1516.1-2025 Java provider.",
-      "default_status": "unsupported"
+      "mapping_note": "The Requirements Lab has no standalone callback-reentrancy requirement. This is API/exception traceability only, not normative conformance evidence. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE after its callback observations were made thread-safe and bounded; no independent-provider claim.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.standard-exception-boundaries",

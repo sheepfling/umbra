@@ -6,6 +6,10 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.exceptions.CallNotAllowedFromWithinCallback;
 import java.lang.reflect.Proxy;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Checks the standard callback-servicing re-entry exception boundary. */
 final class CallbackReentrancyTck {
@@ -20,12 +24,18 @@ final class CallbackReentrancyTck {
          connected = true;
          ambassador.listFederationExecutions();
          if (callbackModel == CallbackModel.HLA_EVOKED) {
-            ambassador.evokeMultipleCallbacks(0.0, 10.0);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            while (!recorder.hasReport() && System.nanoTime() < deadline) {
+               ambassador.evokeMultipleCallbacks(0.0, 0.01);
+            }
          }
+         JavaTckSupport.check(recorder.awaitReport(),
+            "callback re-entrancy test timed out waiting for a federation-list callback");
 
-         JavaTckSupport.check(recorder.reportCount == 1,
+         JavaTckSupport.check(recorder.reportCount.get() == 1,
             "callback re-entrancy test did not receive exactly one federation-list callback");
-         JavaTckSupport.check(recorder.evokeRejected && recorder.multipleRejected,
+         JavaTckSupport.check(recorder.evokeRejected.get()
+               && recorder.multipleRejected.get(),
             "callback re-entrancy test admitted callback-service re-entry");
       } finally {
          if (connected) {
@@ -36,12 +46,21 @@ final class CallbackReentrancyTck {
 
    private static final class Recorder {
       private final RTIambassador ambassador;
-      private int reportCount;
-      private boolean evokeRejected;
-      private boolean multipleRejected;
+      private final AtomicInteger reportCount = new AtomicInteger();
+      private final AtomicBoolean evokeRejected = new AtomicBoolean();
+      private final AtomicBoolean multipleRejected = new AtomicBoolean();
+      private final CountDownLatch reportDelivered = new CountDownLatch(1);
 
       private Recorder(RTIambassador ambassador) {
          this.ambassador = ambassador;
+      }
+
+      private boolean awaitReport() throws InterruptedException {
+         return reportDelivered.await(10, TimeUnit.SECONDS);
+      }
+
+      private boolean hasReport() {
+         return reportDelivered.getCount() == 0;
       }
 
       private FederateAmbassador proxy() {
@@ -51,16 +70,20 @@ final class CallbackReentrancyTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("reportFederationExecutions".equals(name)) {
-                  ++reportCount;
                   try {
-                     ambassador.evokeCallback(0.0);
-                  } catch (CallNotAllowedFromWithinCallback expected) {
-                     evokeRejected = true;
-                  }
-                  try {
-                     ambassador.evokeMultipleCallbacks(0.0, 0.0);
-                  } catch (CallNotAllowedFromWithinCallback expected) {
-                     multipleRejected = true;
+                     reportCount.incrementAndGet();
+                     try {
+                        ambassador.evokeCallback(0.0);
+                     } catch (CallNotAllowedFromWithinCallback expected) {
+                        evokeRejected.set(true);
+                     }
+                     try {
+                        ambassador.evokeMultipleCallbacks(0.0, 0.0);
+                     } catch (CallNotAllowedFromWithinCallback expected) {
+                        multipleRejected.set(true);
+                     }
+                  } finally {
+                     reportDelivered.countDown();
                   }
                }
                if (method.getDeclaringClass() == Object.class) {

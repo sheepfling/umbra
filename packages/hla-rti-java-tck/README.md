@@ -22,8 +22,10 @@ and transportation/order controls. The `java-tck.callback-reentrancy` case
 checks the official API's callback-service exception boundary; because the
 Requirements Lab has no standalone normative requirement for re-entry, it is
 classified as API/exception traceability rather than conformance evidence. It
-is parity-linked to `cpp-tck.callback-reentrancy`; Java provider runtime remains
-unverified, so it is unsupported by default.
+is parity-linked to `cpp-tck.callback-reentrancy` and runs by default after
+focused JNI passes in both callback models. Its immediate-callback observation
+uses a bounded wait and thread-safe recorder; no independent-provider claim is
+made.
 The `java-tck.null-federate-ambassador` case invokes every official
 `FederateAmbassador` callback overload through `NullFederateAmbassador`,
 including timestamped and directed callbacks, and passes independently of
