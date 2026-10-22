@@ -136,6 +136,10 @@ public final class RtiTckMain {
       "hla.rti.tck.updateRateZeroPreflightFom";
    private static final String UPDATE_RATE_POSITIVE_PREFLIGHT_FOM_PROPERTY =
       "hla.rti.tck.updateRatePositivePreflightFom";
+   private static final String DIMENSION_DEFAULT_RANGE_OUTSIDE_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDefaultRangeOutsideFom";
+   private static final String DIMENSION_DEFAULT_RANGE_BOUNDED_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDefaultRangeBoundedFom";
    private static final String DIMENSION_INPUT_RAW_BASIC_FOM_PROPERTY =
       "hla.rti.tck.dimensionInputRawBasicFom";
    private static final String DIMENSION_INPUT_NA_FOM_PROPERTY =
@@ -1838,6 +1842,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getUpdateRateValue;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomPositiveUpdateRate);
+      run(new Scenario("java-tck.fom-dimension-default-range",
+            "Reject an out-of-bounds dimension default range and accept its exact boundary",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDimensionDefaultRange);
       run(new Scenario("java-tck.fom-synchronization-duplicate-equal",
             "Accept identical same-label synchronization declarations",
             "fom-composition",
@@ -11640,6 +11650,8 @@ public final class RtiTckMain {
             method = "fomModelModificationDate"; break;
          case "java-tck.fom-positive-update-rate":
             method = "fomPositiveUpdateRate"; break;
+         case "java-tck.fom-dimension-default-range":
+            method = "fomDimensionDefaultRange"; break;
          case "java-tck.fom-synchronization-duplicate-equal":
             method = "fomSynchronizationDuplicateEqual"; break;
          case "java-tck.fom-synchronization-duplicate-note-conflict":
@@ -13322,6 +13334,13 @@ public final class RtiTckMain {
       FomPositiveUpdateRateTck.run(factory(),
          requireAdapterFile(UPDATE_RATE_ZERO_PREFLIGHT_FOM_PROPERTY),
          requireAdapterFile(UPDATE_RATE_POSITIVE_PREFLIGHT_FOM_PROPERTY),
+         requireMim(), timeImplementation(), callbackModel());
+   }
+
+   private static void fomDimensionDefaultRange() throws Exception {
+      FomDimensionDefaultRangeTck.run(factory(),
+         requireAdapterFile(DIMENSION_DEFAULT_RANGE_OUTSIDE_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DEFAULT_RANGE_BOUNDED_FOM_PROPERTY),
          requireMim(), timeImplementation(), callbackModel());
    }
 

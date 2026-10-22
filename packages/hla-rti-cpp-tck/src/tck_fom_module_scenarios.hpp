@@ -74,6 +74,8 @@ void scenarioFomDimensionInputNaExclusivity(Options const&, rti::CallbackModel);
 void scenarioFomDimensionInputNaExclusivityContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionNameUniqueness(Options const&, rti::CallbackModel);
 void scenarioFomDimensionNameUniquenessContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDefaultRange(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDefaultRangeContract(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassNameConventions(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassNameConventionsContract(Options const&, rti::CallbackModel);
 void scenarioFomModelModificationDate(Options const&, rti::CallbackModel);

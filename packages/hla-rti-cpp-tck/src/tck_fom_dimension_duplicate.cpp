@@ -281,4 +281,44 @@ void scenarioFomDimensionNameUniquenessContract(Options const& options,
   scenarioFomDimensionNameUniqueness(options, model);
 }
 
+void scenarioFomDimensionDefaultRange(Options const& options,
+                                      rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Dimension default range requires adapter-supplied MIM and logical time");
+  auto const& outside = requiredFom(options, "dimension-default-range-outside");
+  auto const& bounded = requiredFom(options, "dimension-default-range-bounded");
+  Session creator(options, model, "dimension-default-range-creator");
+  Session member(options, model, "dimension-default-range-member");
+  auto const federation = federationName(options, "fom-dimension-default-range");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(outside); }, L"InconsistentFOM",
+                   "a dimension default range extending beyond upperBound");
+
+  // A valid half-open boundary must work under the same failed-create name.
+  createWithMim(bounded);
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto& rti = member.rtiAmbassador();
+  auto const name = std::wstring(L"TckBoundedDefaultDimension");
+  auto const dimension = rti.getDimensionHandle(name);
+  require(dimension.isValid() && rti.getDimensionName(dimension) == name &&
+              rti.getDimensionUpperBound(dimension) == 100U,
+          "a bounded dimension default range did not compose publicly");
+  member.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomDimensionDefaultRangeContract(Options const& options,
+                                              rti::CallbackModel model) {
+  scenarioFomDimensionDefaultRange(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

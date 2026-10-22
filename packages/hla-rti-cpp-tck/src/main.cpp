@@ -19442,6 +19442,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-object-class-name-conventions-contract",
       "cpp-tck.fom-model-modification-date-contract",
       "cpp-tck.fom-positive-update-rate-contract",
+      "cpp-tck.fom-dimension-default-range-contract",
       "cpp-tck.fom-synchronization-duplicate-equal-contract",
       "cpp-tck.fom-synchronization-duplicate-note-conflict-contract",
       "cpp-tck.fom-transportation-duplicate-equal-contract",
@@ -20169,6 +20170,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-object-class-name-conventions",
       "cpp-tck.fom-model-modification-date",
       "cpp-tck.fom-positive-update-rate",
+      "cpp-tck.fom-dimension-default-range",
       "cpp-tck.fom-synchronization-duplicate-equal",
       "cpp-tck.fom-synchronization-duplicate-note-conflict",
       "cpp-tck.fom-transportation-duplicate-equal",
@@ -21042,6 +21044,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-positive-update-rate-contract") {
     return scenarioFomPositiveUpdateRateContract;
+  }
+  if (id == "cpp-tck.fom-dimension-default-range-contract") {
+    return scenarioFomDimensionDefaultRangeContract;
   }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal-contract") {
     return scenarioFomSynchronizationDuplicateEqualContract;
@@ -23358,6 +23363,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-positive-update-rate") {
     return scenarioFomPositiveUpdateRate;
   }
+  if (id == "cpp-tck.fom-dimension-default-range") {
+    return scenarioFomDimensionDefaultRange;
+  }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal") {
     return scenarioFomSynchronizationDuplicateEqual;
   }
@@ -24001,6 +24009,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("update-rate-positive-preflight") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied MIM and update-rate preflight FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dimension-default-range" ||
+                  scenario == "cpp-tck.fom-dimension-default-range-contract") &&
+                 (options.mimFom.empty() ||
+                  options.scenarioFoms.count("dimension-default-range-outside") == 0U ||
+                  options.scenarioFoms.count("dimension-default-range-bounded") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and dimension default-range FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

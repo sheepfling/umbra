@@ -758,6 +758,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml")),
             "update-rate-positive-preflight="
             + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-positive-preflight-tck.xml")),
+            "dimension-default-range-outside="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-default-range-outside-tck.xml")),
+            "dimension-default-range-bounded="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-default-range-bounded-tck.xml")),
             "dimension-input-table-type="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "dimension-input-description-na-invalid="

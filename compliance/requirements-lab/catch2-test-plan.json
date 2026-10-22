@@ -14141,6 +14141,10 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5"
       ],
       "test_case": "The FOM composition preflight bounds dimension default ranges",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1666",
+      "standard_sections": [
+        "hla-1516.2-2025:clause-6.2.7"
+      ],
       "tags": [
         "unit",
         "fom",
