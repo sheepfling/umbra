@@ -286,15 +286,15 @@
           "standard_section": "hla-1516.1-2025:clause-4"
         }
       ],
-      "mapping_note": "Clause 4 maps to the successful participation sequence: one application creates two executions, joins multiple federates to both, resigns and reuses an RTIambassador in the other execution, then cleanly tears down both executions.",
+      "mapping_note": "Clause 4 maps to the successful participation sequence: one application creates two executions, joins multiple federates to both, resigns and reuses an RTIambassador in the other execution, then cleanly tears down both executions. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models; no independent-provider or conformance claim.",
       "contract_refs": [
         "federate-application-multiple-executions-requirements-contract.json",
         "federate-application-multiple-executions-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateApplicationMultipleExecutions",
       "parity": "cpp-tck.federate-application-multiple-executions",
-      "default_status": "unsupported",
-      "exclusion": "The Java scenario uses only the official IEEE 1516.1-2025 API but remains unsupported by default until it is executed against an adapter-supplied Java provider with the configured FOM, time implementation, and callback model."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.duplicate-federate-name-join-boundary",

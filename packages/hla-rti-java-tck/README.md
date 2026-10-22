@@ -18,7 +18,12 @@ deletion, instance- and class-scoped attribute value update requests, attribute
 update/reflection, object deletion and removal callbacks,
 ordinary and timestamped interaction delivery (including the RO-positive/TSO-gated asynchronous-delivery boundary), support lookups, negative cases, relevance
 advisories, directed interactions, derived-target subscription eligibility,
-and transportation/order controls. The `java-tck.callback-reentrancy` case
+and transportation/order controls. The
+`java-tck.federate-application-multiple-executions` case creates two
+executions, joins multiple federates to each, and reuses one ambassador in the
+second execution after resignation. It runs by default after focused JNI
+passes in both callback models, using the adapter's FOM and time selection.
+The `java-tck.callback-reentrancy` case
 checks the official API's callback-service exception boundary; because the
 Requirements Lab has no standalone normative requirement for re-entry, it is
 classified as API/exception traceability rather than conformance evidence. It

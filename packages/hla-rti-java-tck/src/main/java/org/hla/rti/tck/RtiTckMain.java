@@ -531,7 +531,7 @@ public final class RtiTckMain {
             "Join federates in two executions and reuse an ambassador after resignation",
             "lifecycle",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;FederateHandle.encodedLength;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, false),
+            new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, true),
             RtiTckMain::federateApplicationMultipleExecutions);
       run(new Scenario("java-tck.federation-list-services",
             "federation listing callback boundaries and lifecycle", "federation-management",
