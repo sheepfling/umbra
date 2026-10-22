@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Dimension-table default range upper-bound preflight through official Federation Create and dimension lookup services. The adapter supplies provider package, standard MIM, two schema-valid otherwise-matched FOM bindings, endpoint, logical time, and callback model. For upperBound 100, [0..101) is rejected with InconsistentFOM while [0..100) is accepted. Other integer forms, Excluded, private diagnostics, Java provider runtime, and interoperability are not claimed. The existing generic invalid-FOM corpus includes an out-of-range fixture but permits multiple failure types and has no matched boundary control.",
+  "notes": "Portable Dimension-table default range upper-bound preflight through official Federation Create and dimension lookup services. The adapter supplies provider package, standard MIM, two schema-valid otherwise-matched FOM bindings, endpoint, logical time, and callback model. For upperBound 100, [0..101) is rejected with InconsistentFOM while [0..100) is accepted. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/dimension-default-range-jni-20261021.json); other Java providers, other integer forms, Excluded, private diagnostics, interoperability, and conformance are not claimed. The existing generic invalid-FOM corpus includes an out-of-range fixture but permits multiple failure types and has no matched boundary control.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-dimension-default-range",

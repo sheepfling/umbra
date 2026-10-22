@@ -1657,6 +1657,15 @@ Prefix each property with `hla.rti.tck.` and supply `--mim-path` to the
 cases that request the standard MIM. These cases remain default-disabled
 until a provider adapter attests its fixtures.
 
+The dimension-default-range case uses `dimensionDefaultRangeOutsideFom`
+and `dimensionDefaultRangeBoundedFom`, with the standard MIM. Duplicate
+synchronization and transportation rows use a `*DuplicateBaseFom` paired
+with either `*DuplicateEqualFom` or `*DuplicateNoteConflictFom`; use the
+`synchronization` or `transportation` prefix as appropriate. Pass these as
+`hla.rti.tck.`-prefixed Java properties backed by adapter-supplied 2025
+modules. The default-disabled status remains until that provider supplies
+and attests the fixtures.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set
