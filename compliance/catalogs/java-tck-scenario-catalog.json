@@ -31991,7 +31991,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.16.5"
         }
       ],
-      "mapping_note": "§8.15.3 and §8.16.5 cover enabling and disabling asynchronous delivery; while disabled, receive-order and timestamped callbacks remain withheld. Re-enabling releases the receive-order control but leaves TSO gated while the receiver is Time Granted (§8.1.5). TAR to the timestamped event's time releases it before the matching grant (§8.14.4(d)). The adapter supplies provider, FOM names, endpoint, logical-time implementation, and callback model. No asynchronous TSO dispatch, DDM, or provider-specific API behavior is asserted.",
+      "mapping_note": "§8.15.3 and §8.16.5 cover enabling and disabling asynchronous delivery; while disabled, receive-order and timestamped callbacks remain withheld. Re-enabling releases the receive-order control but leaves TSO gated while the receiver is Time Granted (§8.1.5). TAR to the timestamped event's time releases it before the matching grant (§8.14.4(d)). The adapter supplies provider, FOM names, endpoint, logical-time implementation, and callback model. No asynchronous TSO dispatch, DDM, or provider-specific API behavior is asserted. Installed Java adapter passed both callback models on 2026-10-22, not independent-provider conformance.",
       "contract_refs": [
         "asynchronous-delivery-api-contract.json",
         "asynchronous-delivery-requirements-contract.json",
@@ -32004,8 +32004,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#asynchronousDeliveryTsoReenableGate",
       "parity": "cpp-tck.asynchronous-delivery-reenable-tso-gate",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model. Only official IEEE 1516.1-2025 Java API and JDK APIs are used; no provider-specific classes or DDM regions."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/asynchronous-reenable-tso-gate-{evoked,immediate}-default-20261022.json. Matching C++ primary passed both modes at out/mgw/cpp-tck-asynchronous-delivery-reenable-tso-gate-20261017/results.json. Provider, FOM, endpoint, logical time, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.asynchronous-delivery-time-advancing-ro",

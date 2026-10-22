@@ -1066,7 +1066,7 @@ public final class RtiTckMain {
                "cpp-1516.1-asynchronous-delivery-disable",
                "cpp-1516.1-timestamped-interaction",
                "cpp-1516.1-time-advance-request"
-            }, false), RtiTckMain::asynchronousDeliveryTsoReenableGate);
+            }, true), RtiTckMain::asynchronousDeliveryTsoReenableGate);
       run(new Scenario("java-tck.asynchronous-delivery-time-advancing-ro",
             "deliver receive-order interactions when asynchronous delivery is enabled during Time Advancing",
             "asynchronous-delivery",

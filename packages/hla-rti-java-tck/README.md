@@ -278,6 +278,11 @@ their logical-time gate, including TAR's equal-time cutoff (§§8.1.5, 8.14.4).
 It passed both callback models on the installed package on 2026-10-22;
 interaction classes, parameters, time, and callback configuration remain
 adapter inputs. It does not assert asynchronous TSO dispatch.
+The companion `java-tck.asynchronous-delivery-reenable-tso-gate` is also
+default-run after evoked and immediate installed-package passes. It checks
+that disabling then re-enabling asynchronous delivery releases the RO control
+without bypassing the TSO time gate, and that TAR releases the timestamped
+event before its grant (§§8.1.5, 8.14.4, 8.15.3, 8.16.5).
 The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
 rate lookup, active and passive named subscriptions, default-rate behavior,
 per-attribute rate reset, and invalid designator/object/attribute failures.
