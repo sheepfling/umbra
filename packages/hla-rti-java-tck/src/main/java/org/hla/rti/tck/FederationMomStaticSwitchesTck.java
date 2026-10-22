@@ -106,8 +106,10 @@ final class FederationMomStaticSwitchesTck {
             "requested standard federation MOM switch values");
          check(recorder.reflectionTag != null && recorder.reflectionTag.length == 0
                && reliable.equals(recorder.reflectionTransportation)
-               && recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
+               && recorder.reflectionRegionsEmpty,
             "static-switch reflection had non-standard callback metadata");
+         JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+            "federation MOM static-switch reflection");
          for (int index = 0; index < switchHandles.length; index++) {
             HLAinteger32BE value = encoder.createHLAinteger32BE();
             value.decode(recorder.reflectedValues.get(switchHandles[index]));

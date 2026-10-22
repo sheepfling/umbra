@@ -925,7 +925,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-attribute-update-reflect"
-            }, false), RtiTckMain::federationMomStaticIdentity);
+            }, true), RtiTckMain::federationMomStaticIdentity);
       run(new Scenario("java-tck.federation-mom-static-switches",
             "federation MOM standard static switch values", "federation-mom",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.requestAttributeValueUpdate;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;HLAinteger32BE.decode",
@@ -933,7 +933,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-attribute-update-reflect"
-            }, false), RtiTckMain::federationMomStaticSwitches);
+            }, true), RtiTckMain::federationMomStaticSwitches);
       run(new Scenario("java-tck.federation-mom-federates-in-federation",
             "federation MOM conditional federate roster", "federation-mom",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getFederateHandleFactory;RTIambassador.requestAttributeValueUpdate;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateHandleFactory.decode;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;HLAvariableArray.decode;HLAbyte",

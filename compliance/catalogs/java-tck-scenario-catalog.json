@@ -1635,7 +1635,7 @@
       ],
       "parity": "cpp-tck.federate-mom-multiple-directed-publication-query",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, two distinct object-class names, an attribute available on the directed-publication class, and two distinct interaction-class names, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Installed-provider Java JNI HLA_EVOKED opt-in run at out/java-tck/federate-mom-multiple-directed-publication-query-evoked-diagnostic-20261022.json received one directed-publication report instead of the two required after two standard publication calls; matching installed C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-publication-verified-20261016.json. Adapter/runtime parity requires investigation before promotion; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-multiple-directed-publication-partial-unpublish-query",
@@ -1817,7 +1817,7 @@
         "logical-time implementation and federate type",
         "two distinct object classes, a primary-class attribute, and two distinct interaction classes"
       ],
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, two distinct object-class names, an attribute available on the primary object class, and two distinct interaction-class names, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Installed-provider Java JNI HLA_EVOKED opt-in run at out/java-tck/federate-mom-multiple-directed-subscription-query-evoked-optin-20261022.json timed out waiting for two directed-subscription reports; matching installed C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-subscription-verified-20261016.json. Adapter/runtime parity requires investigation before promotion; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query",
@@ -2414,7 +2414,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomSubscriptionQuery",
       "parity": "cpp-tck.federate-mom-subscription-query",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, update-rate FOM, standard MIM, logical-time implementation, an object class with one attribute, an interaction class, and an update-rate designator, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Installed-provider Java JNI HLA_EVOKED opt-in run at out/java-tck/federate-mom-subscription-query-evoked-diagnostic-20261022.json returned a NULL object-subscription report after standard active subscription; the pinned MIM requires five parameters for a populated report. Matching installed C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federate-mom-subscription-query-verified-20261016.json. Adapter/runtime parity requires investigation before promotion; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-passive-subscription-query",
@@ -2556,7 +2556,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomEmptySubscriptionQuery",
       "parity": "cpp-tck.federate-mom-empty-subscription-query",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, update-rate FOM, standard MIM, logical-time implementation, object class and attribute, interaction class, and update-rate designator, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE opt-in runs at out/java-tck/federate-mom-empty-subscription-query-{evoked,immediate}-optin-20261022.json failed to decode an HLAvariableArray in the standard NULL response (nonzero padding). Matching installed C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federate-mom-empty-subscription-query-verified-20261016.json. Adapter/encoding parity requires investigation before promotion; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-directed-subscription-query",
@@ -2649,8 +2649,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomStaticIdentity",
       "parity": "cpp-tck.federation-mom-static-identity-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, federate type, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending.",
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-static-identity-{evoked,immediate}-default-20261022.json after aligning RTI-originated producer validation with the standard InvalidFederateHandle check used by C++ primary and contract; matching C++ runs passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-static-identity-verified-20261016.json. No independent-provider conformance claim.",
       "adapter_inputs": [
         "provider JAR and factory",
         "application FOM and standard MIM",
@@ -2701,8 +2701,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomStaticSwitches",
       "parity": "cpp-tck.federation-mom-static-switches-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, federate type, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending.",
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-static-switches-{evoked,immediate}-default-20261022.json after aligning RTI-originated producer validation with the standard InvalidFederateHandle check used by C++ primary and contract; matching C++ runs passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-static-switches-verified-20261016.json. No independent-provider conformance claim.",
       "adapter_inputs": [
         "provider JAR and factory",
         "application FOM and standard MIM",

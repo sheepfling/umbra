@@ -137,8 +137,10 @@ final class FederationMomStaticIdentityTck {
       check(recorder.reflectedValues.size() == 4
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
             && reliable.equals(recorder.reflectionTransportation)
-            && recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
+            && recorder.reflectionRegionsEmpty,
          "federation MOM identity reflection had incomplete or non-standard metadata");
+      JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+         "federation MOM identity reflection");
 
       String actualFederation = decode(encoder, recorder.reflectedValues.get(federationName));
       String actualVersion = decode(encoder, recorder.reflectedValues.get(rtiVersion));

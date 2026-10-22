@@ -189,12 +189,18 @@ final class FederateMomSubscriptionQueryTck {
          HLAinteger32BE count = encoder.createHLAinteger32BE();
          count.decode(objectReport.parameters.get(objectCount));
          if (includeObjectSubscription) {
-            JavaTckSupport.check(objectReport.parameters.size() == 5
+            if (!(objectReport.parameters.size() == 5
                && objectReport.parameters.containsKey(objectParameter)
                && objectReport.parameters.containsKey(objectActive)
                && objectReport.parameters.containsKey(objectRate)
-               && objectReport.parameters.containsKey(objectAttributes),
-               "populated object-subscription report did not contain its five standard parameters");
+               && objectReport.parameters.containsKey(objectAttributes))) {
+               List<String> names = new ArrayList<>();
+               for (ParameterHandle handle : objectReport.parameters.keySet()) {
+                  names.add(requester.getParameterName(objectReportClass, handle));
+               }
+               throw new AssertionError("populated object-subscription report did not contain"
+                  + " its five standard parameters; received " + names);
+            }
             HLAboolean active = encoder.createHLAboolean();
             active.decode(objectReport.parameters.get(objectActive));
             HLAunicodeString rate = encoder.createHLAunicodeString();

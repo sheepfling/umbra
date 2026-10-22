@@ -193,7 +193,7 @@ final class FederateMomDirectedPublicationQueryTck {
          request.put(requestFederate, encode(targetFederate));
          requester.sendInteraction(requestClass, request, new byte[0]);
          await(requester, callbackModel, () -> recorder.interactions.size() >= 4,
-            "the object, ordinary interaction, and two directed publication reports");
+            "the object, ordinary interaction, and two directed publication reports", recorder);
          JavaTckSupport.check(recorder.interactions.size() == 4,
             "one publication request did not deliver exactly four reports for the selected declarations");
 
@@ -285,7 +285,7 @@ final class FederateMomDirectedPublicationQueryTck {
             requester.sendInteraction(requestClass, request, new byte[0]);
             await(requester, callbackModel,
                () -> recorder.interactions.size() >= reportOffset + 4,
-               "publication reports after partial directed-interaction unpublication");
+               "publication reports after partial directed-interaction unpublication", recorder);
             JavaTckSupport.check(recorder.interactions.size() == reportOffset + 4,
                "partial-unpublication request did not deliver exactly four standard reports");
             List<Interaction> updatedReports = new ArrayList<>(
@@ -377,7 +377,7 @@ final class FederateMomDirectedPublicationQueryTck {
             requester.sendInteraction(requestClass, request, new byte[0]);
             await(requester, callbackModel,
                () -> recorder.interactions.size() >= reportOffset + 3,
-               "publication reports after all directed interactions are unpublished");
+               "publication reports after all directed interactions are unpublished", recorder);
             JavaTckSupport.check(recorder.interactions.size() == reportOffset + 3,
                "full directed-unpublication request did not deliver exactly three standard reports");
             List<Interaction> updatedReports = new ArrayList<>(
@@ -495,14 +495,21 @@ final class FederateMomDirectedPublicationQueryTck {
    }
 
    private static void await(RTIambassador ambassador, CallbackModel callbackModel,
-         BooleanSupplier condition, String description) throws Exception {
+         BooleanSupplier condition, String description, Recorder recorder) throws Exception {
       long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
       while (System.nanoTime() < deadline && !condition.getAsBoolean()) {
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
          else Thread.yield();
          Thread.sleep(1L);
       }
-      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+      if (!condition.getAsBoolean()) {
+         List<String> received = new ArrayList<>();
+         for (Interaction event : recorder.interactions) {
+            received.add(ambassador.getInteractionClassName(event.interaction));
+         }
+         throw new AssertionError("timed out waiting for " + description
+            + "; received " + received.size() + " reports: " + received);
+      }
    }
 
    private static FederateAmbassador callbacks() {

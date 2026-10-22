@@ -695,17 +695,23 @@ interaction classes are unpublished. The adapter supplies the interaction
 names and runtime configuration; installed-provider runs passed in both
 callback models.
 
-The opt-in `java-tck.federation-mom-static-identity` scenario consumes the
+The default-run `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It checks standard federation-MOM handle/name round trips and object
 identity, then decodes the federation name, RTI version, MIM designator, and
 logical-time implementation from the ordinary identity reflection.
+It validates an RTI-originated producer through the standard invalid-handle
+lookup, and passed installed-provider evoked and immediate runs; independent-
+provider behavior remains unverified.
 
-The opt-in `java-tck.federation-mom-static-switches` scenario uses the same
+The default-run `java-tck.federation-mom-static-switches` scenario uses the same
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It checks the standard federation MOM's four switch attributes and
 requires each decoded `HLAinteger32BE` value to be the standard Disabled (0) or
 Enabled (1) enumerator; it does not assume a provider-specific default value.
+It passed installed-provider evoked and immediate runs with standard
+RTI-originated producer validation; independent-provider behavior remains
+unverified.
 
 The opt-in `java-tck.federation-mom-federates-in-federation` scenario uses the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
