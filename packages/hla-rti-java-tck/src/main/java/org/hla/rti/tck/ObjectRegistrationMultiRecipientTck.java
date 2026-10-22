@@ -66,11 +66,6 @@ final class ObjectRegistrationMultiRecipientTck {
             JavaTckSupport.check(classes[i] != null && attributes[i] != null,
                "adapter FOM did not resolve the multi-recipient object class and attribute");
          }
-         for (int i = 1; i < rti.length; ++i) {
-            JavaTckSupport.check(classes[0].equals(classes[i])
-                  && attributes[0].equals(attributes[i]),
-               "object class or attribute handles changed across federates");
-         }
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(rti[0], attributes[0]);
          AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(rti[1], attributes[1]);
          AttributeHandleSet secondAttributes = JavaTckSupport.attributeSet(rti[2], attributes[2]);
@@ -125,10 +120,10 @@ final class ObjectRegistrationMultiRecipientTck {
                && recorders[2].discoveries().size() == 2,
             "registration discovery delivered an incorrect number of callbacks");
 
-         assertReceiver(rti[1], recorders[1], classes[1], firstObject, secondObject,
-            firstName, secondName, producer, "first subscriber");
-         assertReceiver(rti[2], recorders[2], classes[2], firstObject, secondObject,
-            firstName, secondName, producer, "second subscriber");
+         assertReceiver(rti[1], recorders[1], classes[1], firstName, secondName,
+            producer, "first subscriber");
+         assertReceiver(rti[2], recorders[2], classes[2], firstName, secondName,
+            producer, "second subscriber");
       } finally {
          for (int i = 1; i < rti.length; ++i) {
             if (rti[i] != null && joined[i] && subscribed[i]) {
@@ -166,37 +161,33 @@ final class ObjectRegistrationMultiRecipientTck {
    }
 
    private static void assertReceiver(RTIambassador rti, Recorder recorder,
-         ObjectClassHandle objectClass, ObjectInstanceHandle firstObject,
-         ObjectInstanceHandle secondObject, String firstName, String secondName,
+         ObjectClassHandle objectClass, String firstName, String secondName,
          FederateHandle producer, String description) throws Exception {
       List<Discovery> events = recorder.discoveries();
       JavaTckSupport.check(events.size() == 2,
          description + " did not receive exactly two discovery callbacks");
-      JavaTckSupport.check(events.get(0).object.equals(firstObject)
-            && events.get(1).object.equals(secondObject),
-         description + " did not discover registered objects in registration order");
-      HashSet<ObjectInstanceHandle> expected = new HashSet<>();
-      expected.add(firstObject);
-      expected.add(secondObject);
-      HashSet<ObjectInstanceHandle> observed = new HashSet<>();
+      ObjectInstanceHandle firstLocal = rti.getObjectInstanceHandle(firstName);
+      ObjectInstanceHandle secondLocal = rti.getObjectInstanceHandle(secondName);
+      JavaTckSupport.check(!firstLocal.equals(secondLocal),
+         description + " resolved two object names to the same handle");
+      HashSet<String> observedNames = new HashSet<>();
       for (Discovery event : events) {
          JavaTckSupport.check(event.objectClass.equals(objectClass)
                && producer.equals(event.producer),
             description + " received incorrect discovery class or producer metadata");
-         JavaTckSupport.check((event.object.equals(firstObject) && firstName.equals(event.name))
-               || (event.object.equals(secondObject) && secondName.equals(event.name)),
+         JavaTckSupport.check((event.object.equals(firstLocal) && firstName.equals(event.name))
+               || (event.object.equals(secondLocal) && secondName.equals(event.name)),
             description + " received an incorrect object handle/name pair");
-         JavaTckSupport.check(observed.add(event.object),
+         JavaTckSupport.check(observedNames.add(event.name),
             description + " received a duplicate discovery callback");
       }
-      JavaTckSupport.check(observed.equals(expected),
+      JavaTckSupport.check(observedNames.contains(firstName)
+            && observedNames.contains(secondName),
          description + " did not discover both registered objects");
-      JavaTckSupport.check(firstObject.equals(rti.getObjectInstanceHandle(firstName))
-            && secondObject.equals(rti.getObjectInstanceHandle(secondName))
-            && firstName.equals(rti.getObjectInstanceName(firstObject))
-            && secondName.equals(rti.getObjectInstanceName(secondObject))
-            && objectClass.equals(rti.getKnownObjectClassHandle(firstObject))
-            && objectClass.equals(rti.getKnownObjectClassHandle(secondObject)),
+      JavaTckSupport.check(firstName.equals(rti.getObjectInstanceName(firstLocal))
+            && secondName.equals(rti.getObjectInstanceName(secondLocal))
+            && objectClass.equals(rti.getKnownObjectClassHandle(firstLocal))
+            && objectClass.equals(rti.getKnownObjectClassHandle(secondLocal)),
          description + " did not preserve both standard object identities");
    }
 

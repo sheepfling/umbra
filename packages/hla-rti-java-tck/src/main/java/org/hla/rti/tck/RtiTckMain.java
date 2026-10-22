@@ -1235,7 +1235,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectRegistrationMultiRecipient);
+            }, true), RtiTckMain::objectRegistrationMultiRecipient);
       run(new Scenario("java-tck.per-federate-discovered-class",
             "report the same registered object using each subscriber federate's discovered class",
             "object-management",
@@ -1374,7 +1374,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-named-object-registration",
                "cpp-1516.1-object-instance-name-lifecycle"
-            }, false), RtiTckMain::namedRegistrationMultiRecipient);
+            }, true), RtiTckMain::namedRegistrationMultiRecipient);
       run(new Scenario("java-tck.object-registration-service-boundaries",
             "exercise object registration boundaries, local-delete cleanup, and subsequent reflection",
             "object-management",

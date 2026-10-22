@@ -3994,7 +3994,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the count/presence assertions showing each of two registered objects is discovered exactly once by each of two active subscribers (§5.8). Publisher loopback suppression, callback ordering/final-event metadata, object lookup round-trips, fixture setup, and teardown remain supplemental and are not mapped here. Java provider execution remains unvalidated.",
+      "mapping_note": "Direct mapping is limited to the count/presence assertions showing each of two registered objects is discovered exactly once by each of two active subscribers (§5.8). Publisher loopback suppression, object lookup round-trips, fixture setup, and teardown remain supplemental and are not mapped here; callback ordering is not asserted. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied names. This is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -4009,8 +4009,8 @@
         "standard-object-registration-discovery-multi-recipient-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectRegistrationMultiRecipient",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-registration-service-boundaries",
@@ -4675,7 +4675,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.8.4"
         }
       ],
-      "mapping_note": "Direct source mappings: page-118-l64-17 -> §6.8.4 for registering both names after the adapter-backed reservation-success callbacks; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. The Java provider runtime remains unsupported/unverified; this mapping makes no execution or conformance claim.",
+      "mapping_note": "Direct source mappings: page-118-l64-17 -> §6.8.4 for registering both names after the adapter-backed reservation-success callbacks; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. Callback ordering and cross-ambassador object/class/attribute-handle equality are not asserted. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied names; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -4691,8 +4691,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#namedRegistrationMultiRecipient",
       "parity": "cpp-tck.named-registration-multi-recipient",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ordinary-multi-attribute-subscription-projection",

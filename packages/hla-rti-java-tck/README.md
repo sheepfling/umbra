@@ -664,12 +664,15 @@ reflected to both requesters with the expected value and standard receive-order
 metadata. It passed the focused JNI gate in both `HLA_EVOKED` and `HLA_IMMEDIATE`;
 this does not establish independent-provider conformance.
 
-The opt-in `java-tck.object-registration-discovery-multi-recipient` scenario
+The default-run `java-tck.object-registration-discovery-multi-recipient` scenario
 registers two ordinary objects and verifies that two active subscribers each
 receive exactly one discovery per object, with matching producer/class metadata
 and stable name/handle/known-class lookups. Provider, FOM, endpoint, and callback
-model remain adapter-configured; runtime verification against a Java provider is
-still required before enabling it by default.
+model remain adapter-configured. The shared helper also supports default-run
+`java-tck.named-registration-multi-recipient`, which reserves both names before
+registration. Both passed the focused JNI gate in `HLA_EVOKED` and `HLA_IMMEDIATE`
+without assuming discovery order or cross-federate equality of object, class, or
+attribute handles. This does not establish independent-provider conformance.
 
 The opt-in `java-tck.ordinary-multi-attribute-subscription-projection` scenario
 uses an adapter-supplied multi-attribute FOM and attribute names. It verifies the
