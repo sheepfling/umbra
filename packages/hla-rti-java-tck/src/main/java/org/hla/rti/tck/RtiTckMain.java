@@ -2202,13 +2202,13 @@ public final class RtiTckMain {
             "Accept identical same-name update-rate declarations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getUpdateRateValue;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomUpdateRateDuplicateEqual);
       run(new Scenario("java-tck.fom-update-rate-duplicate-note-conflict",
             "Reject a changed note reference on one update-rate declaration",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomUpdateRateDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-switch-duplicate-equal",
             "Accept equivalent duplicate support-switch declarations",

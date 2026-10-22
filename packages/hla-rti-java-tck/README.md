@@ -574,6 +574,14 @@ reference is rejected with `InconsistentFOM`, followed by a valid retry.
 Both passed installed-provider evoked and immediate runs with adapter-supplied
 FOM modules. Independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-update-rate-duplicate-equal` and
+`java-tck.fom-update-rate-duplicate-note-conflict` cases cover Annex C.7
+composition of same-name update-rate declarations. Equal declarations compose
+and expose `30.0` through `getUpdateRateValue`; a changed note reference is
+rejected with `InconsistentFOM`, followed by a valid retry. Both passed
+installed-provider evoked and immediate runs with adapter-supplied FOM modules.
+Independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
