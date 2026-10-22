@@ -3768,7 +3768,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
       ],
-      "mapping_note": "Parity for two independent object-instance requests (§6.21), distinct request tags (§6.21.5), one owner callback per request (§6.22), and an ordinary response reflected to both active subscribers with standard value/tag/metadata (§6.10). Identity lookups and declarations are fixture controls; callback order, DDM behavior, and provider-internal fan-out are not claimed. This source compiles against the official API; no Java provider-runtime result is claimed.",
+      "mapping_note": "Parity for two independent object-instance requests (§6.21), distinct request tags (§6.21.5), one owner callback per request (§6.22), and an ordinary response reflected to both active subscribers with standard value/tag/metadata (§6.10). Identity lookups and declarations are fixture controls; callback order, DDM behavior, and provider-internal fan-out are not claimed. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied class/attribute names; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3787,8 +3787,8 @@
         "standard-attribute-value-update-request-multi-requester-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeValueUpdateMultiRequester",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.per-federate-discovered-class",

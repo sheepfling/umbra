@@ -1226,7 +1226,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-value-update-response",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::attributeValueUpdateMultiRequester);
+            }, true), RtiTckMain::attributeValueUpdateMultiRequester);
       run(new Scenario("java-tck.object-registration-discovery-multi-recipient",
             "deliver two ordinary object discoveries to two active subscribers and preserve identity",
             "object-management",

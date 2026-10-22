@@ -655,12 +655,14 @@ Provider, FOM, endpoint, logical-time implementation, and callback model remain
 adapter-configured. It passed the focused JNI gate in both `HLA_EVOKED` and
 `HLA_IMMEDIATE`; this does not establish independent-provider conformance.
 
-The opt-in `java-tck.attribute-value-update-request-multi-requester` scenario
-uses the adapter's ordinary object-class and attribute names. Two independent
+The default-run `java-tck.attribute-value-update-request-multi-requester` scenario
+uses the adapter's ordinary object-class and attribute names (`hla.rti.tck.objectClass`
+and `hla.rti.tck.attribute`). Two independent
 subscribers issue instance-scoped requests with distinct tags; the provider must
 receive exactly one matching callback for each, and one ordinary update must be
 reflected to both requesters with the expected value and standard receive-order
-metadata. It remains unsupported by default until run against a Java provider.
+metadata. It passed the focused JNI gate in both `HLA_EVOKED` and `HLA_IMMEDIATE`;
+this does not establish independent-provider conformance.
 
 The opt-in `java-tck.object-registration-discovery-multi-recipient` scenario
 registers two ordinary objects and verifies that two active subscribers each
