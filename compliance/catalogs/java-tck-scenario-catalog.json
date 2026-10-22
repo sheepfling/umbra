@@ -37056,6 +37056,7 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.disableTimeConstrained",
@@ -37079,8 +37080,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateTimeConstrainedMomAttribute",
       "parity": "cpp-tck.federate-time-constrained-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-time-constrained-mom-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-time-constrained-mim-attribute-verified-20261016.json. Application FOM, standard MIM, logical time, endpoint, and callback model remain adapter-owned; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-time-regulating-mim-attribute",
@@ -37098,6 +37099,7 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.getTimeFactory",
         "LogicalTimeFactory.makeEpsilon",
@@ -37124,8 +37126,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateTimeRegulatingMomAttribute",
       "parity": "cpp-tck.federate-time-regulating-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-time-regulating-mom-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-time-regulating-mim-attribute-verified-20261016.json. Lookahead comes from the adapter-selected standard time factory; application FOM, standard MIM, endpoint, and callback model remain adapter-owned. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-time-manager-state-mim-attribute",

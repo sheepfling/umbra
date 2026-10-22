@@ -6226,18 +6226,18 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federate-time-constrained-mim-attribute",
             "observe Time Constrained service transitions through the standard federate MOM object and callback",
             "time-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeConstrained;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeConstrainedEnabled;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeConstrained;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeConstrainedEnabled;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-time-management",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateTimeConstrainedMomAttribute);
+            }, true), RtiTckMain::federateTimeConstrainedMomAttribute);
       run(new Scenario("java-tck.federate-time-regulating-mim-attribute",
             "observe Time Regulation service transitions through the standard federate MOM object and callback",
             "time-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeRegulationEnabled;HLAboolean.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getFederateName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeRegulationEnabled;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-time-management",
@@ -6245,7 +6245,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateTimeRegulatingMomAttribute);
+            }, true), RtiTckMain::federateTimeRegulatingMomAttribute);
       run(new Scenario("java-tck.federate-time-manager-state-mim-attribute",
             "observe HLAtimeManagerState transitions across all five standard advance services",
             "time-management",

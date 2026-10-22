@@ -2266,6 +2266,14 @@ also denotes no producer. This avoids assuming that all Java providers encode
 an invalid handle as null. The installed JNI adapter passed both callback
 models after that API-only oracle was applied.
 
+The adjacent default-run `java-tck.federate-time-constrained-mim-attribute`
+and `java-tck.federate-time-regulating-mim-attribute` cases use the same
+adapter-supplied MIM and Boolean reflection oracle. They verify conditional
+MOM values, direct value requests, and the corresponding enable callback;
+the regulation case obtains epsilon lookahead from the standard time factory.
+Both passed the installed JNI adapter in evoked and immediate callback modes,
+matching their C++ primary and contract evidence.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 
