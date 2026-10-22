@@ -1019,7 +1019,13 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(
             subscriberClass, attributeName);
          JavaTckSupport.check(publisherClass != null && subscriberClass != null
-               && publisherAttribute != null && subscriberAttribute != null,
+               && publisherAttribute != null && subscriberAttribute != null
+               && objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && attributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherAttribute))
+               && attributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberAttribute)),
             "empty-subscription lookup returned a null class or attribute handle");
 
          AttributeHandleSet publishedAttributes =
@@ -1030,6 +1036,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "empty-subscription registration returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
 
          byte[] initialValue = new byte[] {0x45, 0x4d, 0x50, 0x54};
          byte[] initialTag = new byte[] {0x49, 0x4e, 0x49};
@@ -1037,11 +1044,15 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
          subscribed = true;
          await(subscriber, callbackModel,
-            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            () -> subscriberCallbacks.discoveries.size() == 1,
             "empty-subscription initial discovery");
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(findDiscovery(subscriberCallbacks.discoveries,
+               subscriberObject) != null,
+            "subscriber discovery did not resolve to its local object handle");
          await(subscriber, callbackModel, () -> {
             for (Reflection reflection : subscriberCallbacks.reflections) {
-               if (object.equals(reflection.object)
+               if (subscriberObject.equals(reflection.object)
                      && reflection.values.containsKey(subscriberAttribute)) return true;
             }
             return false;
@@ -1058,7 +1069,8 @@ final class ObjectAttributeSubscriptionLifecycleTck {
 
          List<Reflection> reflections = subscriberCallbacks.reflections;
          Reflection last = reflections.get(reflections.size() - 1);
-         JavaTckSupport.check(reflections.size() == 2 && object.equals(last.object)
+         JavaTckSupport.check(reflections.size() == 2
+               && subscriberObject.equals(last.object)
                && last.values.size() == 1 && last.values.containsKey(subscriberAttribute)
                && Arrays.equals(nextValue, last.values.get(subscriberAttribute))
                && Arrays.equals(nextTag, last.tag),

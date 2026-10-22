@@ -370,12 +370,13 @@ to the standard attribute-set unsubscribe service and verifies both previously
 subscribed values continue to arrive using receiver-local handles. Focused
 installed JNI runs passed in both callback modes; the passive-state branch
 and independent-provider conformance remain unverified.
-The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
+The default `java-tck.empty-attribute-subscription-is-no-op` case creates an
 active non-empty attribute subscription, submits an empty active set, and
-verifies the original subscription still delivers the next update. The
-adapter supplies the FOM, standard MIM, object class/attribute names, provider,
-logical-time implementation, endpoint, and callback model; Java provider
-runtime remains unverified.
+verifies the original subscription still delivers the next tagged update using
+the subscriber's local standard handles. The adapter supplies the FOM, standard
+MIM, object class/attribute names, provider, logical-time implementation,
+endpoint, and callback model. Focused installed JNI runs passed in both modes;
+passive-state preservation and independent-provider conformance are unverified.
 The passive companion uses the standard passive attribute-set subscription
 operation and verifies that the same complete attribute list and rate are
 reported with the active flag false.

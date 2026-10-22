@@ -4553,10 +4553,15 @@
       "category": "empty-attribute-subscription-is-no-op",
       "title": "Preserve an active attribute subscription after an empty subscription request",
       "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
@@ -4572,10 +4577,7 @@
       ],
       "requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31",
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31",
@@ -4584,7 +4586,11 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8"
       ],
-      "mapping_note": "Direct mappings: declaration-management page-096-l102-31 -> §5.8 for invoking Subscribe Object Class Attributes with an empty class-attribute set; page-096-l123-38 -> §5.8 for preservation of the previously active subscription. The scenario verifies a later update still reaches the subscriber through the original attribute subscription. Passive-state preservation is not asserted.",
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31", "standard_section": "hla-1516.1-2025:clause-5.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38", "standard_section": "hla-1516.1-2025:clause-5.8"}
+      ],
+      "mapping_note": "Direct mappings: declaration-management page-096-l102-31 -> §5.8 for invoking Subscribe Object Class Attributes with an empty class-attribute set; page-096-l123-38 -> §5.8 for preservation of the previously active subscription. The scenario verifies a later tagged update still reaches the subscriber through its original attribute subscription, using receiver-local standard object and attribute handles. Passive-state preservation is not asserted. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -4598,8 +4604,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#emptyAttributeSubscriptionNoOp",
       "parity": "cpp-tck.empty-attribute-subscription-is-no-op",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute names, logical-time implementation, endpoint, callback model, and a Java IEEE 1516.1-2025 provider; Java provider runtime evidence is not recorded."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute names, logical-time implementation, endpoint, callback model, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-publication-registration-fence",
