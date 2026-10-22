@@ -19441,6 +19441,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dynamic-update-condition-valid-contract",
       "cpp-tck.fom-dynamic-update-condition-rejections-contract",
       "cpp-tck.fom-attribute-value-required-sharing-contract",
+      "cpp-tck.fom-root-hierarchy-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20177,6 +20178,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dynamic-update-condition-valid",
       "cpp-tck.fom-dynamic-update-condition-rejections",
       "cpp-tck.fom-attribute-value-required-sharing",
+      "cpp-tck.fom-root-hierarchy",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21057,6 +21059,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-attribute-value-required-sharing-contract") {
     return scenarioFomAttributeValueRequiredSharingContract;
+  }
+  if (id == "cpp-tck.fom-root-hierarchy-contract") {
+    return scenarioFomRootHierarchyContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23400,6 +23405,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-attribute-value-required-sharing") {
     return scenarioFomAttributeValueRequiredSharing;
   }
+  if (id == "cpp-tck.fom-root-hierarchy") {
+    return scenarioFomRootHierarchy;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -23980,6 +23988,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("attribute-neither-value-required-true") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied unshared-attribute FOM modules";
+      } else if ((scenario == "cpp-tck.fom-root-hierarchy" ||
+                  scenario == "cpp-tck.fom-root-hierarchy-contract") &&
+                 (options.scenarioFoms.count("root-hierarchy-valid") == 0U ||
+                  options.scenarioFoms.count("root-hierarchy-invalid-object") == 0U ||
+                  options.scenarioFoms.count("root-hierarchy-invalid-interaction") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied root-hierarchy FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

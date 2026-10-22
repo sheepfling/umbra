@@ -78,6 +78,8 @@ void scenarioFomDynamicUpdateConditionRejections(Options const&, rti::CallbackMo
 void scenarioFomDynamicUpdateConditionRejectionsContract(Options const&, rti::CallbackModel);
 void scenarioFomAttributeValueRequiredSharing(Options const&, rti::CallbackModel);
 void scenarioFomAttributeValueRequiredSharingContract(Options const&, rti::CallbackModel);
+void scenarioFomRootHierarchy(Options const&, rti::CallbackModel);
+void scenarioFomRootHierarchyContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);

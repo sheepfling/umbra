@@ -8526,6 +8526,22 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-root-hierarchy",
+      "category": "fom-composition",
+      "title": "Require standard object and interaction roots",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getInteractionClassHandle", "RTIambassador.getObjectClassName", "RTIambassador.getInteractionClassName", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-root-hierarchy"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4a-page-047-l59-4", "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.1", "hla-1516.2-2025:clause-4.6.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-047-l59-4", "standard_section": "hla-1516.2-2025:clause-4.5.1"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6", "standard_section": "hla-1516.2-2025:clause-4.6.1"}],
+      "mapping_note": "Standard Java API parity for accepted queryable child classes, nonstandard object/interaction root rejections, and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-root-hierarchy-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomRootHierarchy",
+      "parity": "cpp-tck.fom-root-hierarchy",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.rootHierarchyValidFom, rootHierarchyInvalidObjectFom, and rootHierarchyInvalidInteractionFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-attribute-value-required-sharing",
       "category": "fom-composition",
       "title": "Reject value-required attributes when sharing is Neither",

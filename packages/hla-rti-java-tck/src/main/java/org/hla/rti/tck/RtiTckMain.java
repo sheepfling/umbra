@@ -148,6 +148,12 @@ public final class RtiTckMain {
       "hla.rti.tck.attributeNeitherValueRequiredValidFom";
    private static final String ATTRIBUTE_NEITHER_VALUE_REQUIRED_TRUE_FOM_PROPERTY =
       "hla.rti.tck.attributeNeitherValueRequiredTrueFom";
+   private static final String ROOT_HIERARCHY_VALID_FOM_PROPERTY =
+      "hla.rti.tck.rootHierarchyValidFom";
+   private static final String ROOT_HIERARCHY_INVALID_OBJECT_FOM_PROPERTY =
+      "hla.rti.tck.rootHierarchyInvalidObjectFom";
+   private static final String ROOT_HIERARCHY_INVALID_INTERACTION_FOM_PROPERTY =
+      "hla.rti.tck.rootHierarchyInvalidInteractionFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1872,6 +1878,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomAttributeValueRequiredSharing);
+      run(new Scenario("java-tck.fom-root-hierarchy",
+            "Require standard object and interaction roots",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-root-hierarchy"}, false),
+         RtiTckMain::fomRootHierarchy);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11732,6 +11744,8 @@ public final class RtiTckMain {
             method = "fomDynamicUpdateConditionRejections"; break;
          case "java-tck.fom-attribute-value-required-sharing":
             method = "fomAttributeValueRequiredSharing"; break;
+         case "java-tck.fom-root-hierarchy":
+            method = "fomRootHierarchy"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13428,6 +13442,14 @@ public final class RtiTckMain {
       FomAttributeValueRequiredSharingTck.run(factory(),
          requireAdapterFile(ATTRIBUTE_NEITHER_VALUE_REQUIRED_VALID_FOM_PROPERTY),
          requireAdapterFile(ATTRIBUTE_NEITHER_VALUE_REQUIRED_TRUE_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomRootHierarchy() throws Exception {
+      FomRootHierarchyTck.run(factory(),
+         requireAdapterFile(ROOT_HIERARCHY_VALID_FOM_PROPERTY),
+         requireAdapterFile(ROOT_HIERARCHY_INVALID_OBJECT_FOM_PROPERTY),
+         requireAdapterFile(ROOT_HIERARCHY_INVALID_INTERACTION_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

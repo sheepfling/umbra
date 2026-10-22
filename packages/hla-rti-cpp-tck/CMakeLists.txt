@@ -180,6 +180,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_attribute_na_companions.cpp
   src/tck_fom_attribute_dynamic_update_condition.cpp
   src/tck_fom_attribute_value_required_sharing.cpp
+  src/tck_fom_root_hierarchy.cpp
   src/tck_fom_dimension_duplicate.cpp
   src/tck_fom_synchronization_duplicate.cpp
   src/tck_fom_transportation_duplicate.cpp

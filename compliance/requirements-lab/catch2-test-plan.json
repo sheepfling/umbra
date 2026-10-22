@@ -13611,6 +13611,8 @@
         "requirement-candidate-sections-semantic-clause-4a-page-047-l59-4",
         "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.1", "hla-1516.2-2025:clause-4.6.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-047-l59-4", "standard_section": "hla-1516.2-2025:clause-4.5.1"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6", "standard_section": "hla-1516.2-2025:clause-4.6.1"}],
       "test_case": "The FOM composition preflight requires standard object and interaction roots",
       "tags": [
         "unit",
@@ -13619,7 +13621,7 @@
         "root-hierarchy"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2342",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2027",
       "next_action": "This private completed-model preflight rejects a nonstandard top-level object or interaction class after compatible DIF modules merge, while retaining omitted object/interaction tables for incomplete modules. The root rule does not resolve remaining attribute-NA cross fields, representation/example tensions, complete Annex C merge, dependency packaging, JUnit/protected review, or conformance."
     },
     {
