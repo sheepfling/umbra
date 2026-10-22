@@ -1691,6 +1691,13 @@ checked against receiver-local object and attribute handles. A focused
 installed JNI run passed in HLA_EVOKED; HLA_IMMEDIATE is explicitly unsupported
 for this queue-ordering assertion. Independent-provider conformance is unverified.
 
+The default `java-tck.negotiated-divestiture-concurrent-assumption` case keeps
+a third candidate's tagged assumption visible while owner confirmation is
+pending, then checks the tagged acquisition and ownership transfer after
+confirmation. It uses receiver-local standard API handles and excludes C++
+process transport mechanics. Focused installed JNI runs passed in both callback
+modes; independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object

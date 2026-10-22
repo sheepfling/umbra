@@ -187,7 +187,15 @@ final class NegotiatedDivestitureNoAccepterTck {
             candidateClass, attributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
                && candidateClass != null && ownerAttribute != null
-               && requesterAttribute != null && candidateAttribute != null,
+               && requesterAttribute != null && candidateAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && objectClassName.equals(candidate.getObjectClassName(candidateClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(requester.getAttributeName(
+                  requesterClass, requesterAttribute))
+               && attributeName.equals(candidate.getAttributeName(
+                  candidateClass, candidateAttribute)),
             "adapter FOM did not resolve concurrent-assumption handles");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(
             owner, ownerAttribute);
@@ -202,15 +210,23 @@ final class NegotiatedDivestitureNoAccepterTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "concurrent-assumption registration returned a null object handle");
-         await(candidate, callbackModel, () -> candidateRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(candidate, callbackModel, () -> candidateRecorder.discoveries.size() == 1,
             "third-candidate discovery");
-         await(requester, callbackModel, () -> requesterRecorder.discoveries.contains(object),
+         ObjectInstanceHandle candidateObject = candidate.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(candidateObject.equals(candidateRecorder.discoveries.get(0)),
+            "third-candidate discovery did not resolve to its local object handle");
+         await(requester, callbackModel, () -> requesterRecorder.discoveries.size() == 1,
             "requester discovery");
+         ObjectInstanceHandle requesterObject = requester.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(requesterObject.equals(requesterRecorder.discoveries.get(0)),
+            "requester discovery did not resolve to its local object handle");
          requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
 
          byte[] offerTag = new byte[] {(byte) 0xd2, 0x11, 0x6d, 0x09};
          byte[] confirmationTag = new byte[] {(byte) 0xe2, 0x6a, (byte) 0xb4, 0x2d};
-         requester.attributeOwnershipAcquisition(object, requesterAttributes, offerTag);
+         requester.attributeOwnershipAcquisition(
+            requesterObject, requesterAttributes, offerTag);
          owner.negotiatedAttributeOwnershipDivestiture(object, ownerAttributes, offerTag);
          await(owner, callbackModel, () -> ownerRecorder.confirmations.size() == 1,
             "owner confirmation request");
@@ -221,10 +237,12 @@ final class NegotiatedDivestitureNoAccepterTck {
             "pending confirmation emitted duplicate ownership callbacks");
          checkEvent(ownerRecorder.confirmations.get(0), object, ownerAttributes, offerTag,
             "owner confirmation request");
-         checkEvent(candidateRecorder.assumptions.get(0), object, candidateAttributes,
+         checkEvent(candidateRecorder.assumptions.get(0), candidateObject,
+            candidateAttributes,
             offerTag, "third-candidate assumption");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
-               && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               && !requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterAttribute),
             "negotiated offer transferred ownership before confirmation");
 
          owner.confirmDivestiture(object, ownerAttributes, confirmationTag);
@@ -232,10 +250,12 @@ final class NegotiatedDivestitureNoAccepterTck {
             "requester acquisition after confirmation");
          JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
             "confirmation emitted duplicate acquisition notifications");
-         checkEvent(requesterRecorder.acquisitions.get(0), object, requesterAttributes,
+         checkEvent(requesterRecorder.acquisitions.get(0), requesterObject,
+            requesterAttributes,
             confirmationTag, "requester acquisition notification");
          JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
-               && requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               && requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterAttribute),
             "Confirm Divestiture did not transfer ownership to the requester");
 
          requester.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
