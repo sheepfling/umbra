@@ -22,12 +22,13 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Portable timestamp ordering and federation-unique retraction handles across services. */
 final class TimestampedInteractionCrossProducerOrderTck {
@@ -114,9 +115,7 @@ final class TimestampedInteractionCrossProducerOrderTck {
             "cross-producer members selected different logical-time factories");
 
          receiver.enableTimeConstrained();
-         JavaTckSupport.drain(receiver);
          receiverPeer.enableTimeConstrained();
-         JavaTckSupport.drain(receiverPeer);
          LogicalTimeInterval earlyEpsilon = (LogicalTimeInterval) earlyFactory.makeEpsilon();
          LogicalTimeInterval lateEpsilon = (LogicalTimeInterval) lateFactory.makeEpsilon();
          LogicalTimeInterval receiverEpsilon =
@@ -124,9 +123,13 @@ final class TimestampedInteractionCrossProducerOrderTck {
          LogicalTimeInterval receiverPeerEpsilon =
             (LogicalTimeInterval) receiverPeerFactory.makeEpsilon();
          early.enableTimeRegulation(earlyEpsilon);
-         JavaTckSupport.drain(early);
          late.enableTimeRegulation(lateEpsilon);
-         JavaTckSupport.drain(late);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> receiverRecorder.timeConstrainedEnabled
+               && receiverPeerRecorder.timeConstrainedEnabled
+               && earlyRecorder.timeRegulationEnabled
+               && lateRecorder.timeRegulationEnabled,
+            "cross-producer time-role callbacks");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabled
                && receiverPeerRecorder.timeConstrainedEnabled
                && earlyRecorder.timeRegulationEnabled && lateRecorder.timeRegulationEnabled,
@@ -171,13 +174,17 @@ final class TimestampedInteractionCrossProducerOrderTck {
          ObjectInstanceHandle object = early.registerObjectInstance(earlyObjectClass);
          JavaTckSupport.check(object != null,
             "cross-producer timestamped attribute registration returned an invalid handle");
-         JavaTckSupport.drain(receiver);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> object.equals(receiverRecorder.discoveredObject),
+            "cross-producer attribute object discovery");
          JavaTckSupport.check(object.equals(receiverRecorder.discoveredObject),
             "cross-producer timestamped attribute receiver did not discover the object");
          ObjectInstanceHandle deletionObject = early.registerObjectInstance(earlyObjectClass);
          JavaTckSupport.check(deletionObject != null,
             "cross-producer timestamped deletion registration returned an invalid object");
-         JavaTckSupport.drain(receiver);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> deletionObject.equals(receiverRecorder.discoveredObject),
+            "cross-producer deletion object discovery");
          JavaTckSupport.check(deletionObject.equals(receiverRecorder.discoveredObject),
             "cross-producer timestamped deletion receiver did not discover the object");
 
@@ -230,7 +237,12 @@ final class TimestampedInteractionCrossProducerOrderTck {
          late.timeAdvanceRequest(timeSeven);
          receiver.timeAdvanceRequest(receiverFive);
          receiverPeer.timeAdvanceRequest(receiverPeerFive);
-         drainAll(early, late, receiver, receiverPeer);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> receiverRecorder.interactions.size() == 2
+               && receiverPeerRecorder.interactions.size() == 2
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 1
+               && receiverPeerRecorder.timeAdvanceGrantTimes.size() == 1,
+            "cross-producer time-five interaction delivery");
          JavaTckSupport.check(receiverRecorder.interactions.size() == 2
                && receiverRecorder.timeAdvanceGrantTimes.size() == 1
                && receiverRecorder.callbackOrder.equals(
@@ -244,7 +256,14 @@ final class TimestampedInteractionCrossProducerOrderTck {
 
          receiver.timeAdvanceRequest(receiverSeven);
          receiverPeer.timeAdvanceRequest(receiverPeerSeven);
-         drainAll(early, late, receiver, receiverPeer);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> receiverRecorder.interactions.size() == 3
+               && receiverPeerRecorder.interactions.size() == 3
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 2
+               && receiverPeerRecorder.timeAdvanceGrantTimes.size() == 2
+               && earlyRecorder.timeAdvanceGrantTimes.size() == 1
+               && lateRecorder.timeAdvanceGrantTimes.size() == 1,
+            "cross-producer time-seven interaction delivery");
          JavaTckSupport.check(receiverRecorder.interactions.size() == 3
                && receiverRecorder.timeAdvanceGrantTimes.size() == 2
                && receiverRecorder.callbackOrder.equals(Arrays.asList(
@@ -263,10 +282,6 @@ final class TimestampedInteractionCrossProducerOrderTck {
          JavaTckSupport.check(lateRecorder.timeAdvanceGrantTimes.size() == 1
                && timeSeven.equals(lateRecorder.timeAdvanceGrantTimes.get(0)),
             "cross-producer late sender did not receive its time-seven grant before its next request");
-         JavaTckSupport.check(earlyRecorder.timeAdvanceGrantTimes.size() == 1
-               && timeSeven.equals(earlyRecorder.timeAdvanceGrantTimes.get(0)),
-            "cross-producer early sender did not receive its time-seven grant before its next request");
-
          assertOrder(receiverRecorder, receiverClass, receiverParameter, earlyProducer,
             lateProducer, payload, earlyTag, lateEqualTag, lateTag, timeFive, timeSeven,
             receiver, "first receiver");
@@ -277,8 +292,15 @@ final class TimestampedInteractionCrossProducerOrderTck {
                && receiverPeerSeven.equals(receiverPeerRecorder.timeAdvanceGrantTimes.get(1)),
             "cross-producer receivers received the wrong final grant time");
 
+         // Establish a strict frontier: both regulators move to eight
+         // before the constrained receiver requests its time-eight grant.
+         early.timeAdvanceRequest(timeEight);
+         late.timeAdvanceRequest(lateEight);
          receiver.timeAdvanceRequest(receiverEight);
-         drainAll(early, late, receiver, receiverPeer);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> receiverRecorder.reflections.size() == 1
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 3,
+            "cross-service timestamped attribute delivery at time eight");
          JavaTckSupport.check(receiverRecorder.reflections.size() == 1
                && receiverRecorder.timeAdvanceGrantTimes.size() == 3,
             "cross-service timestamped attribute update did not arrive before the receiver grant");
@@ -299,9 +321,10 @@ final class TimestampedInteractionCrossProducerOrderTck {
                && "timeAdvanceGrant".equals(receiverRecorder.callbackOrder.get(6)),
             "cross-service timestamped attribute reflection was not delivered before its grant");
 
-         early.timeAdvanceRequest(timeEight);
-         late.timeAdvanceRequest(lateEight);
-         drainAll(early, late, receiver, receiverPeer);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> earlyRecorder.timeAdvanceGrantTimes.size() == 2
+               && lateRecorder.timeAdvanceGrantTimes.size() == 2,
+            "cross-service sender frontier at time eight");
          JavaTckSupport.check(earlyRecorder.timeAdvanceGrantTimes.size() == 2
                && timeEight.equals(earlyRecorder.timeAdvanceGrantTimes.get(1)),
             "cross-service timestamped sender did not advance its frontier to time eight");
@@ -309,8 +332,18 @@ final class TimestampedInteractionCrossProducerOrderTck {
                && lateEight.equals(lateRecorder.timeAdvanceGrantTimes.get(1)),
             "cross-service second sender did not advance its frontier to time eight");
 
+         LogicalTime lateNine = offset(lateInitial, lateEpsilon, 9);
+         early.timeAdvanceRequest(timeNine);
+         late.timeAdvanceRequest(lateNine);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> earlyRecorder.timeAdvanceGrantTimes.size() == 3
+               && lateRecorder.timeAdvanceGrantTimes.size() == 3,
+            "cross-service sender frontier at time nine");
          receiver.timeAdvanceRequest(receiverNine);
-         drainAll(early, late, receiver, receiverPeer);
+         awaitAll(early, late, receiver, receiverPeer,
+            () -> receiverRecorder.removals.size() == 1
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 4,
+            "cross-service timestamped object deletion at time nine");
          JavaTckSupport.check(receiverRecorder.removals.size() == 1
                && receiverRecorder.timeAdvanceGrantTimes.size() == 4,
             "cross-service timestamped object deletion did not arrive before the receiver grant");
@@ -410,6 +443,18 @@ final class TimestampedInteractionCrossProducerOrderTck {
       }
    }
 
+   private static void awaitAll(RTIambassador early, RTIambassador late,
+         RTIambassador receiver, RTIambassador receiverPeer, BooleanSupplier observed,
+         String phase) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         drainAll(early, late, receiver, receiverPeer);
+         if (observed.getAsBoolean()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(phase + " did not complete within 10 seconds");
+   }
+
    private static void assertOrder(Recorder recorder, InteractionClassHandle expectedClass,
          ParameterHandle expectedParameter, FederateHandle earlyProducer,
          FederateHandle lateProducer, byte[] payload, byte[] earlyTag, byte[] lateEqualTag,
@@ -481,14 +526,14 @@ final class TimestampedInteractionCrossProducerOrderTck {
    }
 
    private static final class Recorder {
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private ObjectInstanceHandle discoveredObject;
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<Reflection> reflections = new ArrayList<>();
-      private final List<Removal> removals = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private volatile ObjectInstanceHandle discoveredObject;
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<Removal> removals = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

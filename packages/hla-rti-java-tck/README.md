@@ -1598,19 +1598,17 @@ and callback-before-grant ordering survive until the constrained receiver's
 grant. It also verifies both logical-time queries and the terminal retraction
 exception. It remains unsupported by default pending Java-provider execution.
 
-The `java-tck.timestamped-interaction-cross-producer-order` scenario sends
+The default-run `java-tck.timestamped-interaction-cross-producer-order` scenario sends
 timestamp-five and timestamp-seven interactions from two regulating producers
 to two constrained receivers. It requires increasing timestamp order and
 producer/tag identity, while allowing either ordering between the two equal-time
-events. It remains unsupported by default until exercised through a compatible
-provider adapter.
-
-The `java-tck.timestamped-interaction-no-fanout` scenario publishes and sends
-timestamped interactions without any subscribing federate. It checks that send
-still returns a valid retraction handle, successful retraction and repeated-
-retraction terminalization, expiry after a time advance, and absence of receive
-or retraction callbacks. It remains unsupported by default pending Java provider
-execution.
+events. It also checks federation-unique retraction handles across interaction,
+attribute-update, and object-deletion sends, followed by time-8 reflection and
+time-9 removal before their respective grants. It passed focused installed-
+provider runs in both callback models after aligning the strict sender-frontier
+sequence with its promoted C++ peer. Provider, FOM, endpoint, callback model,
+logical-time implementation, and object/attribute and interaction/parameter
+names remain adapter inputs.
 
 The `java-tck.timestamped-interaction-source-resignation` scenario holds a
 timestamped interaction behind a constrained receiver's time frontier, resigns

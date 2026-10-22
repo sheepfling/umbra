@@ -3604,11 +3604,13 @@ public final class RtiTckMain {
              }, true), RtiTckMain::timestampedInteractionPublicationSendTransition);
        run(new Scenario("java-tck.timestamped-interaction-cross-producer-order",
              "timestamp order across multiple producers and constrained receivers", "time",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(time);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(time);RTIambassador.deleteObjectInstance(time);RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(time);FederateAmbassador.removeObjectInstance(time);FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
              new String[] {
-                "java-1516.1-interaction-declaration-and-delivery",
-                "java-1516.1-time-advance-and-grant"
-             }, false), RtiTckMain::timestampedInteractionCrossProducerOrder);
+                "requirement-candidate-content-clauses-06-object-management-page-123-l157-44",
+                "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+                "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+                "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+             }, true), RtiTckMain::timestampedInteractionCrossProducerOrder);
        run(new Scenario("java-tck.timestamped-interaction-no-fanout",
              "timestamped interaction retraction without eligible subscribers", "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.retract;RTIambassador.timeAdvanceRequest;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",

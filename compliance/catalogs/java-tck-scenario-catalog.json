@@ -17837,7 +17837,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
       "standard_sections": ["hla-1516.1-2025:clause-6.12", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Parity mapping to the C++ scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17.1). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers also observe non-FQR interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; this does not cover the Flush Queue Request exception or every sender/sequence permutation. Java provider runtime remains unverified.",
+      "mapping_note": "Parity mapping to the promoted C++ scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17.1). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers observe non-FQR interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; this does not cover the Flush Queue Request exception or every sender/sequence permutation. Focused installed-provider runs passed in both callback models after aligning sender frontiers and callback waits with the C++ peer; independent-provider conformance remains unclaimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -17846,8 +17846,9 @@
         "time-advance-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionCrossProducerOrder",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, time-managed FOM, logical-time implementation, and callback model; remain unsupported by default until Java provider runtime evidence is collected."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, time-managed FOM, logical-time implementation, object/attribute and interaction/parameter names, endpoint, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-no-fanout",
