@@ -9409,12 +9409,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4a-page-040-l18-3"],
       "standard_sections": ["hla-1516.2-2025:clause-4.2.2"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3", "standard_section": "hla-1516.2-2025:clause-4.2.2"}],
-      "mapping_note": "Standard Java API parity for object-class local-name period, unknown HLA prefix, and NA marker rejection with hyphen/underscore acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/object-class-name-conventions-jni-20261021.json); other providers, named tables, and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for object-class local-name period, unknown HLA prefix, and NA marker rejection with hyphen/underscore acceptance. Matching C++ primary and contract cases passed 4/4 at out/mgw/object-class-name-conventions-20261021.json. Named tables and independent-provider conformance are not claimed.",
       "contract_refs": ["standard-fom-object-class-name-conventions-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassNameConventions",
       "parity": "cpp-tck.fom-object-class-name-conventions",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures objectClassNamePeriodFom, objectClassNameReservedHlaFom, objectClassNameReservedNaFom, objectClassNameAllowedFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-object-class-name-conventions-{evoked,immediate}-default-20261022.json. Adapter supplies the four object-class-name FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-model-modification-date",

@@ -2154,7 +2154,7 @@ public final class RtiTckMain {
             "Reject invalid object-class local names and accept permitted punctuation",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomObjectClassNameConventions);
       run(new Scenario("java-tck.fom-model-modification-date",
             "Reject a timezone-suffixed modification date and accept YYYY-MM-DD",

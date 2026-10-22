@@ -532,6 +532,13 @@ immediate runs with adapter-supplied FOM modules, MIM, logical time, and
 callback model. Their Requirements Lab mappings retain broad clause-4
 provenance; independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-object-class-name-conventions` case rejects
+object-class local names containing a period, an unknown `HLA` prefix, or the
+reserved `NA` marker, then accepts a hyphen-and-underscore name through public
+Create and class-handle/name lookups. It passed installed-provider evoked and
+immediate runs using four adapter-supplied FOM modules and the standard MIM.
+Named tables and independent-provider conformance are not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
