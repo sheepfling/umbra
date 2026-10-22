@@ -1319,11 +1319,10 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.passive-subscription-no-start-registration",
             "ensure a passive subscription does not trigger Start Registration at a publisher",
             "passive-subscription-no-start-registration",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.subscribeObjectClassAttributesPassively;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.startRegistrationForObjectClass",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassRelevanceAdvisorySwitch;RTIambassador.setObjectClassRelevanceAdvisorySwitch;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.subscribeObjectClassAttributesPassively;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.startRegistrationForObjectClass",
             new String[] {
-               "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::passiveSubscriptionDoesNotStartRegistration);
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45"
+            }, true), RtiTckMain::passiveSubscriptionDoesNotStartRegistration);
       run(new Scenario("java-tck.empty-attribute-subscription-is-no-op",
             "preserve an existing active attribute subscription after an empty subscription request",
             "object-attribute-subscription-empty-set-no-op",

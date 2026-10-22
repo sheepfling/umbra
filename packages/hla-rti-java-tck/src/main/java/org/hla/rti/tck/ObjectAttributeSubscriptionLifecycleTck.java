@@ -264,6 +264,12 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          subscriber.joinFederationExecution("java-tck-passive-subscription-subscriber", federation);
          subscriberJoined = true;
 
+         if (!publisher.getObjectClassRelevanceAdvisorySwitch()) {
+            publisher.setObjectClassRelevanceAdvisorySwitch(true);
+         }
+         JavaTckSupport.check(publisher.getObjectClassRelevanceAdvisorySwitch(),
+            "object-class relevance advisories could not be enabled");
+
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          subscriberClass = subscriber.getObjectClassHandle(objectClassName);
          publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);

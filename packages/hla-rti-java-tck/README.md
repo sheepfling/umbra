@@ -359,11 +359,13 @@ endpoint, and callback model. Focused installed JNI runs passed in both modes;
 only the C++ plan row's page-96 line-129 requirement is selected here, pending
 reconciliation of the wider C++ catalog mapping. Independent-provider
 conformance remains unverified.
-The opt-in `java-tck.passive-subscription-no-start-registration` case uses an
-active subscription as a positive control for the publisher's standard Start
-Registration callback, then clears the control and verifies that the passive
-subscription produces no new callback. It does not claim a Stop Registration
-effect, and Java provider runtime verification remains pending.
+The default `java-tck.passive-subscription-no-start-registration` case enables
+the publisher's standard object-class relevance advisory switch if needed,
+then uses an active subscription as a positive control for Start Registration.
+It clears that control and verifies that a passive subscription produces no new
+Start Registration callback. It does not claim a Stop Registration effect.
+Focused installed JNI runs passed in both callback models; independent-provider
+conformance remains unverified.
 The default `java-tck.selective-attribute-unsubscription` case first confirms
 that two federates independently receive both attributes, removes only the
 configured primary attribute for one, and verifies that its secondary value
