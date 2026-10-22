@@ -5163,6 +5163,18 @@
         "cpp-1516.1-object-removal",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-6.16", "hla-1516.1-2025:clause-6.16.4", "hla-1516.1-2025:clause-6.17.1"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"}
+      ],
+      "mapping_note": "Direct pure-API witnesses: ordinary deletion delivers exactly one removal to a known subscribed receiver (§6.16), carrying the supplied tag (§6.16.4) and producing federate (§6.17.1). FOM lookup, publication, registration, and discovery are setup assertions, not additional direct mappings here. The publisher no-callback check does not establish a normative absence under evoked callbacks without servicing its queue. Installed Java adapter passes both callback models on 2026-10-22; no independent-provider conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -5178,8 +5190,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#receiveOrderObjectRemoval",
       "parity": "cpp-tck.receive-order-object-removal",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/receive-order-object-removal-{evoked,immediate}-default-20261022.json. The C++ primary peer passed both modes in out/mgw/tck-dse-ro-regional-20261016/receive-order-object-removal-verified-20261016.json. FOM, endpoint, callback model, and selected logical-time implementation remain adapter-owned."
     },
     {
       "id": "java-tck.receive-order-object-removal-subscription-withdrawal",

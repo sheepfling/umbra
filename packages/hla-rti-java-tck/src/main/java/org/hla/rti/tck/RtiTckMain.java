@@ -1414,7 +1414,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-object-removal",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::receiveOrderObjectRemoval);
+            }, true), RtiTckMain::receiveOrderObjectRemoval);
       run(new Scenario("java-tck.object-deletion-service-boundaries",
             "exercise ordinary object-deletion service boundaries and cleanup",
             "object-management",

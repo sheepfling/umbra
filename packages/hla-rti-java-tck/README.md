@@ -2007,6 +2007,13 @@ parameter, result, and exception type must belong to the official
 `hla.rti1516_2025` namespace or the JDK. This check can run with the API JAR
 alone and does not claim behavioral conformance by an RTI provider.
 
+The ordinary `java-tck.receive-order-object-removal` case is default-run after
+installed-package passes in both callback models on 2026-10-22. It witnesses
+removal delivery to a known subscriber with the supplied tag and producing
+federate (§§6.16, 6.16.4, 6.17.1). The FOM, endpoint, callback model, and
+logical-time implementation remain adapter inputs; this is not a cross-provider
+conformance claim.
+
 The opt-in `java-tck.receive-order-object-removal-subscription-withdrawal`
 scenario deletes an object after two subscribers discover it. In evoked mode,
 one subscriber withdraws before callback servicing; both the still-subscribed
