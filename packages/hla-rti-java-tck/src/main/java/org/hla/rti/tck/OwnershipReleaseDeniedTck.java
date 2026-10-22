@@ -184,6 +184,7 @@ final class OwnershipReleaseDeniedTck {
          await(requester, callbackModel,
             () -> !requesterRecorder.unavailable.isEmpty(),
             "idle ownership-denial unavailable callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.unavailable.size() == 1
                && requesterRecorder.acquisitions.isEmpty(),
             "idle ownership denial duplicated unavailability or acquired ownership");

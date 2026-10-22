@@ -68513,7 +68513,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"}
       ],
-      "mapping_note": "Direct mappings cover immediate callback delivery, the tagged owner release request, and the tagged denial/unavailable result with unchanged ownership. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-denial-idle-configured-20261021.json); the native buffered-release transport fence is explicitly excluded. Java provider runtime remains unverified.",
+      "mapping_note": "Direct mappings cover immediate callback delivery, the tagged owner release request, and the tagged denial/unavailable result with unchanged ownership. The installed-package pair passed 4/4 current-source direct runs and 4/4 focused CTests under both callback models (out/mgw/tck-regulation-enable-20261021/ownership-denial-idle-20261022.json); the native buffered-release transport fence is explicitly excluded. Pure Java parity compiled against the official 2025 API JAR and passed 2/2 focused JNI runs. No independent-provider or conformance claim.",
       "contract_refs": ["standard-ownership-denial-idle-contract.json"],
       "cpp_test": "src/tck_ownership_denial_idle.cpp#scenarioOwnershipDenialIdle",
       "runner_id": "cpp-tck.ownership-denial-idle",
@@ -68536,7 +68536,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"}
       ],
-      "mapping_note": "Contract twin executes the same public-API body and four direct pairs. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-denial-idle-configured-20261021.json); no private transport claim or Java runtime claim.",
+      "mapping_note": "Contract twin executes the same public-API body and four direct pairs. The installed-package pair passed 4/4 current-source direct runs and 4/4 focused CTests under both callback models (out/mgw/tck-regulation-enable-20261021/ownership-denial-idle-20261022.json); Java parity passed 2/2 focused JNI runs. No private transport, independent-provider, or conformance claim.",
       "contract_refs": ["standard-ownership-denial-idle-contract.json"],
       "cpp_test": "src/tck_ownership_denial_idle.cpp#scenarioOwnershipDenialIdleContract",
       "runner_id": "cpp-tck.ownership-denial-idle-contract",

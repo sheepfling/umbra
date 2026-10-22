@@ -40027,13 +40027,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"}
       ],
-      "mapping_note": "Java API-only parity observes one tagged release request, one tagged unavailable callback after denial, and retained ownership; immediate callback waits perform no recipient RTI service. Provider runtime has not run.",
+      "mapping_note": "Java API-only parity observes one tagged release request, exactly one tagged unavailable callback after draining evoked delivery, and retained ownership; immediate callback waits perform no recipient RTI service. Compiled against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-denial-idle-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused CTests. No independent-provider or conformance claim.",
       "contract_refs": ["standard-ownership-denial-idle-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipDenialIdle",
       "parity": "cpp-tck.ownership-denial-idle",
-      "default_status": "unsupported",
-      "promotion": "candidate",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-denial-query",
