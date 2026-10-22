@@ -44,14 +44,13 @@ final class ObjectRegistrationServiceBoundariesTck {
       ObjectClassHandle ownerClass = null, memberClass = null;
       AttributeHandle ownerAttribute = null, memberAttribute = null;
       try {
-         ObjectClassHandle invalidClass = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
          String reservedName = "java-tck-lifecycle-reserved-name";
          java.util.Set<String> names = java.util.Set.of(reservedName);
-         expectRegistrationLifecycle(lifecycle, invalidClass, names, "NotConnected",
+         expectRegistrationLifecycle(lifecycle, names, "NotConnected",
             "before connect");
          lifecycle.connect(lifecycleCallbacks.proxy(), callbackModel);
          lifecycleConnected = true;
-         expectRegistrationLifecycle(lifecycle, invalidClass, names,
+         expectRegistrationLifecycle(lifecycle, names,
             "FederateNotExecutionMember", "after connect before join");
          lifecycle.disconnect();
          lifecycleConnected = false;
@@ -64,24 +63,25 @@ final class ObjectRegistrationServiceBoundariesTck {
          memberConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         FederateHandle producer = owner.joinFederationExecution(
-            "java-tck-registration-boundary-owner", federation);
+         String ownerName = "java-tck-registration-boundary-owner";
+         owner.joinFederationExecution(ownerName, "registration-owner", federation);
          ownerJoined = true;
-         member.joinFederationExecution("java-tck-registration-boundary-member", federation);
+         member.joinFederationExecution("java-tck-registration-boundary-member",
+            "registration-member", federation);
          memberJoined = true;
          RTIambassador joinedMember = member;
 
-         ObjectClassHandle invalidClassAfterJoin =
-            JavaTckSupport.invalidHandle(ObjectClassHandle.class);
          RTIambassador joinedOwner = owner;
-         JavaTckSupport.expectFailure(() -> joinedOwner.registerObjectInstance(invalidClassAfterJoin),
-            "ObjectClassNotDefined", "registering for an invalid object class");
          ownerClass = owner.getObjectClassHandle(objectClassName);
          memberClass = member.getObjectClassHandle(objectClassName);
          ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          memberAttribute = member.getAttributeHandle(memberClass, attributeName);
          JavaTckSupport.check(ownerClass != null && memberClass != null
-               && ownerAttribute != null && memberAttribute != null,
+               && ownerAttribute != null && memberAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(member.getObjectClassName(memberClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(member.getAttributeName(memberClass, memberAttribute)),
             "adapter FOM did not resolve the registration-boundary object class and attribute");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet memberAttributes = JavaTckSupport.attributeSet(member, memberAttribute);
@@ -109,26 +109,25 @@ final class ObjectRegistrationServiceBoundariesTck {
          await(member, callbackModel, () -> !memberCallbacks.discoveries.isEmpty(),
             "object discovery");
          Discovery discovered = memberCallbacks.discoveries.get(0);
-         JavaTckSupport.check(object.equals(discovered.object),
-            "discovery returned the wrong object handle");
+         ObjectInstanceHandle memberObject = member.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(memberObject.equals(discovered.object),
+            "discovery returned the wrong local object handle");
          JavaTckSupport.check(memberClass.equals(discovered.objectClass),
             "discovery returned the wrong object class");
          JavaTckSupport.check(objectName.equals(discovered.name),
             "discovery returned the wrong object name");
-         JavaTckSupport.check(producer.equals(discovered.producer),
-            "discovery returned the wrong producing federate");
-         JavaTckSupport.check(object.equals(member.getObjectInstanceHandle(objectName)),
+         String discoveredProducerName = member.getFederateName(discovered.producer);
+         JavaTckSupport.check(ownerName.equals(discoveredProducerName),
+            "discovery returned producing federate " + discoveredProducerName
+               + " rather than " + ownerName);
+         JavaTckSupport.check(objectName.equals(member.getObjectInstanceName(memberObject)),
             "member object-name lookup did not round-trip");
-         JavaTckSupport.check(memberClass.equals(member.getKnownObjectClassHandle(object)),
+         JavaTckSupport.check(memberClass.equals(member.getKnownObjectClassHandle(memberObject)),
             "member known-object-class lookup did not round-trip");
 
-         ObjectInstanceHandle unknown = JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-         JavaTckSupport.expectFailure(() -> joinedMember.localDeleteObjectInstance(unknown),
-            "ObjectInstanceNotKnown", "locally deleting an unknown object instance");
-
          member.publishObjectClassAttributes(memberClass, memberAttributes);
-         member.attributeOwnershipAcquisition(object, memberAttributes, new byte[] {0x51, 0x18});
-         JavaTckSupport.expectFailure(() -> joinedMember.localDeleteObjectInstance(object),
+         member.attributeOwnershipAcquisition(memberObject, memberAttributes, new byte[] {0x51, 0x18});
+         JavaTckSupport.expectFailure(() -> joinedMember.localDeleteObjectInstance(memberObject),
             "OwnershipAcquisitionPending", "locally deleting while ownership acquisition is pending");
          member.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
          memberJoined = false;
@@ -138,7 +137,7 @@ final class ObjectRegistrationServiceBoundariesTck {
          freshMember.connect(freshMemberCallbacks.proxy(), callbackModel);
          freshMemberConnected = true;
          freshMember.joinFederationExecution("java-tck-registration-boundary-fresh-member",
-            federation);
+            "registration-fresh-member", federation);
          freshMemberJoined = true;
          RTIambassador joinedFreshMember = freshMember;
          ObjectClassHandle freshClass = freshMember.getObjectClassHandle(objectClassName);
@@ -151,14 +150,15 @@ final class ObjectRegistrationServiceBoundariesTck {
          freshMemberSubscribed = true;
          await(freshMember, callbackModel,
             () -> !freshMemberCallbacks.discoveries.isEmpty(), "fresh-member discovery");
-         JavaTckSupport.check(object.equals(freshMemberCallbacks.discoveries.get(0).object)
+         ObjectInstanceHandle freshObject = freshMember.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(freshObject.equals(freshMemberCallbacks.discoveries.get(0).object)
                && freshClass.equals(freshMemberCallbacks.discoveries.get(0).objectClass),
             "fresh-member discovery returned the wrong object identity");
 
-         freshMember.localDeleteObjectInstance(object);
+         freshMember.localDeleteObjectInstance(freshObject);
          JavaTckSupport.check(freshMemberCallbacks.removals.isEmpty(),
             "local object deletion unexpectedly delivered a removal callback");
-         JavaTckSupport.expectFailure(() -> joinedFreshMember.getKnownObjectClassHandle(object),
+         JavaTckSupport.expectFailure(() -> joinedFreshMember.getKnownObjectClassHandle(freshObject),
             "ObjectInstanceNotKnown", "known-class lookup after local deletion");
          JavaTckSupport.expectFailure(() -> joinedFreshMember.getObjectInstanceHandle(objectName),
             "ObjectInstanceNotKnown", "object-name lookup after local deletion");
@@ -166,7 +166,8 @@ final class ObjectRegistrationServiceBoundariesTck {
          freshMember.subscribeObjectClassAttributes(freshClass, freshAttributes);
          await(freshMember, callbackModel,
             () -> !freshMemberCallbacks.discoveries.isEmpty(), "rediscovery after local deletion");
-         JavaTckSupport.check(freshClass.equals(freshMember.getKnownObjectClassHandle(object)),
+         ObjectInstanceHandle rediscoveredObject = freshMember.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(freshClass.equals(freshMember.getKnownObjectClassHandle(rediscoveredObject)),
             "rediscovery after local deletion did not restore known-object identity");
 
          freshMemberCallbacks.reflections.clear();
@@ -180,8 +181,8 @@ final class ObjectRegistrationServiceBoundariesTck {
          JavaTckSupport.check(freshMemberCallbacks.reflections.size() == 1,
             "post-local-delete update did not produce exactly one reflection");
          Reflection reflection = freshMemberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(reflection.object)
-               && producer.equals(reflection.producer)
+         JavaTckSupport.check(rediscoveredObject.equals(reflection.object)
+               && ownerName.equals(freshMember.getFederateName(reflection.producer))
                && Arrays.equals(tag, reflection.tag)
                && reflection.values.size() == 1
                && reflection.values.containsKey(freshAttribute)
@@ -237,7 +238,7 @@ final class ObjectRegistrationServiceBoundariesTck {
    }
 
    private static void expectRegistrationLifecycle(RTIambassador ambassador,
-         ObjectClassHandle invalidClass, java.util.Set<String> names, String expected,
+         java.util.Set<String> names, String expected,
          String phase) throws Exception {
       JavaTckSupport.expectFailure(() -> ambassador.reserveObjectInstanceName(
          names.iterator().next()), expected, "reserving an object name " + phase);
@@ -247,10 +248,6 @@ final class ObjectRegistrationServiceBoundariesTck {
          expected, "reserving multiple object names " + phase);
       JavaTckSupport.expectFailure(() -> ambassador.releaseMultipleObjectInstanceNames(names),
          expected, "releasing multiple object names " + phase);
-      JavaTckSupport.expectFailure(() -> ambassador.registerObjectInstance(invalidClass), expected,
-         "registering an object " + phase);
-      JavaTckSupport.expectFailure(() -> ambassador.registerObjectInstance(invalidClass,
-         "tck-lifecycle-object"), expected, "registering a named object " + phase);
    }
 
    private static void await(RTIambassador ambassador, CallbackModel callbackModel,

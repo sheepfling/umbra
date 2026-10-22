@@ -1385,7 +1385,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-instance-name-lifecycle",
                "cpp-1516.1-local-object-instance-deletion",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectRegistrationServiceBoundaries);
+            }, true), RtiTckMain::objectRegistrationServiceBoundaries);
       run(new Scenario("java-tck.ordinary-multi-attribute-subscription-projection",
             "project ordinary multi-attribute updates to each subscriber's declared attributes",
             "object-management",

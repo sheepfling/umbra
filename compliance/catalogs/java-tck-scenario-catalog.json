@@ -4075,7 +4075,20 @@
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.18.1"
       ],
-      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 and page-118-l67-18 -> §6.8.4 for successful unnamed registration; page-119-l103-29 -> §6.9.3 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Other pre-connect/pre-join exception precedence, invalid-class registration, unreserved named registration, and unknown-object local deletion remain internal boundary assertions without a separate normative mapping; federation setup and teardown are fixture operations.",
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l39-9", "standard_section": "hla-1516.1-2025:clause-6.1.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l45-11", "standard_section": "hla-1516.1-2025:clause-6.1.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13", "standard_section": "hla-1516.1-2025:clause-6.1.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27", "standard_section": "hla-1516.1-2025:clause-6.5.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5", "standard_section": "hla-1516.1-2025:clause-6.8.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l67-18", "standard_section": "hla-1516.1-2025:clause-6.8.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29", "standard_section": "hla-1516.1-2025:clause-6.9.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38", "standard_section": "hla-1516.1-2025:clause-6.18.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40", "standard_section": "hla-1516.1-2025:clause-6.18.1"}
+      ],
+      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 and page-118-l67-18 -> §6.8.4 for successful unnamed registration; page-119-l103-29 -> §6.9.3 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Pre-connect/pre-join reservation exception precedence, unreserved named registration, owner-local-delete denial, and pending-acquisition local-delete denial remain internal boundary assertions without separate normative mappings. Fabricated invalid-class and unknown-object handles are not used. Object and class handles are checked only within each ambassador; producer identity is resolved by its standard federate name. The official-API Java case passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -4089,8 +4102,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectRegistrationServiceBoundaries",
       "parity": "cpp-tck.object-registration-service-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.object-attribute-subscription-lifecycle",

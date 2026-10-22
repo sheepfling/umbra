@@ -819,6 +819,15 @@ Provider, FOM, endpoint, callback model, and logical time remain adapter-configu
 It passed the focused JNI gate in both callback modes through the standard
 1516.1-2025 API. This does not establish independent-provider conformance.
 
+The default `java-tck.object-registration-service-boundaries` scenario checks
+ordinary registration, active-subscriber discovery, name and known-class
+lookups, recipient-local deletion and rediscovery, then ordinary reflection.
+Reservation and local-delete negative boundaries use standard API arguments;
+the case does not fabricate invalid provider handles or compare object handles
+across ambassadors. It passed focused JNI execution in both callback modes
+with provider, FOM, endpoint, and callback model supplied by the adapter.
+Independent-provider conformance remains unverified.
+
 The opt-in `java-tck.object-deletion-service-boundaries` scenario checks
 pre-connection and pre-membership lookup failures, object name/handle round
 trips, local deletion without remote callback, ordinary removal tag/producer
