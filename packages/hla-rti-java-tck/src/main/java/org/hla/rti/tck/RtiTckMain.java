@@ -704,7 +704,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomCompleteObjectClassPublicationQuery);
+            }, true), RtiTckMain::federateMomCompleteObjectClassPublicationQuery);
       run(new Scenario("java-tck.federate-mom-object-class-attribute-unpublication-query",
             "after unpublishing one object-class attribute, report the exact remaining application attributes through the standard MIM",
             "federate-mom",
@@ -712,7 +712,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomObjectClassAttributeUnpublicationQuery);
+            }, true), RtiTckMain::federateMomObjectClassAttributeUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-object-class-full-attribute-unpublication-query",
             "after unpublishing all object-class application attributes, verify the standard MIM NULL publication response",
             "federate-mom",
@@ -720,7 +720,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomObjectClassFullAttributeUnpublicationQuery);
+            }, true), RtiTckMain::federateMomObjectClassFullAttributeUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-object-class-whole-unpublication-query",
             "after unpublishing an entire object class, verify the standard MIM NULL publication response",
             "federate-mom",
@@ -728,7 +728,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-explicit-mim-composition"
-            }, false), RtiTckMain::federateMomObjectClassWholeUnpublicationQuery);
+            }, true), RtiTckMain::federateMomObjectClassWholeUnpublicationQuery);
       run(new Scenario("java-tck.federate-mom-interaction-class-whole-unpublication-query",
             "after unpublishing an entire ordinary interaction class, verify its standard MIM NULL publication response",
             "federate-mom",

@@ -674,6 +674,19 @@ handles, the reported publication sets, an empty directed-interaction set,
 and reliable callback metadata. The installed provider passed both callback
 models; independent-provider behavior is not yet verified.
 
+The default-run `java-tck.federate-mom-complete-object-class-publication-query`
+scenario reports the complete publication set for three distinct
+adapter-named application attributes, including the inherited standard
+delete privilege. It passed installed-provider evoked and immediate runs;
+the provider, FOM, MIM, attribute names, and callback model remain adapter-owned.
+
+The default-run `java-tck.federate-mom-object-class-attribute-unpublication-query`,
+`java-tck.federate-mom-object-class-full-attribute-unpublication-query`, and
+`java-tck.federate-mom-object-class-whole-unpublication-query` scenarios report
+the publication set after one attribute, all application attributes, or the
+whole class is unpublished. They use the same adapter-owned FOM and standard
+MIM configuration and passed installed-provider runs in both callback models.
+
 The opt-in `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It checks standard federation-MOM handle/name round trips and object

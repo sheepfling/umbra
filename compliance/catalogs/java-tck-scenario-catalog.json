@@ -1225,8 +1225,8 @@
         "logical-time implementation, federate type, object class, three attributes, and interaction class"
       ],
       "parity": "cpp-tck.federate-mom-complete-object-class-publication-query",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, three distinct object-class attribute names, and an interaction-class name, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-complete-object-class-publication-query-{evoked,immediate}-default-20261022.json with three distinct adapter-supplied P0 attribute names. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-complete-object-class-publication-query-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-object-class-attribute-unpublication-query",
@@ -1283,8 +1283,8 @@
         "logical-time implementation, federate type, object class, three attributes, and interaction class"
       ],
       "parity": "cpp-tck.federate-mom-object-class-attribute-unpublication-query",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, three distinct object-class attribute names, and an interaction-class name, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-object-class-attribute-unpublication-query-{evoked,immediate}-default-20261022.json with adapter-supplied P0 object, attribute, and interaction names. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-attribute-unpublication-query-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-object-class-full-attribute-unpublication-query",
@@ -1341,8 +1341,8 @@
         "logical-time implementation, federate type, object class, three attributes, and interaction class"
       ],
       "parity": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, three distinct object-class attribute names, and an interaction-class name, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-object-class-full-attribute-unpublication-query-{evoked,immediate}-default-20261022.json with adapter-supplied P0 object, attribute, and interaction names. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-full-attribute-unpublication-query-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-object-class-whole-unpublication-query",
@@ -1399,8 +1399,8 @@
         "logical-time implementation, federate type, object class, attribute, and interaction class"
       ],
       "parity": "cpp-tck.federate-mom-object-class-whole-unpublication-query",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, an object-class attribute name, and an interaction-class name, plus an installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federate-mom-object-class-whole-unpublication-query-{evoked,immediate}-default-20261022.json with adapter-supplied P0 object, attribute, and interaction names. Matching C++ primary and contract passed both models at out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-whole-unpublication-query-verified-20261016.json. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-interaction-class-whole-unpublication-query",
