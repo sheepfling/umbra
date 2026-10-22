@@ -83,10 +83,6 @@ final class StandardOrderTransportationLookupsTck {
          JavaTckSupport.expectFailure(
             () -> owner.rti.getTransportationTypeHandle(unknownTransportationName),
             "InvalidTransportationName", "unknown transportation name");
-         TransportationTypeHandle invalid = JavaTckSupport.invalidHandle(
-            TransportationTypeHandle.class);
-         JavaTckSupport.expectFailure(() -> owner.rti.getTransportationTypeName(invalid),
-            "InvalidTransportationTypeHandle", "invalid transportation handle");
       } finally {
          peer.close();
          owner.close();
@@ -107,11 +103,6 @@ final class StandardOrderTransportationLookupsTck {
       JavaTckSupport.expectFailure(
          () -> ambassador.getTransportationTypeHandle("HLAreliable"), exception,
          "reliable transportation lookup " + phase);
-      TransportationTypeHandle invalid = JavaTckSupport.invalidHandle(
-         TransportationTypeHandle.class);
-      JavaTckSupport.expectFailure(
-         () -> ambassador.getTransportationTypeName(invalid), exception,
-         "invalid transportation handle lookup " + phase);
    }
 
    private static void checkMandatoryNames(RTIambassador ambassador, String federate)

@@ -7171,7 +7171,7 @@
           "standard_section": "hla-1516.1-2025:clause-10.20.4"
         }
       ],
-      "mapping_note": "The joined-federate HLAreliable/HLAbestEffort handle/name checks directly verify that both mandatory transportation types are supported (§6.1.11); they do not test delivery behavior implied by the reliable/best-effort classifications. The standard Receive/TimeStamp order names and values map to §8.2, and Get Order Type/Get Order Name mappings to §§10.17.4 and 10.19; transportation lookup/name mappings also map to §§10.19 and 10.20.4. Java-only transportation-handle-factory default identity checks, lifecycle checks, and invalid-input checks are supplemental. Java remains unsupported pending provider execution; Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, so no Java equivalent is claimed.",
+      "mapping_note": "The joined-federate HLAreliable/HLAbestEffort handle/name checks directly verify that both mandatory transportation types are supported (§6.1.11); they do not test delivery behavior implied by the reliable/best-effort classifications. The standard Receive/TimeStamp order names and values map to §8.2, and Get Order Type/Get Order Name mappings to §§10.17.4 and 10.19; transportation lookup/name mappings also map to §§10.19 and 10.20.4. Java-only transportation-handle-factory default identity checks, lifecycle checks, and unknown-name checks are supplemental. Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, and Java exposes no portable default-invalid transportation handle value corresponding to C++; neither negative assertion is claimed as Java parity.",
       "contract_refs": [
         "standard-order-and-transportation-lookups-contract.json",
         "order-type-api-contract.json",
@@ -7180,8 +7180,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups",
       "parity": "cpp-tck.standard-order-and-transportation-lookups-contract",
-      "default_status": "unsupported",
-      "exclusion": "Awaiting execution against an adapter-supplied Java IEEE 1516.1-2025 provider, FOM, time implementation, and callback model. Java OrderType is an enum, so the C++ invalid-enum-value assertion has no direct Java equivalent."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/standard-order-transportation-lookups-{evoked,immediate}-default-20261022.json after corrected opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/tck-standard-order-transportation-lookups-20261016.json. Adapter supplies FOM, logical time, factory, endpoint, and callback model. Java omits the C++ invalid enum cast and default-invalid handle checks because the official Java API has no matching portable values. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.handle-wire-formats",

@@ -1725,11 +1725,18 @@ public final class RtiTckMain {
             "mandatory order and transportation lookup lifecycle", "handle-lookup",
             "RTIambassador.getOrderType;RTIambassador.getOrderName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getTransportationTypeHandleFactory;TransportationTypeHandleFactory.getHLAdefaultReliable;TransportationTypeHandleFactory.getHLAdefaultBestEffort;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
+               "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
+               "requirement-candidate-content-clauses-10-support-services-page-255-l122-31",
+               "requirement-candidate-content-clauses-10-support-services-page-256-l53-11",
+               "requirement-candidate-content-clauses-10-support-services-page-256-l152-37",
+               "requirement-candidate-content-clauses-10-support-services-page-257-l108-25",
                "cpp-1516.1-order-type-control",
                "cpp-1516.1-transportation-type-control",
-               "cpp-1516.1-order-transport-invalid-handle-boundaries",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::standardOrderTransportationLookups);
+            }, true), RtiTckMain::standardOrderTransportationLookups);
       run(new Scenario("java-tck.handle-wire-formats",
             "Round-trip dimension, region, and timestamped message-retraction handle encodings",
             "handle-encoding-decoding",

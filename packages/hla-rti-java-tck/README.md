@@ -98,9 +98,13 @@ The `java-tck.support-services` case also checks that public name-based
 support lookups and service-group normalization reject calls before connect
 and before federation join, using the adapter's callback model, and complements
 those lifecycle gates with joined-state handle checks.
-The `java-tck.standard-order-transportation-lookups` case also verifies that
+The default-run `java-tck.standard-order-transportation-lookups` case verifies that
 each federate's standard transportation-handle factory defaults match the
 handles returned by the standard `HLAreliable` and `HLAbestEffort` name lookups.
+Java has no portable equivalent of C++'s default-invalid transportation handle
+or invalid `OrderType` cast, so this case does not fabricate either input.
+Focused installed-provider evoked and immediate runs passed; independent-
+provider conformance is not claimed.
 The `java-tck.logical-time-factory` case now mirrors the C++ lifecycle gates
 for `getTimeFactory` before connection and after connection but before join,
 and uses the adapter-selected callback model. It round-trips initial/final time
