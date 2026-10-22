@@ -13735,7 +13735,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
       ],
-      "mapping_note": "Direct source-matrix mappings are limited to generic known-target delivery (5.1.5), the effective directed-subscription selector (5.12), object registration (6.8.4), ordinary directed send (6.14), and receiveDirectedInteraction content/metadata (6.15.1). Derived-class target applicability, inheritance from the class on which the interaction is published, by-ownership versus universal eligibility, handle-stability checks, discovery metadata, and publisher/attribute-only exclusion are supplemental assertions; the referenced standard-directed-derived-object-target-contract.json is explicitly experimental public-API evidence, not conformance evidence. This source uses only standard Java APIs with provider, model FOM, endpoint, and callback configuration adapter-supplied; Java runtime execution remains required before promotion.",
+      "mapping_note": "Direct source-matrix mappings are limited to generic known-target delivery (5.1.5), the effective directed-subscription selector (5.12), object registration (6.8.4), ordinary directed send (6.14), and receiveDirectedInteraction content/metadata (6.15.1). Derived-class target applicability, inheritance from the class on which the interaction is published, by-ownership versus universal eligibility, handle-stability checks, discovery metadata, and publisher/attribute-only exclusion are supplemental assertions; the referenced standard-directed-derived-object-target-contract.json is experimental public-API evidence, not conformance evidence. The Java source uses only standard APIs; provider, model FOM, logical-time implementation, endpoint, names, and callback configuration are adapter-supplied. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "category": "directed-interaction",
       "title": "Deliver receive-order directed interactions to a derived target owner and a universal subscriber, excluding non-eligible subscribers",
       "api_methods": [
@@ -13754,9 +13754,17 @@
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.getAttributeName",
         "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.evokeCallback",
@@ -13771,11 +13779,12 @@
         "FederateAmbassador.receiveDirectedInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-publication",
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-object-registration-discovery",
-        "java-1516.1-interaction-parameter-delivery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
       ],
       "contract_refs": [
         "directed-interaction-api-contract.json",
@@ -13793,8 +13802,9 @@
         "standard-directed-derived-object-target-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedDerivedObjectTargetEligibility",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible typed FOM, derived object class, inherited identity attribute, interaction/parameter names, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, compatible typed FOM, logical-time implementation, derived object class, inherited identity attribute, interaction/parameter names, endpoint, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.order-type-controls",

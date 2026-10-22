@@ -1249,12 +1249,15 @@ provider JAR rebuilt from source with the installed native library. The
 recipient eligibility matrix and positive-lookahead boundary are supplemental;
 independent-provider conformance is unverified.
 
-The `java-tck.directed-derived-object-target-eligibility` scenario runs the
+The default `java-tck.directed-derived-object-target-eligibility` scenario runs the
 same ownership/universal distinction with an adapter-selected derived object
 class and inherited identity attribute. It checks target ownership and
 universal delivery while excluding subscribers that are not eligible for the
-target. Supply a compatible typed FOM and callback model through the adapter;
-the scenario remains unsupported by default pending Java-provider execution.
+target. Provider, compatible typed FOM, logical time, endpoint, names, and
+callback model are adapter-supplied. It uses receiver-local object and member
+handles and passed focused installed JNI runs in both callback models.
+Derived-class applicability and the recipient partition are supplemental
+regression checks, not independent-provider conformance claims.
 
 The default `java-tck.directed-interaction-multi-recipient-fifo` scenario
 registers one target, then sends two ordinary directed interactions to it. Both

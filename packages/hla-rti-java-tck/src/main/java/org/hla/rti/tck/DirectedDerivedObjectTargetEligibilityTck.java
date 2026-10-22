@@ -15,18 +15,20 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
-import hla.rti1516_2025.encoding.HLAinteger32BE;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Checks directed-interaction recipient eligibility for a derived-class target. */
 final class DirectedDerivedObjectTargetEligibilityTck {
    private DirectedDerivedObjectTargetEligibilityTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String identityAttributeName, String interactionClassName,
          String integerParameterName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -61,7 +63,7 @@ final class DirectedDerivedObjectTargetEligibilityTck {
             ambassadors[i].connect(recorders[i].proxy(), callbackModel);
             connected[i] = true;
          }
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          publisherHandle = publisher.joinFederationExecution(
             "java-tck-derived-eligibility-publisher", federation);
@@ -79,24 +81,24 @@ final class DirectedDerivedObjectTargetEligibilityTck {
             attributes[i] = ambassadors[i].getAttributeHandle(classes[i], identityAttributeName);
             JavaTckSupport.check(classes[i] != null && attributes[i] != null,
                "derived-target class or inherited attribute lookup returned null");
-         }
-         for (int i = 1; i < classes.length; i++) {
-            JavaTckSupport.check(classes[0].equals(classes[i])
-                  && attributes[0].equals(attributes[i]),
-               "derived-target class or inherited attribute handles were unstable");
+            JavaTckSupport.check(objectClassName.equals(
+                  ambassadors[i].getObjectClassName(classes[i]))
+                  && identityAttributeName.equals(ambassadors[i].getAttributeName(
+                     classes[i], attributes[i])),
+               "derived-target class or inherited attribute name did not round-trip locally");
          }
          interactions[0] = publisher.getInteractionClassHandle(interactionClassName);
          interactions[1] = owner.getInteractionClassHandle(interactionClassName);
          interactions[2] = universal.getInteractionClassHandle(interactionClassName);
          for (int i = 0; i < interactions.length; i++) {
-            parameters[i] = ambassadors[i == 2 ? 2 : i].getParameterHandle(
+            parameters[i] = ambassadors[i].getParameterHandle(
                interactions[i], integerParameterName);
+            JavaTckSupport.check(interactionClassName.equals(
+                  ambassadors[i].getInteractionClassName(interactions[i]))
+                  && integerParameterName.equals(ambassadors[i].getParameterName(
+                     interactions[i], parameters[i])),
+               "directed interaction or parameter name did not round-trip locally");
          }
-         JavaTckSupport.check(interactions[0].equals(interactions[1])
-               && interactions[0].equals(interactions[2])
-               && parameters[0].equals(parameters[1])
-               && parameters[0].equals(parameters[2]),
-            "directed interaction or parameter handles were unstable");
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, attributes[1]);
          owner.publishObjectClassAttributes(classes[1], ownerAttributes);
@@ -124,9 +126,16 @@ final class DirectedDerivedObjectTargetEligibilityTck {
 
          ObjectInstanceHandle target = owner.registerObjectInstance(classes[1]);
          JavaTckSupport.check(target != null, "derived target registration returned null");
+         String targetName = owner.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "derived target registration returned no standard object name");
          for (int i : new int[] {0, 2, 3}) {
-            awaitDiscovery(ambassadors[i], recorders[i], target);
-            checkDiscovery(recorders[i], target, classes[1], ownerHandle, "recipient " + i);
+            awaitDiscovery(ambassadors[i], recorders[i], targetName, callbackModel);
+            ObjectInstanceHandle localTarget = ambassadors[i].getObjectInstanceHandle(targetName);
+            FederateHandle localOwner = ambassadors[i].getFederateHandle(
+               owner.getFederateName(ownerHandle));
+            checkDiscovery(recorders[i], targetName, localTarget, classes[i],
+               localOwner, "recipient " + i);
          }
 
          byte[] payload = factory.getEncoderFactory().createHLAinteger32BE(0x10203040)
@@ -135,23 +144,33 @@ final class DirectedDerivedObjectTargetEligibilityTck {
          ParameterHandleValueMap values = publisher.getParameterHandleValueMapFactory()
             .create(1);
          values.put(parameters[0], payload);
-         publisher.sendDirectedInteraction(interactions[0], target, values, tag);
-         awaitInteraction(owner, ownerRecorder);
-         awaitInteraction(universal, universalRecorder);
-         for (RTIambassador ambassador : ambassadors) JavaTckSupport.drain(ambassador);
+         ObjectInstanceHandle publisherTarget = publisher.getObjectInstanceHandle(targetName);
+         ObjectInstanceHandle universalTarget = universal.getObjectInstanceHandle(targetName);
+         publisher.sendDirectedInteraction(interactions[0], publisherTarget, values, tag);
+         awaitInteraction(owner, ownerRecorder, callbackModel);
+         awaitInteraction(universal, universalRecorder, callbackModel);
+         for (RTIambassador ambassador : ambassadors) pumpQuiet(ambassador, callbackModel);
 
          JavaTckSupport.check(ownerRecorder.interactions.size() == 1,
             "derived target owner did not receive exactly one directed interaction");
          checkDelivery(ownerRecorder.interactions.get(0), owner, interactions[1], parameters[1],
-            target, payload, tag, publisherHandle, "target owner");
+            target, payload, tag,
+            owner.getFederateHandle(publisher.getFederateName(publisherHandle)), "target owner");
          JavaTckSupport.check(universalRecorder.interactions.size() == 1,
             "universal subscriber did not receive exactly one directed interaction");
          checkDelivery(universalRecorder.interactions.get(0), universal, interactions[2],
-            parameters[2], target, payload, tag, publisherHandle, "universal subscriber");
+            parameters[2], universalTarget, payload, tag,
+            universal.getFederateHandle(publisher.getFederateName(publisherHandle)),
+            "universal subscriber");
          JavaTckSupport.check(publisherRecorder.interactions.isEmpty(),
             "publisher without a target-role subscription received a directed copy");
          JavaTckSupport.check(observerRecorder.interactions.isEmpty(),
             "attribute-only observer received a directed interaction");
+         JavaTckSupport.check(publisherRecorder.unexpectedDirectedCount.get() == 0
+               && ownerRecorder.unexpectedDirectedCount.get() == 0
+               && universalRecorder.unexpectedDirectedCount.get() == 0
+               && observerRecorder.unexpectedDirectedCount.get() == 0,
+            "receive-order directed send used an unexpected callback overload");
       } finally {
          if (universalDirected && joined[2]) try {
             universal.unsubscribeObjectClassDirectedInteractions(classes[2], universalInteractions);
@@ -189,32 +208,53 @@ final class DirectedDerivedObjectTargetEligibilityTck {
    }
 
    private static void awaitDiscovery(RTIambassador rti, Recorder recorder,
-         ObjectInstanceHandle target) throws Exception {
+         String targetName, CallbackModel callbackModel) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
-      while (System.nanoTime() < deadline && !recorder.discoveries.contains(target)) {
-         JavaTckSupport.drain(rti);
-         Thread.yield();
+      while (System.nanoTime() < deadline
+            && recorder.discoveries.stream().noneMatch(event -> targetName.equals(event.name))) {
+         service(rti, callbackModel);
       }
-      JavaTckSupport.check(recorder.discoveries.contains(target),
-         "derived target discovery did not arrive before deadline");
+      JavaTckSupport.check(recorder.discoveries.stream()
+            .anyMatch(event -> targetName.equals(event.name)),
+         "derived target discovery did not arrive before deadline; callbacks="
+            + recorder.discoveries.size());
    }
 
-   private static void awaitInteraction(RTIambassador rti, Recorder recorder) throws Exception {
+   private static void awaitInteraction(RTIambassador rti, Recorder recorder,
+         CallbackModel callbackModel) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
-      while (System.nanoTime() < deadline && recorder.interactions.isEmpty()) {
-         JavaTckSupport.drain(rti);
-         Thread.yield();
+      while (System.nanoTime() < deadline && recorder.interactions.isEmpty()
+            && recorder.unexpectedDirectedCount.get() == 0) {
+         service(rti, callbackModel);
       }
-      JavaTckSupport.check(!recorder.interactions.isEmpty(),
+      JavaTckSupport.check(!recorder.interactions.isEmpty()
+            && recorder.unexpectedDirectedCount.get() == 0,
          "directed derived-target interaction did not arrive before deadline");
    }
 
-   private static void checkDiscovery(Recorder recorder, ObjectInstanceHandle target,
+   private static void service(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+      else Thread.yield();
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
+   }
+
+   private static void checkDiscovery(Recorder recorder, String targetName,
+         ObjectInstanceHandle target,
          ObjectClassHandle objectClass, FederateHandle producer, String role) {
       JavaTckSupport.check(recorder.discoveries.size() == 1,
          role + " did not receive exactly one discovery");
       Discovery event = recorder.discoveries.get(0);
-      JavaTckSupport.check(target.equals(event.object) && objectClass.equals(event.objectClass)
+      JavaTckSupport.check(targetName.equals(event.name)
+            && target.equals(event.object) && objectClass.equals(event.objectClass)
             && producer.equals(event.producer),
          role + " discovery returned incorrect target, derived class, or producer");
    }
@@ -237,10 +277,12 @@ final class DirectedDerivedObjectTargetEligibilityTck {
    private static final class Discovery {
       private final ObjectInstanceHandle object;
       private final ObjectClassHandle objectClass;
+      private final String name;
       private final FederateHandle producer;
       private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
-            FederateHandle producer) {
-         this.object = object; this.objectClass = objectClass; this.producer = producer;
+            String name, FederateHandle producer) {
+         this.object = object; this.objectClass = objectClass;
+         this.name = name; this.producer = producer;
       }
    }
 
@@ -262,15 +304,17 @@ final class DirectedDerivedObjectTargetEligibilityTck {
    private static final class Recorder {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final AtomicInteger unexpectedDirectedCount = new AtomicInteger();
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 3) {
+                     && arguments.length >= 4) {
                   discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
-                     (ObjectClassHandle) arguments[1], (FederateHandle) arguments[2]));
+                     (ObjectClassHandle) arguments[1], (String) arguments[2],
+                     (FederateHandle) arguments[3]));
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
                   interactions.add(new Interaction((InteractionClassHandle) arguments[0],
@@ -278,6 +322,8 @@ final class DirectedDerivedObjectTargetEligibilityTck {
                      ((ParameterHandleValueMap) arguments[2]).clone(),
                      ((byte[]) arguments[3]).clone(), (TransportationTypeHandle) arguments[4],
                      (FederateHandle) arguments[5]));
+               } else if ("receiveDirectedInteraction".equals(name)) {
+                  unexpectedDirectedCount.incrementAndGet();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK derived eligibility callbacks";

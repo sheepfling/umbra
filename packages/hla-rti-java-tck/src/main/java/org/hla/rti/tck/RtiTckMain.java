@@ -2975,12 +2975,13 @@ public final class RtiTckMain {
             "directed-interaction",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.getTransportationTypeName;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
             new String[] {
-               "java-1516.1-directed-interaction-publication",
-               "java-1516.1-directed-interaction-subscription",
-               "java-1516.1-directed-interaction-delivery",
-               "java-1516.1-object-registration-discovery",
-               "java-1516.1-interaction-parameter-delivery"
-         }, false), RtiTckMain::directedDerivedObjectTargetEligibility);
+               "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+               "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+               "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+         }, true), RtiTckMain::directedDerivedObjectTargetEligibility);
       run(new Scenario("java-tck.order-type-controls",
             "prospective attribute-order defaults, per-instance overrides, and receive-order interaction delivery",
             "time",
@@ -14672,7 +14673,7 @@ public final class RtiTckMain {
 
    private static void directedDerivedObjectTargetEligibility() throws Exception {
       DirectedDerivedObjectTargetEligibilityTck.run(factory(), requireFom(),
-         typedDerivedObjectClassName(), typedIdentityAttributeName(),
+         timeImplementation(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
          typedInteractionClassName(), typedIntegerParameterName(), callbackModel());
    }
 
