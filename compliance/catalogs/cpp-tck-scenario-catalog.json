@@ -25639,6 +25639,57 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.time-role-pending-enable",
+      "category": "time-management",
+      "title": "Keep evoked time-role enable requests pending until their callbacks",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getTimeFactory", "RTIambassador.enableTimeRegulation", "RTIambassador.timeAdvanceRequest", "RTIambassador.queryLookahead", "RTIambassador.disableTimeRegulation", "RTIambassador.enableTimeConstrained", "RTIambassador.disableTimeConstrained", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.timeRegulationEnabled", "FederateAmbassador.timeConstrainedEnabled"],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-189-l162-44", "requirement-candidate-content-clauses-08-time-management-page-190-l103-25", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-193-l58-12", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-189-l162-44", "requirement-candidate-content-clauses-08-time-management-page-190-l103-25", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-193-l58-12", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.2", "hla-1516.1-2025:clause-8.3.1", "hla-1516.1-2025:clause-8.4", "hla-1516.1-2025:clause-8.5.5", "hla-1516.1-2025:clause-8.7.5", "hla-1516.1-2025:clause-8.8.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "standard_section": "hla-1516.1-2025:clause-8.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44", "standard_section": "hla-1516.1-2025:clause-8.3.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l103-25", "standard_section": "hla-1516.1-2025:clause-8.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "standard_section": "hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l58-12", "standard_section": "hla-1516.1-2025:clause-8.7.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3", "standard_section": "hla-1516.1-2025:clause-8.8.3"}
+      ],
+      "mapping_note": "Bounded HLA_EVOKED public-API translation of the native-green time-role callback-gating case. TAR and repeated enables report their official pending-request exception types before the corresponding enable callback; one callback then permits Query Lookahead or Disable. Direct mappings cover role enable/callback and disable services plus TAR; exact exception classes are official API-contract details, not additional Lab requirements. Installed-package CTest passed primary and contract (2/2); a focused float64 primary run also passed. No immediate-model pending phase, cross-provider, or conformance claim.",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "The pending phase is observed only before evoking HLA_EVOKED callbacks; HLA_IMMEDIATE is outside this case.",
+      "native_equivalent_runner_ids": ["umbra-cpp-time-role-enable-callback-gated-before-tso-support-integration"],
+      "contract_refs": ["standard-time-role-pending-enable-contract.json", "time-role-requirements-contract.json"],
+      "cpp_test": "src/tck_time_role_pending_enable.cpp#scenarioTimeRolePendingEnable",
+      "runner_id": "cpp-tck.time-role-pending-enable",
+      "parity": "java-tck.time-role-pending-enable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.time-role-pending-enable-contract",
+      "category": "time-management",
+      "title": "Public-API contract twin for pending evoked time-role enable requests",
+      "api_methods": ["RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained", "RTIambassador.timeAdvanceRequest", "RTIambassador.queryLookahead", "FederateAmbassador.timeRegulationEnabled", "FederateAmbassador.timeConstrainedEnabled"],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.2", "hla-1516.1-2025:clause-8.5.5", "hla-1516.1-2025:clause-8.8.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "standard_section": "hla-1516.1-2025:clause-8.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "standard_section": "hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3", "standard_section": "hla-1516.1-2025:clause-8.8.3"}
+      ],
+      "mapping_note": "The contract twin executes the same pending-enable and TAR API observations as the primary HLA_EVOKED case, without a broader conformance claim.",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "The pending phase is observed only before evoking HLA_EVOKED callbacks.",
+      "native_equivalent_runner_ids": ["umbra-cpp-time-role-enable-callback-gated-before-tso-support-integration"],
+      "contract_refs": ["standard-time-role-pending-enable-contract.json"],
+      "cpp_test": "src/tck_time_role_pending_enable.cpp#scenarioTimeRolePendingEnableContract",
+      "runner_id": "cpp-tck.time-role-pending-enable-contract",
+      "parity": "cpp-tck.time-role-pending-enable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.time-constrained-enable-retains-queued-tso",
       "category": "time-management",
       "title": "Preserve queued timestamp-order delivery across pending Time Constrained enablement",

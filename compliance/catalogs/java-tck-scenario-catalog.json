@@ -14224,6 +14224,28 @@
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, interaction/parameter names, logical-time implementation, endpoint, and callback configuration for runtime evidence."
     },
     {
+      "id": "java-tck.time-role-pending-enable",
+      "category": "time-management",
+      "title": "Keep evoked time-role enable requests pending until their callbacks",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getTimeFactory", "RTIambassador.queryLogicalTime", "RTIambassador.enableTimeRegulation", "RTIambassador.timeAdvanceRequest", "RTIambassador.queryLookahead", "RTIambassador.disableTimeRegulation", "RTIambassador.enableTimeConstrained", "RTIambassador.disableTimeConstrained", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.timeRegulationEnabled", "FederateAmbassador.timeConstrainedEnabled"],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.2", "hla-1516.1-2025:clause-8.5.5", "hla-1516.1-2025:clause-8.8.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "standard_section": "hla-1516.1-2025:clause-8.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "standard_section": "hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3", "standard_section": "hla-1516.1-2025:clause-8.8.3"}
+      ],
+      "mapping_note": "Official 2025 API-only parity for the bounded HLA_EVOKED pending Time Regulation and Time Constrained transitions. Focused installed-provider Java runs passed with integer64 and float64 time (out/java-tck/time-role-pending-enable-integer64-jni-20261022.json and out/java-tck/time-role-pending-enable-float64-jni-20261022.json). Exact pending exception classes are API-contract details; no immediate-model pending phase, independent-provider interoperability, or conformance is claimed.",
+      "callback_models": ["evoked"],
+      "contract_refs": ["standard-time-role-pending-enable-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timeRolePendingEnable",
+      "parity": "cpp-tck.time-role-pending-enable",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Default-disabled for unconfigured adapters; requires a 2025 Java provider, FOM, endpoint, logical-time implementation, and HLA_EVOKED callbacks. Use --run-unverified for focused execution."
+    },
+    {
       "id": "java-tck.time-constrained-enable-retains-queued-tso",
       "category": "time-management",
       "title": "Retain a queued timestamped interaction across pending Time Constrained enablement",

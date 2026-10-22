@@ -3102,6 +3102,15 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
                "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
             }, false), RtiTckMain::timeRegulationEnableActualLookaheadTsoSend);
+      run(new Scenario("java-tck.time-role-pending-enable",
+            "keep time-role enable requests pending until their evoked callbacks",
+            "time-management",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.queryLookahead;RTIambassador.disableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeConstrained;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+               "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+               "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"
+            }, false), RtiTckMain::timeRolePendingEnable);
       run(new Scenario("java-tck.time-constrained-enable-retains-queued-tso",
             "retain a queued timestamped interaction across pending Time Constrained enablement",
             "time-management",
@@ -9281,6 +9290,11 @@ public final class RtiTckMain {
          interactionClassName(), parameterName(), callbackModel());
    }
 
+   private static void timeRolePendingEnable() throws Exception {
+      TimeRolePendingEnableTck.run(
+         factory(), requireFom(), timeImplementation(), callbackModel());
+   }
+
    private static void timeConstrainedEnableRetainsQueuedTso() throws Exception {
       TimeConstrainedQueuedTsoTck.run(factory(), requireFom(), timeImplementation(),
          interactionClassName(), parameterName(), callbackModel());
@@ -12230,6 +12244,8 @@ public final class RtiTckMain {
             method = "timeConstrainedEnableRegulatingFederateCurrentTime"; break;
          case "java-tck.time-regulation-enable-actual-lookahead-tso-send":
             method = "timeRegulationEnableActualLookaheadTsoSend"; break;
+         case "java-tck.time-role-pending-enable":
+            method = "timeRolePendingEnable"; break;
          case "java-tck.time-constrained-enable-retains-queued-tso":
             method = "timeConstrainedEnableRetainsQueuedTso"; break;
          case "java-tck.time-constrained-enable-retains-queued-tso-attribute":

@@ -219,6 +219,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_tar_acknowledged_tso_galt_release.cpp
   src/tck_time_constrained_enable_scenarios.cpp
   src/tck_time_regulation_enable_actual_lookahead.cpp
+  src/tck_time_role_pending_enable.cpp
   src/tck_nmra_received_tso_floor.cpp
   src/tck_nmra_message_set.cpp
   src/tck_fqr_non_time_constrained.cpp
