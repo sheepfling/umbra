@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <dataTypes>
+    <enumeratedDataTypes><enumeratedData>
+      <name>TckKnownRangeChoices</name><representation>HLAinteger32BE</representation>
+      <enumerator><name>TckKnownRangeStart</name><value>1</value></enumerator>
+    </enumeratedData></enumeratedDataTypes>
+    <variantRecordDataTypes><variantRecordData>
+      <name>TckUnknownEndpointRecord</name><discriminant>Kind</discriminant>
+      <dataType>TckKnownRangeChoices</dataType>
+      <alternative><enumerator>[TckKnownRangeStart .. TckMissingRangeEnd]</enumerator>
+        <name>Value</name><dataType>HLAboolean</dataType></alternative>
+      <encoding>HLAvariantRecord</encoding>
+    </variantRecordData></variantRecordDataTypes>
+  </dataTypes>
+</objectModel>

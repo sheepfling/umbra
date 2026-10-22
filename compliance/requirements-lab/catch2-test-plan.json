@@ -14038,7 +14038,7 @@
         "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5"
       ],
       "test_case": "The FOM composition preflight requires declared members for variant-record discriminants",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1447",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1294",
       "tags": [
         "unit",
         "fom",
@@ -14046,7 +14046,7 @@
         "variant-discriminant-enumerator-membership"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice rejects an unknown direct discriminant enumerator and an unknown range endpoint, permits a later module to supply the selected enumeration, and preserves incomplete DIF when the selected enumeration supplies no members. The paired range-semantics slice then expands declared ranges in table order, detects direct/range overlap across named alternatives, and models HLAother as the explicit-set complement. Complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open. RL-049 records the Requirements Lab export's broad clause-4 provenance for the precise source candidate."
+      "next_action": "This private composition slice rejects an unknown direct discriminant enumerator and an unknown range endpoint, permits a later module to supply the selected enumeration, and preserves incomplete DIF when the selected enumeration supplies no members. Its public standard-API witness is cpp-tck.fom-variant-enumerator-membership with Java scenario-ID parity; installed-package C++ focused CTest and direct runner passed 4/4 each across both callback models. Range-order expansion, overlapping named alternatives, HLAother complement, Java provider runtime, and conformance remain separate. RL-049 records broad clause-4 Lab provenance."
     },
     {
       "id": "umbra-cpp-fom-variant-discriminant-enumerator-range-semantics-composition-integration",

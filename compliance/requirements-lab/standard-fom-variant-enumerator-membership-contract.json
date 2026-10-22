@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Five adapter-owned schema-valid FOMs exercise variant discriminant-enumerator membership at public Create Federation Execution. Unknown individual members and range endpoints are rejected as InconsistentFOM; an incomplete enumeration and a member declared by a later supplied module are accepted. The pinned Requirements Lab candidate has only broad clause-4 provenance (RL-049), so no narrower subsection is invented. This does not claim range ordering, overlap, Java provider runtime, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-variant-enumerator-membership",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_variant_enumerator_membership.cpp::scenarioFomVariantEnumeratorMembershipContract"]
+    }
+  ]
+}
