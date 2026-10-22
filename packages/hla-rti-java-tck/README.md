@@ -1056,6 +1056,11 @@ object-removal case is default-run after installed-package passes in both
 callback models on 2026-10-22. It directly witnesses only §§8.1.4 and 8.15.3;
 FOM, endpoint, callback model, and logical-time implementation remain adapter
 inputs, and no cross-provider conformance is claimed.
+The attribute-update order-classification case is also default-run after
+installed-package passes under both callback models on 2026-10-22. It checks
+one receive-order reflection while time constrained with asynchronous delivery
+enabled and a separate timestamp-order reflection with its retraction handle;
+this is only a selected §§8.1.4/8.15.3 branch, not the full order matrix.
 Timestamped reflection checks that the constrained receiver gets no reflection
 and does not advance logical time before requesting an advance, then checks the
 callback's exact logical time and order metadata, reflection-before-grant

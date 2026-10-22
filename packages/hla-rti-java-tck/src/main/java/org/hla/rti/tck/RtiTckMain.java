@@ -2740,7 +2740,7 @@ public final class RtiTckMain {
                 "cpp-1516.1-attribute-update-reflect",
                 "cpp-1516.1-timestamped-attribute-update",
                 "cpp-1516.1-timestamped-attribute-reflect"
-             }, false), RtiTckMain::attributeUpdateOrderClassification);
+             }, true), RtiTckMain::attributeUpdateOrderClassification);
        run(new Scenario("java-tck.custom-transportation-interaction-delivery",
              "deliver an ordinary interaction with the adapter-declared custom FOM transportation type",
              "transportation-delivery",

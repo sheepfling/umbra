@@ -10917,7 +10917,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31", "standard_section": "hla-1516.1-2025:clause-8.15.3"}
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.4", "hla-1516.1-2025:clause-8.15.3"],
-      "mapping_note": "Parity mapping to the verified C++ case: while the publisher is regulating and the receiver is time constrained, a no-timestamp Update Attribute Values call produces only the receive-order reflection callback. The receiver enables asynchronous delivery so the RO callback can be observed while idle; this also directly exercises page-204-l113-31 -> §8.15.3. A separate timestamped update checks the timestamped callback with its retraction designator. These are limited branch witnesses, not the full order matrix. Java provider runtime remains unverified.",
+      "mapping_note": "Parity mapping to the verified C++ case: while the publisher is regulating and the receiver is time constrained, a no-timestamp Update Attribute Values call produces only the receive-order reflection callback. The receiver enables asynchronous delivery so the RO callback can be observed while idle; this also directly exercises page-204-l113-31 -> §8.15.3. A separate timestamped update checks the timestamped callback with its retraction designator. These are limited branch witnesses, not the full order matrix. Installed Java adapter runtime passed both callback models on 2026-10-22; no independent-provider conformance is claimed.",
       "contract_refs": [
         "attribute-update-order-classification-api-contract.json",
         "attribute-update-order-classification-requirements-contract.json",
@@ -10926,8 +10926,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeUpdateOrderClassification",
       "parity": "cpp-tck.attribute-update-order-classification",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object/attribute FOM, logical-time implementation, and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/attribute-update-order-classification-{evoked,immediate}-default-20261022.json. The promoted C++ peer passed both modes in out/mgw/tck-dse-ro-regional-20261016/attribute-update-order-classification-async-ro-verified-20261017.json. FOM, endpoint, time implementation, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.custom-transportation-interaction-delivery",
