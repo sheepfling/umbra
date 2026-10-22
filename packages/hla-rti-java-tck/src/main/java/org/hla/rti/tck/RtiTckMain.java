@@ -1408,7 +1408,7 @@ public final class RtiTckMain {
             "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
             new String[] {
                "java-1516.1-object-registration-discovery"
-            }, false), RtiTckMain::activeSubscriptionObjectDiscovery);
+            }, true), RtiTckMain::activeSubscriptionObjectDiscovery);
       run(new Scenario("java-tck.ordinary-multi-attribute-value-update-request-response",
             "request full and selective multi-attribute values and verify standard responses",
             "object-management",

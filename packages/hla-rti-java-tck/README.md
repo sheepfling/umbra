@@ -690,6 +690,14 @@ either reflection. The adapter supplies the provider, FOM, names, and callback
 model; both callback modes passed the focused JNI gate. This is direct §5.8
 parity evidence, not an independent-provider conformance claim.
 
+The default-run `java-tck.active-subscription-object-discovery` scenario checks
+discovery of one object registered before subscription and one registered
+afterward, each exactly once. It observes no discovery before subscription and
+checks each discovered object's identity within the subscriber. The adapter
+supplies the provider, FOM, class/attribute names, and callback model. Both
+callback modes passed the focused JNI gate; only the recorded §5.8 assertions
+are direct standard mappings.
+
 The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
 against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable
 notification follows the GALT equality boundary and that a later advance is

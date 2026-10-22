@@ -80,21 +80,20 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          subscriberAttributes.add(subscriberSecondAttribute);
          JavaTckSupport.check(subscriberAttributes.size() == 2,
             "adapter FOM must provide two distinct attributes for this scenario");
-         JavaTckSupport.drain(subscriber);
-         JavaTckSupport.check(subscriberRecorder.discoveries.isEmpty(),
-            "unsubscribed member received discovery for an existing object");
+         observeNoDiscovery(subscriber, subscriberRecorder);
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          subscribed = true;
          awaitDiscoveryCount(subscriber, subscriberRecorder, 1);
          JavaTckSupport.drain(subscriber);
-         Discovery existingDiscovery = findDiscovery(subscriberRecorder.discoveries, existingObject);
+         Discovery existingDiscovery = findDiscovery(subscriberRecorder.discoveries, existingName);
+         ObjectInstanceHandle existingLocal = subscriber.getObjectInstanceHandle(existingName);
          JavaTckSupport.check(subscriberRecorder.discoveries.size() == 1
                && existingDiscovery != null
                && subscriberClass.equals(existingDiscovery.objectClass)
-               && existingName.equals(existingDiscovery.name)
-               && existingObject.equals(subscriber.getObjectInstanceHandle(existingName))
-               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(existingObject)),
+               && existingLocal.equals(existingDiscovery.object)
+               && existingName.equals(subscriber.getObjectInstanceName(existingLocal))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(existingLocal)),
             "active subscription did not produce exactly one matching discovery for the existing object");
 
          ObjectInstanceHandle laterObject = publisher.registerObjectInstance(publisherClass);
@@ -106,13 +105,15 @@ final class ActiveSubscriptionObjectDiscoveryTck {
             "post-subscription registration did not return a distinct object identity");
          awaitDiscoveryCount(subscriber, subscriberRecorder, 2);
          JavaTckSupport.drain(subscriber);
-         Discovery laterDiscovery = findDiscovery(subscriberRecorder.discoveries, laterObject);
+         Discovery laterDiscovery = findDiscovery(subscriberRecorder.discoveries, laterName);
+         ObjectInstanceHandle laterLocal = subscriber.getObjectInstanceHandle(laterName);
          JavaTckSupport.check(subscriberRecorder.discoveries.size() == 2
                && laterDiscovery != null
                && subscriberClass.equals(laterDiscovery.objectClass)
-               && laterName.equals(laterDiscovery.name)
-               && laterObject.equals(subscriber.getObjectInstanceHandle(laterName))
-               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(laterObject)),
+               && laterLocal.equals(laterDiscovery.object)
+               && !laterLocal.equals(existingLocal)
+               && laterName.equals(subscriber.getObjectInstanceName(laterLocal))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(laterLocal)),
             "active subscription did not discover the later object exactly once with matching identity");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
@@ -160,18 +161,36 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          "discovery count did not reach " + expectedCount + " before the bounded deadline");
    }
 
+   private static void observeNoDiscovery(RTIambassador subscriber, Recorder recorder)
+         throws Exception {
+      long deadline = System.nanoTime() + 250_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(subscriber);
+         JavaTckSupport.check(recorder.discoveries.isEmpty(),
+            "unsubscribed member received discovery for an existing object");
+         Thread.yield();
+      }
+   }
+
    private static Discovery findDiscovery(List<Discovery> discoveries,
-         ObjectInstanceHandle object) {
+         String objectName) {
       for (Discovery discovery : discoveries) {
-         if (object.equals(discovery.object)) return discovery;
+         if (objectName.equals(discovery.name)) return discovery;
       }
       return null;
    }
 
    private static final class Discovery {
-      private ObjectInstanceHandle object;
-      private ObjectClassHandle objectClass;
-      private String name;
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
+            String name) {
+         this.object = object;
+         this.objectClass = objectClass;
+         this.name = name;
+      }
    }
 
    private static final class Recorder {
@@ -185,11 +204,8 @@ final class ActiveSubscriptionObjectDiscoveryTck {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)
                      && arguments != null && arguments.length >= 3) {
-                  Discovery discovery = new Discovery();
-                  discovery.object = (ObjectInstanceHandle) arguments[0];
-                  discovery.objectClass = (ObjectClassHandle) arguments[1];
-                  discovery.name = (String) arguments[2];
-                  discoveries.add(discovery);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1], (String) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK active subscription discoveries";
