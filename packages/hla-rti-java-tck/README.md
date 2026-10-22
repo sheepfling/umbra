@@ -1265,6 +1265,15 @@ delivery occurs during bounded callback servicing. It uses receiver-local
 handles and passed focused installed JNI runs in both callback models;
 independent-provider conformance remains unverified.
 
+The default `java-tck.directed-interaction-subscription-accumulation` case
+uses two sequential universal subscriptions for sibling directed classes on
+the same object class. Both untimed sends must arrive through the receive-order
+directed callback with their own parameters and tags; a timed overload is a
+failure. The adapter can override both class and parameter names and supplies
+the compatible FOM. Focused installed JNI runs passed in both callback models;
+the separate timestamped witness and independent-provider conformance are not
+established by this case alone.
+
 The `java-tck.receive-order-interaction` scenario sends two tagged interactions
 in succession and verifies callback FIFO order, exact parameter values, standard
 handle/name round-trips, producer and reliable-transport metadata, no region

@@ -2448,9 +2448,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.directed-interaction-subscription-accumulation",
             "accumulate directed-interaction class selections across sequential subscriptions",
             "interaction-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassHandleSetFactory;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions(set);RTIambassador.registerObjectInstance;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassDirectedInteractions(set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassDirectedInteractions(set);RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
-            new String[] {"requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39"},
-            false), RtiTckMain::directedInteractionSubscriptionAccumulation);
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getInteractionClassHandleSetFactory;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally(set);RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassDirectedInteractions(set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassDirectedInteractions(set);RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(receive-order overload)",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l107-31",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l113-33"
+            }, true), RtiTckMain::directedInteractionSubscriptionAccumulation);
       run(new Scenario("java-tck.directed-interaction-received-class-projection",
             "reject unavailable directed parameters, exclude the sender, and project a valid derived send",
             "interaction-management",
@@ -14343,7 +14346,12 @@ public final class RtiTckMain {
    private static void directedInteractionSubscriptionAccumulation() throws Exception {
       DirectedInteractionSubscriptionAccumulationTck.run(factory(), requireFom(),
          timeImplementation(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
-         typedInteractionClassName(), callbackModel());
+         typedInteractionClassName(),
+         System.getProperty("hla.rti.tck.typedSiblingInteractionClass",
+            "HLAinteractionRoot.TckTypedAccumulationSiblingInteraction"),
+         typedIntegerParameterName(),
+         System.getProperty("hla.rti.tck.typedSiblingParameter", "SiblingParameter"),
+         callbackModel());
    }
 
    private static void directedInteractionReceivedClassProjection() throws Exception {

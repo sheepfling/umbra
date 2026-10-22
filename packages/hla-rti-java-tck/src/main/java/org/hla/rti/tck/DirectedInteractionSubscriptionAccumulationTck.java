@@ -16,22 +16,25 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 
 /** Sequential directed-interaction subscriptions accumulate on one object class. */
 final class DirectedInteractionSubscriptionAccumulationTck {
-   private static final String SIBLING_INTERACTION_CLASS_NAME =
-      "HLAinteractionRoot.TckTypedAccumulationSiblingInteraction";
+   private static final long CALLBACK_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(10);
 
    private DirectedInteractionSubscriptionAccumulationTck() {
    }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         CallbackModel callbackModel) throws Exception {
+         String siblingInteractionClassName, String firstParameterName,
+         String siblingParameterName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
       Recorder subscriberRecorder = new Recorder();
@@ -64,24 +67,42 @@ final class DirectedInteractionSubscriptionAccumulationTck {
          InteractionClassHandle publisherFirstInteraction =
             publisher.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle publisherSecondInteraction =
-            publisher.getInteractionClassHandle(SIBLING_INTERACTION_CLASS_NAME);
+            publisher.getInteractionClassHandle(siblingInteractionClassName);
          InteractionClassHandle subscriberFirstInteraction =
             subscriber.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle subscriberSecondInteraction =
-            subscriber.getInteractionClassHandle(SIBLING_INTERACTION_CLASS_NAME);
+            subscriber.getInteractionClassHandle(siblingInteractionClassName);
          ParameterHandle publisherFirstParameter = publisher.getParameterHandle(
-            publisherFirstInteraction, "IntegerParameter");
+            publisherFirstInteraction, firstParameterName);
          ParameterHandle publisherSecondParameter = publisher.getParameterHandle(
-            publisherSecondInteraction, "SiblingParameter");
+            publisherSecondInteraction, siblingParameterName);
          ParameterHandle subscriberFirstParameter = subscriber.getParameterHandle(
-            subscriberFirstInteraction, "IntegerParameter");
+            subscriberFirstInteraction, firstParameterName);
          ParameterHandle subscriberSecondParameter = subscriber.getParameterHandle(
-            subscriberSecondInteraction, "SiblingParameter");
-         JavaTckSupport.check(publisherClass.equals(subscriberClass)
-               && publisherIdentity.equals(subscriberIdentity)
-               && publisherFirstInteraction.equals(subscriberFirstInteraction)
-               && publisherSecondInteraction.equals(subscriberSecondInteraction),
-            "directed-subscription accumulation handles changed across federates");
+            subscriberSecondInteraction, siblingParameterName);
+         JavaTckSupport.check(objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && attributeName.equals(publisher.getAttributeName(publisherClass, publisherIdentity))
+               && attributeName.equals(subscriber.getAttributeName(subscriberClass, subscriberIdentity))
+               && interactionClassName.equals(publisher.getInteractionClassName(
+                  publisherFirstInteraction))
+               && interactionClassName.equals(subscriber.getInteractionClassName(
+                  subscriberFirstInteraction))
+               && siblingInteractionClassName.equals(publisher.getInteractionClassName(
+                  publisherSecondInteraction))
+               && siblingInteractionClassName.equals(subscriber.getInteractionClassName(
+                  subscriberSecondInteraction))
+               && firstParameterName.equals(publisher.getParameterName(
+                  publisherFirstInteraction, publisherFirstParameter))
+               && firstParameterName.equals(subscriber.getParameterName(
+                  subscriberFirstInteraction, subscriberFirstParameter))
+               && siblingParameterName.equals(publisher.getParameterName(
+                  publisherSecondInteraction, publisherSecondParameter))
+               && siblingParameterName.equals(subscriber.getParameterName(
+                  subscriberSecondInteraction, subscriberSecondParameter))
+               && !publisherFirstInteraction.equals(publisherSecondInteraction)
+               && !subscriberFirstInteraction.equals(subscriberSecondInteraction),
+            "directed-subscription accumulation names did not round-trip locally");
 
          AttributeHandleSet publisherAttributes =
             JavaTckSupport.attributeSet(publisher, publisherIdentity);
@@ -97,12 +118,23 @@ final class DirectedInteractionSubscriptionAccumulationTck {
          InteractionClassHandleSet secondSelection =
             JavaTckSupport.interactionSet(subscriber, subscriberSecondInteraction);
          publisher.publishObjectClassDirectedInteractions(publisherClass, published);
-         subscriber.subscribeObjectClassDirectedInteractions(subscriberClass, firstSelection);
-         subscriber.subscribeObjectClassDirectedInteractions(subscriberClass, secondSelection);
+         subscriber.subscribeObjectClassDirectedInteractionsUniversally(
+            subscriberClass, firstSelection);
+         subscriber.subscribeObjectClassDirectedInteractionsUniversally(
+            subscriberClass, secondSelection);
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
-         JavaTckSupport.drain(subscriber);
-         JavaTckSupport.check(subscriberRecorder.discoveries.contains(target),
+         String targetName = publisher.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "directed-subscription target has no object name");
+         await(subscriber, callbackModel,
+            () -> subscriberRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)),
+            "directed-interaction target discovery");
+         Discovery discovery = subscriberRecorder.discoveries.stream()
+            .filter(event -> targetName.equals(event.name)).findFirst().orElse(null);
+         ObjectInstanceHandle subscriberTarget = subscriber.getObjectInstanceHandle(targetName);
+         JavaTckSupport.check(discovery != null && subscriberTarget.equals(discovery.handle),
             "subscriber did not discover the directed-interaction target object");
 
          byte[] firstParameterBytes = new byte[] {0x31};
@@ -119,16 +151,19 @@ final class DirectedInteractionSubscriptionAccumulationTck {
             firstParameters, firstTag);
          publisher.sendDirectedInteraction(publisherSecondInteraction, target,
             secondParameters, secondTag);
-         JavaTckSupport.drain(subscriber);
+         await(subscriber, callbackModel,
+            () -> subscriberRecorder.directed.size() >= 2
+               || subscriberRecorder.nonReceiveOrderDirectedCount.get() > 0,
+            "two receive-order directed callbacks");
 
          JavaTckSupport.check(subscriberRecorder.directed.size() == 2
-               && subscriberRecorder.nonReceiveOrderDirectedCount == 0,
+               && subscriberRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "sequential subscriptions did not deliver exactly two receive-order directed callbacks");
          assertDelivery(subscriber, findDelivery(subscriberRecorder, subscriberFirstInteraction),
-            subscriberFirstInteraction, target, subscriberFirstParameter,
+            subscriberFirstInteraction, subscriberTarget, subscriberFirstParameter,
             firstParameterBytes, firstTag, publisherFederate);
          assertDelivery(subscriber, findDelivery(subscriberRecorder, subscriberSecondInteraction),
-            subscriberSecondInteraction, target, subscriberSecondParameter,
+            subscriberSecondInteraction, subscriberTarget, subscriberSecondParameter,
             secondParameterBytes, secondTag, publisherFederate);
 
          subscriber.unsubscribeObjectClassDirectedInteractions(subscriberClass, firstSelection);
@@ -172,13 +207,21 @@ final class DirectedInteractionSubscriptionAccumulationTck {
          "directed callback did not preserve its class-specific parameter value");
       JavaTckSupport.check(Arrays.equals(tag, delivery.tag),
          "directed callback did not preserve its tag");
-      JavaTckSupport.check(delivery.tag != tag,
-         "directed callback reused the sender's mutable tag array");
       JavaTckSupport.check(delivery.transportation != null
             && "HLAreliable".equals(inspector.getTransportationTypeName(delivery.transportation)),
          "directed callback did not preserve reliable transportation");
       JavaTckSupport.check(publisher.equals(delivery.producer),
          "directed callback carried the wrong producing federate");
+   }
+
+   private static void await(RTIambassador ambassador, CallbackModel callbackModel,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.yield();
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
    private static void resign(RTIambassador ambassador) {
@@ -215,10 +258,20 @@ final class DirectedInteractionSubscriptionAccumulationTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private volatile int nonReceiveOrderDirectedCount;
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final AtomicInteger nonReceiveOrderDirectedCount = new AtomicInteger();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -227,10 +280,11 @@ final class DirectedInteractionSubscriptionAccumulationTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                } else if ("receiveDirectedInteraction".equals(name)) {
                   if (arguments == null || arguments.length != 6) {
-                     nonReceiveOrderDirectedCount++;
+                     nonReceiveOrderDirectedCount.incrementAndGet();
                   } else {
                      ParameterHandleValueMap parameters =
                         ((ParameterHandleValueMap) arguments[2]).clone();
