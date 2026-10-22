@@ -1647,6 +1647,14 @@ time/order/transport/retraction metadata, and the
 `MessageCanNoLongerBeRetracted` boundary for the delivered handle. It remains
 unsupported by default pending Java-provider execution.
 
+The default `java-tck.directed-retraction-mixed-fanout` scenario checks the
+standard §8.23.3 mixed-recipient boundary: a nonconstrained recipient receives
+one timestamped directed copy and a matching Request Retraction, while a
+constrained recipient's queued copy is suppressed through its grant. It passed
+focused installed JNI runs in both callback models. Provider, typed FOM,
+logical-time implementation, endpoint, names, and callback model remain adapter
+inputs; independent-provider conformance is unverified.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

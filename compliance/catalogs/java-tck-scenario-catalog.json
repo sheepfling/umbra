@@ -19000,11 +19000,15 @@
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
-        "RTIambassador.getObjectClassHandle", "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getObjectClassHandle", "RTIambassador.getObjectClassName",
+        "RTIambassador.getInteractionClassHandle", "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle", "RTIambassador.getParameterName",
         "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions",
-        "RTIambassador.registerObjectInstance", "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
+        "RTIambassador.registerObjectInstance", "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle", "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle", "RTIambassador.changeInteractionOrderType",
         "RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained",
         "RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract",
         "RTIambassador.timeAdvanceRequest", "FederateAmbassador.discoverObjectInstance",
@@ -19029,12 +19033,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
       ],
-      "mapping_note": "The Java peer checks a TIMESTAMP/RECEIVE directed callback and matching Request Retraction at the delivered nonconstrained recipient, while the queued constrained recipient gets neither callback through its Time Advance Grant. It uses adapter-supplied FOM, time implementation, endpoint, callback model, and provider JAR; Java provider runtime is not yet verified.",
+      "mapping_note": "The Java peer checks a TIMESTAMP/RECEIVE directed callback and matching Request Retraction at the delivered nonconstrained recipient, while the queued constrained recipient gets neither callback through its Time Advance Grant. It uses only the official 1516.1-2025 API with adapter-supplied provider, typed FOM, time implementation, endpoint, names, and callback model. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": ["request-retraction-api-contract.json", "standard-directed-retraction-mixed-fanout-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedRetractionMixedFanout",
       "parity": "cpp-tck.directed-retraction-mixed-fanout",
-      "default_status": "unsupported",
-      "exclusion": "Java provider runtime evidence is not available; official IEEE 1516.1-2025 API compilation and parity only. Provider JAR, FOM, endpoint, callback model, and logical-time implementation must come from the adapter."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider JAR, compatible typed FOM, endpoint, class/member names, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-retraction-immediate-only",

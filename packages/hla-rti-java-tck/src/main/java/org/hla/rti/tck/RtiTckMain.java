@@ -3718,12 +3718,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.directed-retraction-mixed-fanout",
             "notify a delivered directed recipient while suppressing a queued constrained copy",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.changeInteractionOrderType;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendDirectedInteraction(time);RTIambassador.retract;RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(time);FederateAmbassador.requestRetraction;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandle;RTIambassador.changeInteractionOrderType;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendDirectedInteraction(time);RTIambassador.retract;RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(time);FederateAmbassador.requestRetraction;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
                "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
                "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
-            }, false), RtiTckMain::directedRetractionMixedFanout);
+            }, true), RtiTckMain::directedRetractionMixedFanout);
       run(new Scenario("java-tck.directed-retraction-immediate-only",
             "retain a delivered directed retraction designator with no constrained recipient",
             "time",
@@ -10084,9 +10084,8 @@ public final class RtiTckMain {
 
      private static void directedRetractionMixedFanout() throws Exception {
         TimestampedDirectedInteractionRetractionFanoutTck.runMixed(factory(), requireFom(),
-           timeImplementation(), timestampedDirectedObjectClassName(),
-           timestampedDirectedAttributeName(), timestampedDirectedInteractionClassName(),
-           timestampedDirectedParameterName(), callbackModel());
+           timeImplementation(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
+           typedInteractionClassName(), typedIntegerParameterName(), callbackModel());
      }
 
      private static void directedRetractionImmediateOnly() throws Exception {
