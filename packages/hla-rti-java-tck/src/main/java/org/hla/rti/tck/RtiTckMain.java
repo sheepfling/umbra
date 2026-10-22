@@ -1178,7 +1178,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-attribute-value-update-request"
-            }, false), RtiTckMain::attributeValueUpdateRequestBaseline);
+            }, true), RtiTckMain::attributeValueUpdateRequestBaseline);
       run(new Scenario("java-tck.object-class-attribute-value-update-request-baseline",
             "expand a base-class attribute-value request over derived instances",
             "object-management",

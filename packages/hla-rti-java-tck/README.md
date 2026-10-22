@@ -627,14 +627,15 @@ ordinary object-attribute publication/subscription calls while joined and after
 resignation. The calls succeed while joined and report `FederateNotExecutionMember`
 after resignation. It remains unsupported by default until run against a Java provider.
 
-The opt-in `java-tck.attribute-value-update-request-baseline` scenario uses an
+The default-run `java-tck.attribute-value-update-request-baseline` scenario uses an
 adapter-supplied multi-attribute FOM plus the `hla.rti.tck.multiAttributeObjectClass`,
 `hla.rti.tck.multiAttributeFirst`, and `hla.rti.tck.multiAttributeSecond` properties
 when its names differ from the TCK defaults. It checks discovery, instance-scoped
 requests, the provider callback's object/attribute set/tag, and suppression when
 the requester owns or no federate owns the requested instance attributes. Provider,
-endpoint, callback model, and FOM remain adapter-configured. It remains unsupported
-by default until run against a Java provider.
+endpoint, callback model, and FOM remain adapter-configured. It passed the focused
+JNI gate in both `HLA_EVOKED` and `HLA_IMMEDIATE`; this does not establish
+independent-provider conformance.
 
 The opt-in `java-tck.object-class-attribute-value-update-request-baseline` scenario
 uses the adapter's typed base/derived FOM and the
