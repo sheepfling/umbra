@@ -1251,13 +1251,17 @@ logical-time implementation, provider, endpoint, and callback model. Focused
 installed JNI runs passed in both modes; independent-provider conformance
 remains unverified.
 
-The `java-tck.directed-interaction-mixed-subscription-fanout` scenario
+The default `java-tck.directed-interaction-mixed-subscription-fanout` scenario
 contrasts a by-ownership subscriber, two universal subscribers, and an
 unsubscribed member across two targets. It verifies exact target, parameter,
 tag, producer, and resolvable transport metadata, producer order, and that
 only the universal subscribers receive an interaction addressed to another
-member's object. Provider, FOM, names, and callback model are adapter-supplied;
-the case remains unsupported by default pending Java-provider execution.
+member's object. Provider, FOM, logical-time implementation, names, endpoint,
+and callback model are adapter-supplied. It uses receiver-local object and
+member handles and passed focused installed JNI runs in both callback modes.
+The by-ownership/universal partition, sender exclusion, and ordering are
+supplemental regression checks; independent-provider conformance remains
+unverified.
 
 The default `java-tck.directed-interaction-no-applicable-subscription` case
 first discovers a target by its standard object name, then sends an untimed

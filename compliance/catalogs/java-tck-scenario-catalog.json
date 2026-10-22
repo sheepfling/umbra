@@ -13572,9 +13572,17 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -13596,11 +13604,8 @@
         "FederateAmbassador.receiveDirectedInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-publication",
-        "java-1516.1-directed-interaction-subscription",
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-object-registration-discovery",
-        "java-1516.1-interaction-parameter-delivery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29"
       ],
       "contract_refs": [
         "directed-interaction-api-contract.json",
@@ -13617,8 +13622,9 @@
         "standard-directed-interaction-mixed-subscription-fanout-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionMixedSubscriptionFanout",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, endpoint, object/attribute/interaction/parameter names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider, FOM, logical-time implementation, endpoint, object/attribute/interaction/parameter names, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-interaction-subscription-kind",

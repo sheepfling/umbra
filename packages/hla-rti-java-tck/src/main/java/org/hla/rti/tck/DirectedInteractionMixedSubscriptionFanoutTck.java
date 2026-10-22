@@ -17,16 +17,19 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** P1 directed-interaction fan-out across by-ownership and universal subscriptions. */
 final class DirectedInteractionMixedSubscriptionFanoutTck {
    private DirectedInteractionMixedSubscriptionFanoutTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String attributeName, String interactionName, String parameterName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -67,7 +70,7 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
          connected[3] = true;
          silent.connect(silentRecorder.proxy(), callbackModel);
          connected[4] = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-directed-mixed-publisher", federation);
@@ -113,6 +116,29 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
             parameterName);
          ParameterHandle secondParameter = universalSecond.getParameterHandle(secondInteraction,
             parameterName);
+         JavaTckSupport.check(objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(universalFirst.getObjectClassName(firstClass))
+               && objectClassName.equals(universalSecond.getObjectClassName(secondClass))
+               && objectClassName.equals(silent.getObjectClassName(silentClass))
+               && attributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherAttribute))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(universalFirst.getAttributeName(firstClass, firstAttribute))
+               && attributeName.equals(universalSecond.getAttributeName(secondClass, secondAttribute))
+               && attributeName.equals(silent.getAttributeName(silentClass, silentAttribute))
+               && interactionName.equals(publisher.getInteractionClassName(publisherInteraction))
+               && interactionName.equals(owner.getInteractionClassName(ownerInteraction))
+               && interactionName.equals(universalFirst.getInteractionClassName(firstInteraction))
+               && interactionName.equals(universalSecond.getInteractionClassName(secondInteraction))
+               && parameterName.equals(publisher.getParameterName(
+                  publisherInteraction, publisherParameter))
+               && parameterName.equals(owner.getParameterName(ownerInteraction, ownerParameter))
+               && parameterName.equals(universalFirst.getParameterName(
+                  firstInteraction, firstParameter))
+               && parameterName.equals(universalSecond.getParameterName(
+                  secondInteraction, secondParameter)),
+            "adapter FOM class and member names did not round-trip locally");
 
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          publisherObjectPublished = true;
@@ -144,9 +170,37 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
 
          ObjectInstanceHandle ownerTarget = owner.registerObjectInstance(ownerClass);
          ObjectInstanceHandle publisherTarget = publisher.registerObjectInstance(publisherClass);
+         String ownerTargetName = owner.getObjectInstanceName(ownerTarget);
+         String publisherTargetName = publisher.getObjectInstanceName(publisherTarget);
+         JavaTckSupport.check(ownerTargetName != null && !ownerTargetName.isEmpty()
+               && publisherTargetName != null && !publisherTargetName.isEmpty(),
+            "registered directed targets have no standard object names");
          awaitDiscovery(publisher, universalFirst, universalSecond, silent,
             publisherRecorder, universalFirstRecorder, universalSecondRecorder, silentRecorder,
-            ownerTarget, publisherTarget);
+            ownerTargetName, publisherTargetName, callbackModel);
+         ObjectInstanceHandle firstOwnerTarget = universalFirst.getObjectInstanceHandle(
+            ownerTargetName);
+         ObjectInstanceHandle secondOwnerTarget = universalSecond.getObjectInstanceHandle(
+            ownerTargetName);
+         ObjectInstanceHandle firstPublisherTarget = universalFirst.getObjectInstanceHandle(
+            publisherTargetName);
+         ObjectInstanceHandle secondPublisherTarget = universalSecond.getObjectInstanceHandle(
+            publisherTargetName);
+         String producerName = publisher.getFederateName(producer);
+         FederateHandle ownerProducer = owner.getFederateHandle(producerName);
+         FederateHandle firstProducer = universalFirst.getFederateHandle(producerName);
+         FederateHandle secondProducer = universalSecond.getFederateHandle(producerName);
+         JavaTckSupport.check(publisherRecorder.hasDiscovery(ownerTargetName,
+               publisher.getObjectInstanceHandle(ownerTargetName))
+               && universalFirstRecorder.hasDiscovery(ownerTargetName, firstOwnerTarget)
+               && universalSecondRecorder.hasDiscovery(ownerTargetName, secondOwnerTarget)
+               && universalFirstRecorder.hasDiscovery(publisherTargetName, firstPublisherTarget)
+               && universalSecondRecorder.hasDiscovery(publisherTargetName, secondPublisherTarget)
+               && silentRecorder.hasDiscovery(ownerTargetName,
+                  silent.getObjectInstanceHandle(ownerTargetName))
+               && silentRecorder.hasDiscovery(publisherTargetName,
+                  silent.getObjectInstanceHandle(publisherTargetName)),
+            "directed targets were not discovered with receiver-local handles");
          publisherRecorder.directed.clear();
          ownerRecorder.directed.clear();
          universalFirstRecorder.directed.clear();
@@ -168,18 +222,21 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
                "evoked owner-target directed interactions arrived before callback servicing");
          }
          awaitCounts(owner, universalFirst, universalSecond, ownerRecorder,
-            universalFirstRecorder, universalSecondRecorder, 2);
+            universalFirstRecorder, universalSecondRecorder, 2, callbackModel);
+         pumpQuiet(owner, callbackModel);
+         pumpQuiet(universalFirst, callbackModel);
+         pumpQuiet(universalSecond, callbackModel);
          assertTwo(ownerRecorder.directed, ownerInteraction, ownerTarget, ownerParameter,
-            ownerFirstValue, ownerFirstTag, ownerSecondValue, ownerSecondTag, producer,
+            ownerFirstValue, ownerFirstTag, ownerSecondValue, ownerSecondTag, ownerProducer,
             owner, "by-ownership subscriber");
-         assertTwo(universalFirstRecorder.directed, firstInteraction, ownerTarget, firstParameter,
-            ownerFirstValue, ownerFirstTag, ownerSecondValue, ownerSecondTag, producer,
+         assertTwo(universalFirstRecorder.directed, firstInteraction, firstOwnerTarget, firstParameter,
+            ownerFirstValue, ownerFirstTag, ownerSecondValue, ownerSecondTag, firstProducer,
             universalFirst, "first universal subscriber");
-         assertTwo(universalSecondRecorder.directed, secondInteraction, ownerTarget,
+         assertTwo(universalSecondRecorder.directed, secondInteraction, secondOwnerTarget,
             secondParameter, ownerFirstValue, ownerFirstTag, ownerSecondValue, ownerSecondTag,
-            producer, universalSecond, "second universal subscriber");
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(silent);
+            secondProducer, universalSecond, "second universal subscriber");
+         pumpQuiet(publisher, callbackModel);
+         pumpQuiet(silent, callbackModel);
          JavaTckSupport.check(publisherRecorder.directed.isEmpty()
                && silentRecorder.directed.isEmpty(),
             "owner-target directed interactions reached the publisher or unsubscribed member");
@@ -194,21 +251,29 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
                "evoked publisher-target interaction arrived before callback servicing");
          }
          awaitCounts(universalFirst, universalSecond, universalFirstRecorder,
-            universalSecondRecorder, 3);
-         JavaTckSupport.drain(owner);
-         JavaTckSupport.drain(silent);
-         JavaTckSupport.drain(publisher);
+            universalSecondRecorder, 3, callbackModel);
+         pumpQuiet(owner, callbackModel);
+         pumpQuiet(silent, callbackModel);
+         pumpQuiet(publisher, callbackModel);
+         pumpQuiet(universalFirst, callbackModel);
+         pumpQuiet(universalSecond, callbackModel);
          JavaTckSupport.check(ownerRecorder.directed.size() == 2
                && silentRecorder.directed.isEmpty(),
             "publisher-target interaction escaped universal subscription selection");
-         assertRecord(universalFirstRecorder.directed.get(2), firstInteraction, publisherTarget,
-            firstParameter, publisherValue, publisherTag, producer, universalFirst,
+         assertRecord(universalFirstRecorder.directed.get(2), firstInteraction, firstPublisherTarget,
+            firstParameter, publisherValue, publisherTag, firstProducer, universalFirst,
             "first universal second-target callback");
-         assertRecord(universalSecondRecorder.directed.get(2), secondInteraction, publisherTarget,
-            secondParameter, publisherValue, publisherTag, producer, universalSecond,
+         assertRecord(universalSecondRecorder.directed.get(2), secondInteraction, secondPublisherTarget,
+            secondParameter, publisherValue, publisherTag, secondProducer, universalSecond,
             "second universal second-target callback");
          JavaTckSupport.check(publisherRecorder.directed.isEmpty(),
             "directed interaction was delivered back to its publisher");
+         JavaTckSupport.check(publisherRecorder.unexpectedDirectedCount.get() == 0
+               && ownerRecorder.unexpectedDirectedCount.get() == 0
+               && universalFirstRecorder.unexpectedDirectedCount.get() == 0
+               && universalSecondRecorder.unexpectedDirectedCount.get() == 0
+               && silentRecorder.unexpectedDirectedCount.get() == 0,
+            "ordinary directed send used an unexpected callback overload");
 
          owner.unsubscribeObjectClassDirectedInteractions(ownerClass, ownerDirected);
          ownerDirectedSubscribed = false;
@@ -299,43 +364,42 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
    private static void awaitDiscovery(RTIambassador publisher, RTIambassador first,
          RTIambassador second, RTIambassador silent, Recorder publisherRecorder,
          Recorder firstRecorder, Recorder secondRecorder, Recorder silentRecorder,
-         ObjectInstanceHandle ownerTarget, ObjectInstanceHandle publisherTarget) throws Exception {
+         String ownerTargetName, String publisherTargetName, CallbackModel callbackModel)
+         throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
-            && (!publisherRecorder.discoveries.contains(ownerTarget)
-               || !firstRecorder.discoveries.contains(ownerTarget)
-               || !secondRecorder.discoveries.contains(ownerTarget)
-               || !silentRecorder.discoveries.contains(ownerTarget)
-               || !firstRecorder.discoveries.contains(publisherTarget)
-               || !secondRecorder.discoveries.contains(publisherTarget)
-               || !silentRecorder.discoveries.contains(publisherTarget))) {
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(first);
-         JavaTckSupport.drain(second);
-         JavaTckSupport.drain(silent);
-         Thread.yield();
+            && (!publisherRecorder.hasDiscovery(ownerTargetName)
+               || !firstRecorder.hasDiscovery(ownerTargetName)
+               || !secondRecorder.hasDiscovery(ownerTargetName)
+               || !silentRecorder.hasDiscovery(ownerTargetName)
+               || !firstRecorder.hasDiscovery(publisherTargetName)
+               || !secondRecorder.hasDiscovery(publisherTargetName)
+               || !silentRecorder.hasDiscovery(publisherTargetName))) {
+         service(publisher, callbackModel);
+         service(first, callbackModel);
+         service(second, callbackModel);
+         service(silent, callbackModel);
       }
-      JavaTckSupport.check(publisherRecorder.discoveries.contains(ownerTarget)
-            && firstRecorder.discoveries.contains(ownerTarget)
-            && secondRecorder.discoveries.contains(ownerTarget)
-            && silentRecorder.discoveries.contains(ownerTarget)
-            && firstRecorder.discoveries.contains(publisherTarget)
-            && secondRecorder.discoveries.contains(publisherTarget)
-            && silentRecorder.discoveries.contains(publisherTarget),
+      JavaTckSupport.check(publisherRecorder.hasDiscovery(ownerTargetName)
+            && firstRecorder.hasDiscovery(ownerTargetName)
+            && secondRecorder.hasDiscovery(ownerTargetName)
+            && silentRecorder.hasDiscovery(ownerTargetName)
+            && firstRecorder.hasDiscovery(publisherTargetName)
+            && secondRecorder.hasDiscovery(publisherTargetName)
+            && silentRecorder.hasDiscovery(publisherTargetName),
          "expected members did not discover both directed targets before deadline");
    }
 
    private static void awaitCounts(RTIambassador owner, RTIambassador first,
          RTIambassador second, Recorder ownerRecorder, Recorder firstRecorder,
-         Recorder secondRecorder, int count) throws Exception {
+         Recorder secondRecorder, int count, CallbackModel callbackModel) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
             && (ownerRecorder.directed.size() < count || firstRecorder.directed.size() < count
                || secondRecorder.directed.size() < count)) {
-         JavaTckSupport.drain(owner);
-         JavaTckSupport.drain(first);
-         JavaTckSupport.drain(second);
-         Thread.yield();
+         service(owner, callbackModel);
+         service(first, callbackModel);
+         service(second, callbackModel);
       }
       JavaTckSupport.check(ownerRecorder.directed.size() >= count
             && firstRecorder.directed.size() >= count
@@ -344,17 +408,32 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
    }
 
    private static void awaitCounts(RTIambassador first, RTIambassador second,
-         Recorder firstRecorder, Recorder secondRecorder, int count) throws Exception {
+         Recorder firstRecorder, Recorder secondRecorder, int count,
+         CallbackModel callbackModel) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
             && (firstRecorder.directed.size() < count || secondRecorder.directed.size() < count)) {
-         JavaTckSupport.drain(first);
-         JavaTckSupport.drain(second);
-         Thread.yield();
+         service(first, callbackModel);
+         service(second, callbackModel);
       }
       JavaTckSupport.check(firstRecorder.directed.size() >= count
             && secondRecorder.directed.size() >= count,
          "universal directed delivery streams did not arrive before deadline");
+   }
+
+   private static void service(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+      else Thread.yield();
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
    }
 
    private static void assertTwo(List<Directed> received, InteractionClassHandle interaction,
@@ -423,8 +502,18 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
    }
 
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final AtomicInteger unexpectedDirectedCount = new AtomicInteger();
+
+      private boolean hasDiscovery(String name) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name));
+      }
+
+      private boolean hasDiscovery(String name, ObjectInstanceHandle handle) {
+         return discoveries.stream().anyMatch(discovery -> name.equals(discovery.name)
+            && handle.equals(discovery.handle));
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -433,14 +522,17 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("receiveDirectedInteraction".equals(name)) {
-                  ParameterHandleValueMap parameters =
-                     ((ParameterHandleValueMap) arguments[2]).clone();
-                  byte[] tag = ((byte[]) arguments[3]).clone();
-                  directed.add(new Directed((InteractionClassHandle) arguments[0],
-                     (ObjectInstanceHandle) arguments[1], parameters, tag,
-                     (TransportationTypeHandle) arguments[4], (FederateHandle) arguments[5]));
+                  if (arguments != null && arguments.length == 6) {
+                     ParameterHandleValueMap parameters =
+                        ((ParameterHandleValueMap) arguments[2]).clone();
+                     byte[] tag = ((byte[]) arguments[3]).clone();
+                     directed.add(new Directed((InteractionClassHandle) arguments[0],
+                        (ObjectInstanceHandle) arguments[1], parameters, tag,
+                        (TransportationTypeHandle) arguments[4], (FederateHandle) arguments[5]));
+                  } else unexpectedDirectedCount.incrementAndGet();
                } else if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK mixed directed callbacks";
@@ -451,6 +543,16 @@ final class DirectedInteractionMixedSubscriptionFanoutTck {
                }
                return null;
             });
+      }
+   }
+
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
       }
    }
 }
