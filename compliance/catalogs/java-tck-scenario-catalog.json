@@ -8654,6 +8654,22 @@
       "exclusion": "Configure hla.rti.tck.dimensionDuplicateWithinModuleFom, dimensionDuplicateBaseFom, dimensionDuplicateEqualUniqueFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-object-class-name-conventions",
+      "category": "fom-composition",
+      "title": "Reject invalid object-class local names and accept permitted punctuation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getObjectClassName", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4a-page-040-l18-3"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.2.2"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3", "standard_section": "hla-1516.2-2025:clause-4.2.2"}],
+      "mapping_note": "Standard Java API parity for object-class local-name period, unknown HLA prefix, and NA marker rejection with hyphen/underscore acceptance. Java provider runtime unverified; other named tables are not claimed.",
+      "contract_refs": ["standard-fom-object-class-name-conventions-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassNameConventions",
+      "parity": "cpp-tck.fom-object-class-name-conventions",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.objectClassNamePeriodFom, objectClassNameReservedHlaFom, objectClassNameReservedNaFom, objectClassNameAllowedFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-synchronization-duplicate-equal",
       "category": "fom-composition",
       "title": "Accept identical same-label synchronization declarations",

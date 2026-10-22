@@ -1,4 +1,15 @@
 {
+  "portable_tck_fom_object_class_name_conventions_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 object-class local-name conventions into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1575; packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomObjectClassNameConventionsTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3 -> IEEE 1516.2-2025 clause 4.2.2"
+    ],
+    "evidence": "Native focused case passed 35 assertions; four adapter FOM bindings passed pinned DIF XSD. C++ compiled against official installed IEEE API headers. Isolated installed-package CTest passed 8/8 and direct runs passed 8/8 across HLA_EVOKED/HLA_IMMEDIATE, including the prior dimension-name regression (out/mgw/object-class-name-conventions-20261021.json). Java compiles against the API-only JAR; C++/Java catalog and parity validators pass. The stale native plan pointer was corrected from :1846 to :1575. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create with MIM rejects period, unknown HLA prefix, and NA marker as object-class local names with InconsistentFOM, then accepts hyphen/underscore punctuation under the reusable federation name; joined object-class lookup round-trips. The native private plan maps 19 name-bearing tables, but this portable slice maps only the object-class name row; other table names remain open. No private diagnostic text, Java runtime, interoperability, or conformance claim. The focused link reused unrelated existing objects and compiled only the entry-point, touched FOM scenario source, and one concurrent stale time-management object; it is not a full rebuild.",
+    "next": "Inspect the adjacent native-green model-identification modification-date case at cpp/tests/libxml2_fom_composer_catch2.cpp:1618 and its pinned mapping. Translate schema-valid timezone-suffixed date rejection and YYYY-MM-DD acceptance through public Create outcomes, with adapter-owned FOMs, Java parity, and the installed-package gate. Separately continue other FOM table-name conventions without claiming them from this object-class row. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_dimension_name_uniqueness_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 Dimension-table within-module name-uniqueness rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",

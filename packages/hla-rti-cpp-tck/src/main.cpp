@@ -19439,6 +19439,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dimension-input-description-contract",
       "cpp-tck.fom-dimension-input-na-exclusivity-contract",
       "cpp-tck.fom-dimension-name-uniqueness-contract",
+      "cpp-tck.fom-object-class-name-conventions-contract",
       "cpp-tck.fom-synchronization-duplicate-equal-contract",
       "cpp-tck.fom-synchronization-duplicate-note-conflict-contract",
       "cpp-tck.fom-transportation-duplicate-equal-contract",
@@ -20163,6 +20164,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dimension-input-description",
       "cpp-tck.fom-dimension-input-na-exclusivity",
       "cpp-tck.fom-dimension-name-uniqueness",
+      "cpp-tck.fom-object-class-name-conventions",
       "cpp-tck.fom-synchronization-duplicate-equal",
       "cpp-tck.fom-synchronization-duplicate-note-conflict",
       "cpp-tck.fom-transportation-duplicate-equal",
@@ -21027,6 +21029,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-dimension-name-uniqueness-contract") {
     return scenarioFomDimensionNameUniquenessContract;
+  }
+  if (id == "cpp-tck.fom-object-class-name-conventions-contract") {
+    return scenarioFomObjectClassNameConventionsContract;
   }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal-contract") {
     return scenarioFomSynchronizationDuplicateEqualContract;
@@ -23334,6 +23339,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-dimension-name-uniqueness") {
     return scenarioFomDimensionNameUniqueness;
   }
+  if (id == "cpp-tck.fom-object-class-name-conventions") {
+    return scenarioFomObjectClassNameConventions;
+  }
   if (id == "cpp-tck.fom-synchronization-duplicate-equal") {
     return scenarioFomSynchronizationDuplicateEqual;
   }
@@ -23954,6 +23962,15 @@ int run(Options const& options) {
                   options.scenarioFoms.count("dimension-duplicate-equal-unique") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied MIM and dimension name-uniqueness FOM modules";
+      } else if ((scenario == "cpp-tck.fom-object-class-name-conventions" ||
+                  scenario == "cpp-tck.fom-object-class-name-conventions-contract") &&
+                 (options.mimFom.empty() ||
+                  options.scenarioFoms.count("object-class-name-period") == 0U ||
+                  options.scenarioFoms.count("object-class-name-reserved-hla") == 0U ||
+                  options.scenarioFoms.count("object-class-name-reserved-na") == 0U ||
+                  options.scenarioFoms.count("object-class-name-allowed-punctuation") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and object-class name FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

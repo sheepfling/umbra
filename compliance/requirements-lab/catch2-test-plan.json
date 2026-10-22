@@ -13445,7 +13445,7 @@
         "requirement-candidate-sections-semantic-clause-4c-page-086-l88-9"
       ],
       "test_case": "The FOM composition preflight enforces HLA 3.3.1 XML names",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1846",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1575",
       "tags": [
         "unit",
         "fom",

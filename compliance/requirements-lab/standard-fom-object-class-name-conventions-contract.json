@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "Portable object-class local-name conventions through official Federation Create and object-class lookup services. The adapter supplies provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. A period, unknown HLA prefix, and NA marker are rejected as local names; a hyphen-and-underscore name is accepted. Only the object-class name row is mapped, not every named FOM table. Private diagnostics, Java provider runtime, and interoperability are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-object-class-name-conventions",
+      "language": "cpp",
+      "signature": "RTIambassador Create Federation Execution with MIM, Join, object-class handle/name lookups, Resign and Destroy",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomObjectClassNameConventions",
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomObjectClassNameConventionsContract"
+      ]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3",
+      "standard_section": "hla-1516.2-2025:clause-4.2.2"
+    }
+  ]
+}

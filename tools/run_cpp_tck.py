@@ -742,6 +742,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-mixed-na-tck.xml")),
             "dimension-duplicate-within-module="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-within-module-tck.xml")),
+            "object-class-name-period="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-period-tck.xml")),
+            "object-class-name-reserved-hla="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-reserved-hla-tck.xml")),
+            "object-class-name-reserved-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-reserved-na-tck.xml")),
+            "object-class-name-allowed-punctuation="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-allowed-punctuation-tck.xml")),
             "dimension-input-table-type="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "dimension-input-description-na-invalid="

@@ -1391,4 +1391,56 @@ void scenarioFomQualifiedClassNameIdentity(
 }
 
 
+void scenarioFomObjectClassNameConventions(Options const& options,
+                                           rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Object-class name conventions require adapter-supplied MIM and logical time");
+  auto const requiredFom = [&](std::string const& key)
+      -> std::filesystem::path const& {
+    auto const found = options.scenarioFoms.find(key);
+    require(found != options.scenarioFoms.end(),
+            "Object-class name conventions require adapter-supplied FOM modules");
+    return found->second;
+  };
+  auto const& period = requiredFom("object-class-name-period");
+  auto const& reservedHla = requiredFom("object-class-name-reserved-hla");
+  auto const& reservedNa = requiredFom("object-class-name-reserved-na");
+  auto const& allowed = requiredFom("object-class-name-allowed-punctuation");
+  Session creator(options, model, "object-class-name-creator");
+  Session member(options, model, "object-class-name-member");
+  auto const federation = federationName(options, "fom-object-class-name-conventions");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(period); }, L"InconsistentFOM",
+                   "a period in an object-class local name");
+  requireException([&] { createWithMim(reservedHla); }, L"InconsistentFOM",
+                   "an unknown HLA-prefixed object-class name");
+  requireException([&] { createWithMim(reservedNa); }, L"InconsistentFOM",
+                   "the reserved NA marker as an object-class name");
+
+  // The accepted form also confirms failed Creates left no federation behind.
+  createWithMim(allowed);
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto& rti = member.rtiAmbassador();
+  auto const name = std::wstring(L"HLAobjectRoot.Customer-2_0");
+  auto const objectClass = rti.getObjectClassHandle(name);
+  require(objectClass.isValid() && rti.getObjectClassName(objectClass) == name,
+          "an accepted object-class name did not round-trip publicly");
+  member.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomObjectClassNameConventionsContract(Options const& options,
+                                                   rti::CallbackModel model) {
+  scenarioFomObjectClassNameConventions(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail
