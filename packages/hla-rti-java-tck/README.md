@@ -359,14 +359,15 @@ configured primary attribute for one, and verifies that its secondary value
 continues while the other federate still receives both. It uses receiver-local
 handles through only the standard Java API. Focused installed JNI runs passed
 in both callback modes; independent-provider conformance remains unverified.
-The opt-in `java-tck.whole-class-attribute-unsubscription` case confirms both
-configured attributes are initially reflected, invokes the standard
+The default `java-tck.whole-class-attribute-unsubscription` case confirms both
+configured values and the tag are initially reflected, invokes the standard
 whole-class unsubscribe service, and verifies that later updates produce no
-reflection. The opt-in `java-tck.empty-attribute-unsubscription-is-no-op`
-case submits an empty set to the standard attribute-set unsubscribe service
-and verifies both previously subscribed values continue to arrive. Both cases
-use adapter-supplied FOM/names and only the standard Java API; Java provider
-runtime verification remains pending.
+reflection. It resolves the receiver's local object and attribute handles and
+passed focused installed JNI runs in both callback modes; independent-provider
+conformance remains unverified. The opt-in
+`java-tck.empty-attribute-unsubscription-is-no-op` case submits an empty set
+to the standard attribute-set unsubscribe service and verifies both previously
+subscribed values continue to arrive. Its Java provider runtime gate is pending.
 The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
 active non-empty attribute subscription, submits an empty active set, and
 verifies the original subscription still delivers the next update. The

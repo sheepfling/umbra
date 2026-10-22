@@ -1311,13 +1311,10 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.whole-class-attribute-unsubscription",
             "remove all attributes from a class subscription with the whole-class service",
             "object-attribute-unsubscription",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
-               "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-attribute-update-reflect",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::wholeClassAttributeUnsubscription);
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5"
+            }, true), RtiTckMain::wholeClassAttributeUnsubscription);
       run(new Scenario("java-tck.empty-attribute-unsubscription-is-no-op",
             "preserve all active class-attribute subscriptions after an empty-set unsubscription",
             "object-attribute-unsubscription",
