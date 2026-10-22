@@ -2615,14 +2615,17 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.directed-interaction-publication-send-fence",
             "fence directed sends across whole-class unpublication and republication",
             "directed-interaction",
-            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.sendDirectedInteraction;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.sendDirectedInteraction;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
             new String[] {
-               "cpp-1516.1-directed-interaction-publication",
-               "cpp-1516.1-directed-interaction-subscription",
-               "cpp-1516.1-directed-interaction-delivery",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::directedInteractionPublicationSendFence);
+               "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+               "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+               "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+               "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+               "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+               "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+            }, true), RtiTckMain::directedInteractionPublicationSendFence);
       run(new Scenario("java-tck.directed-interaction-derived-object-target",
             "directed interaction to a derived object target", "interaction-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
@@ -14474,8 +14477,9 @@ public final class RtiTckMain {
 
    private static void directedInteractionPublicationSendFence() throws Exception {
       DirectedInteractionPublicationSendFenceTck.run(factory(), requireFom(),
-         timeImplementation(), objectClassName(), attributeName(),
-         directedInteractionClassName(), parameterName(), callbackModel());
+         timeImplementation(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
+         typedInteractionClassName(), typedIntegerParameterName(),
+         System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());
    }
 
    private static void transportOrder() throws Exception {

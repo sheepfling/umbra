@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Whole-class directed publication fences sends until that publication is restored. */
 final class DirectedInteractionPublicationSendFenceTck {
@@ -26,7 +28,8 @@ final class DirectedInteractionPublicationSendFenceTck {
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         String parameterName, CallbackModel callbackModel) throws Exception {
+         String parameterName, String expectedTransportationName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
@@ -50,7 +53,8 @@ final class DirectedInteractionPublicationSendFenceTck {
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-directed-publication-publisher", federation);
          publisherJoined = true;
-         receiver.joinFederationExecution("java-tck-directed-publication-receiver", federation);
+         FederateHandle owner = receiver.joinFederationExecution(
+            "java-tck-directed-publication-receiver", federation);
          receiverJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
@@ -67,11 +71,22 @@ final class DirectedInteractionPublicationSendFenceTck {
             publisher.getParameterHandle(publisherInteraction, parameterName);
          ParameterHandle receiverParameter =
             receiver.getParameterHandle(receiverInteraction, parameterName);
-         JavaTckSupport.check(publisherClass.equals(receiverClass)
-               && publisherAttribute.equals(receiverAttribute)
-               && publisherInteraction.equals(receiverInteraction)
-               && publisherParameter.equals(receiverParameter),
-            "directed publication fence lookups returned inconsistent handles");
+         JavaTckSupport.check(objectClassName.equals(
+                  publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(receiver.getObjectClassName(receiverClass))
+               && attributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherAttribute))
+               && attributeName.equals(receiver.getAttributeName(
+                  receiverClass, receiverAttribute))
+               && interactionClassName.equals(publisher.getInteractionClassName(
+                  publisherInteraction))
+               && interactionClassName.equals(receiver.getInteractionClassName(
+                  receiverInteraction))
+               && parameterName.equals(publisher.getParameterName(
+                  publisherInteraction, publisherParameter))
+               && parameterName.equals(receiver.getParameterName(
+                  receiverInteraction, receiverParameter)),
+            "directed publication fence names did not round-trip locally");
 
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          publisherAttributesPublished = true;
@@ -89,20 +104,35 @@ final class DirectedInteractionPublicationSendFenceTck {
          directedSubscribed = true;
 
          ObjectInstanceHandle target = receiver.registerObjectInstance(receiverClass);
-         await(publisher, callbackModel, objectClassName,
-            () -> publisherRecorder.discoveries.contains(target),
+         String targetName = receiver.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "directed publication fence registration returned no standard object name");
+         await(publisher, callbackModel,
+            () -> publisherRecorder.hasDiscovery(targetName),
             "directed publication fence target discovery");
-         JavaTckSupport.check(publisher.getKnownObjectClassHandle(target).equals(publisherClass),
+         ObjectInstanceHandle publisherTarget = publisher.getObjectInstanceHandle(targetName);
+         FederateHandle receiverProducer = receiver.getFederateHandle(
+            publisher.getFederateName(producer));
+         JavaTckSupport.check(publisherRecorder.discoveries.size() == 1
+               && publisherTarget.equals(publisherRecorder.discoveries.get(0).object)
+               && publisherClass.equals(publisherRecorder.discoveries.get(0).objectClass)
+               && publisher.getFederateHandle(receiver.getFederateName(owner))
+                  .equals(publisherRecorder.discoveries.get(0).producer),
+            "publisher discovery did not preserve receiver-local target metadata");
+         JavaTckSupport.check(publisher.getKnownObjectClassHandle(publisherTarget)
+               .equals(publisherClass),
             "publisher learned the wrong directed target class");
 
          byte[] initialValue = new byte[] {0x44, 0x49, 0x52};
          byte[] initialTag = new byte[] {0x49, 0x4e, 0x49};
-         send(publisher, publisherInteraction, target, publisherParameter, initialValue, initialTag);
-         await(receiver, callbackModel, objectClassName,
+         send(publisher, publisherInteraction, publisherTarget, publisherParameter,
+            initialValue, initialTag);
+         await(receiver, callbackModel,
             () -> receiverRecorder.directed.size() == 1,
             "initial directed interaction delivery");
          verify(receiver, receiverRecorder.directed.get(0), receiverInteraction,
-            receiverParameter, target, initialValue, initialTag, producer, "initial");
+            receiverParameter, target, initialValue, initialTag, receiverProducer,
+            expectedTransportationName, "initial");
 
          publisher.unpublishObjectClassDirectedInteractions(publisherClass);
          directedPublished = false;
@@ -110,25 +140,30 @@ final class DirectedInteractionPublicationSendFenceTck {
          byte[] fencedTag = new byte[] {0x46, 0x45, 0x4e};
          InteractionClassHandle unpublishedInteraction = publisherInteraction;
          JavaTckSupport.expectFailure(
-            () -> send(publisher, unpublishedInteraction, target, publisherParameter,
+            () -> send(publisher, unpublishedInteraction, publisherTarget, publisherParameter,
                fencedValue, fencedTag),
             "InteractionClassNotPublished", "unpublished directed send was accepted");
-         pump(receiver, callbackModel, objectClassName, 8);
+         pump(receiver, callbackModel);
          JavaTckSupport.check(receiverRecorder.directed.size() == 1,
             "unpublished directed interaction unexpectedly reached the receiver");
+         JavaTckSupport.check(receiverRecorder.unexpectedDirectedCount.get() == 0,
+            "unpublished directed send used an unexpected callback overload");
 
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
          directedPublished = true;
          byte[] restoredValue = new byte[] {0x52, 0x45, 0x53, 0x54, 0x4f, 0x52, 0x45};
          byte[] restoredTag = new byte[] {0x52, 0x45, 0x50};
-         send(publisher, publisherInteraction, target, publisherParameter, restoredValue,
+         send(publisher, publisherInteraction, publisherTarget, publisherParameter, restoredValue,
             restoredTag);
-         await(receiver, callbackModel, objectClassName,
+         await(receiver, callbackModel,
             () -> receiverRecorder.directed.size() == 2,
             "directed delivery after republication");
          verify(receiver, receiverRecorder.directed.get(1), receiverInteraction,
-            receiverParameter, target, restoredValue, restoredTag, producer, "republished");
+            receiverParameter, target, restoredValue, restoredTag, receiverProducer,
+            expectedTransportationName, "republished");
+         JavaTckSupport.check(receiverRecorder.unexpectedDirectedCount.get() == 0,
+            "receive-order directed send used an unexpected callback overload");
       } finally {
          if (directedSubscribed && receiverJoined) {
             try { receiver.unsubscribeObjectClassDirectedInteractions(receiverClass); }
@@ -187,7 +222,7 @@ final class DirectedInteractionPublicationSendFenceTck {
    private static void verify(RTIambassador receiver, Directed received,
          InteractionClassHandle interaction, ParameterHandle parameter,
          ObjectInstanceHandle target, byte[] value, byte[] tag, FederateHandle producer,
-         String phase) throws Exception {
+         String expectedTransportationName, String phase) throws Exception {
       JavaTckSupport.check(interaction.equals(received.interaction)
             && target.equals(received.target)
             && received.parameters.size() == 1
@@ -195,29 +230,33 @@ final class DirectedInteractionPublicationSendFenceTck {
             && Arrays.equals(tag, received.tag)
             && producer.equals(received.producer)
             && received.transportation != null
-            && "HLAreliable".equals(receiver.getTransportationTypeName(received.transportation)),
+            && expectedTransportationName.equals(
+               receiver.getTransportationTypeName(received.transportation)),
          phase + " directed callback lost target or standard delivery data");
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
-         String objectClassName, Condition condition, String description) throws Exception {
+         Condition condition, String description) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline && !condition.isTrue()) {
-         service(ambassador, model, objectClassName);
+         service(ambassador, model);
          Thread.yield();
       }
       JavaTckSupport.check(condition.isTrue(), "timed out waiting for " + description);
    }
 
-   private static void pump(RTIambassador ambassador, CallbackModel model,
-         String objectClassName, int passes) throws Exception {
-      for (int i = 0; i < passes; ++i) service(ambassador, model, objectClassName);
+   private static void pump(RTIambassador ambassador, CallbackModel model)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (model == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
    }
 
-   private static void service(RTIambassador ambassador, CallbackModel model,
-         String objectClassName) throws Exception {
-      if (model == CallbackModel.HLA_EVOKED) ambassador.evokeMultipleCallbacks(0.0, 1.0);
-      else ambassador.getObjectClassHandle(objectClassName);
+   private static void service(RTIambassador ambassador, CallbackModel model) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+      else Thread.yield();
    }
 
    @FunctionalInterface
@@ -242,8 +281,13 @@ final class DirectedInteractionPublicationSendFenceTck {
    }
 
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final AtomicInteger unexpectedDirectedCount = new AtomicInteger();
+
+      private boolean hasDiscovery(String objectName) {
+         return discoveries.stream().anyMatch(event -> objectName.equals(event.name));
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -251,11 +295,15 @@ final class DirectedInteractionPublicationSendFenceTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 1) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                     && arguments.length >= 4) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1], (String) arguments[2],
+                     (FederateHandle) arguments[3]));
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
                   directed.add(new Directed(arguments));
+               } else if ("receiveDirectedInteraction".equals(name)) {
+                  unexpectedDirectedCount.incrementAndGet();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK directed publication fence";
@@ -264,6 +312,21 @@ final class DirectedInteractionPublicationSendFenceTck {
                }
                return null;
             });
+      }
+   }
+
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private final String name;
+      private final FederateHandle producer;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
+            String name, FederateHandle producer) {
+         this.object = object;
+         this.objectClass = objectClass;
+         this.name = name;
+         this.producer = producer;
       }
    }
 }

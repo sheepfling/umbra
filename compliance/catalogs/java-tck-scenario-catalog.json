@@ -31463,14 +31463,22 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getAttributeName",
         "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.getParameterName",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.unpublishObjectClassDirectedInteractions",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -31517,7 +31525,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
       ],
-      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication/unpublication (§5.1.4), known-target delivery (§5.1.5), interaction subscription (§5.12), the sendDirectedInteraction publication-state exception (§6.14.3), and received parameter/tag/producer callback content (§6.15.1). The no-delivery check after the failed send, fixture setup, discovery, lookups, and cleanup are not separate claims. Java source is portable, but provider behavior remains unvalidated until execution against an independent Java provider.",
+      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication/unpublication (§5.1.4), known-target delivery (§5.1.5), interaction subscription (§5.12), the sendDirectedInteraction publication-state exception (§6.14.3), and received parameter/tag/producer callback content (§6.15.1). The no-delivery check after the failed send, fixture setup, discovery, lookups, and cleanup are not separate claims. The standard-API-only Java source passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "directed-interaction-requirements-contract.json",
@@ -31537,7 +31545,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionPublicationSendFence",
       "parity": "cpp-tck.directed-interaction-publication-send-fence",
       "default_status": "run",
-      "exclusion": "Requires a live multi-federate provider, adapter-supplied FOM, object/attribute/interaction/parameter names, logical-time implementation, and callback model; exercises ordinary directed publication and delivery only, without DDM regions."
+      "exclusion": "Requires adapter-supplied provider, compatible typed FOM, endpoint, object/attribute/interaction/parameter names, selected interaction transportation, logical-time implementation, and callback model; exercises ordinary directed publication and delivery only, without DDM regions.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.asynchronous-interaction-delivery",

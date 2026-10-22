@@ -1235,6 +1235,15 @@ Java API and passed focused installed JNI runs in both callback models. Queued
 callback cutoffs are supplemental regressions, not independent-provider
 conformance claims.
 
+The default `java-tck.directed-interaction-publication-send-fence` scenario
+checks that a directed send to an already discovered object succeeds, a
+whole-class unpublication rejects a later send, and republication restores
+delivery with the expected parameter, tag, producer, and adapter-selected
+transportation. It passed focused installed JNI runs in both callback models.
+Provider, typed FOM, endpoint, names, time implementation, transportation,
+and callback model are adapter inputs; independent-provider conformance is
+unverified.
+
 The default `java-tck.directed-interaction-subscription-kind` scenario distinguishes
 by-ownership from universal delivery, checks that an empty by-ownership set
 does not disturb a universal declaration, and resubscribes both subscribers
