@@ -3251,8 +3251,8 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.nmr-lits-below-galt-immediate-grant",
             "deliver queued TSO at LITS below GALT before granting",
             "next-message-request",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.queryGALT;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.timeAdvanceRequest;RTIambassador.nextMessageRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-next-message-request"}, false),
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.timeAdvanceRequest;RTIambassador.nextMessageRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
+            new String[] {"cpp-1516.1-next-message-request"}, true),
          RtiTckMain::nmrLitsBelowGaltImmediateGrant);
       run(new Scenario("java-tck.nmra-no-pregrant-tso-floor",
             "grant an empty-input NMRA at request time and enforce the actual-lookahead send floor",
@@ -9493,7 +9493,7 @@ public final class RtiTckMain {
 
    private static void nmrLitsBelowGaltImmediateGrant() throws Exception {
       NmrLitsBelowGaltImmediateGrantTck.run(factory(), requireFom(), timeImplementation(),
-         interactionClassName(), parameterName(), callbackModel());
+         typedDerivedInteractionClassName(), typedDerivedParameterName(), callbackModel());
    }
 
    private static void modifyLookaheadContract() throws Exception {

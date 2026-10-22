@@ -15554,7 +15554,6 @@
         "RTIambassador.getTimeFactory",
         "RTIambassador.queryLogicalTime",
         "RTIambassador.queryLookahead",
-        "RTIambassador.queryGALT",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.sendInteraction(LogicalTime)",
@@ -15579,12 +15578,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.10.2"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the queued-message LITS-below-GALT branch: a TSO interaction at 3 is queued, the regulator advances to 4 with lookahead 1 (GALT 5), and NMR(10) delivers the message then grants at 3 without another regulator advance (page 197 l104 / §8.10.2). This does not claim the no-message request-time branch, equality behavior, other message producers, complete clause coverage, or provider conformance.",
+      "mapping_note": "Direct mapping is limited to the queued-message branch: a TSO interaction at 3 is queued, the regulator advances to 4 with lookahead 1 (time-plus-lookahead bound 5), and NMR(10) delivers the message then grants at 3 without another regulator advance (page 197 l104 / §8.10.2). The case does not assert a public Query GALT result, the no-message request-time branch, equality behavior, other message producers, complete clause coverage, or provider conformance.",
       "contract_refs": ["standard-next-message-request-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmrLitsBelowGaltImmediateGrant",
       "parity": "cpp-tck.nmr-lits-below-galt-immediate-grant",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, logical-time implementation, interaction names, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.send-message-time-state-preservation-granted",

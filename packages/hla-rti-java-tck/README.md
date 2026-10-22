@@ -1691,6 +1691,15 @@ at 3 without a regulator advance. It passed focused installed JNI runs in
 both callback models. It does not establish equality-at-GALT, concurrent
 future-message arrival, or independent-provider conformance.
 
+The default `java-tck.nmr-lits-below-galt-immediate-grant` case checks the
+separate queued-message branch: a TSO interaction at 3 is held while the
+regulator advances to 4 with lookahead 1; NMR(10) delivers that interaction
+before granting at 3 without another regulator advance. Its interaction and
+parameter names are adapter inputs. It passed focused installed JNI runs in
+both callback models. This case does not assert a public Query GALT value;
+the regulator's time-plus-lookahead bound of 5 is not treated as that query's
+result when a message remains queued.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

@@ -117,7 +117,7 @@ final class NmrLitsBelowGaltImmediateGrantTck {
          JavaTckSupport.check(regulatorTarget.equals(regulatorCallbacks.grants.get(0)),
             "NMR queued-LITS regulator did not reach its requested time");
          JavaTckSupport.check(lessThan(messageTime, expectedGalt),
-            "NMR queued-LITS message timestamp was not below the configured GALT boundary");
+            "NMR queued-LITS message timestamp was not below the regulator advance bound");
          pumpUnexpectedCallbacks(requester, callbackModel, requesterCallbacks);
          JavaTckSupport.check(requesterCallbacks.interactions.isEmpty()
                && requesterCallbacks.grants.isEmpty(),
@@ -254,12 +254,12 @@ final class NmrLitsBelowGaltImmediateGrantTck {
                   timeRegulationEnabled = (LogicalTime<?, ?>) arguments[0];
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
-                  grants.add((LogicalTime<?, ?>) arguments[0]);
                   callbackOrder.add("grant");
+                  grants.add((LogicalTime<?, ?>) arguments[0]);
                } else if ("receiveInteraction".equals(name) && arguments != null
                      && arguments.length == 10) {
-                  interactions.add(new InteractionRecord(arguments));
                   callbackOrder.add("interaction");
+                  interactions.add(new InteractionRecord(arguments));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK NMR queued-LITS callbacks";
