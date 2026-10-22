@@ -1616,7 +1616,10 @@ the producer with `NO_ACTION`, and verifies that the accepted interaction is
 delivered exactly once before the receiver's grant. It checks parameter, tag,
 producer, timestamp, order, transportation, and retraction metadata, including
 that the former producer cannot retract after resignation. It remains
-unsupported by default pending Java provider execution.
+unsupported by default: an opt-in installed-provider run passed under
+HLA_EVOKED, but under HLA_IMMEDIATE one interaction arrived after producer
+resignation while the clock was still at its blocking frontier. Its recorder
+uses bounded callback waits and thread-safe observations for this comparison.
 
 The `java-tck.timestamped-interaction-retraction-fanout` scenario has both an
 immediate and a constrained subscriber. It checks delivery metadata, the
@@ -1625,12 +1628,17 @@ copy through a time-advance grant, then repeats delivery and retraction after
 the constrained member resigns. Time Regulation disable is also checked. It
 remains unsupported by default until run against a Java provider adapter.
 
-The `java-tck.timestamped-interaction-regulation-reenable` scenario sends a
+The default-run `java-tck.timestamped-interaction-regulation-reenable` scenario sends a
 timestamped interaction, disables the producer's Time Regulation while the
 interaction remains queued, then re-enables with a three-epsilon lookahead.
-It checks Query Lookahead, delivery-before-grant ordering, callback metadata,
-grant/query times, and terminal retraction after delivery. It remains unsupported
-by default pending Java provider execution.
+It checks Query Lookahead, interaction delivery at the GALT boundary without a
+premature receiver grant, the safe grant after a second publisher advance,
+callback metadata, grant/query times, and terminal retraction after delivery.
+It passes focused installed-provider runs under both callback models. The
+official Java API has no Time Regulation Disabled callback; the test checks
+the disable service transition and second enable callback instead. Provider,
+FOM, endpoint, time implementation, interaction/parameter names, and callback
+model remain adapter inputs.
 
 The `java-tck.timestamped-interaction-reenable` scenario keeps a timestamped
 interaction queued while the receiver disables and re-enables Time Constrained.

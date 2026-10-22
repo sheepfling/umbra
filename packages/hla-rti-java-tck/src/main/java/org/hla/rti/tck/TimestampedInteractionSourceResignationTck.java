@@ -17,10 +17,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Delivers an accepted timestamped interaction after its producer resigns. */
 final class TimestampedInteractionSourceResignationTck {
@@ -94,17 +95,20 @@ final class TimestampedInteractionSourceResignationTck {
 
          receiver.enableTimeConstrained();
          receiverConstrained = true;
-         JavaTckSupport.drain(receiver);
+         awaitCallback(receiver, () -> receiverRecorder.timeConstrainedEnabledCount == 1,
+            "receiver Time Constrained enable");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
             "receiver did not report Time Constrained enable");
          publisher.enableTimeRegulation(publisherLookahead);
          publisherRegulating = true;
-         JavaTckSupport.drain(publisher);
+         awaitCallback(publisher, () -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "publisher Time Regulation enable");
          JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
             "publisher did not report Time Regulation enable");
          clock.enableTimeRegulation(clockLookahead);
          clockRegulating = true;
-         JavaTckSupport.drain(clock);
+         awaitCallback(clock, () -> clockRecorder.timeRegulationEnabledCount == 1,
+            "clock Time Regulation enable");
          JavaTckSupport.check(clockRecorder.timeRegulationEnabledCount == 1,
             "clock did not report Time Regulation enable");
 
@@ -140,13 +144,18 @@ final class TimestampedInteractionSourceResignationTck {
             "retracting through the resigned producer");
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
                && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
-            "queued interaction was released before the receiver became safe to advance");
+            "queued interaction was released before the clock advanced"
+               + " (interactions=" + receiverRecorder.interactions.size()
+               + ", grants=" + receiverRecorder.timeAdvanceGrantTimes.size() + ")");
 
          clock.timeAdvanceRequest(clockTarget);
-         JavaTckSupport.drain(clock);
+         awaitCallback(clock, () -> clockRecorder.timeAdvanceGrantTimes.size() == 1,
+            "clock time advance grant");
          JavaTckSupport.check(clockRecorder.timeAdvanceGrantTimes.size() == 1,
             "clock did not reach its requested frontier");
-         JavaTckSupport.drain(receiver);
+         awaitCallback(receiver, () -> receiverRecorder.interactions.size() == 1
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
+            "post-resignation interaction delivery and grant");
          JavaTckSupport.check(receiverRecorder.interactions.size() == 1
                && receiverRecorder.timeAdvanceGrantTimes.size() == 1
                && receiverRecorder.callbackOrder.equals(Arrays.asList(
@@ -243,6 +252,17 @@ final class TimestampedInteractionSourceResignationTck {
       return result;
    }
 
+   private static void awaitCallback(RTIambassador ambassador, BooleanSupplier observed,
+         String phase) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(ambassador);
+         if (observed.getAsBoolean()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(phase + " was not observed within 10 seconds");
+   }
+
    private static void expectException(CheckedOperation operation, String expected,
          String description) throws Exception {
       try {
@@ -274,11 +294,11 @@ final class TimestampedInteractionSourceResignationTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabledCount;
-      private int timeConstrainedEnabledCount;
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
+      private volatile int timeRegulationEnabledCount;
+      private volatile int timeConstrainedEnabledCount;
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

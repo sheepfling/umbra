@@ -18068,13 +18068,25 @@
         "RTIambassador.getTransportationTypeName",
         "FederateAmbassador.receiveInteraction(time)",
         "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.timeRegulationDisabled",
         "FederateAmbassador.timeConstrainedEnabled",
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l54-15",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l45-11"
       ],
       "requirement_mappings": [
         {
@@ -18102,6 +18114,10 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.5"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
           "standard_section": "hla-1516.1-2025:clause-8.2"
         },
@@ -18112,17 +18128,23 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
           "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l45-11",
+          "standard_section": "hla-1516.1-2025:clause-8.8"
         }
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.12",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.8",
         "hla-1516.1-2025:clause-8.8.3"
       ],
-      "mapping_note": "Direct coverage includes timestamped Send/Receive Interaction, the regulation role transition and supplied lookahead, the completion callback, and constrained delivery/grant behavior. Query Lookahead is checked but not independently mapped to a requirement; no Modify Lookahead clause is claimed. Federation lifecycle setup/cleanup and provider-specific callback timing are not claimed.",
+      "mapping_note": "Direct coverage mirrors the promoted C++ peer: timestamped Send/Receive Interaction (§6.12), regulation enable and changed lookahead (Clause 8), completion callback (§8.1.5), queued interaction at the GALT boundary without receiver grant until the publisher's second advance (§8.1.6), and constrained delivery/grant behavior (§§8.2, 8.3.1, 8.8). Query Lookahead is checked but not independently mapped; no Modify Lookahead clause is claimed. The Java API has no Time Regulation Disabled callback, so disable is a service transition, not a callback assertion. No independent-provider conformance claim.",
 
       "contract_refs": [
         "federation-execution-api-contract.json",
@@ -18136,8 +18158,9 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionRegulationReenable",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Keep unsupported by default until the scenario is run against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "exclusion": "Provider, FOM, logical-time implementation, endpoint, interaction/parameter names, and callback model are adapter-supplied.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-reenable",

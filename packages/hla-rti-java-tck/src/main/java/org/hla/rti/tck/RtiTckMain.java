@@ -3644,11 +3644,20 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.timestamped-interaction-regulation-reenable",
              "queued timestamped interaction across changed-lookahead regulation re-enable",
              "time",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.sendInteraction(time);RTIambassador.retract;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeRegulationDisabled;FederateAmbassador.timeAdvanceGrant",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.sendInteraction(time);RTIambassador.retract;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
              new String[] {
-                "java-1516.1-interaction-declaration-and-delivery",
-                "java-1516.1-time-advance-and-grant"
-             }, false), RtiTckMain::timestampedInteractionRegulationReenable);
+                "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+                "requirement-candidate-content-clauses-08-time-management-page-178-l54-15",
+                "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+                "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+                "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+                "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+                "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+                "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+                "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+                "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+                "requirement-candidate-content-clauses-08-time-management-page-194-l45-11"
+             }, true), RtiTckMain::timestampedInteractionRegulationReenable);
        run(new Scenario("java-tck.timestamped-attribute-update-regulation-reenable",
              "queued timestamped attribute update across changed-lookahead regulation re-enable",
              "time",
