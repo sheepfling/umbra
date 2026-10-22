@@ -31910,15 +31910,15 @@
           "standard_section": "hla-1516.1-2025:clause-8.14.4"
         }
       ],
-      "mapping_note": "Direct pairs: page-184-l121-36 -> \u00a78.1.5 for the TSO time gate with receive-order progress as a positive control; page-204-l74-21 -> \u00a78.14.4(d) for TAR's inclusive equal-time cutoff: both timestamp-5 interactions precede the TAR(5) grant, while timestamp 6 remains pending until TAR(6). This is not an asynchronous-TSO dispatch claim.",
+      "mapping_note": "Direct pairs: page-184-l121-36 -> \u00a78.1.5 for the TSO time gate with receive-order progress as a positive control; page-204-l74-21 -> \u00a78.14.4(d) for TAR's inclusive equal-time cutoff: both timestamp-5 interactions precede the TAR(5) grant, while timestamp 6 remains pending until TAR(6). This is not an asynchronous-TSO dispatch claim. Pure official-API Java source passed installed-adapter HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22, not independent-provider conformance.",
       "contract_refs": [
         "standard-asynchronous-delivery-tso-exclusion-api-contract.json",
         "standard-asynchronous-delivery-tso-exclusion-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#asynchronousDeliveryTsoExclusion",
       "parity": "cpp-tck.asynchronous-delivery-tso-exclusion",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model. Only official IEEE 1516.1-2025 Java API and JDK APIs are used; no provider-specific classes or DDM regions."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/asynchronous-tso-exclusion-{evoked,immediate}-default-20261022.json. Matching installed C++ primary/contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/asynchronous-delivery-tso-exclusion-verified-20261016.json. Provider, FOM, endpoint, logical time, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.asynchronous-delivery-reenable-tso-gate",

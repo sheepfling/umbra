@@ -272,6 +272,12 @@ after installed-package passes in both callback models on 2026-10-22. Its
 direct witnesses are §§8.15.3/8.16.5; it does not claim timestamped delivery
 or cross-provider conformance. Provider, FOM, endpoint, time, and callback
 configuration remain adapter inputs.
+The default-run `java-tck.asynchronous-delivery-tso-exclusion` case separately
+checks that RO interaction progress does not release TSO interactions before
+their logical-time gate, including TAR's equal-time cutoff (§§8.1.5, 8.14.4).
+It passed both callback models on the installed package on 2026-10-22;
+interaction classes, parameters, time, and callback configuration remain
+adapter inputs. It does not assert asynchronous TSO dispatch.
 The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
 rate lookup, active and passive named subscriptions, default-rate behavior,
 per-attribute rate reset, and invalid designator/object/attribute failures.

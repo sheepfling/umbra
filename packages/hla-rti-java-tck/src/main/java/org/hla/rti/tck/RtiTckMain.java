@@ -1056,7 +1056,7 @@ public final class RtiTckMain {
                "cpp-1516.1-asynchronous-delivery-enable",
                "cpp-1516.1-timestamped-interaction",
                "cpp-1516.1-time-advance-request"
-            }, false), RtiTckMain::asynchronousDeliveryTsoExclusion);
+            }, true), RtiTckMain::asynchronousDeliveryTsoExclusion);
       run(new Scenario("java-tck.asynchronous-delivery-reenable-tso-gate",
             "release receive-order traffic on asynchronous-delivery re-enable without bypassing the TSO time gate",
             "asynchronous-delivery",
