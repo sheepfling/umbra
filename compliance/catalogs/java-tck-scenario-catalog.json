@@ -22169,6 +22169,7 @@
         "RTIambassador.attributeOwnershipAcquisition",
         "RTIambassador.cancelAttributeOwnershipAcquisition",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.deleteObjectInstance",
         "RTIambassador.evokeCallback",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -22179,7 +22180,8 @@
         "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
         "FederateAmbassador.attributeOwnershipAcquisitionNotification",
         "FederateAmbassador.attributeOwnershipUnavailable",
-        "FederateAmbassador.requestAttributeOwnershipRelease"
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.removeObjectInstance"
       ],
       "requirement_ids": [
         "cpp-1516.1-object-management",
@@ -22188,6 +22190,7 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
         "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24"
       ],
@@ -22198,17 +22201,18 @@
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24", "standard_section": "hla-1516.1-2025:clause-7.1.2.2"}
       ],
-      "mapping_note": "Pinned §7.15 page-170-l13-1 covers pending regular cancellation; §7.16 page-171-l52-13 directly covers the at-most-once grouped confirmation containing both qualifying owner-held attributes; §7.1.2.2 page-153-l75-24 covers rejection of a new If Available request while cancellation remains pending. Canonical §7.15.3(e)/§7.15.5(d) specifies ObjectInstanceNotKnown for cancellation using a valid handle that the requester has not discovered; the extraction has no separate candidate for this exception. Under evoked delivery, owner callback servicing after cancellation delivers no stale release request, and unpublication raises OwnershipAcquisitionPending before confirmation but succeeds afterward. The unknown-object exception, negative owner callback check, publication fence, and earlier If Available-only cancellation rejection are API-contract observations without separate pinned Lab claims. Java compiles against the official API-only JAR, provider runtime unverified. Paired isolated current-source C++ primary/contract passed 4/4 across evoked/immediate callbacks.",
+      "mapping_note": "Direct clause 7.15 covers regular cancellation pending; clause 7.16 page-171-l46-11 covers confirmation that both attributes are no longer acquisition candidates, observed through the exact callback, rejected repeat cancellation, and successful unpublication. Clause 7.16 page-171-l52-13 covers one grouped confirmation; clause 7.1.2.2 covers the pending If Available exclusion. The unknown-object exception and other negative service boundaries remain API-contract observations. In HLA_EVOKED, object removal suppresses a queued second cancellation confirmation and stale owner-release callback without an additional direct mapping. Source compiles against the official 2025 Java API JAR and passed focused JNI runs under HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/acquisition-cancellation-*-jni-20261022.json). The installed C++ primary/contract passed four focused CTests. No cross-provider or conformance claim.",
       "contract_refs": [
         "standard-attribute-ownership-acquisition-cancellation-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipAcquisitionCancellation",
       "parity": "cpp-tck.attribute-ownership-acquisition-cancellation",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 FOM containing the configured typed object class and two distinct transferable attributes (identity and integer in the sample fixture), plus a provider supporting standard attribute ownership services. The test uses only the standard Java API; provider runtime verification is pending."
+      "exclusion": "Default-disabled for unconfigured adapters; requires an IEEE 1516.1-2025 FOM with the configured typed object class and two distinct transferable attributes, a matching provider time representation, and standard attribute ownership services. The test uses only the standard Java API."
     },
     {
       "id": "java-tck.attribute-ownership-release-denied",

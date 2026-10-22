@@ -263,6 +263,30 @@ final class OwnershipAcquisitionCancellationTck {
             "repeating ownership cancellation after its confirmation");
          requester.unpublishObjectClassAttributes(requesterClass, requesterAttributeSet);
          requesterPublished = false;
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            AttributeHandleSet oneAttribute = JavaTckSupport.attributeSet(
+               requester, requesterAttribute);
+            requester.publishObjectClassAttributes(requesterClass, oneAttribute);
+            requesterPublished = true;
+            requester.attributeOwnershipAcquisition(
+               registeredObject, oneAttribute, acquisitionTag);
+            requester.cancelAttributeOwnershipAcquisition(registeredObject, oneAttribute);
+            JavaTckSupport.check(requesterRecorder.cancellations.size() == 1,
+               "second cancellation confirmation escaped before evoked callback service");
+            owner.deleteObjectInstance(registeredObject, new byte[0]);
+            await(requester, callbackModel,
+               () -> requesterRecorder.removals.size() == 1,
+               "object removal after pending ownership-acquisition cancellation");
+            JavaTckSupport.drain(owner);
+            JavaTckSupport.drain(requester);
+            JavaTckSupport.check(requesterRecorder.removals.size() == 1
+                  && registeredObject.equals(requesterRecorder.removals.get(0))
+                  && requesterRecorder.cancellations.size() == 1
+                  && ownerRecorder.releaseRequests.isEmpty(),
+               "removed object delivered stale cancellation or owner-release callbacks");
+            requester.unpublishObjectClassAttributes(requesterClass, oneAttribute);
+            requesterPublished = false;
+         }
       } finally {
          if (requesterJoined && requesterPublished && requesterClass != null
                && requesterAttributes != null) {
@@ -321,6 +345,7 @@ final class OwnershipAcquisitionCancellationTck {
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
+      private final List<ObjectInstanceHandle> removals = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -346,6 +371,9 @@ final class OwnershipAcquisitionCancellationTck {
                      && arguments != null && arguments.length >= 2) {
                   releaseRequests.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1]));
+               } else if ("removeObjectInstance".equals(name)
+                     && arguments != null && arguments.length >= 1) {
+                  removals.add((ObjectInstanceHandle) arguments[0]);
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK ownership cancellation callbacks";

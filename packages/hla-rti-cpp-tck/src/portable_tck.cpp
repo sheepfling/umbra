@@ -12102,6 +12102,42 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
   requester.rtiAmbassador().unpublishObjectClassAttributes(
       requesterClass,
       requesterAttributes);
+  if (model == rti::HLA_EVOKED) {
+    // The native public-API baseline proves that receive-order removal
+    // nullifies a cancellation confirmation still behind the callback gate.
+    rti::AttributeHandleSet const oneAttribute{requesterAttribute};
+    requester.rtiAmbassador().publishObjectClassAttributes(
+        requesterClass,
+        oneAttribute);
+    requester.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        oneAttribute,
+        acquisitionTag);
+    requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+        object,
+        oneAttribute);
+    require(
+        requester.recorder().ownershipAcquisitionCancellationEvents().size() == 1U,
+        "second cancellation confirmation escaped before evoked callback service");
+    owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] { return requester.recorder().removals().size() == 1U; },
+        options,
+        "object removal after pending ownership-acquisition cancellation");
+    for (int pass = 0; pass != 4; ++pass) {
+      owner.pump();
+      requester.pump();
+    }
+    require(
+        requester.recorder().removals().front().object == object &&
+            requester.recorder().ownershipAcquisitionCancellationEvents().size() == 1U &&
+            !owner.recorder().ownershipReleaseRequest().has_value(),
+        "removed object delivered stale cancellation or owner-release callbacks");
+    requester.rtiAmbassador().unpublishObjectClassAttributes(
+        requesterClass,
+        oneAttribute);
+  }
   owner.rtiAmbassador().unpublishObjectClassAttributes(
       ownerClass,
       ownerAttributes);
