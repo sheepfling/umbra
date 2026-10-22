@@ -84,6 +84,7 @@ final class OwnershipReleaseDeniedTck {
          await(requester, callbackModel,
             () -> !requesterRecorder.unavailable.isEmpty(),
             "post-denial ownership-query unavailable callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.unavailable.size() == 1
                && requesterRecorder.acquisitions.isEmpty(),
             "post-denial ownership query duplicated unavailability or acquired ownership");
@@ -94,6 +95,7 @@ final class OwnershipReleaseDeniedTck {
          await(requester, callbackModel,
             () -> !requesterRecorder.ownershipInformation.isEmpty(),
             "post-denial Inform Attribute Ownership callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.ownershipInformation.size() == 1,
             "post-denial ownership query produced duplicate owner reports");
          OwnershipInfo report = requesterRecorder.ownershipInformation.get(0);
