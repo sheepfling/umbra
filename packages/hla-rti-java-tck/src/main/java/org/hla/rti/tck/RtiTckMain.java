@@ -1481,12 +1481,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.resign-delete-then-divest-privilege-epoch",
             "retain an earlier object without delete privilege while deleting a later one on resignation",
             "federation-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution(DELETE_OBJECTS_THEN_DIVEST);RTIambassador.getObjectInstanceHandle;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution(DELETE_OBJECTS_THEN_DIVEST);RTIambassador.getObjectInstanceHandle;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
             new String[] {
                "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
                "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35",
                "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40"
-            }, false), RtiTckMain::resignDeleteThenDivestPrivilegeEpoch);
+            }, true), RtiTckMain::resignDeleteThenDivestPrivilegeEpoch);
       run(new Scenario("java-tck.resign-unconditionally-divest-preserves-objects",
             "verify unconditional-divest resignation preserves a surviving federate's object",
             "federation-management",

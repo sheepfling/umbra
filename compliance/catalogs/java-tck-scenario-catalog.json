@@ -5318,7 +5318,9 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -5333,7 +5335,11 @@
         "FederateAmbassador.removeObjectInstance",
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
-      "requirement_ids": ["cpp-1516.1-federation-create-join-resign-destroy", "cpp-1516.1-ownership-management"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40"
+      ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35",
@@ -5345,12 +5351,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35", "standard_section": "hla-1516.1-2025:clause-4.12"},
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
-      "mapping_note": "Standard-only Java parity for the two-registration delete-privilege publication epoch and DELETE_OBJECTS_THEN_DIVEST state split. Native callback order is deliberately not asserted. Official API-only JAR compilation passed; provider runtime is unverified. Paired C++ installed-package primary/contract passed 4/4 across evoked and immediate models twice.",
+      "mapping_note": "Standard-only Java parity for the two-registration delete-privilege publication epoch and DELETE_OBJECTS_THEN_DIVEST state split, with direct page-058-l112-33, l125-35, and l147-40 -> §4.12 mappings. Publication-epoch setup and callback order are supplemental; native callback order is deliberately not asserted. The Java source uses receiver-local object handles and adapter-supplied class, attribute, FOM, logical time, provider, endpoint, and callback model. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-resign-delete-then-divest-privilege-epoch-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignDeleteThenDivestPrivilegeEpoch",
       "parity": "cpp-tck.resign-delete-then-divest-privilege-epoch",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM class and ordinary attribute, endpoint, and callback model; provider-runtime execution remains unverified."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible FOM class and ordinary attribute, provider, endpoint, logical-time implementation, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.advisory-switch-value-round-trips",

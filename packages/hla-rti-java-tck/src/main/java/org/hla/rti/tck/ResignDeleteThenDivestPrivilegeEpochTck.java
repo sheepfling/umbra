@@ -52,7 +52,11 @@ final class ResignDeleteThenDivestPrivilegeEpochTck {
          AttributeHandle ownerPrivilege = owner.getAttributeHandle(
             ownerClass, "HLAprivilegeToDeleteObject");
          JavaTckSupport.check(ownerClass != null && peerClass != null
-               && ownerAttribute != null && peerAttribute != null && ownerPrivilege != null,
+               && ownerAttribute != null && peerAttribute != null && ownerPrivilege != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(peer.getObjectClassName(peerClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(peer.getAttributeName(peerClass, peerAttribute)),
             "adapter FOM did not resolve the ordinary attribute and standard delete privilege");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet peerAttributes = JavaTckSupport.attributeSet(peer, peerAttribute);
@@ -68,8 +72,11 @@ final class ResignDeleteThenDivestPrivilegeEpochTck {
                && owner.isAttributeOwnedByFederate(retained, ownerAttribute)
                && owner.isAttributeOwnedByFederate(retained, ownerPrivilege),
             "first registration did not establish ordinary and delete-privilege ownership");
-         await(peer, callbackModel, () -> peerRecorder.discoveries.contains(retained),
+         await(peer, callbackModel, () -> peerRecorder.discoveries.size() == 1,
             "retained object discovery");
+         ObjectInstanceHandle peerRetained = peer.getObjectInstanceHandle(retainedName);
+         JavaTckSupport.check(peerRetained.equals(peerRecorder.discoveries.get(0)),
+            "peer did not discover the first object under its local handle");
 
          owner.unpublishObjectClassAttributes(ownerClass, privilegeOnly);
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(retained, ownerAttribute)
@@ -87,8 +94,12 @@ final class ResignDeleteThenDivestPrivilegeEpochTck {
                && owner.isAttributeOwnedByFederate(deleted, ownerAttribute)
                && owner.isAttributeOwnedByFederate(deleted, ownerPrivilege),
             "later registration did not establish a new delete-privilege epoch");
-         await(peer, callbackModel, () -> peerRecorder.discoveries.contains(deleted),
+         await(peer, callbackModel, () -> peerRecorder.discoveries.size() == 2,
             "deleted object discovery");
+         ObjectInstanceHandle peerDeleted = peer.getObjectInstanceHandle(deletedName);
+         JavaTckSupport.check(!peerDeleted.equals(peerRetained)
+               && peerDeleted.equals(peerRecorder.discoveries.get(1)),
+            "peer did not discover the later object under a distinct local handle");
 
          peerRecorder.removals.clear();
          peerRecorder.assumptions.clear();
@@ -99,12 +110,12 @@ final class ResignDeleteThenDivestPrivilegeEpochTck {
             "delete-then-divest removal and assumption callbacks");
          Assumption assumption = peerRecorder.assumptions.get(0);
          JavaTckSupport.check(peerRecorder.removals.size() == 1
-               && deleted.equals(peerRecorder.removals.get(0))
-               && retained.equals(assumption.object)
+               && peerDeleted.equals(peerRecorder.removals.get(0))
+               && peerRetained.equals(assumption.object)
                && assumption.attributes.equals(new HashSet<>(peerAttributes))
                && assumption.tag.length == 0,
             "delete-then-divest did not separate the retained and deleted objects");
-         JavaTckSupport.check(retained.equals(peer.getObjectInstanceHandle(retainedName)),
+         JavaTckSupport.check(peerRetained.equals(peer.getObjectInstanceHandle(retainedName)),
             "the instance without delete privilege was removed");
          JavaTckSupport.expectFailure(
             () -> peer.getObjectInstanceHandle(deletedName),

@@ -1643,6 +1643,15 @@ builds with all four evoked/immediate focused CTest cases passing in each; the
 Java scenario passed focused execution against a fresh GNU/Ninja JNI provider.
 All assertions use the standard 1516.1-2025 API.
 
+The default `java-tck.resign-delete-then-divest-privilege-epoch` case registers
+an object, withdraws and republishes the standard delete privilege, then
+registers a second object. On `DELETE_OBJECTS_THEN_DIVEST`, the earlier object
+is retained for attribute assumption and only the later one is removed. It
+compares discovered and removed objects using the receiver's own handles.
+Focused installed JNI runs passed in both callback modes with adapter-supplied
+FOM, logical time, provider, endpoint, and callback model; independent-provider
+conformance remains unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object
