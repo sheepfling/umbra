@@ -63,7 +63,8 @@ final class FomDirectedReferenceResolutionTck {
          sender.publishObjectClassAttributes(senderClass, attributes);
          receiver.subscribeObjectClassAttributes(receiverClass, attributes);
          sender.publishObjectClassDirectedInteractions(senderClass, interactions);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass, interactions);
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
+            interactions);
          ObjectInstanceHandle target = sender.registerObjectInstance(senderClass);
          await(receiver, callbackModel, () -> target.equals(observation.discovered),
             "directed-reference receiver did not discover the target");

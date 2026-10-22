@@ -503,6 +503,16 @@ rejection, and valid federation-name retry. They consume adapter-supplied FOM
 modules and passed focused installed-provider evoked and immediate runs. The
 transportation case does not claim runtime delivery or class-to-transportation
 introspection, and no independent-provider conformance is claimed.
+The default-run `java-tck.fom-directed-reference-resolution` case verifies
+ordinary directed delivery to a universally subscribed observer after target
+discovery, then rejects a missing FOM reference and retries valid Create. Its
+universal subscription matches the C++ parity case; owner-targeted subscription
+does not make a receiver eligible for a sender-owned target. The default-run
+`java-tck.fom-dimension-reference-resolution` case checks later-module object
+and interaction dimension associations and upper-bound lookup, then rejects an
+unresolved dimension and retries valid Create. Both passed installed-provider
+evoked and immediate runs with adapter-supplied FOMs; independent-provider
+behavior remains unverified.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
