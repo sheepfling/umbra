@@ -3126,6 +3126,32 @@
       "default_status": "run"
     },
     {
+      "id": "java-tck.logical-time-final-boundary",
+      "category": "time",
+      "title": "Preserve final logical time when adding or subtracting epsilon",
+      "api_methods": [
+        "RTIambassador.connect", "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution", "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "LogicalTimeFactory.makeFinal", "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.isFinal", "LogicalTime.add", "LogicalTime.subtract",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"
+      ],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"],
+      "standard_sections": ["hla-1516.1-2025:clause-7"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42", "standard_section": "hla-1516.1-2025:clause-7"}
+      ],
+      "mapping_note": "The pinned clause-7 final-time requirement is isolated from the existing factory/value scenario's malformed-decoding check: add(epsilon) and subtract(epsilon) from makeFinal() must each remain final. The selected provider, FOM, callback model, and time implementation are adapter inputs. Focused installed-provider Java runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE and HLAinteger64Time/HLAfloat64Time (out/java-tck/logical-time-final-boundary-*-jni-20261022.json). The original factory/value scenario was rerun after this split and remains red on malformed decode (out/java-tck/logical-time-factory-remains-red-jni-20261022.json). This is one-provider evidence, not interoperability or conformance.",
+      "callback_models": ["evoked", "immediate"],
+      "contract_refs": ["standard-final-logical-time-arithmetic-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#logicalTimeFinalBoundary",
+      "parity": "cpp-tck.logical-time-contract",
+      "default_status": "run"
+    },
+    {
       "id": "java-tck.declaration-management",
       "category": "declarations",
       "title": "Resolve standard handles and exercise ordinary object publication/subscription",

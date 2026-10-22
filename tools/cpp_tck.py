@@ -359,6 +359,19 @@ def load_catalog(path: Path) -> dict[str, Any]:
             raise ValueError(
                 f"{scenario['id']} has invalid native equivalent runner IDs"
             )
+        parity_aliases = scenario.get("parity_aliases", [])
+        if (
+            not isinstance(parity_aliases, list)
+            or any(
+                not isinstance(item, str)
+                or not item.startswith("java-tck.")
+                or item not in parity_ids
+                for item in parity_aliases
+            )
+            or len(parity_aliases) != len(set(parity_aliases))
+            or scenario.get("parity") in parity_aliases
+        ):
+            raise ValueError(f"{scenario['id']} has invalid Java parity aliases")
         if scenario["default_status"] not in {"run", "adapter-required", "unsupported"}:
             raise ValueError(f"{scenario['id']} has invalid default_status")
         if scenario["promotion"] not in {"promoted", "candidate"}:
@@ -417,6 +430,7 @@ def load_catalog(path: Path) -> dict[str, Any]:
                     f"{scenario['id']} references absent Java parity scenario {parity_id}"
                 )
             represented_java_ids.add(parity_id)
+        represented_java_ids.update(scenario.get("parity_aliases", []))
     missing_java_ids = sorted(
         scenario["id"]
         for scenario in parity.get("scenarios", [])

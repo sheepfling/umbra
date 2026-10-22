@@ -1091,6 +1091,12 @@ public final class RtiTckMain {
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory(NotConnected/FederateNotExecutionMember boundaries);LogicalTimeFactory.getName;LogicalTimeFactory.makeInitial;LogicalTimeFactory.makeFinal;LogicalTimeFactory.makeZero;LogicalTimeFactory.makeEpsilon;LogicalTime.isInitial;LogicalTime.isFinal;LogicalTimeInterval.isZero;LogicalTimeInterval.isEpsilon;LogicalTime.encode/encodedLength;LogicalTimeFactory.decodeTime;LogicalTimeInterval.encode/encodedLength;LogicalTimeFactory.decodeInterval;LogicalTime.add/subtract/distance/compareTo;LogicalTimeInterval.add/subtract/compareTo;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect", new String[] {
                "java-1516.1-logical-time-factory-values"
             }, true), RtiTckMain::logicalTimeFactory);
+      run(new Scenario("java-tck.logical-time-final-boundary",
+            "final logical-time arithmetic", "time",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeFinal;LogicalTimeFactory.makeEpsilon;LogicalTime.isFinal;LogicalTime.add;LogicalTime.subtract;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"
+            }, true), RtiTckMain::logicalTimeFinalBoundary);
       run(new Scenario("java-tck.declaration-management", "declaration management", "declarations",
             "getObjectClassHandle;getObjectClassName;getAttributeHandle;getAttributeName;getUpdateRateValue;publishObjectClassAttributes;unpublishObjectClassAttributes;unpublishObjectClass;subscribeObjectClassAttributes(active);subscribeObjectClassAttributesPassively;unsubscribeObjectClassAttributes;unsubscribeObjectClass",
             new String[] {
@@ -11725,6 +11731,8 @@ public final class RtiTckMain {
           case "java-tck.send-message-time-state-preservation-granted":
              method = "sendMessageTimeStatePreservationGranted"; break;
          case "java-tck.logical-time-factory": method = "logicalTimeFactory"; break;
+         case "java-tck.logical-time-final-boundary":
+            method = "logicalTimeFinalBoundary"; break;
          case "java-tck.declaration-management": method = "declarationManagement"; break;
          case "java-tck.base-subscription-rejects-derived-only-attribute":
             method = "baseSubscriptionRejectsDerivedOnlyAttribute"; break;
@@ -13011,6 +13019,14 @@ public final class RtiTckMain {
    }
 
    private static void logicalTimeFactory() throws Exception {
+      logicalTimeFactory(false);
+   }
+
+   private static void logicalTimeFinalBoundary() throws Exception {
+      logicalTimeFactory(true);
+   }
+
+   private static void logicalTimeFactory(boolean finalBoundaryOnly) throws Exception {
       String fom = requireFom();
       String timeRepresentation = timeImplementation();
       RtiFactory factory = factory();
@@ -13034,6 +13050,10 @@ public final class RtiTckMain {
          LogicalTimeFactory<?, ?> timeFactory = ambassador.getTimeFactory();
          check(timeFactory != null && timeRepresentation.equals(timeFactory.getName()),
             "RTI logical-time factory did not match the configured time representation");
+         if (finalBoundaryOnly) {
+            LogicalTimeValueTck.verifyFinalBoundary(timeFactory);
+            return;
+         }
          LogicalTime<?, ?> initial = timeFactory.makeInitial();
          LogicalTime<?, ?> finalTime = timeFactory.makeFinal();
          LogicalTimeInterval<?> zero = timeFactory.makeZero();

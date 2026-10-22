@@ -41,12 +41,20 @@ final class LogicalTimeValueTck {
          "logical-time interval ordering or arithmetic was inconsistent");
       expectIllegalTimeArithmetic(() -> initial.subtract(epsilon),
          "subtracting epsilon before initial time");
-      JavaTckSupport.check(finalTime.add(epsilon).isFinal()
-            && finalTime.subtract(epsilon).isFinal(),
-         "adding or subtracting epsilon at final logical time did not preserve final");
+      verifyFinalBoundary(factory);
       expectDecodeFailure(() -> factory.decodeTime(new byte[0], 0), "empty logical time");
       expectDecodeFailure(() -> factory.decodeInterval(new byte[0], 0),
          "empty logical-time interval");
+   }
+
+   static <T extends LogicalTime<T, U>, U extends LogicalTimeInterval<U>>
+         void verifyFinalBoundary(LogicalTimeFactory<T, U> factory) throws Exception {
+      T finalTime = factory.makeFinal();
+      U epsilon = factory.makeEpsilon();
+      JavaTckSupport.check(finalTime.isFinal()
+            && finalTime.add(epsilon).isFinal()
+            && finalTime.subtract(epsilon).isFinal(),
+         "adding or subtracting epsilon at final logical time did not preserve final");
    }
 
    private static <T extends LogicalTime<T, U>, U extends LogicalTimeInterval<U>>

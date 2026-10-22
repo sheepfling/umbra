@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify Java TCK scenario IDs are represented by the portable C++ catalog."""
+"""Verify Java TCK IDs have C++ catalog entries or explicit parity links/aliases."""
 
 from __future__ import annotations
 
@@ -93,21 +93,20 @@ def main() -> int:
         if isinstance(row.get("parity"), str)
         and row["parity"].startswith("java-tck.")
     }
+    parity_aliases = {
+        alias
+        for row in rows
+        for alias in row.get("parity_aliases", [])
+        if isinstance(alias, str) and alias.startswith("java-tck.")
+    }
+    parity_targets.update(parity_aliases)
     missing = sorted(java_ids - catalog_ids - parity_targets)
     stale_catalog_ids = sorted(
         scenario_id
         for scenario_id in catalog_ids - java_ids
         if scenario_id.startswith("java-tck.")
     )
-    unknown_parity_targets = sorted(
-        {
-            row["parity"]
-            for row in rows
-            if isinstance(row.get("parity"), str)
-            and row["parity"].startswith("java-tck.")
-            and row["parity"] not in java_ids
-        }
-    )
+    unknown_parity_targets = sorted(parity_targets - java_ids)
 
     if missing or stale_catalog_ids or unknown_parity_targets:
         print("cpp/java parity audit: failed", file=sys.stderr)

@@ -25,7 +25,8 @@
       "source": "official IEEE 1516.1-2025 Java API; requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42",
       "source_symbol": "IEEE 1516.1-2025 clause 7 final-logical-time arithmetic",
       "tests": [
-        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeValueTck.java::verify"
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeValueTck.java::verify",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeValueTck.java::verifyFinalBoundary"
       ]
     }
   ]

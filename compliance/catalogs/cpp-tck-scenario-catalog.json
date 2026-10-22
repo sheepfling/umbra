@@ -128,6 +128,7 @@
       "cpp_test": "src/tck_logical_time.cpp#scenarioLogicalTimePortable",
       "runner_id": "cpp-tck.logical-time-contract",
       "parity": "java-tck.logical-time-factory",
+      "parity_aliases": ["java-tck.logical-time-final-boundary"],
       "default_status": "run",
       "promotion": "promoted"
     },
