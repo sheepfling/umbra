@@ -271,8 +271,10 @@ final class FederationMomCurrentFddTck {
          description + " returned a non-empty MOM callback tag");
       check(reliable.equals(recorder.reflectionTransportation),
          description + " returned a non-reliable transportation type");
-      check(recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
-         description + " returned a producing federate or region metadata");
+      check(recorder.reflectionRegionsEmpty,
+         description + " returned region metadata");
+      JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+         description);
       return recorder.currentFdd(encoder, currentFddAttribute);
    }
 

@@ -215,9 +215,15 @@ final class FederationMomFomModuleDesignatorListTck {
          throws Exception {
       recorder.clearReflection();
       observer.requestAttributeValueUpdate(federationObject, designatorAttributes, new byte[0]);
-      await(observer, callbackModel,
-         () -> expected.equals(recorder.currentDesignators(encoder, designatorAttribute)),
-         description);
+      try {
+         await(observer, callbackModel,
+            () -> expected.equals(recorder.currentDesignators(encoder, designatorAttribute)),
+            description);
+      } catch (AssertionError timeout) {
+         throw new AssertionError(description + " expected designators " + expected
+            + " but received " + recorder.currentDesignators(encoder, designatorAttribute),
+            timeout);
+      }
       check(federationObject.equals(recorder.reflectedObject)
             && recorder.reflectedValues != null
             && recorder.reflectedValues.size() == 1

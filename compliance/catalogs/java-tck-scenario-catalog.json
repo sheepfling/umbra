@@ -932,8 +932,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomCurrentFdd",
       "parity": "cpp-tck.federation-mom-current-fdd-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied application FOM, standard MIM, extension FOM, logical-time implementation, callback model, and Java IEEE 1516.1-2025 provider; provider runtime verification remains pending.",
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-current-fdd-{evoked,immediate}-default-20261022.json after validating an RTI-originated producer through standard InvalidFederateHandle rather than requiring literal null. Matching C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-current-fdd-verified-20261016.json. Base and extension FOMs, MIM, endpoint, and callback model remain adapter-owned; no independent-provider conformance claim.",
       "adapter_inputs": [
         "provider JAR and factory",
         "base application FOM and standard MIM",
@@ -9025,12 +9025,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-049-l112-35"],
       "standard_sections": ["hla-1516.1-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l112-35", "standard_section": "hla-1516.1-2025:clause-4"}],
-      "mapping_note": "Java 2025 API-only compile passed for percent-escaped file URL construction from the adapter FOM and exact federation-MOM designator checks before and after additional Join. Java provider runtime unverified; no remote-URL claim.",
+      "mapping_note": "Java 2025 API-only compile passed for percent-escaped file URL construction from the adapter FOM and exact federation-MOM designator checks before and after additional Join. C++ installed-package primary and contract passed 8/8 at out/mgw/fom-file-url-designator-regression-20261021.json; no remote-URL claim.",
       "contract_refs": ["standard-fom-file-url-designator-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomFileUrlDesignator",
       "parity": "cpp-tck.fom-file-url-designator",
       "default_status": "unsupported",
-      "exclusion": "Configure the standard adapter FOM, MIM, additional FOM modules, time implementation, factory, endpoint, and callback model for a 2025 Java provider; runtime unverified."
+      "exclusion": "Installed Java JNI opt-in evoked and immediate runs at out/java-tck/fom-file-url-designator-{evoked,immediate}-optin-20261022.json failed: the federation MOM reflected a Windows filesystem path for the base FOM rather than its exact percent-escaped file URL. The diagnostic evoked run at out/java-tck/fom-file-url-designator-evoked-diagnostic-20261022.json records both values. Keep opt-in until a provider/adapter fix passes both callback models; do not weaken the standard assertion."
     },
     {
       "id": "java-tck.fom-reference-class-resolution",

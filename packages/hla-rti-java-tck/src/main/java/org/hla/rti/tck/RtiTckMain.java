@@ -657,7 +657,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.federation-mom-current-fdd",
             "federation MOM current FDD composition and refresh", "federation-mom",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution(additional FOM);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.queryAttributeTransportationType;RTIambassador.requestAttributeValueUpdate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reportAttributeTransportationType;FederateAmbassador.reflectAttributeValues;HLAunicodeString.decode",
-            new String[] {"cpp-1516.1-federation-mom"}, false),
+            new String[] {"cpp-1516.1-federation-mom"}, true),
          RtiTckMain::federationMomCurrentFdd);
       run(new Scenario("java-tck.federation-mom-fom-module-designator-list",
             "federation MOM FOM-module designator list", "federation-mom",

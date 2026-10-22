@@ -633,12 +633,15 @@ object names. Both callback models passed focused JNI runs. C++ invalid-enum
 and cross-implementation logical-time inputs are not representable through the
 standard Java API and are not claimed as Java parity.
 
-The opt-in `java-tck.federation-mom-current-fdd` scenario consumes the
+The default-run `java-tck.federation-mom-current-fdd` scenario consumes the
 adapter-supplied FOM, standard MIM, and an additional extension FOM
 (`-Dhla.rti.tck.additionalFom=...`). It checks standard federation-MOM
 discovery, reliable transportation and `HLAcurrentFDD` reflection, then
 verifies that an additional-module join refreshes the reflected FDD and that a
 subsequent explicit value request returns the same composition.
+It passed installed-provider evoked and immediate runs with standard
+RTI-originated producer validation; independent-provider behavior remains
+unverified.
 
 The default-run `java-tck.federation-mom-fom-module-designator-list` scenario uses
 the adapter-supplied base FOM and MIM plus one or more additional FOM modules
