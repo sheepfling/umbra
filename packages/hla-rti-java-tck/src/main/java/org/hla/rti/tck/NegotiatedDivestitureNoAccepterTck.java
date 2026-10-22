@@ -309,7 +309,12 @@ final class NegotiatedDivestitureNoAccepterTck {
          AttributeHandle requesterAttribute = requester.getAttributeHandle(
             requesterClass, attributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
-               && ownerAttribute != null && requesterAttribute != null,
+               && ownerAttribute != null && requesterAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(requester.getAttributeName(
+                  requesterClass, requesterAttribute)),
             "adapter FOM did not resolve confirmation-callback handles");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(
             owner, ownerAttribute);
@@ -320,17 +325,23 @@ final class NegotiatedDivestitureNoAccepterTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "callback re-entry registration returned a null object handle");
-         await(requester, callbackModel, () -> requesterRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(requester, callbackModel, () -> requesterRecorder.discoveries.size() == 1,
             "requester discovery before negotiation");
+         ObjectInstanceHandle requesterObject = requester.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(requesterObject.equals(requesterRecorder.discoveries.get(0)),
+            "requester discovery did not resolve to its local object handle");
          requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
 
          byte[] negotiatedTag = new byte[] {(byte) 0xc2, 0x11, 0x6d, 0x09};
          byte[] confirmationTag = new byte[] {(byte) 0xe1, 0x6a, (byte) 0xb4, 0x2d};
-         requester.attributeOwnershipAcquisition(object, requesterAttributes, negotiatedTag);
+         requester.attributeOwnershipAcquisition(
+            requesterObject, requesterAttributes, negotiatedTag);
          JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty()
                && ownerRecorder.confirmations.isEmpty()
                && owner.isAttributeOwnedByFederate(object, ownerAttribute)
-               && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               && !requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterAttribute),
             "acquisition transferred ownership before negotiated divestiture");
 
          AtomicBoolean confirmed = new AtomicBoolean();
@@ -360,10 +371,11 @@ final class NegotiatedDivestitureNoAccepterTck {
             "acquisition after callback-local confirmation");
          JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
             "callback-local confirmation emitted duplicate acquisitions");
-         checkEvent(requesterRecorder.acquisitions.get(0), object,
+         checkEvent(requesterRecorder.acquisitions.get(0), requesterObject,
             requesterAttributes, confirmationTag, "callback-local acquisition");
          JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
-               && requester.isAttributeOwnedByFederate(object, requesterAttribute),
+               && requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterAttribute),
             "re-entrant confirmation did not transfer ownership");
 
          requester.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);

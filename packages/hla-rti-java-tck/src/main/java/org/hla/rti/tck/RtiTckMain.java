@@ -1561,8 +1561,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.confirm-divestiture-from-callback",
             "complete negotiated divestiture by calling Confirm Divestiture from its owner callback",
             "ownership-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+               "requirement-candidate-content-clauses-07-ownership-management-page-156-l41-12",
+               "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
+               "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40"
+            }, true),
          RtiTckMain::confirmDivestitureFromCallback);
       run(new Scenario("java-tck.confirm-divestiture-mixed-set-atomicity",
             "reject a mixed requested/unrequested Confirm Divestiture set without partial ownership transfer",

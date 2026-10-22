@@ -1698,6 +1698,13 @@ confirmation. It uses receiver-local standard API handles and excludes C++
 process transport mechanics. Focused installed JNI runs passed in both callback
 modes; independent-provider conformance is unverified.
 
+The default `java-tck.confirm-divestiture-from-callback` case checks the
+tagged owner confirmation request, calls Confirm Divestiture from that callback,
+and verifies one tagged acquisition and ownership transfer using each
+federate's locally resolved standard handles. Callback re-entry is supplemental
+public-API evidence; C++ process transport is excluded. Focused installed JNI
+runs passed in both callback modes; independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object
