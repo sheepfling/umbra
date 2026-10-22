@@ -13401,6 +13401,51 @@
       "evidence_note": "Focused installed-provider runs passed under HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22 using adapter-supplied P0 interaction and parameter names. This is local interoperability evidence, not independent-provider conformance."
     },
     {
+      "id": "java-tck.interaction-full-unpublication",
+      "category": "declaration-management",
+      "title": "Fully unpublish one ordinary interaction class while another stays usable",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.5"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+          "standard_section": "hla-1516.1-2025:clause-5.5"
+        }
+      ],
+      "mapping_note": "Direct §5.5 witness: a full class unpublication rejects subsequent sends without callback while the other still-published class delivers; republishing restores delivery. Setup and payload checks are supplemental.",
+      "contract_refs": [
+        "standard-declaration-management-contract.json",
+        "unpublish-interaction-class-api-contract.json",
+        "unpublish-interaction-class-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#interactionFullUnpublication",
+      "parity": "cpp-tck.interaction-full-unpublication",
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider Java and existing C++ peer runs passed under evoked and immediate callback models on 2026-10-22. FOM and both class/parameter pairs remain adapter inputs; no independent-provider conformance claim."
+    },
+    {
       "id": "java-tck.interaction-multi-recipient-fifo",
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.4",

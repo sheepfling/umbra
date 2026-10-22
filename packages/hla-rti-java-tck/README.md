@@ -1190,6 +1190,18 @@ by default after focused installed-provider passes in both callback models on
 FOM, names, endpoint, and callback model remain adapter-supplied. These local
 passes are not an independent-provider conformance claim.
 
+The default-run `java-tck.interaction-full-unpublication` case translates the
+promoted C++ two-class declaration test. After baseline delivery from both
+classes, it requires `InteractionClassNotPublished` for the withdrawn class
+while the other still delivers, then verifies republish recovery and rejection
+after withdrawing the second class. The adapter supplies both class and
+parameter names. For the P0 FOM, the first pair is
+`HLAinteractionRoot.TckInteraction` / `Payload`, and the second is
+`HLAinteractionRoot.TckSecondaryDirectedInteraction` / `SecondaryPayload`.
+The Java and existing C++ peers passed focused installed-provider runs under
+both callback models on 2026-10-22; this is not independent-provider
+conformance evidence.
+
 The `java-tck.interaction-multi-recipient-fifo` scenario sends two tagged
 interactions to two active subscribers and verifies each independently receives
 the same FIFO sequence with exact class/parameter/value/tag/producer metadata,

@@ -7259,6 +7259,7 @@
       "cpp_test": "src/tck_declaration_management_scenarios.cpp#scenarioInteractionFullUnpublication",
       "runner_id": "cpp-tck.interaction-full-unpublication",
       "parity": "java-tck.declaration-management",
+      "parity_aliases": ["java-tck.interaction-full-unpublication"],
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

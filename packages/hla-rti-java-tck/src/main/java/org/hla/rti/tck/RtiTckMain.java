@@ -2923,6 +2923,13 @@ public final class RtiTckMain {
                 "java-1516.1-interaction-declaration-and-delivery",
                 "java-1516.1-interaction-parameter-delivery"
              }, true), RtiTckMain::interactionPublicationSendTransition);
+       run(new Scenario("java-tck.interaction-full-unpublication",
+             "unpublish one ordinary interaction class without withdrawing another",
+             "declaration-management",
+             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.unpublishInteractionClass;RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction",
+             new String[] {
+                "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35"
+             }, true), RtiTckMain::interactionFullUnpublication);
        run(new Scenario("java-tck.interaction-multi-recipient-fifo",
              "deliver ordinary receive-order interactions to two active subscribers in producer order",
              "interaction-management",
@@ -12313,6 +12320,8 @@ public final class RtiTckMain {
              method = "customTransportationTimestampedDirectedDelivery"; break;
           case "java-tck.interaction-publication-send-transition":
              method = "interactionPublicationSendTransition"; break;
+          case "java-tck.interaction-full-unpublication":
+             method = "interactionFullUnpublication"; break;
           case "java-tck.interaction-multi-recipient-fifo":
              method = "interactionMultiRecipientFifo"; break;
           case "java-tck.directed-interaction-multi-recipient-fifo":
@@ -14669,6 +14678,12 @@ public final class RtiTckMain {
    private static void interactionPublicationSendTransition() throws Exception {
       InteractionPublicationSendTransitionTck.run(factory(), requireFom(),
          interactionClassName(), parameterName(), callbackModel());
+   }
+
+   private static void interactionFullUnpublication() throws Exception {
+      InteractionFullUnpublicationTck.run(factory(), requireFom(), interactionClassName(),
+         parameterName(), requireAdapterValue(SECONDARY_INTERACTION_CLASS_PROPERTY),
+         requireAdapterValue(SECONDARY_INTERACTION_PARAMETER_PROPERTY), callbackModel());
    }
 
    private static void interactionMultiRecipientFifo() throws Exception {
