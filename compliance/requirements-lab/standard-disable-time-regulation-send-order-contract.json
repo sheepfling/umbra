@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-evidence-not-conformance-evidence",
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l106-26",
+      "standard_section": "hla-1516.1-2025:clause-8.4"
+    }
+  ],
+  "notes": "The native HLA_IMMEDIATE case passed before translation. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation. After enabling then disabling Time Regulation, the tests send an ordinary interaction with the timestamped overload and observe one receive-order delivery. A provider may use the untimed callback or the timed callback with both order fields RECEIVE; callback overload shape is not claimed. This bounded observation covers neither other message families nor interoperability or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-disable-time-regulation-send-order",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::enableTimeRegulation, disableTimeRegulation, sendInteraction(LogicalTime); FederateAmbassador::timeRegulationEnabled, receiveInteraction",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_disable_time_regulation_send_order.cpp::scenarioDisableTimeRegulationSendOrder", "packages/hla-rti-cpp-tck/src/tck_disable_time_regulation_send_order.cpp::scenarioDisableTimeRegulationSendOrderContract"]
+    },
+    {
+      "id": "standard-java-disable-time-regulation-send-order",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador.enableTimeRegulation, disableTimeRegulation, sendInteraction(LogicalTime); FederateAmbassador.timeRegulationEnabled, receiveInteraction",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": ["packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DisableTimeRegulationSendOrderTck.java::run"]
+    }
+  ]
+}

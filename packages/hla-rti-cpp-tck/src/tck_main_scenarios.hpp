@@ -665,6 +665,8 @@ void scenarioTimeRegulationEnableActualLookaheadTsoSend(Options const&, rti::Cal
 void scenarioTimeRegulationEnableActualLookaheadTsoSendContract(Options const&, rti::CallbackModel);
 void scenarioTimeRolePendingEnable(Options const&, rti::CallbackModel);
 void scenarioTimeRolePendingEnableContract(Options const&, rti::CallbackModel);
+void scenarioDisableTimeRegulationSendOrder(Options const&, rti::CallbackModel);
+void scenarioDisableTimeRegulationSendOrderContract(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvance(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvanceContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationAfterRestore(Options const&, rti::CallbackModel);

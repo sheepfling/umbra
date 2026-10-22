@@ -19882,6 +19882,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract",
       "cpp-tck.time-role-pending-enable",
       "cpp-tck.time-role-pending-enable-contract",
+      "cpp-tck.disable-time-regulation-send-order",
+      "cpp-tck.disable-time-regulation-send-order-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso",
       "cpp-tck.time-constrained-enable-retains-queued-tso-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso-attribute",
@@ -22482,6 +22484,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.time-role-pending-enable-contract") {
     return scenarioTimeRolePendingEnableContract;
   }
+  if (id == "cpp-tck.disable-time-regulation-send-order") {
+    return scenarioDisableTimeRegulationSendOrder;
+  }
+  if (id == "cpp-tck.disable-time-regulation-send-order-contract") {
+    return scenarioDisableTimeRegulationSendOrderContract;
+  }
   if (id == "cpp-tck.time-constrained-enable-retains-queued-tso") {
     return scenarioTimeConstrainedEnableRetainsQueuedTso;
   }
@@ -24815,6 +24823,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract" ||
                   scenario == "cpp-tck.time-role-pending-enable" ||
                   scenario == "cpp-tck.time-role-pending-enable-contract" ||
+                  scenario == "cpp-tck.disable-time-regulation-send-order" ||
+                  scenario == "cpp-tck.disable-time-regulation-send-order-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute" ||
