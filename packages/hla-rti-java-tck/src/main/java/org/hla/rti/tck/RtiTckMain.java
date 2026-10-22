@@ -200,6 +200,12 @@ public final class RtiTckMain {
       "hla.rti.tck.transportationReferenceProviderFom";
    private static final String TRANSPORTATION_REFERENCE_MISSING_FOM_PROPERTY =
       "hla.rti.tck.transportationReferenceMissingFom";
+   private static final String DIRECTED_REFERENCE_OBJECT_FOM_PROPERTY =
+      "hla.rti.tck.directedReferenceObjectFom";
+   private static final String DIRECTED_REFERENCE_INTERACTION_FOM_PROPERTY =
+      "hla.rti.tck.directedReferenceInteractionFom";
+   private static final String DIRECTED_REFERENCE_MISSING_FOM_PROPERTY =
+      "hla.rti.tck.directedReferenceMissingFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1972,6 +1978,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomTransportationReferenceResolution);
+      run(new Scenario("java-tck.fom-directed-reference-resolution",
+            "Resolve a later-module directed interaction and deliver it to a subscribed target",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;FederateAmbassador.receiveDirectedInteraction;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDirectedReferenceResolution);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11848,6 +11860,8 @@ public final class RtiTckMain {
             method = "fomDataRepresentationResolution"; break;
          case "java-tck.fom-transportation-reference-resolution":
             method = "fomTransportationReferenceResolution"; break;
+         case "java-tck.fom-directed-reference-resolution":
+            method = "fomDirectedReferenceResolution"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13611,6 +13625,14 @@ public final class RtiTckMain {
          requireAdapterFile(TRANSPORTATION_REFERENCE_CONSUMER_FOM_PROPERTY),
          requireAdapterFile(TRANSPORTATION_REFERENCE_PROVIDER_FOM_PROPERTY),
          requireAdapterFile(TRANSPORTATION_REFERENCE_MISSING_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomDirectedReferenceResolution() throws Exception {
+      FomDirectedReferenceResolutionTck.run(factory(),
+         requireAdapterFile(DIRECTED_REFERENCE_OBJECT_FOM_PROPERTY),
+         requireAdapterFile(DIRECTED_REFERENCE_INTERACTION_FOM_PROPERTY),
+         requireAdapterFile(DIRECTED_REFERENCE_MISSING_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

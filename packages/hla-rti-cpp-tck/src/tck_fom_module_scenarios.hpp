@@ -94,6 +94,8 @@ void scenarioFomDataRepresentationResolution(Options const&, rti::CallbackModel)
 void scenarioFomDataRepresentationResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomTransportationReferenceResolution(Options const&, rti::CallbackModel);
 void scenarioFomTransportationReferenceResolutionContract(Options const&, rti::CallbackModel);
+void scenarioFomDirectedReferenceResolution(Options const&, rti::CallbackModel);
+void scenarioFomDirectedReferenceResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);

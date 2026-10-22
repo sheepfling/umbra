@@ -8574,6 +8574,22 @@
       "exclusion": "Configure transportationReferenceConsumerFom, transportationReferenceProviderFom, and transportationReferenceMissingFom adapter properties for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-directed-reference-resolution",
+      "category": "fom-composition",
+      "title": "Resolve a later-module directed interaction and deliver it to a subscribed target",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getInteractionClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.publishObjectClassDirectedInteractions", "RTIambassador.subscribeObjectClassDirectedInteractions", "RTIambassador.registerObjectInstance", "RTIambassador.sendDirectedInteraction", "FederateAmbassador.receiveDirectedInteraction", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4a-page-046-l70-4", "requirement-candidate-sections-semantic-clause-4a-page-046-l74-5", "requirement-candidate-sections-semantic-clause-4a-page-047-l27-1", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5", "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "requirement-candidate-content-clauses-06-object-management-page-127-l37-11", "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.4.2", "hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-7", "hla-1516.1-2025:clause-5.12", "hla-1516.1-2025:clause-6.14.3", "hla-1516.1-2025:clause-6.15.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-046-l70-4", "standard_section": "hla-1516.2-2025:clause-4.4.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-046-l74-5", "standard_section": "hla-1516.2-2025:clause-4.4.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-047-l27-1", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5", "standard_section": "hla-1516.2-2025:clause-7"}, {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12"}, {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11", "standard_section": "hla-1516.1-2025:clause-6.14.3"}, {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1"}, {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1"}],
+      "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for later-module directed-interaction acceptance, targeted delivery, missing-reference rejection, and valid retry. Private OMT sharing metadata is not publicly introspected; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-directed-reference-resolution-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDirectedReferenceResolution",
+      "parity": "cpp-tck.fom-directed-reference-resolution",
+      "default_status": "unsupported",
+      "exclusion": "Configure directedReferenceObjectFom, directedReferenceInteractionFom, and directedReferenceMissingFom adapter properties for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

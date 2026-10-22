@@ -189,6 +189,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_reference_attribute_resolution.cpp
   src/tck_fom_data_representation_resolution.cpp
   src/tck_fom_transportation_reference_resolution.cpp
+  src/tck_fom_directed_reference_resolution.cpp
   src/tck_fom_synchronization_duplicate.cpp
   src/tck_fom_transportation_duplicate.cpp
   src/tck_fom_update_rate_duplicate.cpp

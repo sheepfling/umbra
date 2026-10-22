@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green 23-assertion directed-interaction sharing and later-module reference witness. Public Create accepts an object-class directedInteraction reference whose class is declared by a later schema-valid module; joined lookup exposes both classes. Public declaration services, object registration, ordinary directed send, and receive callback test one delivery to a discovered subscribed target. Public Create rejects an unresolved class reference and permits valid federation-name reuse. Direct OMT mappings are clauses 4.4.2, 4, and 7; public declaration and delivery mappings are 1516.1 clauses 5.12, 6.14.3, and 6.15.1. The native catalog's PublishSubscribe metadata is not directly introspectable through the public RTI API; federate declaration state is distinct. The single-directed-class fixture avoids the separate multiple-class FDD schema conflict RL-081. Full Annex C merge, Java runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-directed-reference-resolution",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules), joinFederationExecution, object/interaction handle lookup, publish/subscribe object-class directed interactions, registerObjectInstance, sendDirectedInteraction, FederateAmbassador.receiveDirectedInteraction, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador and FederateAmbassador directed interaction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_directed_reference_resolution.cpp::scenarioFomDirectedReferenceResolutionContract"]
+    }
+  ]
+}

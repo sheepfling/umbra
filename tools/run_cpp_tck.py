@@ -816,6 +816,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-provider-tck.xml")),
             "transportation-reference-missing="
             + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-missing-tck.xml")),
+            "directed-reference-object="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-object-tck.xml")),
+            "directed-reference-interaction="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-interaction-tck.xml")),
+            "directed-reference-missing="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

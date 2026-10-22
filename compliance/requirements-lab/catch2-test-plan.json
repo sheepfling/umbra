@@ -13636,6 +13636,8 @@
         "requirement-candidate-sections-semantic-clause-4a-page-047-l27-1",
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.4.2", "hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-046-l70-4", "standard_section": "hla-1516.2-2025:clause-4.4.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-046-l74-5", "standard_section": "hla-1516.2-2025:clause-4.4.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-047-l27-1", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5", "standard_section": "hla-1516.2-2025:clause-7"}],
       "test_case": "The FOM composition preflight resolves directed interactions and retains sharing metadata",
       "tags": [
         "unit",
@@ -13646,6 +13648,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/fom_composer_reference_resolution_catch2.cpp:194",
+      "assertions": 23,
       "next_action": "This private composed-catalog slice resolves a directed interaction class supplied by a later DIF module and retains the supplied object-class, interaction-class, and class-directed-interaction P/S fields. It preserves the OMT capability metadata without inventing defaults or treating it as a per-federate runtime permission gate; actual publish/subscribe declaration state remains separately implemented through IEEE 1516.1 services. It does not prove a complete Annex C merge, FOM/SOM authoring correctness, multi-directed-class FDD materialization (RL-081), DDM, runtime sharing-policy enforcement, JUnit/protected review, or conformance."
     },
     {
