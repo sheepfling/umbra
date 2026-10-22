@@ -303,7 +303,9 @@ as its unknown-instance fixture and a valid attribute from another class for
 its undefined-attribute boundary. The adapter may set
 `hla.rti.tck.foreignAttributeClass` and `hla.rti.tck.foreignAttribute`; their
 defaults are the standard MIM `HLAobjectRoot.HLAmanager.HLAfederate` class
-and `HLAfederateHandle` attribute.
+and `HLAfederateHandle` attribute. The ownership-query partition/cleanup case
+uses the same foreign-attribute settings for its undefined-attribute boundary
+and queries the real object handle after removal for its unknown-object boundary.
 The opt-in `java-tck.attribute-subscription-invocations-accumulate` case
 subscribes to the configured primary attribute, waits for discovery, then
 subscribes to the distinct configured second attribute and verifies one update

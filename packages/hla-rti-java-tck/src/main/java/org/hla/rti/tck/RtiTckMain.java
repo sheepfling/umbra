@@ -5164,7 +5164,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::ownershipQueryPartitionCleanup);
+            }, true), RtiTckMain::ownershipQueryPartitionCleanup);
       run(new Scenario("java-tck.ownership-query-result-nullification",
             "partition ownership-query results and nullify pending reports on object removal",
             "ownership",
@@ -5175,7 +5175,7 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20",
                "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21",
                "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23"
-            }, false), RtiTckMain::ownershipQueryResultNullification);
+            }, true), RtiTckMain::ownershipQueryResultNullification);
       run(new Scenario("java-tck.pending-negotiated-ownership-save-restore",
             "Preserve an If Available acquisition and negotiated divestiture through federation save and restore, including deferred immediate callbacks",
             "ownership",
@@ -8971,9 +8971,7 @@ public final class RtiTckMain {
    private static void ownershipAcquisitionIfAvailable() throws Exception {
       OwnershipAcquisitionIfAvailableTck.run(factory(), requireFom(), objectClassName(),
          attributeName(), objectClassSecondAttributeName(),
-         System.getProperty("hla.rti.tck.foreignAttributeClass",
-            "HLAobjectRoot.HLAmanager.HLAfederate"),
-         System.getProperty("hla.rti.tck.foreignAttribute", "HLAfederateHandle"),
+         foreignAttributeClassName(), foreignAttributeName(),
          callbackModel());
    }
 
@@ -8981,6 +8979,7 @@ public final class RtiTckMain {
       OwnershipQueryPartitionCleanupTck.run(factory(),
          requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
          multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+         foreignAttributeClassName(), foreignAttributeName(),
          callbackModel());
    }
 
@@ -8988,6 +8987,7 @@ public final class RtiTckMain {
       OwnershipQueryPartitionCleanupTck.runNullification(factory(),
          requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
          multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+         foreignAttributeClassName(), foreignAttributeName(),
          callbackModel());
    }
 
@@ -15142,6 +15142,15 @@ public final class RtiTckMain {
 
    private static String multiAttributeSecondName() {
       return System.getProperty("hla.rti.tck.multiAttributeSecond", "SecondValue");
+   }
+
+   private static String foreignAttributeClassName() {
+      return System.getProperty("hla.rti.tck.foreignAttributeClass",
+         "HLAobjectRoot.HLAmanager.HLAfederate");
+   }
+
+   private static String foreignAttributeName() {
+      return System.getProperty("hla.rti.tck.foreignAttribute", "HLAfederateHandle");
    }
 
    private static String timestampedAttributePasselObjectClassName() {

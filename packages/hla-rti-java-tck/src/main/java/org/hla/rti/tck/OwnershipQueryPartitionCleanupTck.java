@@ -25,18 +25,24 @@ final class OwnershipQueryPartitionCleanupTck {
    private OwnershipQueryPartitionCleanupTck() { }
 
    static void run(RtiFactory factory, String fom, String objectClassName,
-         String firstAttributeName, String secondAttributeName, CallbackModel callbackModel)
+         String firstAttributeName, String secondAttributeName,
+         String foreignAttributeClassName, String foreignAttributeName,
+         CallbackModel callbackModel)
          throws Exception {
       runConfigured(factory, fom, objectClassName, firstAttributeName,
-         secondAttributeName, callbackModel, true);
+         secondAttributeName, foreignAttributeClassName, foreignAttributeName,
+         callbackModel, true);
    }
 
    static void runNullification(RtiFactory factory, String fom, String objectClassName,
-         String firstAttributeName, String secondAttributeName, CallbackModel callbackModel)
+         String firstAttributeName, String secondAttributeName,
+         String foreignAttributeClassName, String foreignAttributeName,
+         CallbackModel callbackModel)
          throws Exception {
       verifyConnectionBoundaries(factory, callbackModel);
       runConfigured(factory, fom, objectClassName, firstAttributeName,
-         secondAttributeName, callbackModel, false);
+         secondAttributeName, foreignAttributeClassName, foreignAttributeName,
+         callbackModel, false);
    }
 
    private static void verifyConnectionBoundaries(RtiFactory factory,
@@ -59,7 +65,9 @@ final class OwnershipQueryPartitionCleanupTck {
    }
 
    private static void runConfigured(RtiFactory factory, String fom, String objectClassName,
-         String firstAttributeName, String secondAttributeName, CallbackModel callbackModel,
+         String firstAttributeName, String secondAttributeName,
+         String foreignAttributeClassName, String foreignAttributeName,
+         CallbackModel callbackModel,
          boolean includeInvalidHandleBoundaries) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
@@ -127,14 +135,14 @@ final class OwnershipQueryPartitionCleanupTck {
              "ownership-query setup did not establish the one-owned/one-unowned split");
 
          if (includeInvalidHandleBoundaries) {
-            ObjectInstanceHandle invalidObject =
-               JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-            AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
+            AttributeHandle invalidAttribute = requester.getAttributeHandle(
+               requester.getObjectClassHandle(foreignAttributeClassName),
+               foreignAttributeName);
+            JavaTckSupport.check(!invalidAttribute.equals(requesterFirst)
+                  && !invalidAttribute.equals(requesterSecond),
+               "adapter foreign attribute must not belong to the queried class");
             AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(
                requester, invalidAttribute);
-            JavaTckSupport.expectFailure(
-               () -> requester.queryAttributeOwnership(invalidObject, queryAttributes),
-               "ObjectInstanceNotKnown", "querying an unknown object");
             JavaTckSupport.expectFailure(
                () -> requester.queryAttributeOwnership(object, invalidAttributes),
                "AttributeNotDefined", "querying an undefined attribute");
@@ -151,6 +159,10 @@ final class OwnershipQueryPartitionCleanupTck {
             () -> requesterRecorder.information.size() == 1
                && requesterRecorder.notOwned.size() == 1,
             "partitioned ownership-query callbacks");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.information.size() == 1
+               && requesterRecorder.notOwned.size() == 1,
+            "ownership query produced duplicate partition callbacks");
          OwnershipEvent information = requesterRecorder.information.get(0);
          OwnershipEvent notOwned = requesterRecorder.notOwned.get(0);
          JavaTckSupport.check(object.equals(information.object)
@@ -187,6 +199,11 @@ final class OwnershipQueryPartitionCleanupTck {
          JavaTckSupport.check(requesterRecorder.information.size() == informationBeforeRemoval
                && requesterRecorder.notOwned.size() == notOwnedBeforeRemoval,
             "object removal delivered stale ownership-query callbacks");
+         if (includeInvalidHandleBoundaries) {
+            JavaTckSupport.expectFailure(
+               () -> requester.queryAttributeOwnership(object, queryAttributes),
+               "ObjectInstanceNotKnown", "querying a removed object");
+         }
       } finally {
          if (requesterJoined && requesterSubscribed && requesterClass != null
                && requesterAttributes != null) {
