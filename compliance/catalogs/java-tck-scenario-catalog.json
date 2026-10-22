@@ -22602,6 +22602,23 @@
       "promotion": "promoted"
     },
     {
+      "id": "java-tck.ownership-acquisition-cancellation-mixed-replies",
+      "category": "ownership",
+      "title": "Observe all three acquisition-cancellation reply forms across disjoint attributes",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.cancelAttributeOwnershipAcquisition", "RTIambassador.attributeOwnershipDivestitureIfWanted", "RTIambassador.attributeOwnershipReleaseDenied", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.evokeMultipleCallbacks", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.attributeOwnershipAcquisitionNotification", "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation", "FederateAmbassador.attributeOwnershipUnavailable"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-170-l16-2"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.15"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l16-2", "standard_section": "hla-1516.1-2025:clause-7.15"}],
+      "mapping_note": "Candidate Java parity for the clause 7.15 aggregate: one evoked cancellation call over three requested attributes, with disjoint confirmation, acquisition-notification, and unavailable replies. It compiles against the official 2025 API JAR, but three focused JNI runs failed: cancellation=0, acquisition=1, unavailable=1. Final ownership is correct (owner retains cancelled and denied; requester owns transferred), so only the confirmation callback remains unobserved. Keep unsupported; the missing confirmation is not inferred from separate single-attribute cases. The tested JNI native DLL predates the subset-matching fix in federation_registry_attribute_ownership_cancellation.cpp; it also differs from the green C++ package's embedded-federation configuration. A refreshed JNI gate has not been run, so the precise cause is unconfirmed. No immediate-model, independent-provider, or conformance claim.",
+      "contract_refs": ["standard-ownership-acquisition-cancellation-mixed-replies-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionCancellationMixedReplies",
+      "parity": "cpp-tck.ownership-acquisition-cancellation-mixed-replies",
+      "callback_models": ["evoked"],
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied three-attribute FOM, federate type, and HLA_EVOKED callbacks. The focused JNI gate currently fails because the cancellation-confirmation subset is not observed."
+    },
+    {
       "id": "java-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "category": "ownership",
       "title": "Cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",

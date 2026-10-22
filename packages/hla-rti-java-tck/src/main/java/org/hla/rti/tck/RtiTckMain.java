@@ -5238,6 +5238,12 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
             }, true), RtiTckMain::ownershipAcquisitionCancellationDenialRace);
+      run(new Scenario("java-tck.ownership-acquisition-cancellation-mixed-replies",
+            "observe all three cancellation reply forms for disjoint requested attributes",
+            "ownership",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipUnavailable",
+            new String[] {"cpp-1516.1-ownership-management"}, false),
+         RtiTckMain::ownershipAcquisitionCancellationMixedReplies);
       run(new Scenario("java-tck.negotiated-divestiture-partial-acquisition-cancellation",
             "cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",
             "ownership",
@@ -9032,6 +9038,18 @@ public final class RtiTckMain {
       }
       OwnershipAcquisitionCancellationTransferRaceTck.runDenied(factory(), requireFom(),
          objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void ownershipAcquisitionCancellationMixedReplies() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "mixed ownership-cancellation replies require HLA_EVOKED callbacks");
+      }
+      OwnershipAcquisitionCancellationMixedRepliesTck.run(factory(), requireFom(),
+         objectClassName(), attributeName(),
+         System.getProperty("hla.rti.tck.ownershipMixedTransferredAttribute", "Name"),
+         System.getProperty("hla.rti.tck.ownershipMixedDeniedAttribute", "PayRate"),
+         System.getProperty("hla.rti.tck.federateType", "tck-type"), callbackModel());
    }
 
    private static void negotiatedDivestiturePartialAcquisitionCancellation() throws Exception {
@@ -13020,6 +13038,10 @@ public final class RtiTckMain {
             method = "ownershipQuerySaveRestoreResults"; break;
          case "java-tck.ownership-acquisition-cancellation-transfer-race":
             method = "ownershipAcquisitionCancellationTransferRace"; break;
+         case "java-tck.ownership-acquisition-cancellation-denial-race":
+            method = "ownershipAcquisitionCancellationDenialRace"; break;
+         case "java-tck.ownership-acquisition-cancellation-mixed-replies":
+            method = "ownershipAcquisitionCancellationMixedReplies"; break;
          case "java-tck.negotiated-divestiture-partial-acquisition-cancellation":
             method = "negotiatedDivestiturePartialAcquisitionCancellation"; break;
          case "java-tck.negotiated-divestiture-no-accepter":

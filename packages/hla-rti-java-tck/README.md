@@ -217,6 +217,15 @@ checks the exact unavailable reply when the owner denies release after the
 requester's cancellation call completes. It runs with evoked callbacks only;
 immediate mode reports unsupported because it cannot express this callback
 boundary race. It does not claim the three-reply aggregate obligation.
+The opt-in `java-tck.ownership-acquisition-cancellation-mixed-replies`
+candidate translates the promoted C++ aggregate: one cancellation call spans
+three adapter-named attributes and expects disjoint cancellation, acquisition,
+and unavailable callbacks. It requires evoked callbacks and the adapter's
+three-attribute FOM (`hla.rti.tck.attribute`,
+`hla.rti.tck.ownershipMixedTransferredAttribute`, and
+`hla.rti.tck.ownershipMixedDeniedAttribute`). The local JNI gate currently
+receives the acquisition and unavailable replies but not the cancellation
+confirmation, so this Java case remains disabled by default.
 The `java-tck.auto-provide` case verifies the configured standard Auto Provide
 switch and two object discoveries, first with Attribute Scope Advisory disabled
 and then enabled. Each discovery yields one provider callback carrying the same
