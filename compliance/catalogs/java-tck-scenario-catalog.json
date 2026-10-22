@@ -15050,6 +15050,22 @@
         "cpp-1516.1-next-message-request",
         "cpp-1516.1-next-message-request-delivery"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct §8.10.2 Next Message Request witness: the receiver obtains the queued timestamped interaction with its official callback metadata before a grant at that message time, then the sender cannot retract the delivered interaction. The two Lab IDs and their subsection are pinned in next-message-request-requirements-contract.json. Focused installed-provider runs pass in both callback models using only official Java API types and adapter-supplied FOM, interaction names, and logical time; other request variants and independent-provider conformance remain separate.",
       "contract_refs": [
         "standard-next-message-request-contract.json",
         "next-message-request-api-contract.json",
@@ -15063,8 +15079,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nextMessageRequest",
       "parity": "cpp-tck.next-message-request",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmra-no-pregrant-tso-floor",

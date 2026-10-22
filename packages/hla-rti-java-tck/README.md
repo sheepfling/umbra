@@ -813,6 +813,13 @@ case passes focused installed-provider runs in both callback models using
 adapter-supplied FOM, interaction/parameter names, endpoint, and logical time.
 This is a bounded §§8.18.1/8.19.3 witness, not a conformance claim.
 
+The default `java-tck.next-message-request` scenario checks the §8.10.2
+queued-message path: a timestamped interaction arrives before the receiver's
+grant at that message time, with matching callback metadata, and cannot then
+be retracted. Focused installed-provider runs pass under both callback models.
+The provider JAR, FOM, interaction/parameter names, endpoint, time, and
+callback model remain adapter inputs; other request variants are separate.
+
 The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
 checks the standard Table 5 `AttributeRegionAssociation` report value for one
 successful `AssociateRegionsForUpdates` call. Supply `hla.rti.tck.fom`,

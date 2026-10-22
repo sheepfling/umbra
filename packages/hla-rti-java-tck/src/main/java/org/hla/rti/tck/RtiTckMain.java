@@ -3205,8 +3205,8 @@ public final class RtiTckMain {
             "Deliver the next queued timestamped interaction before the grant",
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(time);RTIambassador.nextMessageRequest;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.retract;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-next-message-request-delivery"}, false),
+            new String[] {"requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+               "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"}, true),
          RtiTckMain::nextMessageRequest);
       run(new Scenario("java-tck.nmr-no-pregrant-tso-floor",
             "grant an empty-input NMR at request time and enforce the actual-lookahead send floor",
