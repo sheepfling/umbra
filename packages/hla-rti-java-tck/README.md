@@ -1715,6 +1715,21 @@ delivered, rejects a timestamped Send Interaction at 10, and accepts one at
 installed JNI passes are independent of the NMRA case. The provider and FOM
 names remain adapter inputs; no independent-provider conformance is claimed.
 
+The default `java-tck.nmr-received-tso-floor` case covers the received-input
+§8.10.2 branch: NMR(10) delivers a queued TSO interaction at 5 and grants at
+5, then rejects a timestamped Send Interaction at 5 while accepting one at 6
+with the queried lookahead of 1. It has separate direct page-197-l89/l98
+mappings and passed focused installed JNI runs in both callback models. The
+no-pregrant branch and independent-provider conformance remain separate.
+
+The separate default `java-tck.nmra-received-tso-actual-lookahead-floor`
+case checks the §8.11.3 received-input branch: NMRA(10) delivers timestamp-5
+input and grants at 5; a post-grant Send Interaction at 5 is rejected and one
+at 6 is accepted with queried lookahead 1. It has its own direct page-199-l73
+mapping and passed focused installed JNI runs in both callback models.
+Adapter-supplied provider/FOM/time/names remain inputs; the no-pregrant branch
+and independent-provider conformance remain separate.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

@@ -15283,8 +15283,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmrReceivedTsoFloor",
       "parity": "cpp-tck.nmr-received-tso-floor",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, logical-time implementation, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmra-received-tso-actual-lookahead-floor",
@@ -15337,8 +15338,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmraReceivedTsoActualLookaheadFloor",
       "parity": "cpp-tck.nmra-received-tso-actual-lookahead-floor",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API. Adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback configuration are required for Java runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmr-received-tso-attribute-update-floor",

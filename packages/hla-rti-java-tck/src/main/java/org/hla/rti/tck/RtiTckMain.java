@@ -3213,14 +3213,14 @@ public final class RtiTckMain {
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.nextMessageRequest;RTIambassador.timeAdvanceRequest;RTIambassador.sendInteraction(LogicalTime);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled",
             new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-timestamped-interaction-delivery"}, false),
+               "cpp-1516.1-timestamped-interaction-delivery"}, true),
          RtiTckMain::nmrReceivedTsoFloor);
       run(new Scenario("java-tck.nmra-received-tso-actual-lookahead-floor",
             "use the actual NMRA grant time and lookahead after timestamped input",
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.nextMessageRequestAvailable;RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled",
             new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-timestamped-interaction-delivery"}, false),
+               "cpp-1516.1-timestamped-interaction-delivery"}, true),
          RtiTckMain::nmraReceivedTsoActualLookaheadFloor);
       run(new Scenario("java-tck.nmr-received-tso-attribute-update-floor",
             "enforce the NMR received-TSO floor for timestamped attribute updates",
@@ -9460,12 +9460,12 @@ public final class RtiTckMain {
 
    private static void nmrReceivedTsoFloor() throws Exception {
       NmrReceivedTsoFloorTck.run(factory(), requireFom(), timeImplementation(),
-         interactionClassName(), parameterName(), callbackModel());
+         typedDerivedInteractionClassName(), typedDerivedParameterName(), callbackModel());
    }
 
    private static void nmraReceivedTsoActualLookaheadFloor() throws Exception {
       NmrReceivedTsoFloorTck.runNmra(factory(), requireFom(), timeImplementation(),
-         interactionClassName(), parameterName(), callbackModel());
+         typedDerivedInteractionClassName(), typedDerivedParameterName(), callbackModel());
    }
 
    private static void nmrReceivedTsoAttributeUpdateFloor() throws Exception {
