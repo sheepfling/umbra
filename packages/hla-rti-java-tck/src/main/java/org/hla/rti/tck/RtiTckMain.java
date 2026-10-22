@@ -1891,13 +1891,13 @@ public final class RtiTckMain {
             "Accept disjoint and reject overlapping named extendable-variant alternatives",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomVariantAlternativeOverlap);
       run(new Scenario("java-tck.fom-interaction-parameter-merge-conflict",
             "Merge disjoint interaction parameters and reject a conflicting data type",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomInteractionParameterMergeConflict);
       run(new Scenario("java-tck.fom-object-attribute-merge-conflict",
             "Merge disjoint object attributes and reject conflicting semantics",

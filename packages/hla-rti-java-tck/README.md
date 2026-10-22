@@ -2493,6 +2493,27 @@ combination, and checks valid federation-name reuse. The installed Java
 adapter passed both callback models, matching the C++ primary and contract
 evidence; independent-provider conformance is not claimed.
 
+`java-tck.fom-variant-alternative-overlap` is a bounded default-run §C.3
+case. Supply `hla.rti.tck.variantAlternativeBaseFom`,
+`hla.rti.tck.variantAlternativeDisjointFom`, and
+`hla.rti.tck.variantAlternativeOverlapFom` through the adapter. It accepts
+disjoint named alternatives, rejects an overlap, and checks valid
+federation-name reuse. The installed Java adapter passed both callback
+models, as did the C++ primary and contract. This relies on the intact
+general named-data-type conflict rule; the variant-specific continuation is
+clipped in the Requirements Lab (RL-319), so full variant merging is not
+claimed.
+
+`java-tck.fom-interaction-parameter-merge-conflict` is default-run for a
+bounded §C.3 parameter-set merge. Supply
+`hla.rti.tck.interactionParameterBaseFom`,
+`hla.rti.tck.interactionParameterDisjointFom`, and
+`hla.rti.tck.interactionParameterConflictFom` through the adapter. The case
+resolves both disjoint parameters after join, rejects a conflicting type,
+and checks valid federation-name reuse. The installed Java adapter and
+C++ primary/contract each passed both callback models; this does not cover
+every parameter sub-element or establish cross-provider conformance.
+
 `java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
 adapter-supplied application FOM and standard MIM. It reads the initial MOM
 `HLAasynchronousDelivery` value, toggles the standard services, and verifies

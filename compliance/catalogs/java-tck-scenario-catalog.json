@@ -8653,8 +8653,8 @@
       "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantAlternativeOverlap",
       "parity": "cpp-tck.fom-variant-alternative-overlap",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.variantAlternative*Fom properties; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-variant-alternative-overlap-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/variant-alternative-20261021.json. The adapter supplies variantAlternativeBaseFom, variantAlternativeDisjointFom, and variantAlternativeOverlapFom. Scope is the intact general Annex C.3 conflict rule, not the clipped variant-specific continuation (RL-319)."
     },
     {
       "id": "java-tck.fom-interaction-parameter-merge-conflict",
@@ -8671,8 +8671,8 @@
       "contract_refs": ["standard-fom-interaction-parameter-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionParameterMergeConflict",
       "parity": "cpp-tck.fom-interaction-parameter-merge-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.interactionParameter*Fom properties; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-interaction-parameter-merge-conflict-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/interaction-parameter-merge-20261021.json. The adapter supplies interactionParameterBaseFom, interactionParameterDisjointFom, and interactionParameterConflictFom. Scope is the bounded Annex C.3 parameter-set merge/conflict, not all parameter sub-elements."
     },
     {
       "id": "java-tck.fom-object-attribute-merge-conflict",
