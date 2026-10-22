@@ -8689,8 +8689,8 @@
       "contract_refs": ["standard-fom-object-attribute-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectAttributeMergeConflict",
       "parity": "cpp-tck.fom-object-attribute-merge-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.objectAttribute*Fom properties; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-object-attribute-merge-conflict-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/object-attribute-merge-20261021.json. The adapter supplies objectAttributeBaseFom, objectAttributeDisjointFom, and objectAttributeConflictFom. This is bounded Annex C.3 evidence for attribute union and the semantics field only."
     },
     {
       "id": "java-tck.fom-object-class-semantics-conflict",
@@ -8707,8 +8707,8 @@
       "contract_refs": ["standard-fom-object-class-semantics-conflict-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassSemanticsConflict",
       "parity": "cpp-tck.fom-object-class-semantics-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-object-class-semantics-conflict-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/object-class-semantics-conflict-20261021.json. The adapter supplies objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom. This is bounded Clause 7 evidence for one class-semantics conflict only."
     },
     {
       "id": "java-tck.fom-matching-data-types",

@@ -2514,6 +2514,18 @@ and checks valid federation-name reuse. The installed Java adapter and
 C++ primary/contract each passed both callback models; this does not cover
 every parameter sub-element or establish cross-provider conformance.
 
+`java-tck.fom-object-attribute-merge-conflict` is default-run for bounded
+§C.3 object-attribute union and one semantics-field conflict. Supply
+`hla.rti.tck.objectAttributeBaseFom`,
+`hla.rti.tck.objectAttributeDisjointFom`, and
+`hla.rti.tck.objectAttributeConflictFom` through the adapter. The adjacent
+default-run `java-tck.fom-object-class-semantics-conflict` uses the same
+base/disjoint modules plus `hla.rti.tck.objectClassSemanticsConflictFom` to
+reject one same-named class-semantics conflict and check a valid retry.
+Both passed the installed Java adapter in both callback models, matching
+their C++ primary/contract evidence. Neither claims all class or attribute
+fields, nor independent-provider conformance.
+
 `java-tck.federate-asynchronous-delivery-mim-attribute` is default-run with an
 adapter-supplied application FOM and standard MIM. It reads the initial MOM
 `HLAasynchronousDelivery` value, toggles the standard services, and verifies

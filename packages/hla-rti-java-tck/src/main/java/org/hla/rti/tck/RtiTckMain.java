@@ -1903,13 +1903,13 @@ public final class RtiTckMain {
             "Merge disjoint object attributes and reject conflicting semantics",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomObjectAttributeMergeConflict);
       run(new Scenario("java-tck.fom-object-class-semantics-conflict",
             "Reject conflicting semantics for one named object class and allow a valid retry",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomObjectClassSemanticsConflict);
       run(new Scenario("java-tck.fom-matching-data-types",
             "Accept matching named declarations in eight data-type categories across FOM modules",
