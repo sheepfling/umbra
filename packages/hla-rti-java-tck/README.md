@@ -831,6 +831,11 @@ Clause 8 TAR path: a queued timestamp-5 interaction arrives before the
 receiver's grant at requested time 6. Focused installed-provider runs pass
 in both callback models. Cohort and equal-boundary behavior are separate tests.
 
+The default `java-tck.timestamped-interaction-tar-strict-timestamp-cutoff`
+case adds that §8.14.3 cohort check: known timestamps 5 and 6 arrive before
+grant 6, while timestamp 11 waits for TAR(12) and precedes grant 12. It passes
+focused installed-provider runs in both callback models with adapter inputs.
+
 The opt-in preferred-RECEIVE timestamped interaction conversion currently
 fails against the installed Java provider in both callback models: the send
 returns a valid retraction designator where its promoted C++ peer expects

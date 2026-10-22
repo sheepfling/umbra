@@ -17503,11 +17503,14 @@
       "requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
       "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19", "standard_section": "hla-1516.1-2025:clause-8.14.3"}
       ],
-      "mapping_note": "API-only parity to the installed-package-green C++ TAR strict-cutoff pair: TSO(5) and TSO(6) precede TAG(6); the queued TSO(11) follows only during TAR(12), before TAG(12). The known three-message cohort and callback order witness §8.14.3 for these queued messages, without claiming future transport arrivals or conformance. A Java provider run remains pending.",
+      "mapping_note": "API-only parity to the installed-package-green C++ TAR strict-cutoff pair: TSO(5) and TSO(6) precede TAG(6); the queued TSO(11) follows only during TAR(12), before TAG(12). The known three-message cohort and callback order witness §8.14.3 for these queued messages. Focused Java installed-provider runs pass in both callback models; future transport arrivals, regional routing, independent-provider interoperability, and conformance remain unclaimed.",
       "contract_refs": [
         "timestamped-interaction-api-contract.json",
         "timestamped-interaction-requirements-contract.json",
@@ -17516,8 +17519,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionTarStrictTimestampCutoff",
       "parity": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, logical-time implementation, and callback configuration; provider runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, time-managed FOM, interaction/parameter names, endpoint, callback model, and matching logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-interaction-tso-designator-terminalization",
