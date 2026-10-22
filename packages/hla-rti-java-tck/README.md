@@ -1816,6 +1816,15 @@ both callback models with adapter-supplied FOM, interaction/parameter names,
 endpoint, and time implementation. Other message families and independent-
 provider conformance remain unclaimed.
 
+The default `java-tck.time-constrained-disable-queued-attribute-to-ro`
+case checks the same §8.7 transition for attribute updates: a queued
+timestamped passel reflects through the untimed callback after disabling
+Time Constrained, and a later timestamped update retains its time with
+RECEIVE as received order. Focused installed-provider runs pass under both
+callback models. Provider, FOM, object/attribute names, endpoint, time, and
+callback model remain adapter inputs; other TSO families and independent-
+provider conformance are not claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
