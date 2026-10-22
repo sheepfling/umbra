@@ -1730,6 +1730,14 @@ mapping and passed focused installed JNI runs in both callback models.
 Adapter-supplied provider/FOM/time/names remain inputs; the no-pregrant branch
 and independent-provider conformance remain separate.
 
+The default `java-tck.nmra-ro-earliest-tso-cohort` case is HLA_EVOKED-only.
+It checks two queued receive-order interactions, a complete timestamp-5
+cohort before the first NMRA grant at 5, then only the remaining timestamp-8
+interaction before the second grant at 8. The adapter supplies the provider,
+typed interaction/parameter names, FOM, endpoint, and time implementation.
+HLA_IMMEDIATE is explicitly unsupported for this request-boundary assertion;
+independent-provider conformance is not claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

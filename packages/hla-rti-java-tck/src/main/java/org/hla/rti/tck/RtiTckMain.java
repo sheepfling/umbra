@@ -3266,7 +3266,7 @@ public final class RtiTckMain {
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getTimeFactory;RTIambassador.subscribeInteractionClass;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(receive-order);RTIambassador.sendInteraction(LogicalTime);RTIambassador.nextMessageRequestAvailable;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.receiveInteraction;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant",
             new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-timestamped-interaction-delivery"}, false),
+               "cpp-1516.1-timestamped-interaction-delivery"}, true),
          RtiTckMain::nmraRoEarliestTsoCohort);
       run(new Scenario("java-tck.modify-lookahead-contract",
             "query and modify lookahead across immediate, deferred, and pending-TAR boundaries",
@@ -9450,7 +9450,7 @@ public final class RtiTckMain {
             "NMRA message-set request-boundary assertions require HLA_EVOKED callbacks");
       }
       NmraMessageSetTck.run(factory(), requireFom(), timeImplementation(),
-         interactionClassName(), parameterName(), model);
+         typedDerivedInteractionClassName(), typedDerivedParameterName(), model);
    }
 
    private static void nmrNoPregrantTsoFloor() throws Exception {

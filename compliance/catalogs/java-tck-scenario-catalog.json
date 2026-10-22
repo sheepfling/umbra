@@ -15171,8 +15171,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmraRoEarliestTsoCohort",
       "parity": "cpp-tck.nmra-ro-earliest-tso-cohort",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, logical-time implementation, and HLA_EVOKED callback configuration. Java provider execution is not yet verified."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, typed interaction/parameter names, endpoint, logical-time implementation, and HLA_EVOKED callback model; HLA_IMMEDIATE is explicitly unsupported for this request-boundary case.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmr-no-pregrant-tso-floor",
