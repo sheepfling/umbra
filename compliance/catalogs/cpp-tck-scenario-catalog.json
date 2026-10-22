@@ -26954,6 +26954,9 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
         "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24"
@@ -26965,11 +26968,14 @@
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14", "standard_section": "hla-1516.1-2025:clause-7.15"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24", "standard_section": "hla-1516.1-2025:clause-7.1.2.2"}
       ],
-      "mapping_note": "Direct clause 7.15 covers regular cancellation pending; clause 7.16 page-171-l46-11 covers confirmation that both attributes are no longer acquisition candidates, observed through the exact confirmation, a rejected repeat cancellation, and successful unpublication. Clause 7.16 page-171-l52-13 covers the single grouped confirmation; clause 7.1.2.2 covers the pending If Available exclusion. The unknown-object exception and other negative service boundaries are API-contract observations. In HLA_EVOKED, receive-order object removal suppresses a queued second cancellation confirmation and stale owner-release callback; no separate direct Lab mapping is claimed for that phase. The current-source installed-package primary/contract passed four focused CTests and four direct runs across both callback models; Java parity passed two JNI runs. No independent-provider or conformance claim.",
+      "mapping_note": "Direct clause 7.15 pairs cover a pending regular cancellation (page-170-l13-1), the exact Confirm Attribute Ownership Acquisition Cancellation reply (l19-3), rejection of canceling an If Available-only request (l46-12), and its override by a regular acquisition (l52-14). Clause 7.16 pairs cover confirmation that both attributes are no longer acquisition candidates and one grouped callback; clause 7.1.2.2 covers the pending If Available exclusion. The unknown-object exception and other unmapped negatives remain API-contract observations. In HLA_EVOKED, object removal suppresses a queued second confirmation and stale owner release without an additional direct mapping. Current-source C++ primary/contract passed four focused CTests and four direct runs; Java parity passed two JNI runs. No independent-provider or conformance claim.",
       "contract_refs": [
         "standard-attribute-ownership-acquisition-cancellation-contract.json"
       ],
@@ -27014,6 +27020,9 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
         "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24"
@@ -27025,11 +27034,14 @@
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14", "standard_section": "hla-1516.1-2025:clause-7.15"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24", "standard_section": "hla-1516.1-2025:clause-7.1.2.2"}
       ],
-      "mapping_note": "Contract twin executes the same public-API body and direct clause 7.15, 7.16, and 7.1.2.2 checks as the primary. Its HLA_EVOKED object-removal phase also suppresses a queued second cancellation confirmation; that phase is supplemental API-contract evidence, not an additional direct requirement claim. Primary and contract passed four focused installed-package CTests across both callback models; the twin is not independent evidence.",
+      "mapping_note": "Contract twin executes the same public-API body, including the clause 7.15 confirmation reply and If Available-only cancellation/override boundaries, as the primary. It shares the direct clause 7.16 and 7.1.2.2 checks. HLA_EVOKED object-removal suppression is supplemental API-contract evidence, not an additional direct requirement claim. Primary and contract passed four focused installed-package CTests; the twin is not independent evidence.",
       "contract_refs": [
         "standard-attribute-ownership-acquisition-cancellation-contract.json"
       ],
