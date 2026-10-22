@@ -15071,16 +15071,21 @@
         "cpp-1516.1-timestamped-interaction-delivery"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-199-l64-20"
+        "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l79-25"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
           "standard_section": "hla-1516.1-2025:clause-8.11.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
+          "standard_section": "hla-1516.1-2025:clause-8.11.3"
         }
       ],
-      "mapping_note": "Direct mapping is limited to Clause 8.11.3's no-pregrant-input branch: with no TSO received before NMRA, the request grants at its request time; Send Interaction at that time is rejected below the actual-lookahead floor, while request time plus the queried lookahead is accepted. The received-TSO branch, other timestamped services, and provider conformance remain separate.",
+      "mapping_note": "Direct mappings cover the no-pregrant-input branch at page 199 l64 and the no-delivered-TSO request-time grant at page 199 l79 of §8.11.3. NMRA(10) grants at 10 with no TSO received; Send Interaction at 10 is rejected below the actual-lookahead floor, while time 11 is accepted. The received-TSO branch, other timestamped services, and provider conformance remain separate.",
       "contract_refs": [
         "next-message-request-api-contract.json",
         "next-message-request-requirements-contract.json",
@@ -15088,8 +15093,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmraNoPregrantTsoFloor",
       "parity": "cpp-tck.nmra-no-pregrant-tso-floor",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, endpoint, logical-time implementation, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmra-ro-earliest-tso-cohort",
@@ -15217,8 +15223,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmrNoPregrantTsoFloor",
       "parity": "cpp-tck.nmr-no-pregrant-tso-floor",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, logical-time implementation, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmr-received-tso-floor",

@@ -1700,6 +1700,21 @@ both callback models. This case does not assert a public Query GALT value;
 the regulator's time-plus-lookahead bound of 5 is not treated as that query's
 result when a message remains queued.
 
+The default `java-tck.nmra-no-pregrant-tso-floor` case covers the separate
+§8.11.3 available-request branch: NMRA(10) grants at 10 with no TSO delivered,
+then a timestamped interaction send at 10 throws `InvalidLogicalTime` while
+one at 11 is accepted with the queried lookahead of 1. Both direct Lab rows
+(page 199 lines 64 and 79) have a promoted C++ peer. Focused installed JNI
+runs passed in both callback models; independent-provider conformance and
+the received-TSO branch remain unverified.
+
+The separate default `java-tck.nmr-no-pregrant-tso-floor` case exercises the
+NMR §8.10.2 no-pregrant-input branch: NMR(10) grants at 10 with no TSO
+delivered, rejects a timestamped Send Interaction at 10, and accepts one at
+11 with actual lookahead 1. Its page-197-l77 direct mapping and focused
+installed JNI passes are independent of the NMRA case. The provider and FOM
+names remain adapter inputs; no independent-provider conformance is claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
