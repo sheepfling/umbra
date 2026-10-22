@@ -3118,7 +3118,7 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
                "requirement-candidate-content-clauses-08-time-management-page-190-l67-16"
-            }, false), RtiTckMain::timeRegulationEnableActualLookaheadTsoSend);
+            }, true), RtiTckMain::timeRegulationEnableActualLookaheadTsoSend);
       run(new Scenario("java-tck.time-role-pending-enable",
             "keep time-role enable requests pending until their evoked callbacks",
             "time-management",

@@ -1760,6 +1760,14 @@ mappings and focused installed-provider runs pass under both callback models.
 The provider, FOM, endpoint, time, and callback model come from the adapter;
 this does not establish an independent-provider conformance result.
 
+The default `java-tck.time-regulation-enable-actual-lookahead-tso-send`
+case checks the §8.3.4 post-enable send floor: a timestamped interaction
+below the assigned actual lookahead is rejected, while one at the floor is
+accepted. Focused installed-provider runs passed in both callback models
+with the adapter supplying a FOM-matching interaction, parameter, and
+HLAinteger64Time. The case uses only the official Java API; no independent-
+provider conformance or float64 result is claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

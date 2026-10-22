@@ -14495,12 +14495,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l64-15", "standard_section": "hla-1516.1-2025:clause-8.3.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l67-16", "standard_section": "hla-1516.1-2025:clause-8.3.4"}
       ],
-      "mapping_note": "Direct parity is limited to the canonical §8.3.4 post-enable actual-lookahead and interaction TSO-send-eligibility clauses. The existing time-role contract crosswalks the pinned Lab's §8.4.3 export to canonical §8.3.4. The callback, logical-time query, and lookahead query establish the assigned-time floor; a timestamped interaction below it is rejected and one at it is admitted. API-only compilation is not Java provider-runtime or conformance evidence.",
+      "mapping_note": "Direct parity is limited to the canonical §8.3.4 post-enable actual-lookahead and interaction TSO-send-eligibility clauses. The existing time-role contract crosswalks the pinned Lab's §8.4.3 export to canonical §8.3.4. The callback, logical-time query, and lookahead query establish the assigned-time floor; a timestamped interaction below it is rejected and one at it is admitted. Focused installed-provider Java runs pass in both callback models with adapter-supplied FOM interaction/parameter names and HLAinteger64Time; independent-provider conformance is not claimed.",
       "contract_refs": ["time-role-api-contract.json", "time-role-requirements-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeRegulationEnableActualLookaheadTsoSend",
       "parity": "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, interaction/parameter names, logical-time implementation, endpoint, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-role-pending-enable",
