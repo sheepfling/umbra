@@ -154,6 +154,12 @@ public final class RtiTckMain {
       "hla.rti.tck.rootHierarchyInvalidObjectFom";
    private static final String ROOT_HIERARCHY_INVALID_INTERACTION_FOM_PROPERTY =
       "hla.rti.tck.rootHierarchyInvalidInteractionFom";
+   private static final String TAG_DATA_TYPE_VALID_FOM_PROPERTY =
+      "hla.rti.tck.tagDataTypeValidFom";
+   private static final String TAG_DATA_TYPE_BASIC_USER_FOM_PROPERTY =
+      "hla.rti.tck.tagDataTypeBasicUserFom";
+   private static final String TAG_DATA_TYPE_BASIC_SYNCHRONIZATION_FOM_PROPERTY =
+      "hla.rti.tck.tagDataTypeBasicSynchronizationFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1884,6 +1890,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-root-hierarchy"}, false),
          RtiTckMain::fomRootHierarchy);
+      run(new Scenario("java-tck.fom-tag-data-type-categories",
+            "Accept permitted tag data types and reject raw basic user and synchronization tags",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTagDataTypeCategories);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11746,6 +11758,8 @@ public final class RtiTckMain {
             method = "fomAttributeValueRequiredSharing"; break;
          case "java-tck.fom-root-hierarchy":
             method = "fomRootHierarchy"; break;
+         case "java-tck.fom-tag-data-type-categories":
+            method = "fomTagDataTypeCategories"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13450,6 +13464,14 @@ public final class RtiTckMain {
          requireAdapterFile(ROOT_HIERARCHY_VALID_FOM_PROPERTY),
          requireAdapterFile(ROOT_HIERARCHY_INVALID_OBJECT_FOM_PROPERTY),
          requireAdapterFile(ROOT_HIERARCHY_INVALID_INTERACTION_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomTagDataTypeCategories() throws Exception {
+      FomTagDataTypeTck.run(factory(),
+         requireAdapterFile(TAG_DATA_TYPE_VALID_FOM_PROPERTY),
+         requireAdapterFile(TAG_DATA_TYPE_BASIC_USER_FOM_PROPERTY),
+         requireAdapterFile(TAG_DATA_TYPE_BASIC_SYNCHRONIZATION_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

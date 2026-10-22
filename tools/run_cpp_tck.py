@@ -770,6 +770,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-object-tck.xml")),
             "root-hierarchy-invalid-interaction="
             + str(default_path("packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-interaction-tck.xml")),
+            "tag-data-type-category-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-category-valid-tck.xml")),
+            "tag-data-type-basic-user="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-user-tck.xml")),
+            "tag-data-type-basic-synchronization="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

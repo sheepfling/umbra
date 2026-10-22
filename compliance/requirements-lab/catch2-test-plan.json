@@ -14324,6 +14324,8 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11",
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.9", "hla-1516.2-2025:clause-6.2.10"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11", "standard_section": "hla-1516.2-2025:clause-6.2.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14", "standard_section": "hla-1516.2-2025:clause-6.2.10"}],
       "test_case": "The FOM composition preflight validates user-supplied and synchronization tag data type categories",
       "tags": [
         "unit",
@@ -14333,7 +14335,7 @@
       ],
       "assertions": 18,
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2384",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2069",
       "next_action": "This private composition guard accepts a permitted user-supplied tag datatype, rejects a basic datatype for both user-supplied and synchronization tags, and preserves the exact diagnostics. Its selected Lab candidates resolve to IEEE 1516.2 clauses 6.2.9 and 6.2.10; runtime tag transport, broader composition, JUnit/protected review, and conformance remain separate."
     },
     {

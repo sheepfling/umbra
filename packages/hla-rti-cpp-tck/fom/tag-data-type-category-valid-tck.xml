@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <tags><updateReflectTag>
+        <dataType>TckTagReferenceFixture</dataType>
+        <semantics>Permitted user-supplied tag data type.</semantics>
+    </updateReflectTag></tags>
+    <synchronizations><synchronizationPoint>
+        <label>TckTagFixtureSynchronization</label>
+        <dataType>HLAinteger64Time</dataType>
+        <semantics>Permitted synchronization tag data type.</semantics>
+    </synchronizationPoint></synchronizations>
+    <dataTypes><referenceDataTypes><referenceDataType>
+        <name>TckTagReferenceFixture</name><representation>HLAtoken</representation>
+        <referenceClass>HLAobjectRoot</referenceClass>
+        <referencedAttribute>HLAprivilegeToDeleteObject</referencedAttribute>
+        <semantics>Reference data type used by the portable tag test.</semantics>
+    </referenceDataType></referenceDataTypes></dataTypes>
+</objectModel>

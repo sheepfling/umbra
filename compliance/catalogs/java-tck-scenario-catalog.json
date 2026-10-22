@@ -8526,6 +8526,22 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-tag-data-type-categories",
+      "category": "fom-composition",
+      "title": "Validate user and synchronization tag data-type categories",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11", "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14"],
+      "standard_sections": ["hla-1516.2-2025:clause-6.2.9", "hla-1516.2-2025:clause-6.2.10"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11", "standard_section": "hla-1516.2-2025:clause-6.2.9"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14", "standard_section": "hla-1516.2-2025:clause-6.2.10"}],
+      "mapping_note": "Standard Java API parity for valid tag category Create, raw basic user and synchronization tag rejection, and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-tag-data-type-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomTagDataTypeCategories",
+      "parity": "cpp-tck.fom-tag-data-type-categories",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.tagDataTypeValidFom, tagDataTypeBasicUserFom, and tagDataTypeBasicSynchronizationFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-root-hierarchy",
       "category": "fom-composition",
       "title": "Require standard object and interaction roots",
