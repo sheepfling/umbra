@@ -3612,7 +3612,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
       ],
-      "mapping_note": "Direct mappings cover the object-instance Request Attribute Value Update and owner callback (§6.21), request-tag propagation (§6.21.5), one Provide Attribute Value Update callback for the owner (§6.22), and ordinary Update/Reflect response content (§6.10). Adapter setup, discovery, and cleanup are not separate claims; this scenario does not exercise the class-designator overload. The page-137 l40-8 Requirements Lab candidate is excluded because its structural-clause extraction mismatch is recorded in the issue ledger. It remains opt-in until run against a Java IEEE 1516.1-2025 provider.",
+      "mapping_note": "Direct mappings cover the object-instance Request Attribute Value Update and owner callback (§6.21), request-tag propagation (§6.21.5), one Provide Attribute Value Update callback for the owner (§6.22), and ordinary Update/Reflect response content (§6.10). Adapter setup, discovery, and cleanup are not separate claims; this scenario does not exercise the class-designator overload. The page-137 l40-8 Requirements Lab candidate is excluded because its structural-clause extraction mismatch is recorded in the issue ledger. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied class/attribute names; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3631,8 +3631,8 @@
         "standard-attribute-value-update-response-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeValueUpdateResponse",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-value-request-service-boundaries",

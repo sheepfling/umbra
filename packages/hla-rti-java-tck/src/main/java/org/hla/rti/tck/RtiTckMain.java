@@ -1205,7 +1205,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-value-update-response",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::attributeValueUpdateResponse);
+            }, true), RtiTckMain::attributeValueUpdateResponse);
       run(new Scenario("java-tck.attribute-value-request-service-boundaries",
             "verify instance and class value-request responses plus invalid class and attribute boundaries",
             "object-management",

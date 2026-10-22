@@ -646,12 +646,14 @@ filtering, request-tag propagation, and suppression for the requester's own inst
 It uses no region services and passed the focused JNI gate in both `HLA_EVOKED`
 and `HLA_IMMEDIATE`. This does not establish independent-provider conformance.
 
-The opt-in `java-tck.attribute-value-update-response` scenario uses the adapter's
-ordinary object-class and attribute names. It verifies discovery and request-tag
+The default-run `java-tck.attribute-value-update-response` scenario uses the adapter's
+ordinary object-class and attribute names (`hla.rti.tck.objectClass` and
+`hla.rti.tck.attribute`). It verifies discovery and request-tag
 delivery, then has the owner answer with standard `updateAttributeValues` and checks
 the reflected value/tag, reliable transportation, producer, and absence of regions.
 Provider, FOM, endpoint, logical-time implementation, and callback model remain
-adapter-configured. It remains unsupported by default until run against a Java provider.
+adapter-configured. It passed the focused JNI gate in both `HLA_EVOKED` and
+`HLA_IMMEDIATE`; this does not establish independent-provider conformance.
 
 The opt-in `java-tck.attribute-value-update-request-multi-requester` scenario
 uses the adapter's ordinary object-class and attribute names. Two independent
