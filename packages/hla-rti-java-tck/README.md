@@ -2829,13 +2829,15 @@ Absent nonregional source regions may be null or empty. Focused installed-
 provider evoked and immediate runs passed; independent-provider conformance
 is not claimed.
 
-The opt-in `java-tck.interaction-closest-ancestor-transition` case uses the
+The default-run `java-tck.interaction-closest-ancestor-transition` case uses the
 adapter's three-level interaction FOM. As a receiver subscribes to base,
 middle, and exact grandchild classes in sequence, it checks one callback per
 send at the closest subscribed class. The grandchild name can be supplied with
 `hla.rti.tck.typedGrandchildInteractionClass`; the packaged rich FOM defines
 `HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction.TckTypedGrandchildInteraction`.
-It is API-compiled but has no Java provider-runtime evidence yet.
+The adapter also supplies logical time and callback model. Focused installed-
+provider evoked and immediate runs passed; independent-provider conformance is
+not claimed.
 
 The opt-in `java-tck.timestamped-inherited-interaction-class-delivery` case
 repeats the derived-to-base projection through timestamp-order delivery. It

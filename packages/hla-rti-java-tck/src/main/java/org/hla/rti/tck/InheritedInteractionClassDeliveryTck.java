@@ -170,8 +170,9 @@ final class InheritedInteractionClassDeliveryTck {
       }
    }
 
-    static void runClosestAncestor(RtiFactory factory, String fom, String baseName,
-          String middleName, String childName, CallbackModel callbackModel) throws Exception {
+    static void runClosestAncestor(RtiFactory factory, String fom,
+          String timeImplementation, String baseName, String middleName,
+          String childName, CallbackModel callbackModel) throws Exception {
        RTIambassador publisher = factory.getRtiAmbassador();
        RTIambassador subscriber = factory.getRtiAmbassador();
        Recorder callbacks = new Recorder();
@@ -187,7 +188,7 @@ final class InheritedInteractionClassDeliveryTck {
           publisherConnected = true;
           subscriber.connect(callbacks.proxy(), callbackModel);
           subscriberConnected = true;
-          publisher.createFederationExecution(federation, fom);
+          publisher.createFederationExecution(federation, fom, timeImplementation);
           created = true;
           publisher.joinFederationExecution("java-tck-closest-ancestor-publisher", federation);
           publisherJoined = true;

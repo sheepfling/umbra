@@ -25387,12 +25387,12 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l148-46", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
       ],
-      "mapping_note": "Java parity of the native-green three-stage closest-ancestor transition: one grandchild send per subscription stage yields one callback at base, middle, then exact class, matching the inferred candidate received class at each stage (§6.1.9 page-109-l148-46). Empty parameters isolate class selection. The Java API-only source is compiled against the official 2025 JAR; provider runtime remains unverified.",
+      "mapping_note": "Java parity of the C++ green three-stage closest-ancestor transition: one grandchild send per subscription stage yields one callback at base, middle, then exact class, matching the inferred candidate received class at each stage (§6.1.9 page-109-l148-46). Empty parameters isolate class selection. The Java API-only source compiles against the official 2025 JAR and uses the adapter-selected logical time implementation; no broader hierarchy or independent-provider conformance claim.",
       "contract_refs": ["standard-interaction-closest-ancestor-transition-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#interactionClosestAncestorTransition",
       "parity": "cpp-tck.interaction-closest-ancestor-transition",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 FOM with a three-level interaction-class hierarchy and an installed Java 2025 provider; runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/interaction-closest-ancestor-transition-{evoked,immediate}-default-20261022.json after passing opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/interaction-inheritance-projection-promoted-20261021.json. Adapter supplies the three-level FOM and class names, logical time, factory, endpoint, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.timestamped-inherited-interaction-class-delivery",
