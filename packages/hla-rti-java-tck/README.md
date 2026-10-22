@@ -640,6 +640,13 @@ adapter supplies the typed FOM, logical time, provider, endpoint, and callback
 model. Focused installed JNI runs passed in both callback modes; this is not an
 independent-provider conformance result.
 
+The default `java-tck.inherited-object-attribute-projection` case checks that
+base and derived subscribers discover a derived registration under their
+respective subscribed classes, then receive only their subscribed inherited and
+derived attribute values. It resolves names and handles within each federate,
+uses the adapter's typed FOM and logical time, and passed focused installed JNI
+runs in both callback modes. Independent-provider conformance is unverified.
+
 The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six
 ordinary object-attribute publication/subscription calls while joined and after

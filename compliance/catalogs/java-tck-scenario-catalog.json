@@ -39374,7 +39374,10 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getFederateName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -39387,22 +39390,32 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-attribute-declarations",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.2-fom-root-hierarchy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8"
       ],
-      "mapping_note": "Direct mapping: declaration-management page-096-l102-31 -> §5.8. Base and derived subscribers verify the class reported by object discovery against their closest matching subscription, while the publisher confirms the object's derived class.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mappings: declaration-management page-096-l90-27 and page-096-l102-31 -> §5.8. The base subscriber sees its closest matching superclass, the derived subscriber sees the registered class, and the publisher confirms its actual derived class. Ordinary inherited/derived attribute reflection is supplemental here. The Java case uses only official IEEE 1516.1-2025 APIs with per-federate handles and adapter-supplied typed FOM and logical time. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-class-attribute-declaration-api-contract.json",
         "publish-object-class-attributes-api-contract.json",
@@ -39415,7 +39428,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#inheritedObjectAttributeProjection",
       "parity": "cpp-tck.inherited-object-attribute-projection",
       "default_status": "run",
-      "exclusion": "Requires a live three-federate provider and adapter-supplied FOM with configured base/derived object classes and inherited/derived attributes. Uses only the standard IEEE 1516.1-2025 Java API."
+      "exclusion": "Requires a live three-federate provider and adapter-supplied FOM with configured base/derived object classes and inherited/derived attributes, logical-time implementation, endpoint, and callback model.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.delay-subscription-evaluation-interaction",

@@ -14,7 +14,6 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,7 +27,8 @@ final class InheritedObjectAttributeProjectionTck {
 
    private InheritedObjectAttributeProjectionTck() { }
 
-   static void run(RtiFactory factory, String fom, String baseClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String baseClassName,
          String derivedClassName, String identityAttributeName,
          String derivedAttributeName, CallbackModel model) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -48,10 +48,10 @@ final class InheritedObjectAttributeProjectionTck {
          baseConnected = true;
          derivedSubscriber.connect(derivedEvents.proxy(), model);
          derivedConnected = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         FederateHandle publisherFederate =
-            publisher.joinFederationExecution(publisherName, federation);
+         publisher.joinFederationExecution(
+            publisherName, "inheritance-publisher", federation);
          publisherJoined = true;
          baseSubscriber.joinFederationExecution("java-tck-inheritance-base", federation);
          baseJoined = true;
@@ -65,9 +65,13 @@ final class InheritedObjectAttributeProjectionTck {
             baseSubscriber.getObjectClassHandle(baseClassName);
          ObjectClassHandle subscriberDerivedClass =
             derivedSubscriber.getObjectClassHandle(derivedClassName);
-         JavaTckSupport.check(publisherDerivedClass.equals(subscriberDerivedClass)
-               && baseClass.equals(subscriberBaseClass),
-            "adapter FOM class lookups returned inconsistent inheritance handles");
+         JavaTckSupport.check(derivedClassName.equals(
+                  publisher.getObjectClassName(publisherDerivedClass))
+               && baseClassName.equals(publisher.getObjectClassName(baseClass))
+               && baseClassName.equals(baseSubscriber.getObjectClassName(subscriberBaseClass))
+               && derivedClassName.equals(
+                  derivedSubscriber.getObjectClassName(subscriberDerivedClass)),
+            "adapter FOM class lookups did not round-trip within each federate");
 
          AttributeHandle publisherIdentity = publisher.getAttributeHandle(
             publisherDerivedClass, identityAttributeName);
@@ -82,11 +86,14 @@ final class InheritedObjectAttributeProjectionTck {
          AttributeHandle derivedAttribute = derivedSubscriber.getAttributeHandle(
             subscriberDerivedClass, derivedAttributeName);
          JavaTckSupport.check(publisherIdentity.equals(publisherBaseIdentity)
-               && publisherIdentity.equals(baseIdentity)
-               && publisherIdentity.equals(derivedIdentity)
-               && publisherDerived.equals(derivedAttribute)
-               && !publisherIdentity.equals(publisherDerived),
-            "inherited and derived attributes did not retain stable distinct handles");
+               && !publisherIdentity.equals(publisherDerived)
+               && identityAttributeName.equals(baseSubscriber.getAttributeName(
+                  subscriberBaseClass, baseIdentity))
+               && identityAttributeName.equals(derivedSubscriber.getAttributeName(
+                  subscriberDerivedClass, derivedIdentity))
+               && derivedAttributeName.equals(derivedSubscriber.getAttributeName(
+                  subscriberDerivedClass, derivedAttribute)),
+            "inherited and derived attributes did not round-trip within each federate");
 
          AttributeHandleSet published =
             JavaTckSupport.attributeSet(publisher, publisherIdentity, publisherDerived);
@@ -114,10 +121,12 @@ final class InheritedObjectAttributeProjectionTck {
          await(derivedSubscriber, model, derivedClassName,
             () -> derivedEvents.discoveries().size() == 1,
             "derived-class subscriber discovery");
-         checkDiscovery(baseEvents.discoveries(), object, subscriberBaseClass, publisherFederate,
-            baseSubscriber, objectName, "base-class subscriber");
-         checkDiscovery(derivedEvents.discoveries(), object, subscriberDerivedClass,
-            publisherFederate, derivedSubscriber, objectName, "derived-class subscriber");
+         ObjectInstanceHandle baseObject = checkDiscovery(baseEvents.discoveries(),
+            subscriberBaseClass, publisherName, baseSubscriber, objectName,
+            "base-class subscriber");
+         ObjectInstanceHandle derivedObject = checkDiscovery(derivedEvents.discoveries(),
+            subscriberDerivedClass, publisherName, derivedSubscriber, objectName,
+            "derived-class subscriber");
 
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(2);
          values.put(publisherIdentity, IDENTITY.clone());
@@ -128,10 +137,10 @@ final class InheritedObjectAttributeProjectionTck {
             () -> !baseEvents.reflections().isEmpty(), "base-class attribute reflection");
          await(derivedSubscriber, model, derivedClassName,
             () -> !derivedEvents.reflections().isEmpty(), "derived-class attribute reflection");
-         checkReflection(last(baseEvents.reflections()), object, baseIdentity, null,
-            IDENTITY, null, TAG, publisherFederate, "base-class subscriber");
-         checkReflection(last(derivedEvents.reflections()), object, derivedIdentity,
-            derivedAttribute, IDENTITY, DERIVED, TAG, publisherFederate,
+         checkReflection(last(baseEvents.reflections()), baseObject, baseIdentity, null,
+            IDENTITY, null, TAG, publisherName, baseSubscriber, "base-class subscriber");
+         checkReflection(last(derivedEvents.reflections()), derivedObject, derivedIdentity,
+            derivedAttribute, IDENTITY, DERIVED, TAG, publisherName, derivedSubscriber,
             "derived-class subscriber");
          service(publisher, model, derivedClassName);
          JavaTckSupport.check(publisherEvents.reflections().isEmpty(),
@@ -162,26 +171,34 @@ final class InheritedObjectAttributeProjectionTck {
       }
    }
 
-   private static void checkDiscovery(List<Discovery> discoveries, ObjectInstanceHandle object,
-         ObjectClassHandle expectedClass, FederateHandle producer, RTIambassador subscriber,
+   private static ObjectInstanceHandle checkDiscovery(List<Discovery> discoveries,
+         ObjectClassHandle expectedClass, String producerName, RTIambassador subscriber,
          String name, String description) throws Exception {
-      JavaTckSupport.check(discoveries.size() == 1
-            && object.equals(discoveries.get(0).object)
-            && expectedClass.equals(discoveries.get(0).objectClass)
-            && name.equals(discoveries.get(0).name)
-            && producer.equals(discoveries.get(0).producer),
-         description + " received duplicate or incorrect discovery metadata");
-      JavaTckSupport.check(object.equals(subscriber.getObjectInstanceHandle(name))
-            && name.equals(subscriber.getObjectInstanceName(object)),
+      JavaTckSupport.check(discoveries.size() == 1,
+         description + " received " + discoveries.size() + " discoveries instead of one");
+      ObjectInstanceHandle object = subscriber.getObjectInstanceHandle(name);
+      Discovery discovery = discoveries.get(0);
+      JavaTckSupport.check(object.equals(discovery.object),
+         description + " discovered object differs from its local name lookup");
+      JavaTckSupport.check(expectedClass.equals(discovery.objectClass),
+         description + " reported a different discovery class");
+      JavaTckSupport.check(name.equals(discovery.name),
+         description + " reported a different object name");
+      JavaTckSupport.check(producerName.equals(subscriber.getFederateName(discovery.producer)),
+         description + " reported a different producing federate");
+      JavaTckSupport.check(name.equals(subscriber.getObjectInstanceName(object))
+            && expectedClass.equals(subscriber.getKnownObjectClassHandle(object)),
          description + " did not install object identity lookups");
+      return object;
    }
 
    private static void checkReflection(Reflection event, ObjectInstanceHandle object,
          AttributeHandle inherited, AttributeHandle derived, byte[] inheritedValue,
-         byte[] derivedValue, byte[] tag, FederateHandle producer, String description) {
+         byte[] derivedValue, byte[] tag, String producerName,
+         RTIambassador subscriber, String description) throws Exception {
       JavaTckSupport.check(object.equals(event.object)
             && Arrays.equals(tag, event.tag)
-            && producer.equals(event.producer)
+            && producerName.equals(subscriber.getFederateName(event.producer))
             && event.transportation != null
             && event.values.size() == (derived == null ? 1 : 2)
             && Arrays.equals(inheritedValue, event.values.get(inherited))

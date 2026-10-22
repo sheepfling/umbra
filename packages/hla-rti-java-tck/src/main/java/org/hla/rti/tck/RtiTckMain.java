@@ -1164,13 +1164,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.inherited-object-attribute-projection",
             "project inherited and derived attribute updates through base and derived subscriptions",
             "object-attribute-inheritance",
-            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getFederateName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-attribute-declarations",
-               "cpp-1516.1-attribute-update-reflect",
-               "cpp-1516.2-fom-root-hierarchy"
-            }, false), RtiTckMain::inheritedObjectAttributeProjection);
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31"
+            }, true), RtiTckMain::inheritedObjectAttributeProjection);
       run(new Scenario("java-tck.attribute-value-update-request-baseline",
             "instance-scoped attribute-value request and provider callback",
             "object-management",
@@ -14670,7 +14668,7 @@ public final class RtiTckMain {
     }
 
     private static void inheritedObjectAttributeProjection() throws Exception {
-       InheritedObjectAttributeProjectionTck.run(factory(), requireFom(),
+       InheritedObjectAttributeProjectionTck.run(factory(), requireFom(), timeImplementation(),
           typedObjectClassName(), typedDerivedObjectClassName(),
           typedIdentityAttributeName(), typedDerivedAttributeName(), callbackModel());
     }
