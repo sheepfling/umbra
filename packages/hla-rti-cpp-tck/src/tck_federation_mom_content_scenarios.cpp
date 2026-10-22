@@ -365,9 +365,47 @@ void scenarioFederationMomCurrentFdd(
   owner.disconnect();
 }
 
-void scenarioFederationMomFomModuleDesignatorList(
+namespace {
+
+std::wstring localFileUrl(std::filesystem::path const& file) {
+  auto const utf8 = std::filesystem::absolute(file).generic_u8string();
+  std::string path;
+  path.reserve(utf8.size());
+  for (auto const byte : utf8) {
+    path.push_back(static_cast<char>(byte));
+  }
+  require(!path.empty(), "file URL test requires an adapter-supplied local FOM");
+  auto const lastSlash = path.find_last_of('/');
+  auto const filenameStart = lastSlash == std::string::npos ? 0U : lastSlash + 1U;
+  auto const alphanumeric = [](unsigned char byte) {
+    return (byte >= 'A' && byte <= 'Z') || (byte >= 'a' && byte <= 'z') ||
+        (byte >= '0' && byte <= '9');
+  };
+  std::string url = path.starts_with("//") ? "file:" : "file://";
+  if (path.front() != '/') {
+    url.push_back('/');
+  }
+  constexpr char hex[] = "0123456789ABCDEF";
+  for (std::size_t index = 0; index < path.size(); ++index) {
+    auto const byte = static_cast<unsigned char>(path[index]);
+    auto const allowed = alphanumeric(byte) || byte == '/' || byte == ':' ||
+        byte == '-' || byte == '.' || byte == '_' || byte == '~';
+    if (!allowed || (index == filenameStart && alphanumeric(byte))) {
+      url.push_back('%');
+      url.push_back(hex[byte >> 4U]);
+      url.push_back(hex[byte & 0x0FU]);
+    } else {
+      url.push_back(static_cast<char>(byte));
+    }
+  }
+  return {url.begin(), url.end()};
+}
+
+void scenarioFederationMomFomModuleDesignatorListWithBase(
     Options const& options,
-    rti::CallbackModel model) {
+    rti::CallbackModel model,
+    std::wstring const& baseDesignator,
+    bool withExplicitMim) {
   require(
       !options.fom.empty() && !options.additionalFomModules.empty() &&
           !options.mimFom.empty(),
@@ -375,7 +413,7 @@ void scenarioFederationMomFomModuleDesignatorList(
   auto const additionalModules = fomModuleNames(options.additionalFomModules);
   require(
       std::find(additionalModules.begin(), additionalModules.end(),
-                options.fom.wstring()) == additionalModules.end(),
+                baseDesignator) == additionalModules.end(),
       "Federation MOM FOM-module designator testing requires a distinct additional module");
 
   Session owner(options, model, "federation-mom-fom-designators-owner");
@@ -385,15 +423,22 @@ void scenarioFederationMomFomModuleDesignatorList(
   owner.connect();
   observer.connect();
   extension.connect();
-  if (options.logicalTimeImplementationName.empty()) {
+  if (!withExplicitMim) {
+    require(!options.logicalTimeImplementationName.empty(),
+            "file URL FOM designator requires adapter-supplied logical time");
+    owner.rtiAmbassador().createFederationExecution(
+        federation,
+        std::vector<std::wstring>{baseDesignator},
+        options.logicalTimeImplementationName);
+  } else if (options.logicalTimeImplementationName.empty()) {
     owner.rtiAmbassador().createFederationExecutionWithMIM(
         federation,
-        std::vector<std::wstring>{options.fom.wstring()},
+        std::vector<std::wstring>{baseDesignator},
         options.mimFom.wstring());
   } else {
     owner.rtiAmbassador().createFederationExecutionWithMIM(
         federation,
-        std::vector<std::wstring>{options.fom.wstring()},
+        std::vector<std::wstring>{baseDesignator},
         options.mimFom.wstring(),
         options.logicalTimeImplementationName);
   }
@@ -462,7 +507,7 @@ void scenarioFederationMomFomModuleDesignatorList(
     return values;
   };
   auto const initialDesignators = canonicalizeDesignators(
-      std::vector<std::wstring>{options.fom.wstring()});
+      std::vector<std::wstring>{baseDesignator});
   auto const allDesignators = [&] {
     auto result = initialDesignators;
     result.insert(result.end(), additionalModules.begin(), additionalModules.end());
@@ -559,6 +604,28 @@ void scenarioFederationMomFomModuleDesignatorList(
   extension.disconnect();
   observer.disconnect();
   owner.disconnect();
+}
+
+}  // namespace
+
+void scenarioFederationMomFomModuleDesignatorList(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomFomModuleDesignatorListWithBase(
+      options, model, options.fom.wstring(), true);
+}
+
+void scenarioFomFileUrlDesignator(Options const& options,
+                                  rti::CallbackModel model) {
+  require(std::filesystem::is_regular_file(options.fom),
+          "file URL FOM designator requires an adapter-supplied local FOM file");
+  scenarioFederationMomFomModuleDesignatorListWithBase(
+      options, model, localFileUrl(options.fom), false);
+}
+
+void scenarioFomFileUrlDesignatorContract(Options const& options,
+                                          rti::CallbackModel model) {
+  scenarioFomFileUrlDesignator(options, model);
 }
 
 void scenarioFederationMomContentReports(

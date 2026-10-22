@@ -17,6 +17,8 @@ import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,8 +37,43 @@ final class FederationMomFomModuleDesignatorListTck {
    static void run(RtiFactory factory, String fom, String mim, String[] additionalFoms,
          String timeImplementation, CallbackModel callbackModel, String federateType)
          throws Exception {
+      runWithDesignator(factory, fom, mim, additionalFoms, timeImplementation,
+         callbackModel, federateType, true);
+   }
+
+   static void runFileUrl(RtiFactory factory, String fom, String mim,
+         String[] additionalFoms, String timeImplementation,
+         CallbackModel callbackModel, String federateType) throws Exception {
+      runWithDesignator(factory, fom, mim, additionalFoms, timeImplementation,
+         callbackModel, federateType, false);
+   }
+
+   private static String localFileUrl(String fom) {
+      Path file = Path.of(fom).toAbsolutePath();
+      check(Files.isRegularFile(file), "file URL test requires an adapter-supplied local FOM");
+      String url = file.toUri().toASCIIString();
+      int filenameStart = url.lastIndexOf('/') + 1;
+      if (filenameStart < url.length()) {
+         char first = url.charAt(filenameStart);
+         boolean alphanumeric = (first >= 'A' && first <= 'Z')
+            || (first >= 'a' && first <= 'z') || (first >= '0' && first <= '9');
+         if (alphanumeric) {
+            String hex = "0123456789ABCDEF";
+            return url.substring(0, filenameStart) + '%'
+               + hex.charAt(first >> 4) + hex.charAt(first & 0x0F)
+               + url.substring(filenameStart + 1);
+         }
+      }
+      return url;
+   }
+
+   private static void runWithDesignator(RtiFactory factory, String fom, String mim,
+         String[] additionalFoms, String timeImplementation,
+         CallbackModel callbackModel, String federateType, boolean withExplicitMim)
+         throws Exception {
       check(additionalFoms != null && additionalFoms.length > 0,
          "at least one adapter-supplied additional FOM module is required");
+      String baseDesignator = withExplicitMim ? fom : localFileUrl(fom);
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador extension = factory.getRtiAmbassador();
@@ -62,8 +99,13 @@ final class FederationMomFomModuleDesignatorListTck {
             "FOM-designator extension connect returned null ConfigurationResult");
          extensionConnected = true;
 
-         owner.createFederationExecutionWithMIM(
-            federation, new String[] {fom}, mim, timeImplementation);
+         if (withExplicitMim) {
+            owner.createFederationExecutionWithMIM(
+               federation, new String[] {baseDesignator}, mim, timeImplementation);
+         } else {
+            owner.createFederationExecution(
+               federation, new String[] {baseDesignator}, timeImplementation);
+         }
          created = true;
          owner.joinFederationExecution("java-tck-designators-owner", federateType, federation);
          ownerJoined = true;
@@ -99,7 +141,8 @@ final class FederationMomFomModuleDesignatorListTck {
                && federationObject.equals(observer.getObjectInstanceHandle("HLAfederation")),
             "FOM-designator discovery did not preserve standard federation-object identity");
 
-         Set<String> initialExpected = canonicalize(java.util.Collections.singletonList(fom));
+         Set<String> initialExpected = canonicalize(
+            java.util.Collections.singletonList(baseDesignator));
          Set<String> initial = requestDesignators(observer, recorder, encoder, callbackModel,
             federationObject, designatorAttribute, designatorAttributes, reliable,
             initialExpected, "initial federation FOM-module designator list");
@@ -107,7 +150,7 @@ final class FederationMomFomModuleDesignatorListTck {
             "created federation FOM-module designator list had an unexpected size");
 
          java.util.List<String> allModules = new ArrayList<>();
-         allModules.add(fom);
+         allModules.add(baseDesignator);
          java.util.Collections.addAll(allModules, additionalFoms);
          Set<String> allExpected = canonicalize(allModules);
          check(allExpected.size() == 1 + additionalFoms.length,

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The adapter supplies a local FOM file and additional module. The pure standard-API scenario constructs a percent-escaped local file URL, creates the federation from that URL, and verifies that the federation MOM reports the exact supplied designator before and after an additional-module join. The pinned Lab candidate has broad clause-4 provenance. HTTP/remote fetching, every URL authority/escape form, Java provider runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-file-url-designator",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module designators), joinFederationExecution, subscribeObjectClassAttributes, requestAttributeValueUpdate; FederateAmbassador.discoverObjectInstance and reflectAttributeValues",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 federation lifecycle and object support services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomFileUrlDesignatorContract"]
+    }
+  ]
+}

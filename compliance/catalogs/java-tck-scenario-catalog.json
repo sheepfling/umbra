@@ -8718,6 +8718,22 @@
       "exclusion": "Configure hla.rti.tck.variantRangeOrderBaseFom, variantRangeOrderValidExtensionFom, variantRangeOrderConflictExtensionFom, and variantRangeOtherComplementFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-file-url-designator",
+      "category": "fom-composition",
+      "title": "Load a local file URL FOM and preserve its exact MOM designator",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.1-fom-module-composition", "cpp-1516.1-federation-mom"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-049-l112-35"],
+      "standard_sections": ["hla-1516.1-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l112-35", "standard_section": "hla-1516.1-2025:clause-4"}],
+      "mapping_note": "Java 2025 API-only compile passed for percent-escaped file URL construction from the adapter FOM and exact federation-MOM designator checks before and after additional Join. Java provider runtime unverified; no remote-URL claim.",
+      "contract_refs": ["standard-fom-file-url-designator-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomFileUrlDesignator",
+      "parity": "cpp-tck.fom-file-url-designator",
+      "default_status": "unsupported",
+      "exclusion": "Configure the standard adapter FOM, MIM, additional FOM modules, time implementation, factory, endpoint, and callback model for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

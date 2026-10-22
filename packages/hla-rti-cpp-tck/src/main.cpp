@@ -19453,6 +19453,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-enumerator-syntax-contract",
       "cpp-tck.fom-variant-enumerator-membership-contract",
       "cpp-tck.fom-variant-range-semantics-contract",
+      "cpp-tck.fom-file-url-designator-contract",
       "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-data-representation-resolution-contract",
       "cpp-tck.fom-transportation-reference-resolution-contract",
@@ -20206,6 +20207,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-enumerator-syntax",
       "cpp-tck.fom-variant-enumerator-membership",
       "cpp-tck.fom-variant-range-semantics",
+      "cpp-tck.fom-file-url-designator",
       "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-data-representation-resolution",
       "cpp-tck.fom-transportation-reference-resolution",
@@ -21127,6 +21129,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-variant-range-semantics-contract") {
     return scenarioFomVariantRangeSemanticsContract;
+  }
+  if (id == "cpp-tck.fom-file-url-designator-contract") {
+    return scenarioFomFileUrlDesignatorContract;
   }
   if (id == "cpp-tck.fom-reference-attribute-resolution-contract") {
     return scenarioFomReferenceAttributeResolutionContract;
@@ -23521,6 +23526,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-variant-range-semantics") {
     return scenarioFomVariantRangeSemantics;
   }
+  if (id == "cpp-tck.fom-file-url-designator") {
+    return scenarioFomFileUrlDesignator;
+  }
   if (id == "cpp-tck.fom-reference-attribute-resolution") {
     return scenarioFomReferenceAttributeResolution;
   }
@@ -24206,6 +24214,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("variant-range-other-complement") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied variant range FOM modules";
+      } else if ((scenario == "cpp-tck.fom-file-url-designator" ||
+                  scenario == "cpp-tck.fom-file-url-designator-contract") &&
+                 (options.fom.empty() || options.mimFom.empty() ||
+                  options.additionalFomModules.empty() ||
+                  options.logicalTimeImplementationName.empty())) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied local FOM, MIM, additional FOM, and logical time";
       } else if ((scenario == "cpp-tck.fom-reference-attribute-resolution" ||
                   scenario == "cpp-tck.fom-reference-attribute-resolution-contract") &&
                  (options.scenarioFoms.count("reference-attribute-consumer") == 0U ||

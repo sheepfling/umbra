@@ -13,6 +13,8 @@ void scenarioFomNoteCollisionRemapContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomFomModuleDesignatorList(Options const&, rti::CallbackModel);
 void scenarioFederationMomFomModuleDesignatorListContract(
     Options const&, rti::CallbackModel);
+void scenarioFomFileUrlDesignator(Options const&, rti::CallbackModel);
+void scenarioFomFileUrlDesignatorContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReports(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReportsContract(Options const&, rti::CallbackModel);
 

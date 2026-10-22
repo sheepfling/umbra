@@ -663,6 +663,12 @@ public final class RtiTckMain {
                "cpp-1516.1-fom-module-composition",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::federationMomFomModuleDesignatorList);
+      run(new Scenario("java-tck.fom-file-url-designator",
+            "Load a local file URL FOM and retain its exact designator in federation MOM",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {"cpp-1516.1-fom-module-composition", "cpp-1516.1-federation-mom"}, false),
+         RtiTckMain::fomFileUrlDesignator);
       run(new Scenario("java-tck.federate-mom-fom-module-content-report",
             "request one joined federate's FOM-module contents through the standard MIM",
             "federate-mom",
@@ -8173,6 +8179,13 @@ public final class RtiTckMain {
          System.getProperty("hla.rti.tck.federateType", "tck-type"));
    }
 
+   private static void fomFileUrlDesignator() throws Exception {
+      FederationMomFomModuleDesignatorListTck.runFileUrl(
+         factory(), requireFom(), requireMim(), requireAdditionalFomModules(),
+         timeImplementation(), callbackModel(),
+         System.getProperty("hla.rti.tck.federateType", "tck-type"));
+   }
+
    private static void federateMomFomModuleContentReport() throws Exception {
       FederateMomFomModuleContentReportTck.run(factory(), requireFom(), requireMim(),
          requireAdditionalFom(), timeImplementation(), callbackModel(),
@@ -11597,6 +11610,8 @@ public final class RtiTckMain {
          case "java-tck.federation-mom-current-fdd": method = "federationMomCurrentFdd"; break;
          case "java-tck.federation-mom-fom-module-designator-list":
             method = "federationMomFomModuleDesignatorList"; break;
+         case "java-tck.fom-file-url-designator":
+            method = "fomFileUrlDesignator"; break;
          case "java-tck.federate-mom-fom-module-content-report":
             method = "federateMomFomModuleContentReport"; break;
          case "java-tck.federate-mom-object-instance-information":
