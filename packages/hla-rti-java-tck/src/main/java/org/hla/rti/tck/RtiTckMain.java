@@ -2166,7 +2166,7 @@ public final class RtiTckMain {
             "Reject zero update rates and expose a matched positive rate",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getUpdateRateValue;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomPositiveUpdateRate);
       run(new Scenario("java-tck.fom-dimension-default-range",
             "Reject an out-of-bounds dimension default range and accept its exact boundary",

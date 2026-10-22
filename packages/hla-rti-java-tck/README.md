@@ -545,6 +545,12 @@ through public Create and class-handle/name lookups. It passed installed-provide
 evoked and immediate runs with adapter-supplied FOM modules and standard MIM;
 independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-positive-update-rate` case rejects a zero
+update rate with `InconsistentFOM` and accepts a matched positive-rate module,
+checking the value through the standard `getUpdateRateValue` service. It passed
+installed-provider evoked and immediate runs using adapter-supplied FOM modules
+and standard MIM; independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

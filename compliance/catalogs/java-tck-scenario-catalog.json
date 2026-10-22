@@ -9441,12 +9441,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.12"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22", "standard_section": "hla-1516.2-2025:clause-6.2.12"}],
-      "mapping_note": "Standard Java API parity for exact zero-rate rejection and positive-rate lookup. One focused packaged Umbra JNI runtime run passed (out/java-tck/positive-update-rate-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for exact zero-rate rejection and positive-rate lookup. Matching C++ primary and contract cases passed 4/4 at out/mgw/positive-update-rate-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-positive-update-rate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomPositiveUpdateRate",
       "parity": "cpp-tck.fom-positive-update-rate",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures updateRateZeroPreflightFom, updateRatePositivePreflightFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-positive-update-rate-{evoked,immediate}-default-20261022.json. Adapter supplies matched zero and positive update-rate FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-default-range",
