@@ -2659,6 +2659,30 @@ matching C++ primary/contract passed both callback models; the parameter
 source mapping has only Clause 4 granularity, and cross-provider conformance
 is not claimed.
 
+The NA attribute-companion cases are default-run when the adapter supplies
+`hla.rti.tck.attributeNaValidCompanionsFom`,
+`hla.rti.tck.attributeNaOmittedCompanionsFom`,
+`hla.rti.tck.attributeNaOmittedCompanionsExtensionFom`,
+`hla.rti.tck.attributeNaInvalidUpdateTypeFom`,
+`hla.rti.tck.attributeNaInvalidUpdateConditionFom`, and
+`hla.rti.tck.attributeNaInvalidTransportationFom`. The completion case
+accepts an explicit NA companion row and a partial row completed by a second
+module. The rejection case rejects three incompatible companions and verifies
+that the federation name remains reusable. The installed Java adapter and
+matching C++ primary/contract cases passed both callback models; independent-
+provider conformance is not claimed.
+
+The dynamic update-condition cases are also default-run with adapter-supplied
+`hla.rti.tck.dynamicUpdateConditionValidFom`,
+`hla.rti.tck.conditionalUpdateConditionNaFom`,
+`hla.rti.tck.periodicUpdateConditionNaFom`, and
+`hla.rti.tck.conditionalUpdateConditionEmptyFom`. They accept supplied
+Conditional/Periodic conditions and an omitted partial condition, reject
+NA/empty supplied conditions, and verify valid federation-name reuse. The
+installed Java adapter and matching C++ primary/contract cases passed both
+callback models. The pinned source candidate maps only to Clause 4;
+independent-provider conformance is not claimed.
+
 The default-run array-cardinality cases and adjacent dimension-duplicate
 cases use adapter-supplied FOM paths. `arrayCardinalityValidFom` supplies the
 accepted scalar/list/range/Dynamic/mixed forms;

@@ -9137,12 +9137,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Standard Java API parity for accepted supplied Conditional/Periodic conditions and an omitted partial Conditional condition. Java provider runtime unverified; pinned source candidate resolves to clause 4 only.",
+      "mapping_note": "Standard Java API parity for accepted supplied Conditional/Periodic conditions and an omitted partial Conditional condition. The installed Java adapter passed both callback models; the pinned source candidate resolves to clause 4 only.",
       "contract_refs": ["standard-fom-dynamic-update-condition-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDynamicUpdateConditionValid",
       "parity": "cpp-tck.fom-dynamic-update-condition-valid",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dynamicUpdateConditionValidFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-dynamic-update-condition-valid-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/dynamic-update-condition-20261021.json. The adapter supplies the valid condition FOM."
     },
     {
       "id": "java-tck.fom-dynamic-update-condition-rejections",
@@ -9153,12 +9153,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Standard Java API parity for three schema-valid invalid dynamic conditions and valid federation-name retry. Java provider runtime unverified; pinned source candidate resolves to clause 4 only.",
+      "mapping_note": "Standard Java API parity for three schema-valid invalid dynamic conditions and valid federation-name retry. The installed Java adapter passed both callback models; the pinned source candidate resolves to clause 4 only.",
       "contract_refs": ["standard-fom-dynamic-update-condition-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDynamicUpdateConditionRejections",
       "parity": "cpp-tck.fom-dynamic-update-condition-rejections",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dynamicUpdateConditionValidFom, conditionalUpdateConditionNaFom, periodicUpdateConditionNaFom, and conditionalUpdateConditionEmptyFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-dynamic-update-condition-rejections-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/dynamic-update-condition-20261021.json. The adapter supplies the valid and three invalid-condition FOMs."
     },
     {
       "id": "java-tck.fom-attribute-na-companion-completion",
@@ -9169,12 +9169,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"],
       "standard_sections": ["hla-1516.2-2025:clause-4.5.2"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
-      "mapping_note": "Standard Java API parity for explicit and second-module-completed NA attribute companion rows. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for explicit and second-module-completed NA attribute companion rows. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-attribute-na-companions-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeNaCompanionCompletion",
       "parity": "cpp-tck.fom-attribute-na-companion-completion",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.attributeNaValidCompanionsFom, attributeNaOmittedCompanionsFom, and attributeNaOmittedCompanionsExtensionFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-attribute-na-companion-completion-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/attribute-na-companions-20261021.json. The adapter supplies the valid, omitted, and extension FOMs."
     },
     {
       "id": "java-tck.fom-attribute-na-companion-rejections",
@@ -9185,12 +9185,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"],
       "standard_sections": ["hla-1516.2-2025:clause-4.5.2"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5", "standard_section": "hla-1516.2-2025:clause-4.5.2"}],
-      "mapping_note": "Standard Java API parity for three schema-valid invalid companion modules and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for three schema-valid invalid companion modules and valid federation-name retry. The installed Java adapter passed both callback models.",
       "contract_refs": ["standard-fom-attribute-na-companions-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeNaCompanionRejections",
       "parity": "cpp-tck.fom-attribute-na-companion-rejections",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.attributeNaValidCompanionsFom, attributeNaInvalidUpdateTypeFom, attributeNaInvalidUpdateConditionFom, and attributeNaInvalidTransportationFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-attribute-na-companion-rejections-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes at out/mgw/attribute-na-companions-20261021.json. The adapter supplies the valid and three invalid-companion FOMs."
     },
     {
       "id": "java-tck.fom-member-data-type-categories",
