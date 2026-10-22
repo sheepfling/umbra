@@ -9873,15 +9873,15 @@
           "standard_section": "hla-1516.1-2025:clause-5.11"
         }
       ],
-      "mapping_note": "Direct assertions cover only the four post-resignation FederateNotExecutionMember outcomes for Publish (§5.4), Unpublish (§5.5), Subscribe (§5.10), and Unsubscribe Interaction Class (§5.11), using the corresponding exact Lab declaration candidates. FOM/setup/lookup/cleanup and successful joined-state calls are supplemental. The Java row is unsupported pending execution against a Java provider; this catalog parity is not Java runtime or conformance evidence.",
+      "mapping_note": "Direct assertions cover only the four post-resignation FederateNotExecutionMember outcomes for Publish (§5.4), Unpublish (§5.5), Subscribe (§5.10), and Unsubscribe Interaction Class (§5.11), using the corresponding exact Lab declaration candidates. FOM/setup/lookup/cleanup and successful joined-state calls are supplemental. Focused local Java runtime evidence is not independent-provider conformance evidence.",
       "contract_refs": [
         "interaction-declarations-valid-inputs-after-resignation-api-contract.json",
         "interaction-declarations-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#interactionDeclarationsAfterResignation",
       "parity": "cpp-tck.interaction-declarations-valid-inputs-after-resignation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied valid interaction-class FOM name and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider Java runs passed in evoked and immediate callback models on 2026-10-22 with an adapter-supplied P0 interaction name; the existing C++ peer passed 2/2 without rebuilding."
     },
     {
       "id": "java-tck.interaction-transportation-query-valid-inputs-after-resignation",
@@ -9936,15 +9936,15 @@
           "standard_section": "hla-1516.1-2025:clause-6.33.6"
         }
       ],
-      "mapping_note": "Maps only the post-resignation FederateNotExecutionMember query outcome (§6.32.5) and the successful query's callback assertions for publisher, interaction class, and resolvable transportation handle (§6.33.6). Fixture setup/lookups, cleanup, callback count/order, and provider runtime remain supplemental/unverified; Java stays unsupported, with no conformance claim.",
+      "mapping_note": "Maps only the post-resignation FederateNotExecutionMember query outcome (§6.32.5) and the successful query's callback assertions for publisher, interaction class, and resolvable transportation handle (§6.33.6). Fixture setup/lookups, cleanup, and callback count/order remain supplemental. Focused local Java runtime evidence is not independent-provider conformance evidence.",
       "contract_refs": [
         "interaction-transportation-query-valid-inputs-after-resignation-api-contract.json",
         "interaction-transportation-query-valid-inputs-after-resignation-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#interactionTransportationQueryAfterResignation",
       "parity": "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied valid interaction-class FOM name and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "evidence_note": "Focused installed-provider Java runs passed in evoked and immediate callback models on 2026-10-22 with an adapter-supplied P0 interaction name; the existing C++ peer passed 2/2 without rebuilding."
     },
     {
       "id": "java-tck.directed-interaction-target-lifecycle",

@@ -967,19 +967,22 @@ sender-order callback delivery without a direct standard mapping. The publisher
 receives no reflection. It passed focused installed JNI execution in both
 callback modes; independent-provider conformance remains unverified.
 
-The opt-in `java-tck.interaction-declarations-valid-inputs-after-resignation`
+The default-run `java-tck.interaction-declarations-valid-inputs-after-resignation`
 scenario confirms a valid adapter-supplied interaction handle/name round trip,
 exercises ordinary publication and subscription while joined, then verifies the
 four membership-sensitive services report `FederateNotExecutionMember` after
-resignation. It is paired with the promoted C++ scenario and remains unsupported
-by default until executed against a Java 1516.1-2025 provider.
+resignation. It is paired with the promoted C++ scenario; focused local Java
+and existing C++ runs passed in both callback models on 2026-10-22 using the
+adapter-selected P0 interaction class. This is not independent-provider
+conformance evidence.
 
-The opt-in `java-tck.interaction-transportation-query-valid-inputs-after-resignation`
+The default-run `java-tck.interaction-transportation-query-valid-inputs-after-resignation`
 scenario queries a valid active publisher for the adapter-configured interaction
 class, verifies the reported federate/class and resolvable transportation name,
 then checks `FederateNotExecutionMember` for the same query after requester
-resignation. It is paired with the promoted C++ scenario and remains unsupported
-by default until executed against a Java 1516.1-2025 provider.
+resignation. It is paired with the promoted C++ scenario; focused local Java
+and existing C++ runs passed in both callback models on 2026-10-22. This is not
+independent-provider conformance evidence.
 
 The default `java-tck.directed-interaction-declarations-valid-inputs-after-resignation`
 scenario uses the adapter's valid object-class/directed-interaction FOM

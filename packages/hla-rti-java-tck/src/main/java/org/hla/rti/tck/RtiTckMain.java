@@ -2589,7 +2589,7 @@ public final class RtiTckMain {
                "cpp-1516.1-unpublish-interaction-class-membership-boundary-after-resignation",
                "cpp-1516.1-subscribe-interaction-class-membership-boundary-after-resignation",
                "cpp-1516.1-unsubscribe-interaction-class-membership-boundary-after-resignation"
-            }, false), RtiTckMain::interactionDeclarationsAfterResignation);
+            }, true), RtiTckMain::interactionDeclarationsAfterResignation);
       run(new Scenario("java-tck.interaction-transportation-query-valid-inputs-after-resignation",
             "check interaction transportation query metadata and membership after resignation",
             "transportation-type-query",
@@ -2597,7 +2597,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-query-interaction-transportation-type-membership-boundary-after-resignation",
                "cpp-1516.1-report-interaction-transportation-type-callback"
-            }, false), RtiTckMain::interactionTransportationQueryAfterResignation);
+            }, true), RtiTckMain::interactionTransportationQueryAfterResignation);
       run(new Scenario("java-tck.directed-interaction-target-lifecycle",
             "directed interaction delivery across target deletion", "interaction-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.publishObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassAttributes;RTIambassador.subscribeObjectClassDirectedInteractionsUniversally;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.sendDirectedInteraction;RTIambassador.getTransportationTypeName;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction;FederateAmbassador.removeObjectInstance",
