@@ -3178,7 +3178,7 @@ public final class RtiTckMain {
             "time-management",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.deleteObjectInstance(time);RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.removeObjectInstance",
             new String[] {"requirement-candidate-content-clauses-08-time-management-page-193-l61-13"},
-            false), RtiTckMain::timeConstrainedDisableQueuedDeletionToRo);
+            true), RtiTckMain::timeConstrainedDisableQueuedDeletionToRo);
       run(new Scenario("java-tck.time-constrained-disable-queued-directed-to-ro",
             "deliver queued and subsequent timestamped directed interactions in receive order after disabling Time Constrained",
             "time-management",

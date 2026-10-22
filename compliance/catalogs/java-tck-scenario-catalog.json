@@ -14834,12 +14834,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.7"
         }
       ],
-      "mapping_note": "Direct §8.7 deletion-family witness: queued future Delete Object Instance is removed through the untimed overload after disabling Time Constrained, and a subsequent timestamped deletion of a distinct object retains its time with receivedOrder=RECEIVE. RL-346 records the §8.7 crosswalk from the Lab's §8.7.5 export. This uses only official Java API types and adapter-supplied FOM/time/callback inputs. Java provider runtime is unverified; other TSO families and conformance are not claimed.",
+      "mapping_note": "Direct §8.7 deletion-family witness: queued future Delete Object Instance is removed through the untimed overload after disabling Time Constrained, and a subsequent timestamped deletion of a distinct object retains its time with receivedOrder=RECEIVE. RL-346 records the §8.7 crosswalk from the Lab's §8.7.5 export. This uses only official Java API types and adapter-supplied FOM/time/callback inputs. Focused installed-provider runs pass in both callback models; other TSO families and independent-provider conformance are not claimed.",
       "contract_refs": ["time-role-api-contract.json", "time-role-requirements-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedDisableQueuedDeletionToRo",
       "parity": "cpp-tck.time-constrained-disable-queued-deletion-to-ro",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, object/attribute names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-disable-queued-directed-to-ro",

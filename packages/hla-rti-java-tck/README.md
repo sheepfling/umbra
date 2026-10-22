@@ -789,12 +789,13 @@ passes both time implementations and callback models. Java compiles against
 the official API jar but remains unsupported by default until provider-runtime
 verification.
 
-The opt-in `java-tck.time-constrained-disable-queued-deletion-to-ro` scenario
+The default `java-tck.time-constrained-disable-queued-deletion-to-ro` scenario
 uses two adapter-FOM objects to check the untimed receive-order removal of a
 queued future deletion after disabling Time Constrained, followed by a separate
 timestamped deletion whose received order is RECEIVE. Its C++ pair passes both
 time implementations and callback models. Java compiles against the official
-API jar but remains unsupported by default until provider-runtime verification.
+API jar and passes focused installed-provider runs in both callback models.
+Other TSO families and independent-provider conformance remain unclaimed.
 
 The opt-in `java-tck.time-constrained-disable-queued-directed-to-ro` scenario
 checks that a queued future directed interaction arrives through the untimed
