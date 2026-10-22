@@ -15493,8 +15493,9 @@
       "contract_refs": ["standard-next-message-request-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmrEmptyMessageSetGrantTime",
       "parity": "cpp-tck.nmr-empty-message-set-grant-time",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, logical-time implementation, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmr-request-below-galt-immediate-grant",
@@ -15533,8 +15534,9 @@
       "contract_refs": ["standard-next-message-request-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#nmrRequestBelowGaltImmediateGrant",
       "parity": "cpp-tck.nmr-request-below-galt-immediate-grant",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java translation against the official IEEE 1516.1-2025 API; an adapter-supplied Java provider, FOM, logical-time implementation, and callback configuration are required for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.nmr-lits-below-galt-immediate-grant",

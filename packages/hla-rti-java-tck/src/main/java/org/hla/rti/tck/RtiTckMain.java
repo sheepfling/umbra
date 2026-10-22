@@ -3240,13 +3240,13 @@ public final class RtiTckMain {
             "grant NMR at the requested time when no TSO message is delivered",
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.nextMessageRequest;RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-next-message-request"}, false),
+            new String[] {"cpp-1516.1-next-message-request"}, true),
          RtiTckMain::nmrEmptyMessageSetGrantTime);
       run(new Scenario("java-tck.nmr-request-below-galt-immediate-grant",
             "grant a strict-below-GALT NMR request without another federate advancing",
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.queryGALT;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.nextMessageRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
-            new String[] {"cpp-1516.1-next-message-request"}, false),
+            new String[] {"cpp-1516.1-next-message-request"}, true),
          RtiTckMain::nmrRequestBelowGaltImmediateGrant);
       run(new Scenario("java-tck.nmr-lits-below-galt-immediate-grant",
             "deliver queued TSO at LITS below GALT before granting",

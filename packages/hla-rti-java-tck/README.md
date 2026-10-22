@@ -1678,6 +1678,19 @@ mapping and passed focused installed JNI runs in both callback models. The
 provider, typed FOM names, time implementation, and callback model remain
 adapter inputs; independent-provider conformance is unverified.
 
+The default `java-tck.nmr-empty-message-set-grant-time` case checks the
+separate §8.10.2 no-delivered-TSO branch: NMR(10) grants exactly once at 10,
+and the queried logical time is 10. It passed focused installed JNI runs in
+both callback models. Provider, FOM, endpoint, time implementation, and
+callback model remain adapter inputs; independent-provider conformance is
+unverified.
+
+The separate default `java-tck.nmr-request-below-galt-immediate-grant` case
+checks the strict-below-GALT branch of §8.10.2: with GALT at 5, NMR(3) grants
+at 3 without a regulator advance. It passed focused installed JNI runs in
+both callback models. It does not establish equality-at-GALT, concurrent
+future-message arrival, or independent-provider conformance.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
