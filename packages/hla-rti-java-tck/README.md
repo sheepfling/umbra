@@ -1634,6 +1634,16 @@ enable the four corresponding `java-tck.fom-array-cardinality-*` and
 `java-tck.fom-dimension-duplicate-*` scenarios only for adapters that supply
 and attest the relevant 2025 modules.
 
+The dimension-input cases additionally require the standard MIM via
+`--mim-path`. Configure `dimensionInputRawBasicFom`, `dimensionInputNaFom`,
+and `dimensionInputTableTypeFom` for the input-type case;
+`dimensionDescriptionNaInvalidFom`, `dimensionDescriptionTextFom`,
+`dimensionDescriptionNamedNaFom`, and `dimensionDescriptionNamedTextFom`
+for the description case; and `dimensionInputMixedNaFom` plus the accepted
+NA, described-empty, and table-type FOM paths for the NA-exclusivity case.
+All names in this paragraph are `hla.rti.tck.`-prefixed Java properties,
+and each provider adapter must supply schema-valid 2025 modules.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set

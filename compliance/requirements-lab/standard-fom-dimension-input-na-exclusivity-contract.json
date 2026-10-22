@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Dimension-table NA Input data type exclusivity preflight through official Federation Create and dimension lookup services. The adapter supplies the provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. Explicit NA mixed with named HLAcount is rejected; separate explicit-NA, empty-list with description, and named-type forms are accepted. Private diagnostics, Java provider runtime, and interoperability are not claimed.",
+  "notes": "Portable Dimension-table NA Input data type exclusivity preflight through official Federation Create and dimension lookup services. The adapter supplies the provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. Explicit NA mixed with named HLAcount is rejected; separate explicit-NA, empty-list with description, and named-type forms are accepted. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/dimension-input-na-exclusivity-jni-20261021.json); other Java providers, private diagnostics, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-dimension-input-na-exclusivity",

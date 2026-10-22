@@ -1,4 +1,13 @@
 {
+  "portable_tck_java_dimension_input_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Run three already-promoted C++ Dimension-table input-type, description, and NA-exclusivity cases through pure IEEE 1516.1-2025 Java parity scenarios with adapter-owned MIM and FOM modules.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionInputTypeTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionInputDescriptionTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionInputNaExclusivityTck.java; compliance/catalogs/java-tck-scenario-catalog.json",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-056-l10-2 -> IEEE 1516.2-2025 clause 4", "requirement-candidate-sections-semantic-clause-4b-page-056-l14-3 -> IEEE 1516.2-2025 clause 4"],
+    "evidence": "Three focused Python-launched Java TCK runs each reported one pass and zero failures against the packaged Umbra JNI C++ RTI 2025 provider: out/java-tck/dimension-input-type-jni-20261021.json, dimension-input-description-jni-20261021.json, and dimension-input-na-exclusivity-jni-20261021.json. Each run compiled against the API-only Java JAR and used the adapter-supplied pinned MIM and 2025 FOM modules; no C++ core rebuild or portable Java source change was needed.",
+    "scope_boundary": "These are one-ID runtime checks on one packaged provider, not a full Java suite, second-provider interoperability check, or conformance claim. Keep all three scenarios default-disabled until another adapter supplies and attests the needed modules. Concurrent C++ and Table 5 edits remain untouched.",
+    "next": "Audit and run the already-promoted C++ dimension-name-uniqueness parity ID java-tck.fom-dimension-name-uniqueness with adapter-owned within-module duplicate, single-module, and equivalent cross-module fixtures. Record Java runtime evidence only if the focused provider run is green."
+  },
   "portable_tck_java_array_dimension_runtime_gate_2026_10_21": {
     "status": "verified-focused-java-provider-runtime",
     "scope": "Run four already-promoted C++ FOM array-cardinality and duplicate-dimension cases through their pure IEEE 1516.1-2025 Java parity scenarios with adapter-owned modules.",
