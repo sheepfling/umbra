@@ -988,6 +988,13 @@ registration. Both passed the focused JNI gate in `HLA_EVOKED` and `HLA_IMMEDIAT
 without assuming discovery order or cross-federate equality of object, class, or
 attribute handles. This does not establish independent-provider conformance.
 
+The default-run `java-tck.named-registration` case checks single and multiple
+name reservations, release and reuse, owner-only consumption, named discovery,
+and name/handle round-trips using only the standard API. It also tests
+supplemental post-consumption and unnamed-registration collision boundaries
+without assuming a provider-generated prefix. Focused installed-provider
+evoked and immediate runs passed; independent-provider conformance is not claimed.
+
 The default-run `java-tck.ordinary-multi-attribute-subscription-projection` scenario
 uses an adapter-supplied multi-attribute FOM and attribute names. It verifies the
 complete update for a two-attribute subscriber, selective value projection for

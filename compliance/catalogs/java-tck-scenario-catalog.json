@@ -29942,7 +29942,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l58-15", "standard_section": "hla-1516.1-2025:clause-6.8.4"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17", "standard_section": "hla-1516.1-2025:clause-6.8.4"}
       ],
-      "mapping_note": "Adapter evidence only, not provider-conformance evidence. The direct §6.6.4 mapping covers the reservation-success callback without pre-registration discovery. For §6.8.4, page-118-l58-15 is witnessed by a second published federate failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner succeeds; page-118-l64-17 is witnessed by name/handle lookup and the subscriber's exact named discovery. After success, owner release fails with ObjectInstanceNameNotReserved and another published federate's registration fails with ObjectInstanceNameInUse; these post-success consumption/in-use checks remain supplemental rather than newly mapped. The owner also receives ObjectClassNotPublished while unpublished, then republishes and registers with the same name; this failed-publication reservation-retention check is supplemental. The unnamed-registration collision check remains supplemental pending an exact pinned mapping; no provider-specific generated-name prefix is asserted. Java provider runtime remains unverified.",
+      "mapping_note": "Installed-provider adapter evidence only, not independent-provider conformance. The direct §6.6.4 mapping covers the reservation-success callback without pre-registration discovery. For §6.8.4, page-118-l58-15 is witnessed by a second published federate failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner succeeds; page-118-l64-17 is witnessed by name/handle lookup and the subscriber's exact named discovery. After success, owner release fails with ObjectInstanceNameNotReserved and another published federate's registration fails with ObjectInstanceNameInUse; these post-success consumption/in-use checks remain supplemental rather than newly mapped. The owner also receives ObjectClassNotPublished while unpublished, then republishes and registers with the same name; this failed-publication reservation-retention check is supplemental. The unnamed-registration collision check remains supplemental pending an exact pinned mapping; no provider-specific generated-name prefix is asserted.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -29958,8 +29958,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#namedRegistration",
       "parity": "cpp-tck.named-registration",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and named object-registration services."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/named-registration-{evoked,immediate}-default-20261022.json after passing opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/named-registration-verified-20261016.json. Adapter supplies FOM, object class, attribute, logical time, factory, endpoint, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.final-federate-resignation-cleanup",

@@ -7349,14 +7349,17 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.named-registration",
             "reserve, consume, contend for, and reuse standard named object instances",
             "object-instance-named-registration",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.reserveMultipleObjectInstanceNames;RTIambassador.releaseMultipleObjectInstanceNames;RTIambassador.registerObjectInstance(named);RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution(DELETE_OBJECTS);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.objectInstanceNameReservationFailed;FederateAmbassador.multipleObjectInstanceNameReservationSucceeded;FederateAmbassador.discoverObjectInstance",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.reserveMultipleObjectInstanceNames;RTIambassador.releaseMultipleObjectInstanceNames;RTIambassador.registerObjectInstance(named);RTIambassador.registerObjectInstance(unnamed);RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution(DELETE_OBJECTS);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.objectInstanceNameReservationFailed;FederateAmbassador.multipleObjectInstanceNameReservationSucceeded;FederateAmbassador.discoverObjectInstance",
             new String[] {
+               "requirement-candidate-content-clauses-06-object-management-page-116-l99-26",
+               "requirement-candidate-content-clauses-06-object-management-page-118-l58-15",
+               "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-named-object-registration",
                "cpp-1516.1-object-instance-name-lifecycle",
                "cpp-1516.1-object-registration-negative-boundaries"
-            }, false), RtiTckMain::namedRegistration);
+            }, true), RtiTckMain::namedRegistration);
       run(new Scenario("java-tck.final-federate-resignation-cleanup",
             "apply final-member NO_ACTION cleanup and reuse the former object's instance name",
             "federation-management",
