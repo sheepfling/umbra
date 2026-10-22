@@ -836,6 +836,12 @@ case adds that §8.14.3 cohort check: known timestamps 5 and 6 arrive before
 grant 6, while timestamp 11 waits for TAR(12) and precedes grant 12. It passes
 focused installed-provider runs in both callback models with adapter inputs.
 
+The default `java-tck.timestamped-interaction-tso-designator-terminalization`
+case checks which grant callback each of TAR, TARA, NMR, NMRA, and FQR produces,
+and checks its reported time. It also exercises retraction terminalization as
+a supplemental assertion. Explicit callback waits pass in both models with
+adapter-supplied provider, FOM, names, endpoint, and logical time.
+
 The opt-in preferred-RECEIVE timestamped interaction conversion currently
 fails against the installed Java provider in both callback models: the send
 returns a valid retraction designator where its promoted C++ peer expects

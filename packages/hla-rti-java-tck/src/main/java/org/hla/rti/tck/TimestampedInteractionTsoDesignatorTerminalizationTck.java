@@ -14,12 +14,15 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Checks retraction terminalization after each standard advance designator. */
 final class TimestampedInteractionTsoDesignatorTerminalizationTck {
+   private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
+
    private TimestampedInteractionTsoDesignatorTerminalizationTck() {
    }
 
@@ -69,9 +72,11 @@ final class TimestampedInteractionTsoDesignatorTerminalizationTck {
          LogicalTimeInterval lookahead = (LogicalTimeInterval) lookaheadTarget.distance(initial);
 
          receiver.enableTimeConstrained();
-         JavaTckSupport.drain(receiver);
+         await(receiver, callbackModel, () -> receiverRecorder.timeConstrainedEnabled,
+            "receiver Time Constrained callback");
          publisher.enableTimeRegulation(lookahead);
-         JavaTckSupport.drain(publisher);
+         await(publisher, callbackModel, () -> publisherRecorder.timeRegulationEnabled,
+            "publisher Time Regulation callback");
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabled
                && publisherRecorder.timeRegulationEnabled,
             "time-managed role callbacks were not delivered through the API");
@@ -91,7 +96,9 @@ final class TimestampedInteractionTsoDesignatorTerminalizationTck {
             LogicalTime target = offset(initial, epsilon, timestampSteps - 5);
             int previousGrantCount = publisherRecorder.timeAdvanceGrantTimes.size();
             services[i].request(publisher, target);
-            JavaTckSupport.drain(publisher);
+            await(publisher, callbackModel,
+               () -> publisherRecorder.timeAdvanceGrantTimes.size() == previousGrantCount + 1,
+               names[i] + " Time Advance Grant");
             JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size()
                   == previousGrantCount + 1
                   && target.equals(publisherRecorder.timeAdvanceGrantTimes.get(previousGrantCount))
@@ -108,7 +115,9 @@ final class TimestampedInteractionTsoDesignatorTerminalizationTck {
          checkRetraction(flushSent, "Flush Queue Request");
          LogicalTime flushBoundary = offset(initial, epsilon, 5);
          publisher.flushQueueRequest(flushBoundary);
-         JavaTckSupport.drain(publisher);
+         await(publisher, callbackModel,
+            () -> publisherRecorder.flushQueueGrantTimes.size() == 1,
+            "Flush Queue Grant");
          JavaTckSupport.check(publisherRecorder.flushQueueGrantTimes.size() == 1
                && publisherRecorder.flushQueueGrantTime != null
                && publisherRecorder.flushQueueOptimisticTime != null
@@ -162,6 +171,17 @@ final class TimestampedInteractionTsoDesignatorTerminalizationTck {
       JavaTckSupport.expectFailure(operation, expected, description);
    }
 
+   private static void await(RTIambassador ambassador, CallbackModel model,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (model == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.0);
+         else Thread.yield();
+      }
+      JavaTckSupport.check(condition.getAsBoolean(),
+         "timed out waiting for " + description);
+   }
+
    private static LogicalTime offset(LogicalTime start, LogicalTimeInterval interval,
          int steps) throws Exception {
       LogicalTime result = start;
@@ -180,13 +200,15 @@ final class TimestampedInteractionTsoDesignatorTerminalizationTck {
    }
 
    private static final class Recorder {
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private int interactionCount;
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new ArrayList<>();
-      private LogicalTime<?, ?> flushQueueGrantTime;
-      private LogicalTime<?, ?> flushQueueOptimisticTime;
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private volatile int interactionCount;
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes =
+         new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> flushQueueGrantTimes =
+         new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> flushQueueGrantTime;
+      private volatile LogicalTime<?, ?> flushQueueOptimisticTime;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

@@ -17563,7 +17563,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l81-24", "standard_section": "hla-1516.1-2025:clause-8" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l84-25", "standard_section": "hla-1516.1-2025:clause-8" }
       ],
-      "mapping_note": "Direct mappings cover only the grant callback selected by each standard advance request: TAR, TARA, NMR, and NMRA produce timeAdvanceGrant; FQR produces flushQueueGrant, per Clause 8. Requested/query time is also checked. The scenario's interaction retraction terminalization and remaining setup/teardown are supplemental. This is API-only experimental evidence, not provider conformance evidence.",
+      "mapping_note": "Direct mappings cover only the grant callback selected by each standard advance request: TAR, TARA, NMR, and NMRA produce timeAdvanceGrant; FQR produces flushQueueGrant, per Clause 8. Requested/query time is also checked. Interaction retraction terminalization and remaining setup/teardown are supplemental. Focused installed-provider runs pass in both callback models after explicit, thread-safe callback waits; independent-provider conformance remains unclaimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -17584,8 +17584,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionTsoDesignatorTerminalization",
       "parity": "cpp-tck.timestamped-interaction-tso-designator-terminalization",
-      "default_status": "unsupported",
-      "exclusion": "Requires a provider capability profile and a time-managed FOM with the selected interaction/time factory; execute only through adapter-supplied provider configuration."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, time-managed FOM, interaction/parameter names, endpoint, callback model, and matching logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-directed-alternate-advances",
