@@ -1702,9 +1702,15 @@ public final class RtiTckMain {
             "ordinary-delivery",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes(active);RTIambassador.subscribeObjectClassAttributesPassively;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::attributeUpdateServiceBoundaries);
+            }, true), RtiTckMain::attributeUpdateServiceBoundaries);
       run(new Scenario("java-tck.support-services",
             "support lookup lifecycle gates and handle identity", "support-services",
             "RTIambassador.createFederationExecutionWithMIM;getFederateHandle;getObjectClassHandle;getObjectInstanceHandle;getAttributeHandle;getInteractionClassHandle;getParameterHandle;getDimensionHandle;getOrderType;getOrderName;getTransportationTypeHandle;getTransportationTypeName;getUpdateRateValue;getAvailableDimensionsForObjectClass;getAvailableDimensionsForInteractionClass;getDimensionName;getDimensionUpperBound;normalizeServiceGroup;normalizeFederateHandle;normalizeObjectClassHandle;normalizeInteractionClassHandle;normalizeObjectInstanceHandle;handle-factory.decode",

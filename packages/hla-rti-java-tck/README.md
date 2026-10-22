@@ -356,6 +356,12 @@ retained subscribed value without requiring the original update tag; later
 ordinary reflections check the tag, producer, and transportation metadata.
 Focused installed-provider evoked and immediate runs passed; independent-
 provider conformance is not claimed.
+The default-run `java-tck.attribute-update-service-boundaries` case checks
+ordinary Update/Reflect payload, tag, and producing-federate metadata across
+active and passive subscriptions using adapter-supplied FOM names. It is mapped
+to IEEE 1516.1-2025 §§5.8, 6.10, and 6.11.1; passive delivery after active
+relevance is established remains a supplemental assertion. Focused installed-
+provider evoked and immediate runs passed, without an interoperability claim.
 The ownership-acquisition-if-available scenario uses a locally deleted object
 as its unknown-instance fixture and a valid attribute from another class for
 its undefined-attribute boundary. The adapter may set

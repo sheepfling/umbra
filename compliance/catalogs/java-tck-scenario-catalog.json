@@ -7033,8 +7033,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeUpdateServiceBoundaries",
       "parity": "cpp-tck.attribute-update-service-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, object-class and attribute names, provider, endpoint, and callback model; keep unsupported until executed against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/attribute-update-service-boundaries-{evoked,immediate}-default-20261022.json, following passing opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/tck-attribute-update-service-boundaries-20261016.json. Adapter supplies FOM, object class, attribute, endpoint, factory, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.support-services",
