@@ -1440,14 +1440,14 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.object-deletion-service-boundaries",
             "exercise ordinary object-deletion service boundaries and cleanup",
             "object-management",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.isAttributeOwnedByFederate;RTIambassador.getFederateName;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
             new String[] {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-object-instance-deletion",
                "cpp-1516.1-object-deletion-negative-boundaries",
                "cpp-1516.1-local-object-instance-deletion",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::objectDeletionServiceBoundaries);
+            }, true), RtiTckMain::objectDeletionServiceBoundaries);
       run(new Scenario("java-tck.receive-order-object-removal-subscription-withdrawal",
             "deliver a queued terminal object removal after subscription withdrawal",
             "object-management",

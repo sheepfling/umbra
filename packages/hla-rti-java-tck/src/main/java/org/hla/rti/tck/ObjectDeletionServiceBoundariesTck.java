@@ -39,7 +39,6 @@ final class ObjectDeletionServiceBoundariesTck {
       AttributeHandle ownerAttribute = null;
       AttributeHandle receiverAttribute = null;
       String federation = "java-tck-object-deletion-boundaries-" + UUID.randomUUID();
-      verifyLifecycleBoundaries(factory, callbackModel);
       try {
          expectFailure(() -> owner.getObjectClassHandle(objectClassName), "NotConnected",
             "object-class lookup before connection");
@@ -52,10 +51,11 @@ final class ObjectDeletionServiceBoundariesTck {
          receiverConnected = true;
          owner.createFederationExecution(federation, fom);
          created = true;
-         FederateHandle producer = owner.joinFederationExecution(
-            "java-tck-deletion-owner", federation);
+         String ownerName = "java-tck-deletion-owner";
+         owner.joinFederationExecution(ownerName, "deletion-owner", federation);
          ownerJoined = true;
-         receiver.joinFederationExecution("java-tck-deletion-receiver", federation);
+         receiver.joinFederationExecution("java-tck-deletion-receiver",
+            "deletion-receiver", federation);
          receiverJoined = true;
 
          ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -63,7 +63,11 @@ final class ObjectDeletionServiceBoundariesTck {
          ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          receiverAttribute = receiver.getAttributeHandle(receiverClass, attributeName);
          JavaTckSupport.check(ownerClass != null && receiverClass != null
-               && ownerAttribute != null && receiverAttribute != null,
+               && ownerAttribute != null && receiverAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(receiver.getObjectClassName(receiverClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(receiver.getAttributeName(receiverClass, receiverAttribute)),
             "adapter FOM did not resolve the object class and attribute");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet receiverAttributes = JavaTckSupport.attributeSet(receiver,
@@ -73,31 +77,36 @@ final class ObjectDeletionServiceBoundariesTck {
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = true;
 
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-         expectFailure(() -> owner.deleteObjectInstance(invalidObject, new byte[0]),
-            "ObjectInstanceNotKnown", "deleting an unknown object instance");
-
          ObjectInstanceHandle locallyDeleted = owner.registerObjectInstance(ownerClass);
          ObjectInstanceHandle remotelyDeleted = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(locallyDeleted != null && remotelyDeleted != null
                && !locallyDeleted.equals(remotelyDeleted),
             "registration returned null or reused an object-instance handle");
-         await(receiver, () -> receiverCallbacks.discoveries().size() == 2,
-            "receiver did not discover both registered instances");
          JavaTckSupport.check(owner.getObjectInstanceHandle(
                owner.getObjectInstanceName(remotelyDeleted)).equals(remotelyDeleted),
             "registered object name and handle lookups did not round-trip");
          String localName = owner.getObjectInstanceName(locallyDeleted);
          String remoteName = owner.getObjectInstanceName(remotelyDeleted);
+         await(receiver, () -> receiverCallbacks.discoveries().size() == 2,
+            "receiver did not discover both registered instances");
+         ObjectInstanceHandle receiverLocal = receiver.getObjectInstanceHandle(localName);
+         ObjectInstanceHandle receiverRemote = receiver.getObjectInstanceHandle(remoteName);
+         JavaTckSupport.check(!receiverLocal.equals(receiverRemote)
+               && receiverCallbacks.discoveries().containsAll(
+                  List.of(receiverLocal, receiverRemote))
+               && localName.equals(receiver.getObjectInstanceName(receiverLocal))
+               && remoteName.equals(receiver.getObjectInstanceName(receiverRemote))
+               && receiverClass.equals(receiver.getKnownObjectClassHandle(receiverLocal))
+               && receiverClass.equals(receiver.getKnownObjectClassHandle(receiverRemote)),
+            "receiver discovery did not preserve local object identities");
 
          ownerCallbacks.clearRemovals();
          receiverCallbacks.clearRemovals();
-         receiver.localDeleteObjectInstance(locallyDeleted);
+         receiver.localDeleteObjectInstance(receiverLocal);
          JavaTckSupport.check(ownerCallbacks.removals().isEmpty()
                && receiverCallbacks.removals().isEmpty(),
             "receiver-local object deletion produced a removal callback");
-         expectFailure(() -> receiver.getObjectInstanceName(locallyDeleted),
+         expectFailure(() -> receiver.getObjectInstanceName(receiverLocal),
             "ObjectInstanceNotKnown", "receiver name lookup after local deletion");
          expectFailure(() -> receiver.getObjectInstanceHandle(localName),
             "ObjectInstanceNotKnown", "receiver handle lookup after local deletion");
@@ -117,9 +126,9 @@ final class ObjectDeletionServiceBoundariesTck {
          AttributeHandle receiverPrivilege = receiver.getAttributeHandle(receiverClass,
             "HLAprivilegeToDeleteObject");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(remotelyDeleted, ownerPrivilege)
-               && !receiver.isAttributeOwnedByFederate(remotelyDeleted, receiverPrivilege),
+               && !receiver.isAttributeOwnedByFederate(receiverRemote, receiverPrivilege),
             "delete privilege did not initially belong only to the registrant");
-         expectFailure(() -> receiver.deleteObjectInstance(remotelyDeleted, tag.clone()),
+         expectFailure(() -> receiver.deleteObjectInstance(receiverRemote, tag.clone()),
             "DeletePrivilegeNotHeld", "non-owner deleting before the privilege transfers");
          JavaTckSupport.check(receiverCallbacks.removals().isEmpty(),
             "rejected non-owner deletion produced a removal callback");
@@ -129,20 +138,20 @@ final class ObjectDeletionServiceBoundariesTck {
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.check(receiverCallbacks.removals().isEmpty(),
                "evoked recipient received removal without servicing callbacks");
-            JavaTckSupport.check(receiver.getKnownObjectClassHandle(remotelyDeleted)
+            JavaTckSupport.check(receiver.getKnownObjectClassHandle(receiverRemote)
                   .equals(receiverClass),
                "evoked recipient forgot the object before its queued removal callback");
          }
          await(receiver, () -> receiverCallbacks.removals().size() == 1,
             "receiver did not receive ordinary object removal");
          Removal removal = receiverCallbacks.removals().get(0);
-         JavaTckSupport.check(removal.object.equals(remotelyDeleted)
+         JavaTckSupport.check(removal.object.equals(receiverRemote)
                && Arrays.equals(removal.tag, tag)
-               && producer.equals(removal.producer),
+               && ownerName.equals(receiver.getFederateName(removal.producer)),
             "ordinary removal callback did not preserve object, tag, and producer");
          expectFailure(() -> receiver.getObjectInstanceHandle(remoteName),
             "ObjectInstanceNotKnown", "receiver handle lookup after remote deletion");
-         expectFailure(() -> receiver.getKnownObjectClassHandle(remotelyDeleted),
+         expectFailure(() -> receiver.getKnownObjectClassHandle(receiverRemote),
             "ObjectInstanceNotKnown", "receiver class lookup after remote deletion");
          expectFailure(() -> owner.getObjectInstanceName(remotelyDeleted),
             "ObjectInstanceNotKnown", "name lookup after remote deletion");
@@ -160,6 +169,13 @@ final class ObjectDeletionServiceBoundariesTck {
             "object-instance handle was reused after deletion in the same federation execution");
          await(receiver, () -> receiverCallbacks.discoveries().size() == 3,
             "receiver did not discover the registration after deletion");
+         String resignObjectName = owner.getObjectInstanceName(deletedOnResign);
+         ObjectInstanceHandle receiverResignObject =
+            receiver.getObjectInstanceHandle(resignObjectName);
+         JavaTckSupport.check(receiverCallbacks.discoveries().contains(receiverResignObject)
+               && receiverClass.equals(
+                  receiver.getKnownObjectClassHandle(receiverResignObject)),
+            "receiver did not retain the resignation object identity");
 
          owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
          published = false;
@@ -168,8 +184,8 @@ final class ObjectDeletionServiceBoundariesTck {
          await(receiver, () -> receiverCallbacks.removals().size() == 2,
             "resigning with DeleteObjects did not remove the remaining object");
          Removal resignationRemoval = receiverCallbacks.removals().get(1);
-         JavaTckSupport.check(resignationRemoval.object.equals(deletedOnResign)
-               && producer.equals(resignationRemoval.producer),
+         JavaTckSupport.check(resignationRemoval.object.equals(receiverResignObject)
+               && ownerName.equals(receiver.getFederateName(resignationRemoval.producer)),
             "resignation removal callback identified the wrong object or producer");
          receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = false;
@@ -211,30 +227,6 @@ final class ObjectDeletionServiceBoundariesTck {
             catch (Exception ignored) { }
          }
       }
-   }
-
-   private static void verifyLifecycleBoundaries(RtiFactory factory,
-         CallbackModel callbackModel) throws Exception {
-      RTIambassador lifecycle = factory.getRtiAmbassador();
-      Recorder callbacks = new Recorder();
-      ObjectInstanceHandle invalidObject =
-         JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-      verifyLifecycleFailures(lifecycle, invalidObject, "NotConnected", "before connect");
-      lifecycle.connect(callbacks.proxy(), callbackModel);
-      try {
-         verifyLifecycleFailures(lifecycle, invalidObject, "FederateNotExecutionMember",
-            "after connect before join");
-      } finally {
-         lifecycle.disconnect();
-      }
-   }
-
-   private static void verifyLifecycleFailures(RTIambassador rti,
-         ObjectInstanceHandle invalidObject, String expected, String phase) throws Exception {
-      expectFailure(() -> rti.deleteObjectInstance(invalidObject, new byte[0]),
-         expected, "deleting an object " + phase);
-      expectFailure(() -> rti.localDeleteObjectInstance(invalidObject),
-         expected, "locally deleting an object " + phase);
    }
 
    private static void expectFailure(CheckedCall call, String expectedSimpleName,

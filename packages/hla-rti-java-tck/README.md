@@ -828,15 +828,16 @@ across ambassadors. It passed focused JNI execution in both callback modes
 with provider, FOM, endpoint, and callback model supplied by the adapter.
 Independent-provider conformance remains unverified.
 
-The opt-in `java-tck.object-deletion-service-boundaries` scenario checks
+The default `java-tck.object-deletion-service-boundaries` scenario checks
 pre-connection and pre-membership lookup failures, object name/handle round
 trips, local deletion without remote callback, ordinary removal tag/producer
 metadata, post-deletion lookup and former-owner ownership-status failures, and
 DeleteObjects resignation cleanup.
 Its C++ base/contract pair passed two independent fresh GNU 15.2/Ninja
 installed-package builds with all four evoked/immediate CTest cases passing in
-each build. Java provider execution remains unsupported by default pending
-execution against an IEEE 1516.1-2025 Java provider.
+each build. The Java case also passed focused installed JNI execution in both
+callback modes. It uses receiver-local object handles and avoids fabricated
+unknown-object handles; independent-provider conformance remains unverified.
 
 The opt-in `java-tck.attribute-multi-recipient-fifo` scenario sends two ordinary
 receive-order updates and verifies that both subscribers observe values and tags

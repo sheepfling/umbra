@@ -5006,7 +5006,9 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -5016,6 +5018,8 @@
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.getFederateName",
+        "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
@@ -5041,6 +5045,7 @@
         "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
         "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
         "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
         "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
         "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
@@ -5073,7 +5078,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40", "standard_section": "hla-1516.1-2025:clause-6.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l111-35", "standard_section": "hla-1516.1-2025:clause-7.1.3"}
       ],
-      "mapping_note": "Direct mappings: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-119-l103-29 -> §6.9.3 object-instance lookup; page-129-l123-34/l132-37/l138-39/l144-41 -> §6.16 ordinary deletion and same-execution handle non-reuse; page-129-l135-38 -> §6.16 former-owner ownership query returns ObjectInstanceNotKnown after deletion, without asserting optional name reuse; page-130-l167-50/l8-1/l137-40 -> §6.16.4 deletion tag and recipient/owner post-removal unknown-object boundaries; page-131-l101-29/l110-32 -> §6.17.1 removal callback; page-132-l140-38/l146-40 -> §6.18.1 recipient-local deletion. Direct page-153-l111-35 -> canonical §7.1.3: the registrant initially owns HLAprivilegeToDeleteObject and can delete. Supplemental checks: the non-owner gets DeletePrivilegeNotHeld without removal; after the successful deletion call, the owner no longer knows the object while an evoked recipient still knows it until its queued removal callback is serviced. The queued interval is not assigned a new direct mapping. Privilege transfer remains separate. Unknown-handle and pre-connect/pre-join exception precedence are internal. Java compiles against the official API-only JAR; provider runtime remains unverified.",
+      "mapping_note": "Direct mappings: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-119-l103-29 -> §6.9.3 object-instance lookup; page-129-l123-34/l132-37/l138-39/l144-41 -> §6.16 ordinary deletion and same-execution handle non-reuse; page-129-l135-38 -> §6.16 former-owner ownership query returns ObjectInstanceNotKnown after deletion, without asserting optional name reuse; page-130-l167-50/l8-1/l137-40 -> §6.16.4 deletion tag and recipient/owner post-removal unknown-object boundaries; page-131-l101-29/l110-32 -> §6.17.1 removal callback; page-132-l140-38/l146-40 -> §6.18.1 recipient-local deletion. Direct page-153-l111-35 -> canonical §7.1.3: the registrant initially owns HLAprivilegeToDeleteObject and can delete. Supplemental checks: the non-owner gets DeletePrivilegeNotHeld without removal; after the successful deletion call, the owner no longer knows the object while an evoked recipient still knows it until its queued removal callback is serviced. The queued interval is not assigned a new direct mapping. Privilege transfer remains separate. Fabricated unknown-object handles are omitted; pre-connect/pre-join lookup precedence remains internal. Java checks receiver-local object handles and resolves callback producer identity by standard federate name, without comparing handles across ambassadors. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -5089,8 +5094,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectDeletionServiceBoundaries",
       "parity": "cpp-tck.object-deletion-service-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.receive-order-object-removal",
