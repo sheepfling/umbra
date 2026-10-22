@@ -8719,12 +8719,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for accepting two schema-valid modules alone and together when eight categories repeat matching named data-type declarations. The adapter owns FOM paths and callback model. API-only compilation required; Java provider runtime unverified.",
+      "mapping_note": "Direct 1516.2-2025 §C.3 parity for accepting two schema-valid modules alone and together when eight categories repeat matching named data-type declarations. The adapter owns FOM paths and callback model. Installed Java adapter passed both callback models on 2026-10-22; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-fom-matching-data-types-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomMatchingDataTypes",
       "parity": "cpp-tck.fom-matching-data-types",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.matchingDataTypesFirstFom and matchingDataTypesSecondFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/fom-matching-data-types-{evoked,immediate}-default-20261022.json. Matching C++ primary and contract passed both modes in out/mgw/matching-data-types-20261021.json. The adapter must configure matchingDataTypesFirstFom and matchingDataTypesSecondFom."
     },
     {
       "id": "java-tck.fom-object-class-dimension-merge",
@@ -37037,7 +37037,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAsynchronousDeliveryMomAttribute",
       "parity": "cpp-tck.federate-asynchronous-delivery-mim-attribute",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Adapter-supplied application FOM, standard MIM, logical time, and provider are required. Installed JNI diagnostic on 2026-10-22 failed in both callback models: the first directly requested MOM value reflected a non-null producing FederateHandle, while the portable Java assertion expects no producer. Leave opt-in until the pinned Java callback's invalid-producer representation and JNI translation are reconciled; no pass or conformance is claimed."
     },
     {
       "id": "java-tck.federate-time-constrained-mim-attribute",

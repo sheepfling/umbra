@@ -1902,7 +1902,7 @@ public final class RtiTckMain {
             "Accept matching named declarations in eight data-type categories across FOM modules",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomMatchingDataTypes);
       run(new Scenario("java-tck.fom-object-class-dimension-merge",
             "Merge disjoint available dimensions on one named object class",

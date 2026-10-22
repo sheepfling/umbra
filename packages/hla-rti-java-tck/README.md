@@ -2250,6 +2250,19 @@ scenario; other entries are marked `filtered` in the result report.
 For diagnostic exception stacks, pass
 `--jvm-argument=-Dhla.rti.tck.stacktrace=true`.
 
+`java-tck.fom-matching-data-types` is a default-run pure-standard case mapped
+to IEEE 1516.2-2025 §C.3. Supply two valid matching-declaration modules via
+`hla.rti.tck.matchingDataTypesFirstFom` and
+`hla.rti.tck.matchingDataTypesSecondFom` as adapter-owned JVM arguments. The
+installed JNI adapter passed both callback models, matching the
+C++ primary and contract evidence, but this is not cross-provider conformance.
+
+`java-tck.federate-asynchronous-delivery-mim-attribute` remains opt-in: the
+installed JNI adapter's initial MOM reflection supplied a producer-handle
+object where this Java assertion expects no producer. Both callback models
+failed at that metadata check; the Java invalid-handle representation needs
+resolution before promotion.
+
 The focused time/FOM parity cases take their fixtures from adapter-supplied
 Java properties, passed through `--jvm-argument=-D...`:
 

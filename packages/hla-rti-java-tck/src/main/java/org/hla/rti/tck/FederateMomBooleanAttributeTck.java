@@ -239,7 +239,13 @@ final class FederateMomBooleanAttributeTck {
             && Arrays.equals(new byte[0], reflection.tag)
             && reliable.equals(reflection.transportation) && reflection.producer == null
             && (regions == null || regions.isEmpty()) && !reflection.timestampOrdered,
-         description + " had non-standard MOM reflection metadata");
+         description + " had non-standard MOM reflection metadata: objectMatch="
+            + object.equals(reflection.object) + ", attributeCount="
+            + reflection.values.size() + ", tagLength=" + reflection.tag.length
+            + ", reliable=" + reliable.equals(reflection.transportation)
+            + ", producerAbsent=" + (reflection.producer == null)
+            + ", regionsEmpty=" + (regions == null || regions.isEmpty())
+            + ", timestampOrdered=" + reflection.timestampOrdered);
       boolean actual;
       if (booleanEncoding) {
          HLAboolean value = encoder.createHLAboolean();
