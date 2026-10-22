@@ -1806,6 +1806,16 @@ callback field. Focused installed-provider runs pass under both callback
 models with adapter-supplied FOM, interaction/parameter names, endpoint, and
 time implementation. This is a bounded §8.6 result, not conformance.
 
+The default `java-tck.time-constrained-disable-queued-interaction-to-ro`
+case checks the §8.7 interaction transition: a queued timestamped message
+arrives through the untimed receive callback after disabling Time
+Constrained, and a later timestamped send retains its time while reporting
+RECEIVE as received order. The Java recorder reads sent order from the
+official timed callback field. Focused installed-provider runs pass under
+both callback models with adapter-supplied FOM, interaction/parameter names,
+endpoint, and time implementation. Other message families and independent-
+provider conformance remain unclaimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

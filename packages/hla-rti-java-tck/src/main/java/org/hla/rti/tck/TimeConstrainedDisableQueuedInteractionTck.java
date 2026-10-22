@@ -190,7 +190,7 @@ final class TimeConstrainedDisableQueuedInteractionTck {
          values = ((ParameterHandleValueMap) arguments[1]).clone();
          tag = ((byte[]) arguments[2]).clone();
          if (arguments.length == 10) {
-            sentOrder = (OrderType) arguments[3];
+            sentOrder = (OrderType) arguments[7];
             time = (LogicalTime<?, ?>) arguments[6];
             receivedOrder = (OrderType) arguments[8];
          } else {

@@ -14737,12 +14737,13 @@
           "standard_section": "hla-1516.1-2025:clause-8.7"
         }
       ],
-      "mapping_note": "Direct §8.7 ordinary-interaction witness: a queued future timestamped interaction is received through the untimed overload after disabling Time Constrained; a subsequent timestamped interaction retains its time but arrives with receivedOrder=RECEIVE. RL-346 documents the source-backed §8.7 crosswalk from the Lab's §8.7.5 export. Java compiles against the official 1516.1-2025 API jar, but provider runtime is unverified; this does not claim other message families or conformance.",
+      "mapping_note": "Direct §8.7 ordinary-interaction witness: a queued future timestamped interaction is received through the untimed overload after disabling Time Constrained; a subsequent timestamped interaction retains its time but arrives with receivedOrder=RECEIVE. RL-346 documents the source-backed §8.7 crosswalk from the Lab's §8.7.5 export. The Java recorder reads sent order from the official timed Receive Interaction callback argument; focused installed-provider runs pass in both callback models. This does not claim other message families or independent-provider conformance.",
       "contract_refs": ["time-role-api-contract.json", "time-role-requirements-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedDisableQueuedInteractionToRo",
       "parity": "cpp-tck.time-constrained-disable-queued-interaction-to-ro",
-      "default_status": "unsupported",
-      "exclusion": "API-only Java scenario requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback configuration for runtime evidence."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, interaction/parameter names, endpoint, callback model, and logical-time implementation consistent with the FOM.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-disable-queued-attribute-to-ro",
