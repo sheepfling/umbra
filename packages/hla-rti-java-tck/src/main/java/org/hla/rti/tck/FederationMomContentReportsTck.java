@@ -72,13 +72,16 @@ final class FederationMomContentReportsTck {
                && fomReport != null && reportIndicator != null && fomData != null
                && mimReport != null && mimData != null && reliable != null,
             "standard federation MOM content-report lookup returned a null handle");
-         JavaTckSupport.check("HLArequestFOMmoduleData".equals(
+         JavaTckSupport.check((REQUEST_ROOT + "HLArequestFOMmoduleData").equals(
                observer.getInteractionClassName(fomRequest))
                && "HLAFOMmoduleIndicator".equals(observer.getParameterName(fomRequest, fomIndicator))
-               && "HLArequestMIMdata".equals(observer.getInteractionClassName(mimRequest))
-               && "HLAreportFOMmoduleData".equals(observer.getInteractionClassName(fomReport))
+               && (REQUEST_ROOT + "HLArequestMIMdata").equals(
+                  observer.getInteractionClassName(mimRequest))
+               && (REPORT_ROOT + "HLAreportFOMmoduleData").equals(
+                  observer.getInteractionClassName(fomReport))
                && "HLAFOMmoduleData".equals(observer.getParameterName(fomReport, fomData))
-               && "HLAreportMIMdata".equals(observer.getInteractionClassName(mimReport))
+               && (REPORT_ROOT + "HLAreportMIMdata").equals(
+                  observer.getInteractionClassName(mimReport))
                && "HLAMIMdata".equals(observer.getParameterName(mimReport, mimData))
                && "HLAreliable".equals(observer.getTransportationTypeName(reliable)),
             "standard federation MOM content-report handle names did not round-trip");

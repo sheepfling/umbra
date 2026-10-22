@@ -114,7 +114,7 @@ final class FederationMomFederatesInFederationTck {
          await(observer, callbackModel, () -> joined.equals(
             recorder.currentRoster(encoder, handleFactory, rosterAttribute)),
             "conditional federation roster update after federate join");
-         verifyReflectionMetadata(recorder, federationObject, reliable,
+         verifyReflectionMetadata(observer, recorder, federationObject, reliable,
             "join-triggered federation roster update");
 
          recorder.clearReflection();
@@ -123,7 +123,7 @@ final class FederationMomFederatesInFederationTck {
          await(observer, callbackModel, () -> initial.equals(
             recorder.currentRoster(encoder, handleFactory, rosterAttribute)),
             "conditional federation roster update after federate resignation");
-         verifyReflectionMetadata(recorder, federationObject, reliable,
+         verifyReflectionMetadata(observer, recorder, federationObject, reliable,
             "resign-triggered federation roster update");
       } finally {
          if (subscribed && observerJoined && federationClass != null
@@ -158,18 +158,20 @@ final class FederationMomFederatesInFederationTck {
       observer.requestAttributeValueUpdate(federationObject, attributes, new byte[0]);
       await(observer, callbackModel, () -> expected.equals(
          recorder.currentRoster(encoder, handleFactory, rosterAttribute)), description);
-      verifyReflectionMetadata(recorder, federationObject, reliable, description);
+      verifyReflectionMetadata(observer, recorder, federationObject, reliable, description);
    }
 
-   private static void verifyReflectionMetadata(Recorder recorder,
+   private static void verifyReflectionMetadata(RTIambassador observer, Recorder recorder,
          ObjectInstanceHandle federationObject, TransportationTypeHandle reliable,
-         String description) {
+         String description) throws Exception {
       check(federationObject.equals(recorder.reflectedObject)
             && recorder.reflectedValues != null && recorder.reflectedValues.size() == 1
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
             && reliable.equals(recorder.reflectionTransportation)
-            && recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
+            && recorder.reflectionRegionsEmpty,
          description + " returned incomplete or non-standard reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+         description);
    }
 
    private static Set<FederateHandle> decodeRoster(EncoderFactory encoder,

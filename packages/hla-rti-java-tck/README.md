@@ -640,7 +640,7 @@ discovery, reliable transportation and `HLAcurrentFDD` reflection, then
 verifies that an additional-module join refreshes the reflected FDD and that a
 subsequent explicit value request returns the same composition.
 
-The opt-in `java-tck.federation-mom-fom-module-designator-list` scenario uses
+The default-run `java-tck.federation-mom-fom-module-designator-list` scenario uses
 the adapter-supplied base FOM and MIM plus one or more additional FOM modules
 (`-Dhla.rti.tck.additionalFomModules=...`, paths separated by the platform
 path separator). It decodes the standard `HLAFOMmoduleDesignatorList` as a
@@ -648,6 +648,9 @@ variable array of Unicode strings, compares designators without assuming array
 order, and checks that the list changes after an additional-module join and
 matches a later explicit request. The callback assertion also checks the
 standard transport, tag, producer, and DDM-region metadata.
+It passed installed-provider evoked and immediate runs with standard
+RTI-originated producer validation; independent-provider behavior remains
+unverified.
 
 The default-run `java-tck.federate-mom-fom-module-content-report` scenario requests
 one joined federate's FOM module through the standard federate MOM. The adapter
@@ -713,20 +716,24 @@ It passed installed-provider evoked and immediate runs with standard
 RTI-originated producer validation; independent-provider behavior remains
 unverified.
 
-The opt-in `java-tck.federation-mom-federates-in-federation` scenario uses the
+The default-run `java-tck.federation-mom-federates-in-federation` scenario uses the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It decodes the standard nested `HLAfederateReferenceList` encoding with
 the official encoder API and federate-handle factory, treats roster order as
 unspecified, and verifies requested membership plus conditional updates after
 a federate joins and resigns.
+It passed installed-provider evoked and immediate runs after standard
+RTI-originated producer validation; independent-provider behavior remains
+unverified.
 
-The opt-in `java-tck.federation-mom-content-reports` scenario requests the
+The default-run `java-tck.federation-mom-content-reports` scenario requests the
 standard FOM-module and MIM content reports using the adapter-supplied FOM,
 MIM, logical-time implementation, and callback model. It decodes the report
 parameters with the official `HLAinteger32BE` and `HLAunicodeString` encoders,
 and checks interaction identity, empty tags, reliable transportation, and
 ordinary receive-order delivery. The scenario has a matching C++ portable TCK
-ID and remains unsupported by default until verified with a Java provider.
+ID and passed installed-provider evoked and immediate runs. This establishes
+API-level parity on one provider, not independent-provider conformance.
 
 The default `java-tck.object-registration-discovery-lifecycle` scenario checks
 typed base/derived-class lookup, inherited attribute identity, publication,

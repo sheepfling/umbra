@@ -986,7 +986,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomFomModuleDesignatorList",
       "parity": "cpp-tck.federation-mom-fom-module-designator-list-contract",
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "provider JAR and factory",
         "endpoint and callback model",
@@ -994,7 +994,7 @@
         "one or more additional FOM modules via hla.rti.tck.additionalFomModules, separated by the platform path separator",
         "logical-time implementation and federate type"
       ],
-      "exclusion": "Requires a provider runtime, standard MIM, base FOM, and one or more distinct additional FOM modules supplied by the adapter; compatible provider runtime verification is pending."
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-fom-module-designator-list-{evoked,immediate}-default-20261022.json after aligning RTI-originated producer validation with the standard InvalidFederateHandle check. Matching C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-fom-module-designator-list-verified-20261016.json. Provider, FOM modules, MIM, and callback model remain adapter-owned; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.federate-mom-fom-module-content-report",
@@ -2758,8 +2758,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomFederatesInFederation",
       "parity": "cpp-tck.federation-mom-federates-in-federation-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, federate type, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending.",
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-federates-in-federation-{evoked,immediate}-default-20261022.json after aligning RTI-originated producer validation with the standard InvalidFederateHandle check. Matching C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-federates-in-federation-verified-20261016.json. No independent-provider conformance claim.",
       "adapter_inputs": [
         "provider JAR and factory",
         "application FOM and standard MIM",
@@ -2802,7 +2802,9 @@
         "federation-execution-api-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomContentReports",
-      "default_status": "unsupported"
+      "parity": "cpp-tck.federation-mom-content-reports",
+      "default_status": "run",
+      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-content-reports-{evoked,immediate}-default-20261022.json after correcting standard fully qualified interaction-name round trips. Matching promoted C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-content-reports-verified-20261016.json. This is API-level evidence, not independent-provider or normative conformance."
     },
     {
       "id": "java-tck.callback-reentrancy",

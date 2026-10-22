@@ -666,7 +666,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-fom-module-composition",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federationMomFomModuleDesignatorList);
+            }, true), RtiTckMain::federationMomFomModuleDesignatorList);
       run(new Scenario("java-tck.fom-file-url-designator",
             "Load a local file URL FOM and retain its exact designator in federation MOM",
             "fom-composition",
@@ -941,14 +941,14 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-mom",
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-attribute-update-reflect"
-            }, false), RtiTckMain::federationMomFederatesInFederation);
+            }, true), RtiTckMain::federationMomFederatesInFederation);
       run(new Scenario("java-tck.federation-mom-content-reports",
             "federation MOM FOM-module and MIM content reports", "federation-mom",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAinteger32BE.decode;HLAunicodeString.decode",
             new String[] {
                "cpp-1516.1-federation-mom-content-reports",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federationMomContentReports);
+            }, true), RtiTckMain::federationMomContentReports);
       run(new Scenario("java-tck.callback-reentrancy",
             "callback servicing rejects re-entry from a federate callback", "connection",
             "RTIambassador.connect;RTIambassador.listFederationExecutions;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.disconnect;FederateAmbassador.reportFederationExecutions",

@@ -171,9 +171,10 @@ final class FederationMomFomModuleDesignatorListTck {
                && reliable.equals(recorder.reflectionTransportation)
                && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
                && recorder.reflectionCallbackArity == 6
-               && recorder.reflectionProducer == null
                && (recorder.reflectionRegions == null || recorder.reflectionRegions.isEmpty()),
             "join-triggered designator reflection returned incomplete or non-standard metadata");
+         JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+            "join-triggered designator reflection");
 
          Set<String> requestedAfterJoin = requestDesignators(observer, recorder, encoder,
             callbackModel, federationObject, designatorAttribute, designatorAttributes,
@@ -223,9 +224,10 @@ final class FederationMomFomModuleDesignatorListTck {
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
             && reliable.equals(recorder.reflectionTransportation)
             && recorder.reflectionCallbackArity == 6
-            && recorder.reflectionProducer == null
             && (recorder.reflectionRegions == null || recorder.reflectionRegions.isEmpty()),
          description + " returned incomplete or non-standard reflection metadata");
+      JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+         description);
       Set<String> actual = recorder.currentDesignators(encoder, designatorAttribute);
       check(expected.equals(actual), description + " returned the wrong designator set");
       return actual;
