@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green focused IEEE 1516.2-2025 Annex C.2 object-class identity witness. Public Create accepts the same adapter FOM module twice with a queryable class, rejects a separate schema-valid module defining that class with conflicting sharing as InconsistentFOM, and permits valid federation-name reuse. The selected Annex C.2 candidate is mapped directly. FOM and logical-time configuration are adapter-owned. Join-time module composition, other class fields, Java provider runtime, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-equivalent-class-conflict",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM modules), joinFederationExecution, getObjectClassHandle/getObjectClassName, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle and object-class lookup services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_equivalent_class_conflict.cpp::scenarioFomEquivalentClassConflictContract"]
+    }
+  ]
+}

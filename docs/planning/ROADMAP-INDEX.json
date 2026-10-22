@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_equivalent_class_conflict_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 Annex C.2 equivalent-duplicate versus same-identity class-conflict rule into public C++ TCK primary/contract cases and Java scenario-ID parity with two adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:2158; packages/hla-rti-cpp-tck/src/tck_fom_equivalent_class_conflict.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomEquivalentClassConflictTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l46-6 -> IEEE 1516.2-2025 clause C.2"],
+    "evidence": "Native focused case passed 10 assertions; both adapter FOMs passed the pinned DIF XSD. C++ compiled against installed official IEEE API headers. Isolated installed-package CTest passed 4/4 and direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/equivalent-class-conflict-20261021.json). Java compiles against the API-only JAR; catalog and parity validators pass. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create accepts an equivalent duplicate FOM module with a queryable class, rejects a separate schema-valid same-identity object class with conflicting sharing, and permits valid federation-name reuse. Join-time composition, other class fields, Java runtime, interoperability, and conformance are not claimed.",
+    "next": "Audit the native-green FDD note/service-usage case at cpp/tests/libxml2_fom_composer_catch2.cpp:2218 against existing portable coverage; avoid duplicating already promoted scenarios. Translate only uncovered schema-valid public behavior with Java parity and installed-package gate. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_inherited_member_names_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 inherited attribute/parameter name rule into public C++ TCK primary/contract cases and Java scenario-ID parity with three adapter-owned schema-valid FOMs.",

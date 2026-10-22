@@ -19444,6 +19444,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-root-hierarchy-contract",
       "cpp-tck.fom-tag-data-type-categories-contract",
       "cpp-tck.fom-inherited-member-names-contract",
+      "cpp-tck.fom-equivalent-class-conflict-contract",
       "cpp-tck.fom-dimension-duplicate-union-contract",
       "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.fom-dimension-input-type-contract",
@@ -20183,6 +20184,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-root-hierarchy",
       "cpp-tck.fom-tag-data-type-categories",
       "cpp-tck.fom-inherited-member-names",
+      "cpp-tck.fom-equivalent-class-conflict",
       "cpp-tck.fom-dimension-duplicate-union",
       "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.fom-dimension-input-type",
@@ -21072,6 +21074,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-inherited-member-names-contract") {
     return scenarioFomInheritedMemberNamesContract;
+  }
+  if (id == "cpp-tck.fom-equivalent-class-conflict-contract") {
+    return scenarioFomEquivalentClassConflictContract;
   }
   if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
     return scenarioFomDimensionDuplicateUnionContract;
@@ -23424,6 +23429,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-inherited-member-names") {
     return scenarioFomInheritedMemberNames;
   }
+  if (id == "cpp-tck.fom-equivalent-class-conflict") {
+    return scenarioFomEquivalentClassConflict;
+  }
   if (id == "cpp-tck.fom-dimension-duplicate-union") {
     return scenarioFomDimensionDuplicateUnion;
   }
@@ -24025,6 +24033,12 @@ int run(Options const& options) {
                   options.scenarioFoms.count("inherited-parameter-duplicate") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied inherited-member FOM modules";
+      } else if ((scenario == "cpp-tck.fom-equivalent-class-conflict" ||
+                  scenario == "cpp-tck.fom-equivalent-class-conflict-contract") &&
+                 (options.scenarioFoms.count("equivalent-class-base") == 0U ||
+                  options.scenarioFoms.count("equivalent-class-conflict") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied class-identity FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
                   scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||

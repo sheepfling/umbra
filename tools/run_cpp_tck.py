@@ -782,6 +782,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-attribute-duplicate-tck.xml")),
             "inherited-parameter-duplicate="
             + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-parameter-duplicate-tck.xml")),
+            "equivalent-class-base="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-base-tck.xml")),
+            "equivalent-class-conflict="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-conflict-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

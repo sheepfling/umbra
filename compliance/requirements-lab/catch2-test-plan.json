@@ -13396,12 +13396,13 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2473",
-      "assertions": 5,
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2158",
+      "assertions": 10,
       "callback_models": [],
       "standard_sections": [
         "hla-1516.2-2025:clause-C.2"
       ],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l46-6", "standard_section": "hla-1516.2-2025:clause-C.2"}],
       "requirements_lab_api_surface_status": "This private FOM composition preflight case proves equivalent module duplicates are ignored and a real same-identity object-class conflict is rejected with an Annex C.2 diagnostic. It is direct C++ source and frozen Requirements-Lab evidence for the 1516.2-2025 FOM-composition contract, not public Join/FDD conformance evidence.",
       "next_action": "Keep this Annex-C class-conflict composition unit regression green. It proves duplicate-equivalence and conflict diagnostics in the private composer; it does not claim public FOM conformance, Join-time composition, remote transport, package/JUnit/protected-review evidence, validation, or conformance."
     },

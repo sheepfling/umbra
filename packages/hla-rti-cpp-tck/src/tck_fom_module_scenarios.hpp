@@ -84,6 +84,8 @@ void scenarioFomTagDataTypeCategories(Options const&, rti::CallbackModel);
 void scenarioFomTagDataTypeCategoriesContract(Options const&, rti::CallbackModel);
 void scenarioFomInheritedMemberNames(Options const&, rti::CallbackModel);
 void scenarioFomInheritedMemberNamesContract(Options const&, rti::CallbackModel);
+void scenarioFomEquivalentClassConflict(Options const&, rti::CallbackModel);
+void scenarioFomEquivalentClassConflictContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);
