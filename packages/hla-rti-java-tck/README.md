@@ -1644,6 +1644,19 @@ NA, described-empty, and table-type FOM paths for the NA-exclusivity case.
 All names in this paragraph are `hla.rti.tck.`-prefixed Java properties,
 and each provider adapter must supply schema-valid 2025 modules.
 
+Further FOM parity fixtures are also adapter properties: use
+`dimensionDuplicateWithinModuleFom` with the two legal duplicate-dimension
+modules for the name-uniqueness case; the four `objectClassName*Fom` paths
+for local-name conventions; `modelModificationDateTimezoneFom` and
+`modelModificationDateExactFom` for date presentation; and
+`updateRateZeroPreflightFom` with `updateRatePositivePreflightFom` for
+rate positivity. Equal and conflicting cross-module update rates use
+`updateRateDuplicateBaseFom` paired respectively with
+`updateRateDuplicateEqualFom` or `updateRateDuplicateNoteConflictFom`.
+Prefix each property with `hla.rti.tck.` and supply `--mim-path` to the
+cases that request the standard MIM. These cases remain default-disabled
+until a provider adapter attests its fixtures.
+
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 its paths are placeholders relative to that JSON file. Each entry may set

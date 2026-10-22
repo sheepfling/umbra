@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable object-class local-name conventions through official Federation Create and object-class lookup services. The adapter supplies provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. A period, unknown HLA prefix, and NA marker are rejected as local names; a hyphen-and-underscore name is accepted. Only the object-class name row is mapped, not every named FOM table. Private diagnostics, Java provider runtime, and interoperability are not claimed.",
+  "notes": "Portable object-class local-name conventions through official Federation Create and object-class lookup services. The adapter supplies provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. A period, unknown HLA prefix, and NA marker are rejected as local names; a hyphen-and-underscore name is accepted. Only the object-class name row is mapped, not every named FOM table. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/object-class-name-conventions-jni-20261021.json); other Java providers, private diagnostics, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-object-class-name-conventions",

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Pure public-API Annex C.7 Create Federation Execution witnesses use three schema-valid, adapter-owned FOM modules declaring one update rate. The native-green private preflight case passed 1/1, and the separate FOM-supplied witness passed installed-package CTest/direct 8/8 each across both callback models. Equal declarations compose and joined getUpdateRateValue returns 30.0; a changed note reference rejects the pair as InconsistentFOM and valid Create reuses the name. Java parity compiles against the API-only JAR, but provider runtime is unverified. This contract does not assert update scheduling, other conflict variants, interoperability, or conformance.",
+  "notes": "Pure public-API Annex C.7 Create Federation Execution witnesses use three schema-valid, adapter-owned FOM modules declaring one update rate. The native-green private preflight case passed 1/1, and the separate FOM-supplied witness passed installed-package CTest/direct 8/8 each across both callback models. Equal declarations compose and joined getUpdateRateValue returns 30.0; a changed note reference rejects the pair as InconsistentFOM and valid Create reuses the name. Java parity compiles against the API-only JAR, and both focused packaged Umbra JNI runtime scenarios passed (out/java-tck/update-rate-duplicate-equal-jni-20261021.json and out/java-tck/update-rate-duplicate-note-conflict-jni-20261021.json). This contract does not assert other Java providers, update scheduling, other conflict variants, interoperability, or conformance.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-update-rate-duplicate-equal",

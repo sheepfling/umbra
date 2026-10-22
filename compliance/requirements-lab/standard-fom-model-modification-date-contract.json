@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable model-identification modification-date presentation through official Federation Create and object-class lookup services. The adapter supplies provider package, standard MIM, two schema-valid FOM bindings, endpoint, logical time, and callback model. A timezone-suffixed xs:date is rejected, while the same model with YYYY-MM-DD is accepted. Omitted modification dates, private diagnostics, Java provider runtime, and interoperability are not claimed.",
+  "notes": "Portable model-identification modification-date presentation through official Federation Create and object-class lookup services. The adapter supplies provider package, standard MIM, two schema-valid FOM bindings, endpoint, logical time, and callback model. A timezone-suffixed xs:date is rejected, while the same model with YYYY-MM-DD is accepted. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/model-modification-date-jni-20261021.json); other Java providers, omitted modification dates, private diagnostics, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-model-modification-date",

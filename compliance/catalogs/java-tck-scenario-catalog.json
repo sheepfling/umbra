@@ -9094,12 +9094,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l6-1"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Standard Java API parity for same-module duplicate-name rejection, single-module acceptance, and legal equivalent cross-module union. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for same-module duplicate-name rejection, single-module acceptance, and legal equivalent cross-module union. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-name-uniqueness-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-dimension-name-uniqueness-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionNameUniqueness",
       "parity": "cpp-tck.fom-dimension-name-uniqueness",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dimensionDuplicateWithinModuleFom, dimensionDuplicateBaseFom, dimensionDuplicateEqualUniqueFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures dimensionDuplicateWithinModuleFom, dimensionDuplicateBaseFom, dimensionDuplicateEqualUniqueFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-object-class-name-conventions",
@@ -9110,12 +9110,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4a-page-040-l18-3"],
       "standard_sections": ["hla-1516.2-2025:clause-4.2.2"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3", "standard_section": "hla-1516.2-2025:clause-4.2.2"}],
-      "mapping_note": "Standard Java API parity for object-class local-name period, unknown HLA prefix, and NA marker rejection with hyphen/underscore acceptance. Java provider runtime unverified; other named tables are not claimed.",
+      "mapping_note": "Standard Java API parity for object-class local-name period, unknown HLA prefix, and NA marker rejection with hyphen/underscore acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/object-class-name-conventions-jni-20261021.json); other providers, named tables, and conformance are not claimed.",
       "contract_refs": ["standard-fom-object-class-name-conventions-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassNameConventions",
       "parity": "cpp-tck.fom-object-class-name-conventions",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.objectClassNamePeriodFom, objectClassNameReservedHlaFom, objectClassNameReservedNaFom, objectClassNameAllowedFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures objectClassNamePeriodFom, objectClassNameReservedHlaFom, objectClassNameReservedNaFom, objectClassNameAllowedFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-model-modification-date",
@@ -9126,12 +9126,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.1"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8", "standard_section": "hla-1516.2-2025:clause-6.2.1"}],
-      "mapping_note": "Standard Java API parity for timezone-suffixed modification-date rejection and exact YYYY-MM-DD acceptance. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for timezone-suffixed modification-date rejection and exact YYYY-MM-DD acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/model-modification-date-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-model-modification-date-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomModelModificationDate",
       "parity": "cpp-tck.fom-model-modification-date",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.modelModificationDateTimezoneFom, modelModificationDateExactFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures modelModificationDateTimezoneFom, modelModificationDateExactFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-positive-update-rate",
@@ -9142,12 +9142,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.12"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22", "standard_section": "hla-1516.2-2025:clause-6.2.12"}],
-      "mapping_note": "Standard Java API parity for exact zero-rate rejection and positive-rate lookup. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for exact zero-rate rejection and positive-rate lookup. One focused packaged Umbra JNI runtime run passed (out/java-tck/positive-update-rate-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-positive-update-rate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomPositiveUpdateRate",
       "parity": "cpp-tck.fom-positive-update-rate",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.updateRateZeroPreflightFom, updateRatePositivePreflightFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures updateRateZeroPreflightFom, updateRatePositivePreflightFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-dimension-default-range",
@@ -9238,12 +9238,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l70-9", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l74-10"],
       "standard_sections": ["hla-1516.2-2025:clause-C.7"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l70-9", "standard_section": "hla-1516.2-2025:clause-C.7"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l74-10", "standard_section": "hla-1516.2-2025:clause-C.7"}],
-      "mapping_note": "Standard Java API parity for equal FOM-supplied update rates and joined value lookup. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for equal FOM-supplied update rates and joined value lookup. One focused packaged Umbra JNI runtime run passed (out/java-tck/update-rate-duplicate-equal-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-update-rate-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomUpdateRateDuplicateEqual",
       "parity": "cpp-tck.fom-update-rate-duplicate-equal",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.updateRateDuplicateBaseFom and updateRateDuplicateEqualFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures updateRateDuplicateBaseFom and updateRateDuplicateEqualFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-update-rate-duplicate-note-conflict",
@@ -9254,12 +9254,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l70-9", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l78-11"],
       "standard_sections": ["hla-1516.2-2025:clause-C.7"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l70-9", "standard_section": "hla-1516.2-2025:clause-C.7"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l78-11", "standard_section": "hla-1516.2-2025:clause-C.7"}],
-      "mapping_note": "Standard Java API parity for update-rate referenced-note conflict and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for update-rate referenced-note conflict and valid federation-name retry. One focused packaged Umbra JNI runtime run passed (out/java-tck/update-rate-duplicate-note-conflict-jni-20261021.json); other providers and conformance are not claimed.",
       "contract_refs": ["standard-fom-update-rate-duplicate-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomUpdateRateDuplicateNoteConflict",
       "parity": "cpp-tck.fom-update-rate-duplicate-note-conflict",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.updateRateDuplicateBaseFom and updateRateDuplicateNoteConflictFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures updateRateDuplicateBaseFom and updateRateDuplicateNoteConflictFom; the packaged Umbra JNI focused runtime passed."
     },
     {
       "id": "java-tck.fom-switch-duplicate-equal",
