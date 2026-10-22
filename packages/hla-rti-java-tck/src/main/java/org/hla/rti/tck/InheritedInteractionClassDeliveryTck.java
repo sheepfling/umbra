@@ -27,7 +27,8 @@ final class InheritedInteractionClassDeliveryTck {
 
    private InheritedInteractionClassDeliveryTck() { }
 
-   static void run(RtiFactory factory, String fom, String baseClassName, String derivedClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String baseClassName, String derivedClassName,
          String baseParameterName, String derivedParameterName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -49,7 +50,7 @@ final class InheritedInteractionClassDeliveryTck {
          baseConnected = true;
          derivedSubscriber.connect(derivedCallbacks.proxy(), callbackModel);
          derivedConnected = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-interaction-hierarchy-publisher", federation);
@@ -261,13 +262,19 @@ final class InheritedInteractionClassDeliveryTck {
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
          String description) throws Exception {
-      JavaTckSupport.check(actual.interaction.equals(expectedClass)
-            && actual.parameters.containsKey(expectedParameter)
-            && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter))
-            && Arrays.equals(expectedTag, actual.tag)
-            && expectedProducer.equals(actual.producer)
-            && actual.transportation != null && actual.regionsEmpty,
-         description + " changed class, parameters, payload, tag, producer, or receive-order metadata");
+      JavaTckSupport.check(actual.interaction.equals(expectedClass),
+         description + " returned the wrong received interaction class");
+      JavaTckSupport.check(actual.parameters.containsKey(expectedParameter)
+            && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter)),
+         description + " omitted or changed the expected parameter payload");
+      JavaTckSupport.check(Arrays.equals(expectedTag, actual.tag),
+         description + " changed the sent user tag");
+      JavaTckSupport.check(expectedProducer.equals(actual.producer),
+         description + " reported the wrong producing federate");
+      JavaTckSupport.check(actual.transportation != null,
+         description + " returned null transportation");
+      JavaTckSupport.check(actual.regionsEmpty,
+         description + " returned nonempty or absent source regions");
       JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
          description + " returned an unresolvable transportation type");
    }
@@ -319,7 +326,7 @@ final class InheritedInteractionClassDeliveryTck {
          transportation = (TransportationTypeHandle) arguments[3];
          producer = (FederateHandle) arguments[4];
          RegionHandleSet regions = (RegionHandleSet) arguments[5];
-         regionsEmpty = regions != null && regions.isEmpty();
+         regionsEmpty = regions == null || regions.isEmpty();
       }
    }
 

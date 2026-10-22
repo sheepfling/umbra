@@ -2818,13 +2818,16 @@ source-region set in each callback. The adapter supplies the dimensional FOM,
 interaction, parameter, dimensions, and callback model; provider runtime remains
 unverified.
 
-The opt-in `java-tck.inherited-interaction-class-delivery` case sends a derived
+The default-run `java-tck.inherited-interaction-class-delivery` case sends a derived
 interaction to both a base-class and a derived-class subscription. It verifies
 base-subscription projection to the inherited parameter, full inherited and
 derived parameter delivery to the derived subscriber, and that a base-class
 interaction does not flow to a derived-only subscription. The adapter supplies
-the inherited FOM class/parameter names and callback model; values use standard
-HLA integer and Unicode data elements. Provider runtime remains unverified.
+the inherited FOM class/parameter names, logical-time implementation, and
+callback model; values use standard HLA integer and Unicode data elements.
+Absent nonregional source regions may be null or empty. Focused installed-
+provider evoked and immediate runs passed; independent-provider conformance
+is not claimed.
 
 The opt-in `java-tck.interaction-closest-ancestor-transition` case uses the
 adapter's three-level interaction FOM. As a receiver subscribes to base,

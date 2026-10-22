@@ -25322,7 +25322,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30", "standard_section": "hla-1516.1-2025:clause-5.1.4" }
       ],
-      "mapping_note": "Direct §5.1.4 mappings: the derived-class subscriber receives the sent class handle (page-084-l17-5), while the base subscriber receives only the sent parameter available at its projected base class and the exact-class subscriber receives both sent parameters (page-084-l92-30). This is an API-only parity assertion; Java provider runtime remains unverified.",
+      "mapping_note": "Direct §5.1.4 mappings: the derived-class subscriber receives the sent class handle (page-084-l17-5), while the base subscriber receives only the sent parameter available at its projected base class and the exact-class subscriber receives both sent parameters (page-084-l92-30). Reverse base-to-derived non-delivery, callback metadata, and standard encoder payload checks are supplemental. Java accepts null or empty source regions for nonregional delivery and uses the adapter-selected logical time implementation; no broader hierarchy or independent-provider conformance claim.",
       "contract_refs": [
         "standard-inherited-interaction-class-delivery-contract.json",
         "fom-root-hierarchy-requirements-contract.json",
@@ -25339,8 +25339,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#inheritedInteractionClassDelivery",
       "parity": "cpp-tck.inherited-interaction-class-delivery",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 FOM with a base interaction class, a derived interaction class, an inherited integer parameter, a derived Unicode-string parameter, and an installed Java 2025 provider; runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/inherited-interaction-class-delivery-{evoked,immediate}-default-20261022.json after corrected opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/interaction-inheritance-projection-promoted-20261021.json. Adapter supplies FOM, class and parameter names, logical time, factory, endpoint, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.interaction-closest-ancestor-transition",

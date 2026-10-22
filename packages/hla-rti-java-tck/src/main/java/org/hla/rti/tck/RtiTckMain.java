@@ -5771,9 +5771,11 @@ public final class RtiTckMain {
              "interaction-class-inheritance",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;DataElement.toByteArray",
              new String[] {
+                "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5",
+                "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30",
                 "cpp-1516.1-interaction-parameter-delivery",
                 "cpp-1516.2-fom-root-hierarchy"
-             }, false), RtiTckMain::inheritedInteractionClassDelivery);
+             }, true), RtiTckMain::inheritedInteractionClassDelivery);
         run(new Scenario("java-tck.interaction-closest-ancestor-transition",
               "select the closest subscribed ancestor and then the exact sent interaction class",
               "interaction-class-inheritance",
@@ -13470,6 +13472,7 @@ public final class RtiTckMain {
 
     private static void inheritedInteractionClassDelivery() throws Exception {
        InheritedInteractionClassDeliveryTck.run(factory(), requireFom(),
+          timeImplementation(),
           typedInteractionClassName(), typedDerivedInteractionClassName(),
           typedIntegerParameterName(), typedDerivedParameterName(), callbackModel());
     }
