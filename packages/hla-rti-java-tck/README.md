@@ -606,6 +606,14 @@ namespace prefixes, or attribute order. All four module combinations passed
 installed-provider evoked and immediate runs with the adapter's standard MIM;
 independent-provider conformance is not claimed.
 
+The default-run `java-tck.fom-note-collision-remap` case composes two
+adapter-supplied FOMs with the same source note label in either order. It
+checks the public federation MOM `HLAcurrentFDD` for distinct labels that
+retain both note meanings and are referenced by the composed service row.
+The adapter supplies both FOM paths and the standard MIM; no generated label
+spelling or XML serialization style is required. Focused installed-provider
+evoked and immediate runs passed; independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

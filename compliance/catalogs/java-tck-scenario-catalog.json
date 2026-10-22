@@ -9681,12 +9681,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11"],
       "standard_sections": ["hla-1516.2-2025:clause-C.9"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11", "standard_section": "hla-1516.2-2025:clause-C.9"}],
-      "mapping_note": "Java API and JDK DOM-parser parity for both FOM orders; label spelling is not asserted. Focused packaged-provider runtime passed in both callback models; the separate broader MOM metadata scenario remains unchanged.",
+      "mapping_note": "Annex C.9 parity with the C++ primary and contract pair (8/8 installed-package checks at out/mgw/note-collision-remap-20261021.json). Java reads public federation MOM HLAcurrentFDD in both FOM orders and uses the JDK DOM parser to require both preserved note semantics, distinct labels, and references from the composed disconnect row. Provider-selected label spelling and XML serialization style are not asserted.",
       "contract_refs": ["standard-fom-note-collision-remap-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomNoteCollisionRemap",
       "parity": "cpp-tck.fom-note-collision-remap",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures hla.rti.tck.noteCollisionFirstFom, hla.rti.tck.noteCollisionSecondFom, and hla.rti.tck.mim; focused packaged-provider runtime passed in both callback models."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/fom-note-collision-remap-{evoked,immediate}-default-20261022.json, following passing opt-in runs. Adapter supplies hla.rti.tck.noteCollisionFirstFom, hla.rti.tck.noteCollisionSecondFom, standard MIM, logical time, factory, endpoint, federate type, and callback model. No independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-standard-invalid-input-corpus",

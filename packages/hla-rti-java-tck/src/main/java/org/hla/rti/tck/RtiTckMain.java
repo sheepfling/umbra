@@ -2256,7 +2256,7 @@ public final class RtiTckMain {
             "Preserve distinct referenced notes after FOM label collision",
             "fom-composition",
             "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomNoteCollisionRemap);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
