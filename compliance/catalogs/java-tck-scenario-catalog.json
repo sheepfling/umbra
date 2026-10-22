@@ -8314,12 +8314,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for the Annex C.3 forward-reference create/reject behavior. Adapter owns the FOM paths; API-only compilation is required and Java provider runtime remains unverified.",
+      "mapping_note": "Standard Java API parity for the Annex C.3 forward-reference create/reject behavior. Adapter owns the FOM paths; API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-data-type-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeForwardReference",
       "parity": "cpp-tck.fom-data-type-forward-reference",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.dataTypeMergeConsumerFom and hla.rti.tck.dataTypeMergeProviderFom for a Java IEEE 1516.1-2025 provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.dataTypeMergeConsumerFom and hla.rti.tck.dataTypeMergeProviderFom; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-data-type-conflicting-definition",
@@ -8332,12 +8332,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for the Annex C.3 named data-type conflict and federation-name reuse checks. Adapter owns the FOM paths; API-only compilation is required and Java provider runtime remains unverified.",
+      "mapping_note": "Standard Java API parity for the Annex C.3 named data-type conflict and federation-name reuse checks. Adapter owns the FOM paths; API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-data-type-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeConflictingDefinition",
       "parity": "cpp-tck.fom-data-type-conflicting-definition",
       "default_status": "unsupported",
-      "exclusion": "Configure the three hla.rti.tck.dataTypeMerge*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.dataTypeMerge*Fom properties; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-variant-alternative-overlap",
@@ -8350,12 +8350,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for bounded Annex C.3 variant-alternative overlap and federation-name reuse. The specific variant continuation remains clipped in the Requirements Lab (RL-319); this does not assert complete variant-record merging. API-only compilation required; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for bounded Annex C.3 variant-alternative overlap and federation-name reuse. The specific variant continuation remains clipped in the Requirements Lab (RL-319); this does not assert complete variant-record merging. API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantAlternativeOverlap",
       "parity": "cpp-tck.fom-variant-alternative-overlap",
       "default_status": "unsupported",
-      "exclusion": "Configure the three hla.rti.tck.variantAlternative*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.variantAlternative*Fom properties; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-interaction-parameter-merge-conflict",
@@ -8368,12 +8368,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for the bounded Annex C.3 interaction-parameter set merge, conflicting data type, and name-reuse assertions. Adapter supplies all FOM modules and callback configuration. API-only compilation required; Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for the bounded Annex C.3 interaction-parameter set merge, conflicting data type, and name-reuse assertions. Adapter supplies all FOM modules and callback configuration. API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-interaction-parameter-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionParameterMergeConflict",
       "parity": "cpp-tck.fom-interaction-parameter-merge-conflict",
       "default_status": "unsupported",
-      "exclusion": "Configure the three hla.rti.tck.interactionParameter*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.interactionParameter*Fom properties; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-object-attribute-merge-conflict",
@@ -8386,12 +8386,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4", "standard_section": "hla-1516.2-2025:clause-C.3" }
       ],
-      "mapping_note": "Standard Java API parity for bounded Annex C.3 disjoint object-attribute union, semantics-field conflict, and federation-name retry. FOMs and callback model are adapter-owned. API-only compilation required; provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for bounded Annex C.3 disjoint object-attribute union, semantics-field conflict, and federation-name retry. FOMs and callback model are adapter-owned. API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-object-attribute-merge-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectAttributeMergeConflict",
       "parity": "cpp-tck.fom-object-attribute-merge-conflict",
       "default_status": "unsupported",
-      "exclusion": "Configure the three hla.rti.tck.objectAttribute*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures the three hla.rti.tck.objectAttribute*Fom properties; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-object-class-semantics-conflict",
@@ -8404,12 +8404,12 @@
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1", "standard_section": "hla-1516.2-2025:clause-7" }
       ],
-      "mapping_note": "Standard Java API parity for one named object-class semantics conflict, InconsistentFOM, and valid federation-name retry. Adapter owns all FOM paths and callback configuration. API-only compilation required; Java provider runtime remains unverified.",
+      "mapping_note": "Standard Java API parity for one named object-class semantics conflict, InconsistentFOM, and valid federation-name retry. Adapter owns all FOM paths and callback configuration. API-only compilation and focused packaged-provider runtime passed in both callback models.",
       "contract_refs": ["standard-fom-object-class-semantics-conflict-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassSemanticsConflict",
       "parity": "cpp-tck.fom-object-class-semantics-conflict",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Default-disabled until each provider configures hla.rti.tck.objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom; focused packaged-provider runtime passed in both callback models."
     },
     {
       "id": "java-tck.fom-matching-data-types",

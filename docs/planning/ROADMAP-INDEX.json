@@ -1,4 +1,19 @@
 {
+  "portable_tck_java_fom_c3_merge_runtime_gate_2026_10_21": {
+    "status": "verified-focused-java-provider-runtime",
+    "scope": "Gate six already-promoted C++ public-API FOM composition cases through pure IEEE 1516.1-2025 Java scenario-ID parity: data-type forward reference and conflict, variant alternative overlap, interaction-parameter merge/conflict, object-attribute merge/conflict, and object-class semantics conflict.",
+    "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDataTypeMergeTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomInteractionParameterMergeTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomObjectAttributeMergeTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomObjectClassSemanticsConflictTck.java; compliance/catalogs/java-tck-scenario-catalog.json",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8 -> IEEE 1516.2-2025 clause C.3",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9 -> IEEE 1516.2-2025 clause C.3",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6 -> IEEE 1516.2-2025 clause C.3",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4 -> IEEE 1516.2-2025 clause C.3",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1 -> IEEE 1516.2-2025 clause 7"
+    ],
+    "evidence": "Twelve focused Python-launched Java runs each reported one pass and zero failures against the packaged provider: out/java-tck/data-type-forward-reference-{jni,immediate-jni}-20261021.json, data-type-conflicting-definition-{jni,immediate-jni}-20261021.json, variant-alternative-overlap-{jni,immediate-jni}-20261021.json, interaction-parameter-merge-conflict-{jni,immediate-jni}-20261021.json, object-attribute-merge-conflict-{jni,immediate-jni}-20261021.json, and object-class-semantics-conflict-{jni,immediate-jni}-20261021.json. The first compiled against the API-only JAR; the others reused those classes. All six C++ parity cases are promoted with earlier focused installed-package gates. No C++ core rebuild was needed.",
+    "scope_boundary": "These are bounded public Create/reject/lookup witnesses on one packaged Java provider, not complete Annex C.3 merging, other object-class fields, cross-provider interoperability, or conformance. The variant-specific continuation remains clipped (RL-319); only its intact general named-data-type conflict mapping is claimed. Each provider must supply and attest FOM modules, endpoint, callback model, and logical-time implementation through its adapter. Concurrent Table 5 C++ work remains untouched.",
+    "next": "Run the already-promoted cpp-tck.fom-matching-data-types parity ID java-tck.fom-matching-data-types with its two adapter-owned 2025 modules in both callback models, then continue only to adjacent C++-promoted cases with green source evidence."
+  },
   "portable_tck_java_fom_annex_c9_c10_runtime_gate_2026_10_21": {
     "status": "verified-focused-java-provider-runtime",
     "scope": "Match promoted C++ Annex C.9 note-collision and C.10 service-utilization witnesses with focused pure IEEE 1516.1-2025 Java scenarios over adapter-owned FOM module combinations.",

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Portable Annex C.3 interaction-parameter composition uses only the official IEEE 1516.1-2025 RTIambassador and FederateAmbassador API and adapter-owned schema-valid FOM modules. It checks the positive set merge via both parameter handle lookups, rejects a same-named parameter with a different data type as InconsistentFOM, and confirms a valid federation-name retry. The native official-API focused CTest passed 1/1. Installed-package CTest passed 4/4 and direct runner passed 4/4 under both callback models (out/mgw/interaction-parameter-merge-20261021.json). Java compiles against the API-only JAR, but provider runtime remains unverified; no claim for other parameter sub-elements or interoperability.",
+  "notes": "Portable Annex C.3 interaction-parameter composition uses only the official IEEE 1516.1-2025 RTIambassador and FederateAmbassador API and adapter-owned schema-valid FOM modules. It checks the positive set merge via both parameter handle lookups, rejects a same-named parameter with a different data type as InconsistentFOM, and confirms a valid federation-name retry. The native official-API focused CTest passed 1/1. Installed-package CTest passed 4/4 and direct runner passed 4/4 under both callback models (out/mgw/interaction-parameter-merge-20261021.json). Java compiled against the API-only JAR and focused packaged-provider runtime passed in both callback models (out/java-tck/interaction-parameter-merge-conflict-*-20261021.json); no claim for other parameter sub-elements or interoperability.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-interaction-parameter-merge-annex-c3",
@@ -14,6 +14,17 @@
       "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and interaction parameter lookup services",
       "tests": [
         "packages/hla-rti-cpp-tck/src/tck_fom_interaction_parameter_merge.cpp::scenarioFomInteractionParameterMergeConflictContract"
+      ]
+    },
+    {
+      "id": "standard-java-fom-interaction-parameter-merge-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 Java API and OMT",
+      "language": "java",
+      "signature": "RTIambassador federation creation, join, interaction-class/parameter lookup, resign, and destroy services",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "IEEE 1516.1-2025 Java RTIambassador interaction parameter lookup services",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomInteractionParameterMergeTck.java::run"
       ]
     }
   ]
