@@ -847,12 +847,14 @@ each build. The Java case also passed focused installed JNI execution in both
 callback modes. It uses receiver-local object handles and avoids fabricated
 unknown-object handles; independent-provider conformance remains unverified.
 
-The opt-in `java-tck.attribute-multi-recipient-fifo` scenario sends two ordinary
-receive-order updates and verifies that both subscribers observe values and tags
-in producer order, with matching object/producer and a valid transportation type.
-The publisher must receive no reflection. Provider, FOM, endpoint, and callback
-model remain adapter-configured; runtime verification against a Java provider is
-required before enabling it by default.
+The default `java-tck.attribute-multi-recipient-fifo` scenario sends two ordinary
+updates and verifies that both subscribers receive each value and matching tag,
+with their locally known object, producing federate, and transportation metadata.
+The publisher receives no reflection. The historical ID preserves C++ parity;
+Java imposes no sender-order assertion without a direct standard mapping.
+Provider, FOM, endpoint, and callback model remain adapter-configured. Focused
+installed JNI execution passed in both modes; independent-provider conformance
+remains unverified.
 
 The opt-in `java-tck.receive-order-attribute-update` scenario checks adapter-name
 handle round trips, the evoked callback-servicing boundary, and two consecutive

@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Checks FIFO ordinary attribute update delivery to two active subscribers. */
+/** Checks ordinary attribute update delivery to two active subscribers. */
 final class AttributeMultiRecipientFifoTck {
    private AttributeMultiRecipientFifoTck() { }
 
@@ -44,24 +44,23 @@ final class AttributeMultiRecipientFifoTck {
          }
          rti[0].createFederationExecution(federation, fom);
          created = true;
-         FederateHandle producer = rti[0].joinFederationExecution(
-            "java-tck-attribute-fifo-publisher", federation);
+         String publisherName = "java-tck-attribute-fifo-publisher";
+         rti[0].joinFederationExecution(publisherName, "attribute-publisher", federation);
          joined[0] = true;
-         rti[1].joinFederationExecution("java-tck-attribute-fifo-first", federation);
+         rti[1].joinFederationExecution("java-tck-attribute-fifo-first",
+            "attribute-first", federation);
          joined[1] = true;
-         rti[2].joinFederationExecution("java-tck-attribute-fifo-second", federation);
+         rti[2].joinFederationExecution("java-tck-attribute-fifo-second",
+            "attribute-second", federation);
          joined[2] = true;
 
          for (int i = 0; i < rti.length; ++i) {
             classes[i] = rti[i].getObjectClassHandle(objectClassName);
             attributes[i] = rti[i].getAttributeHandle(classes[i], attributeName);
-            JavaTckSupport.check(classes[i] != null && attributes[i] != null,
+            JavaTckSupport.check(classes[i] != null && attributes[i] != null
+                  && objectClassName.equals(rti[i].getObjectClassName(classes[i]))
+                  && attributeName.equals(rti[i].getAttributeName(classes[i], attributes[i])),
                "adapter FOM did not resolve the attribute FIFO class and attribute");
-         }
-         for (int i = 1; i < rti.length; ++i) {
-            JavaTckSupport.check(classes[0].equals(classes[i])
-                  && attributes[0].equals(attributes[i]),
-               "attribute FIFO handles changed across federates");
          }
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(rti[0], attributes[0]);
          AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(rti[1], attributes[1]);
@@ -74,17 +73,22 @@ final class AttributeMultiRecipientFifoTck {
          subscribed[2] = true;
 
          ObjectInstanceHandle object = rti[0].registerObjectInstance(classes[0]);
-         await(rti[1], () -> recorders[1].discovered(object),
+         String objectName = rti[0].getObjectInstanceName(object);
+         await(rti[1], () -> recorders[1].discoveredObject != null,
             "first subscriber did not discover the object before the deadline");
-         await(rti[2], () -> recorders[2].discovered(object),
+         await(rti[2], () -> recorders[2].discoveredObject != null,
             "second subscriber did not discover the object before the deadline");
-         JavaTckSupport.check(object.equals(recorders[1].discoveredObject)
-               && object.equals(recorders[2].discoveredObject)
-               && classes[1].equals(recorders[1].discovery.objectClass)
-               && classes[2].equals(recorders[2].discovery.objectClass)
-               && producer.equals(recorders[1].discovery.producer)
-               && producer.equals(recorders[2].discovery.producer),
-            "attribute update subscribers discovered the wrong object or producer metadata");
+         ObjectInstanceHandle[] localObjects = new ObjectInstanceHandle[3];
+         for (int i = 1; i < rti.length; ++i) {
+            localObjects[i] = rti[i].getObjectInstanceHandle(objectName);
+            JavaTckSupport.check(localObjects[i].equals(recorders[i].discoveredObject)
+                  && objectName.equals(recorders[i].discovery.name)
+                  && classes[i].equals(recorders[i].discovery.objectClass)
+                  && classes[i].equals(rti[i].getKnownObjectClassHandle(localObjects[i]))
+                  && publisherName.equals(
+                     rti[i].getFederateName(recorders[i].discovery.producer)),
+               "attribute update subscriber discovered the wrong local object or producer");
+         }
          recorders[1].clearReflections();
          recorders[2].clearReflections();
 
@@ -100,10 +104,10 @@ final class AttributeMultiRecipientFifoTck {
             "second subscriber did not receive both updates before the deadline");
          JavaTckSupport.check(recorders[0].reflections().isEmpty(),
             "ordinary attribute updates looped back to the publisher");
-         assertDeliveries(rti[1], recorders[1].reflections(), object, attributes[1],
-            firstValue, firstTag, secondValue, secondTag, producer, "first subscriber");
-         assertDeliveries(rti[2], recorders[2].reflections(), object, attributes[2],
-            firstValue, firstTag, secondValue, secondTag, producer, "second subscriber");
+         assertDeliveries(rti[1], recorders[1].reflections(), localObjects[1], attributes[1],
+            firstValue, firstTag, secondValue, secondTag, publisherName, "first subscriber");
+         assertDeliveries(rti[2], recorders[2].reflections(), localObjects[2], attributes[2],
+            firstValue, firstTag, secondValue, secondTag, publisherName, "second subscriber");
 
          rti[1].unsubscribeObjectClassAttributes(classes[1], firstAttributes);
          subscribed[1] = false;
@@ -164,24 +168,42 @@ final class AttributeMultiRecipientFifoTck {
 
    private static void assertDeliveries(RTIambassador receiver, List<Reflection> reflections,
          ObjectInstanceHandle object, AttributeHandle attribute, byte[] firstValue,
-         byte[] firstTag, byte[] secondValue, byte[] secondTag, FederateHandle producer,
+         byte[] firstTag, byte[] secondValue, byte[] secondTag, String publisherName,
          String description) throws Exception {
       JavaTckSupport.check(reflections.size() == 2,
          description + " received an unexpected reflection callback count");
-      assertDelivery(receiver, reflections.get(0), object, attribute, firstValue,
-         firstTag, producer, description + " first receive-order update");
-      assertDelivery(receiver, reflections.get(1), object, attribute, secondValue,
-         secondTag, producer, description + " second receive-order update");
+      boolean sawFirst = false;
+      boolean sawSecond = false;
+      for (Reflection reflection : reflections) {
+         boolean first = Arrays.equals(firstValue, reflection.values.get(attribute))
+            && Arrays.equals(firstTag, reflection.tag);
+         boolean second = Arrays.equals(secondValue, reflection.values.get(attribute))
+            && Arrays.equals(secondTag, reflection.tag);
+         JavaTckSupport.check(first != second,
+            description + " received unexpected value or tag metadata");
+         if (first) {
+            JavaTckSupport.check(!sawFirst, description + " received a duplicate first update");
+            sawFirst = true;
+         } else {
+            JavaTckSupport.check(!sawSecond, description + " received a duplicate second update");
+            sawSecond = true;
+         }
+         assertDelivery(receiver, reflection, object, attribute,
+            first ? firstValue : secondValue, first ? firstTag : secondTag,
+            publisherName, description);
+      }
+      JavaTckSupport.check(sawFirst && sawSecond,
+         description + " did not receive both ordinary updates");
    }
 
    private static void assertDelivery(RTIambassador receiver, Reflection reflection,
          ObjectInstanceHandle object, AttributeHandle attribute, byte[] value, byte[] tag,
-         FederateHandle producer, String description) throws Exception {
+         String publisherName, String description) throws Exception {
       JavaTckSupport.check(!reflection.timestampOrdered && object.equals(reflection.object)
             && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag)
-            && producer.equals(reflection.producer)
+            && publisherName.equals(receiver.getFederateName(reflection.producer))
             && reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty(),
          description + " returned incorrect object, value, tag, producer, or transport metadata");
@@ -219,10 +241,13 @@ final class AttributeMultiRecipientFifoTck {
 
    private static final class Discovery {
       private final ObjectClassHandle objectClass;
+      private final String name;
       private final FederateHandle producer;
 
-      private Discovery(ObjectClassHandle objectClass, FederateHandle producer) {
+      private Discovery(ObjectClassHandle objectClass, String name,
+            FederateHandle producer) {
          this.objectClass = objectClass;
+         this.name = name;
          this.producer = producer;
       }
    }
@@ -239,7 +264,7 @@ final class AttributeMultiRecipientFifoTck {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)) {
                   discovery = new Discovery((ObjectClassHandle) arguments[1],
-                     (FederateHandle) arguments[3]);
+                     (String) arguments[2], (FederateHandle) arguments[3]);
                   discoveredObject = (ObjectInstanceHandle) arguments[0];
                } else if ("reflectAttributeValues".equals(name)) {
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
@@ -256,10 +281,6 @@ final class AttributeMultiRecipientFifoTck {
                }
                return null;
             });
-      }
-
-      private boolean discovered(ObjectInstanceHandle object) {
-         return object.equals(discoveredObject);
       }
 
       private List<Reflection> reflections() { return List.copyOf(reflections); }
