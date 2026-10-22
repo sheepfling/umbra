@@ -118,6 +118,12 @@ public final class RtiTckMain {
       "hla.rti.tck.timeRepresentationBasicDataFom";
    private static final String TIME_REPRESENTATION_REFERENCE_DATA_FOM_PROPERTY =
       "hla.rti.tck.timeRepresentationReferenceDataFom";
+   private static final String MEMBER_DATA_TYPE_VALID_FOM_PROPERTY =
+      "hla.rti.tck.memberDataTypeValidFom";
+   private static final String MEMBER_DATA_TYPE_ATTRIBUTE_BASIC_FOM_PROPERTY =
+      "hla.rti.tck.memberDataTypeAttributeBasicFom";
+   private static final String MEMBER_DATA_TYPE_PARAMETER_BASIC_FOM_PROPERTY =
+      "hla.rti.tck.memberDataTypeParameterBasicFom";
    private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateBaseFom";
    private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
@@ -1806,6 +1812,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomTimeRepresentationRejections);
+      run(new Scenario("java-tck.fom-member-data-type-categories",
+            "Reject raw basic data types on object attributes and interaction parameters",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomMemberDataTypeCategories);
       run(new Scenario("java-tck.fom-dimension-duplicate-union",
             "Accept an identical dimension duplicate and retain a new dimension",
             "fom-composition",
@@ -11654,6 +11666,8 @@ public final class RtiTckMain {
             method = "fomTimeRepresentationValid"; break;
          case "java-tck.fom-time-representation-rejections":
             method = "fomTimeRepresentationRejections"; break;
+         case "java-tck.fom-member-data-type-categories":
+            method = "fomMemberDataTypeCategories"; break;
          case "java-tck.fom-dimension-duplicate-union":
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
@@ -13301,6 +13315,14 @@ public final class RtiTckMain {
             requireAdapterFile(TIME_REPRESENTATION_BASIC_DATA_FOM_PROPERTY),
             requireAdapterFile(TIME_REPRESENTATION_REFERENCE_DATA_FOM_PROPERTY)
          }, timeImplementation(), callbackModel());
+   }
+
+   private static void fomMemberDataTypeCategories() throws Exception {
+      FomMemberDataTypeTck.run(factory(),
+         requireAdapterFile(MEMBER_DATA_TYPE_VALID_FOM_PROPERTY),
+         requireAdapterFile(MEMBER_DATA_TYPE_ATTRIBUTE_BASIC_FOM_PROPERTY),
+         requireAdapterFile(MEMBER_DATA_TYPE_PARAMETER_BASIC_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
    }
 
    private static void fomDimensionDuplicateUnion() throws Exception {

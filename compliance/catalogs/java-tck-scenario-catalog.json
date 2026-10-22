@@ -8526,6 +8526,22 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-member-data-type-categories",
+      "category": "fom-composition",
+      "title": "Reject raw basic data types on object attributes and interaction parameters",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-048-l105-4", "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.2", "hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l105-4", "standard_section": "hla-1516.2-2025:clause-4.5.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4", "standard_section": "hla-1516.2-2025:clause-4"}],
+      "mapping_note": "Java parity for a valid simple-data FOM, two raw-basic member-type rejections, and valid federation-name retry; Java provider runtime unverified. The parameter source candidate has only clause-4 granularity.",
+      "contract_refs": ["standard-fom-member-data-type-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomMemberDataTypeCategories",
+      "parity": "cpp-tck.fom-member-data-type-categories",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.memberDataTypeValidFom, memberDataTypeAttributeBasicFom, and memberDataTypeParameterBasicFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-time-representation-valid",
       "category": "fom-composition",
       "title": "Accept a permitted logical-time representation data type",

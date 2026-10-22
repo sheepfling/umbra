@@ -13537,6 +13537,8 @@
         "requirement-candidate-sections-semantic-clause-4b-page-048-l105-4",
         "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4"
       ],
+      "standard_sections": ["hla-1516.2-2025:clause-4.5.2", "hla-1516.2-2025:clause-4"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l105-4", "standard_section": "hla-1516.2-2025:clause-4.5.2"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4", "standard_section": "hla-1516.2-2025:clause-4"}],
       "test_case": "The FOM composition preflight rejects raw basic data types for attributes and parameters",
       "tags": [
         "unit",
@@ -13546,7 +13548,7 @@
         "data-types"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2107",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1792",
       "next_action": "This private composition slice rejects a raw basic-data representation in an object-attribute or interaction-parameter data-type column after complete-model resolution. Generic name resolution retains basic-data names from the schema key, while table-specific predicates determine their permitted roles; the standard HLAtoken is naturally accepted as array data. The paired attribute-NA companion slice handles the bounded direct cross fields; full table constraints, dependency packaging, JUnit/protected review, and conformance remain open."
     },
     {

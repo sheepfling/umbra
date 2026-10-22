@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Native-green focused object-attribute and interaction-parameter data-type category witness. A schema-valid FOM using predefined simple HLAbyte on both members is accepted; separate schema-valid FOMs using raw basic HLAinteger32BE on an attribute or parameter are rejected, with successful valid retry. Public Create/Destroy only; no private composition APIs or diagnostic text. The pinned parameter source candidate resolves only to IEEE 1516.2-2025 clause 4, not a more precise subsection. Installed-package C++ and Java runtime evidence are recorded separately. No interoperability or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-member-data-type-categories",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_member_data_type.cpp::scenarioFomMemberDataTypeCategoriesContract"]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects><objectClass><name>HLAobjectRoot</name><objectClass>
+        <name>TckMemberTypeObject</name><sharing>PublishSubscribe</sharing>
+        <attribute>
+            <name>TckMemberTypeAttribute</name><dataType>HLAinteger32BE</dataType>
+            <updateType>Static</updateType><updateCondition>Test value.</updateCondition>
+            <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+            <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+            <order>Receive</order><semantics>Disallowed raw basic data type.</semantics>
+        </attribute>
+    </objectClass></objectClass></objects>
+</objectModel>

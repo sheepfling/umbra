@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_member_data_type_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Translate the native-green IEEE 1516.2-2025 attribute and parameter data-type category rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1792; packages/hla-rti-cpp-tck/src/tck_fom_member_data_type.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomMemberDataTypeTck.java",
+    "direct_mappings": ["requirement-candidate-sections-semantic-clause-4b-page-048-l105-4 -> IEEE 1516.2-2025 clause 4.5.2", "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4 -> IEEE 1516.2-2025 clause 4 (pinned Lab granularity)"],
+    "evidence": "Native focused case passed 18 assertions; three adapter FOMs passed the pinned DIF XSD. C++ compiled against installed official IEEE API headers. Isolated installed-package CTest passed 4/4 and direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/member-data-type-20261021.json). Java compiles against the API-only JAR; catalog and parity validators pass. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create accepts HLAbyte simple types on an attribute and parameter, rejects separate raw-basic HLAinteger32BE member types as InconsistentFOM, and permits valid federation-name reuse. No private diagnostic text, Java runtime, interoperability, or conformance claim. The focused link reused existing objects and compiled only the entry point and new scenario source; it is not a full rebuild.",
+    "next": "Audit the native-green attribute NA companion rule at cpp/tests/libxml2_fom_composer_catch2.cpp:1845 against existing portable C++/Java coverage and its pinned mapping. Add only uncovered schema-valid public Create cases, then gate against the installed package. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_time_representation_handoff_2026_10_21": {
     "status": "verified-focused-installed-package-relink",
     "scope": "Translate the native-green IEEE 1516.2-2025 logical-time representation data-type category rule into public C++ TCK primary/contract cases and Java scenario-ID parity with adapter-owned schema-valid FOMs.",

@@ -734,6 +734,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-basic-data-tck.xml")),
             "time-representation-reference-data="
             + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-reference-data-tck.xml")),
+            "member-data-type-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-valid-tck.xml")),
+            "member-data-type-attribute-basic="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-attribute-basic-tck.xml")),
+            "member-data-type-parameter-basic="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-parameter-basic-tck.xml")),
             "dimension-duplicate-base="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
             "dimension-duplicate-equal-unique="

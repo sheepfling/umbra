@@ -66,6 +66,8 @@ void scenarioFomTimeRepresentationValid(Options const&, rti::CallbackModel);
 void scenarioFomTimeRepresentationValidContract(Options const&, rti::CallbackModel);
 void scenarioFomTimeRepresentationRejections(Options const&, rti::CallbackModel);
 void scenarioFomTimeRepresentationRejectionsContract(Options const&, rti::CallbackModel);
+void scenarioFomMemberDataTypeCategories(Options const&, rti::CallbackModel);
+void scenarioFomMemberDataTypeCategoriesContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);
