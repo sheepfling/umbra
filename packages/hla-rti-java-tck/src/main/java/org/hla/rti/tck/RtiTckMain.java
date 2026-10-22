@@ -2070,19 +2070,19 @@ public final class RtiTckMain {
             "Accept range, standalone HLAother, and omitted variant enumerators; reject malformed forms",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomVariantEnumeratorSyntax);
       run(new Scenario("java-tck.fom-variant-enumerator-membership",
             "Require supplied variant discriminant members to belong to the resolved enumeration",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomVariantEnumeratorMembership);
       run(new Scenario("java-tck.fom-variant-range-semantics",
             "Resolve merged variant ranges and reject an overlapping named alternative",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomVariantRangeSemantics);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",

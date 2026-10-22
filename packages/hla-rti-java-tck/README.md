@@ -487,6 +487,14 @@ and retry a valid Create. Their FOM inputs remain adapter-owned. Each passed
 focused installed-provider evoked and immediate runs; independent-provider
 behavior remains unverified. The record-member Lab mapping remains at broad
 clause 4 pending a more precise source mapping.
+The default-run `java-tck.fom-variant-enumerator-syntax`,
+`java-tck.fom-variant-enumerator-membership`, and
+`java-tck.fom-variant-range-semantics` cases cover enumerator forms, declared
+membership and endpoints, later-module resolution, compatible merged ranges,
+conflicting alternatives, and valid federation-name retry through standard
+Create services. Their FOM modules are adapter-supplied. All three passed
+focused installed-provider evoked and immediate runs; the membership and
+range Lab mappings retain their recorded broad provenance limits.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

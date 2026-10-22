@@ -8977,12 +8977,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12", "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13", "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.20"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12", "standard_section": "hla-1516.2-2025:clause-6.2.20"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13", "standard_section": "hla-1516.2-2025:clause-6.2.20"}, {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14", "standard_section": "hla-1516.2-2025:clause-6.2.20"}],
-      "mapping_note": "Java 2025 API-only compile passed for named range, standalone HLAother, omitted incomplete enumerator, malformed range, composite HLAother, and valid retry. Java provider runtime unverified.",
+      "mapping_note": "Java 2025 API-only compile passed for named range, standalone HLAother, omitted incomplete enumerator, malformed range, composite HLAother, and valid retry. Matching C++ primary and contract passed 4/4 at out/mgw/fom-variant-enumerator-syntax-20261021.json.",
       "contract_refs": ["standard-fom-variant-enumerator-syntax-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantEnumeratorSyntax",
       "parity": "cpp-tck.fom-variant-enumerator-syntax",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.variantEnumeratorRangeFom, variantEnumeratorHlaotherFom, variantEnumeratorOmittedFom, variantEnumeratorMalformedRangeFom, and variantEnumeratorCompositeHlaotherFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-variant-enumerator-syntax-{evoked,immediate}-default-20261022.json. Adapter supplies range, HLAother, omitted, malformed-range, and composite-HLAother FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-variant-enumerator-membership",
@@ -8993,12 +8993,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-077-l70-5"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Java 2025 API-only compile passed for unknown direct member, unknown range endpoint, incomplete member set, later-module resolution, and valid retry. Broad clause-4 Lab provenance is retained; Java provider runtime unverified.",
+      "mapping_note": "Java 2025 API-only compile passed for unknown direct member, unknown range endpoint, incomplete member set, later-module resolution, and valid retry. Broad clause-4 Lab provenance is retained (RL-049); matching C++ primary and contract passed 4/4 at out/mgw/fom-variant-enumerator-membership-20261021.json.",
       "contract_refs": ["standard-fom-variant-enumerator-membership-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantEnumeratorMembership",
       "parity": "cpp-tck.fom-variant-enumerator-membership",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.variantMemberUnknownFom, variantMemberUnknownEndpointFom, variantMemberIncompleteFom, variantMemberLaterConsumerFom, and variantMemberLaterProviderFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-variant-enumerator-membership-{evoked,immediate}-default-20261022.json. Adapter supplies unknown-member, unknown-endpoint, incomplete, consumer, and provider FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-variant-range-semantics",
@@ -9009,12 +9009,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-077-l70-5", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"],
       "standard_sections": ["hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-C.3"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1", "standard_section": "hla-1516.2-2025:clause-C.3"}],
-      "mapping_note": "Java 2025 API-only compile passed for compatible merged range, overlapping named alternative, non-extendable HLAother coexistence, and valid retry. RL-049/RL-050 provenance limits and unverified Java provider runtime remain explicit.",
+      "mapping_note": "Java 2025 API-only compile passed for compatible merged range, overlapping named alternative, non-extendable HLAother coexistence, and valid retry. RL-049/RL-050 provenance limits remain explicit; matching C++ primary and contract passed 4/4 at out/mgw/fom-variant-range-semantics-20261021.json.",
       "contract_refs": ["standard-fom-variant-range-semantics-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantRangeSemantics",
       "parity": "cpp-tck.fom-variant-range-semantics",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.variantRangeOrderBaseFom, variantRangeOrderValidExtensionFom, variantRangeOrderConflictExtensionFom, and variantRangeOtherComplementFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-variant-range-semantics-{evoked,immediate}-default-20261022.json. Adapter supplies base, valid extension, conflicting extension, and HLAother complement FOM modules, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-file-url-designator",
