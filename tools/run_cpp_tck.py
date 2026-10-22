@@ -754,6 +754,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-timezone-tck.xml")),
             "model-modification-date-exact="
             + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-exact-tck.xml")),
+            "update-rate-zero-preflight="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml")),
+            "update-rate-positive-preflight="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-positive-preflight-tck.xml")),
             "dimension-input-table-type="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
             "dimension-input-description-na-invalid="

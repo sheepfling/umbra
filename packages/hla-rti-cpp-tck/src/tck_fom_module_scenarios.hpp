@@ -90,6 +90,8 @@ void scenarioFomUpdateRateDuplicateEqual(Options const&, rti::CallbackModel);
 void scenarioFomUpdateRateDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomUpdateRateDuplicateNoteConflict(Options const&, rti::CallbackModel);
 void scenarioFomUpdateRateDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomPositiveUpdateRate(Options const&, rti::CallbackModel);
+void scenarioFomPositiveUpdateRateContract(Options const&, rti::CallbackModel);
 void scenarioFomSwitchDuplicateEqual(Options const&, rti::CallbackModel);
 void scenarioFomSwitchDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomSwitchDuplicateOrder(Options const&, rti::CallbackModel);

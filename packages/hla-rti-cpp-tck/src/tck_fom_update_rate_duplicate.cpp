@@ -77,4 +77,40 @@ void scenarioFomUpdateRateDuplicateNoteConflictContract(
   scenarioFomUpdateRateDuplicateNoteConflict(options, model);
 }
 
+void scenarioFomPositiveUpdateRate(Options const& options,
+                                   rti::CallbackModel model) {
+  require(!options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Positive update rate requires adapter-supplied MIM and logical time");
+  auto const& zero = requiredFom(options, "update-rate-zero-preflight");
+  auto const& positive = requiredFom(options, "update-rate-positive-preflight");
+  Session creator(options, model, "positive-update-rate-creator");
+  Session member(options, model, "positive-update-rate-member");
+  auto const federation = federationName(options, "fom-positive-update-rate");
+  creator.connect();
+  member.connect();
+  auto const createWithMim = [&](std::filesystem::path const& module) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, std::vector<std::wstring>{module.wstring()},
+        options.mimFom.wstring(), options.logicalTimeImplementationName);
+  };
+  requireException([&] { createWithMim(zero); }, L"InconsistentFOM",
+                   "a zero update-rate value");
+
+  // Same name after failure also checks that rejected Create was atomic.
+  createWithMim(positive);
+  member.join(options.memberFederateName, options.federateType, federation);
+  require(member.rtiAmbassador().getUpdateRateValue(L"TckPositiveRate") == 30.0,
+          "the positive update rate was not exposed by public lookup");
+  member.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomPositiveUpdateRateContract(Options const& options,
+                                           rti::CallbackModel model) {
+  scenarioFomPositiveUpdateRate(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

@@ -14122,6 +14122,10 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22"
       ],
       "test_case": "The FOM composition preflight enforces positive update rates",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1646",
+      "standard_sections": [
+        "hla-1516.2-2025:clause-6.2.12"
+      ],
       "tags": [
         "unit",
         "fom",
