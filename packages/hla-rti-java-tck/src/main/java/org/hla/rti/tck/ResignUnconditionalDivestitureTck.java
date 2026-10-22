@@ -147,7 +147,12 @@ final class ResignUnconditionalDivestitureTck {
          AttributeHandle privilege = candidate.getAttributeHandle(
             candidateClass, "HLAprivilegeToDeleteObject");
          JavaTckSupport.check(ownerClass != null && candidateClass != null
-               && ownerAttribute != null && candidateAttribute != null && privilege != null,
+               && ownerAttribute != null && candidateAttribute != null && privilege != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(candidate.getObjectClassName(candidateClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(candidate.getAttributeName(
+                  candidateClass, candidateAttribute)),
             "adapter FOM did not resolve late-assumption object and attribute handles");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(
             owner, ownerAttribute);
@@ -158,8 +163,12 @@ final class ResignUnconditionalDivestitureTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "late-assumption registration returned a null object handle");
-         await(candidate, callbackModel, () -> candidateCallbacks.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(candidate, callbackModel, () -> candidateCallbacks.discoveries.size() == 1,
             "late-assumption object discovery");
+         ObjectInstanceHandle candidateObject = candidate.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(candidateObject.equals(candidateCallbacks.discoveries.get(0)),
+            "late-assumption discovery did not establish a receiver-local object handle");
 
          candidateCallbacks.assumptions.clear();
          owner.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
@@ -172,7 +181,7 @@ final class ResignUnconditionalDivestitureTck {
          await(candidate, callbackModel, () -> !candidateCallbacks.assumptions.isEmpty(),
             "late-publication ownership assumption");
          OwnershipEvent assumption = candidateCallbacks.assumptions.get(0);
-         JavaTckSupport.check(object.equals(assumption.object)
+         JavaTckSupport.check(candidateObject.equals(assumption.object)
                && assumption.attributes.size() == 2
                && assumption.attributes.contains(candidateAttribute)
                && assumption.attributes.contains(privilege)

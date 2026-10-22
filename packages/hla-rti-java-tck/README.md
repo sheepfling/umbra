@@ -1652,6 +1652,14 @@ Focused installed JNI runs passed in both callback modes with adapter-supplied
 FOM, logical time, provider, endpoint, and callback model; independent-provider
 conformance remains unverified.
 
+The default `java-tck.resign-assumption-later-publication` case verifies that
+resigning an owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES` does not offer its
+attributes prematurely to a known, nonpublishing candidate. Once that
+candidate publishes, it receives one assumption offer with its local object
+handle, the ordinary attribute and standard delete privilege, and an empty
+tag. The case passed focused installed JNI runs in both callback modes using
+adapter-supplied inputs; independent-provider conformance is unverified.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object

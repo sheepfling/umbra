@@ -6136,7 +6136,11 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -6147,8 +6151,8 @@
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
       "requirement_ids": [
-        "cpp-1516.1-federation-create-join-resign-destroy",
-        "cpp-1516.1-ownership-management"
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
@@ -6162,12 +6166,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
       ],
-      "mapping_note": "Pure Java parity mirrors the direct §4.12 resignation and §4.12.4 later-publication continuation. It checks no premature assumption, then exact standard callback object, attributes, and empty tag. Compiles against the official API-only JAR; Java provider runtime remains unverified. C++ primary/contract passed 4/4 across evoked/immediate callbacks.",
+      "mapping_note": "Pure Java parity mirrors the direct §4.12 resignation and §4.12.4 later-publication continuation. It checks no premature assumption, then the standard callback's receiver-local object, attributes, and empty tag. The Java case uses only official IEEE 1516.1-2025 APIs and adapter-supplied class, attribute, FOM, logical time, provider, endpoint, and callback model. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": ["standard-resign-assumption-later-publication-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignAssumptionLaterPublication",
       "parity": "cpp-tck.resign-assumption-later-publication",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, class and attribute, callback model, time implementation, and an IEEE 1516.1-2025 Java provider; provider-runtime execution remains unverified."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied FOM, class and attribute, callback model, time implementation, endpoint, and IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-assumption-search-after-decline",
