@@ -10854,6 +10854,14 @@
         "cpp-1516.1-interaction-parameter-delivery",
         "cpp-1516.1-timestamped-interaction-delivery"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness: the same receiver gets an ordinary interaction on its RO callback and a separately timestamped interaction on its TSO callback, preserving parameter/tag/producer, timestamp/order/retraction metadata, and callback-before-grant sequencing. This is one classification branch, not the full order matrix. Pure standard Java API source passed installed-JNI adapter HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22; no independent-provider conformance is claimed.",
       "contract_refs": [
         "interaction-message-order-classification-api-contract.json",
         "interaction-message-order-classification-requirements-contract.json",
@@ -10862,8 +10870,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#interactionOrderClassification",
       "parity": "cpp-tck.interaction-order-classification",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible interaction/parameter FOM, logical-time implementation, and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
+      "default_status": "run",
+      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/interaction-order-classification-{evoked,immediate}-default-20261022.json. The C++ peer passed both modes in out/mgw/tck-dse-ro-regional-20261016/interaction-order-classification-verified-20261016.json. FOM, endpoint, logical-time implementation, and callback model remain adapter-owned."
     },
     {
       "id": "java-tck.attribute-update-order-classification",

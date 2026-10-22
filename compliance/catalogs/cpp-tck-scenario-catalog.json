@@ -12505,6 +12505,14 @@
         "cpp-1516.1-interaction-parameter-delivery",
         "cpp-1516.1-timestamped-interaction-delivery"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness for page-180-l69-20: one receiver observes the ordinary send through the receive-order callback and a separately timestamped send through the timestamp-order callback, with timestamp/order/retraction metadata and delivery before the matching grant. This is one RO/TSO branch, not the full message-order matrix. Existing installed-package C++ evidence passed both callback models on 2026-10-16; no conformance claim.",
       "contract_refs": [
         "interaction-message-order-classification-api-contract.json",
         "interaction-message-order-classification-requirements-contract.json",

@@ -1061,6 +1061,10 @@ installed-package passes under both callback models on 2026-10-22. It checks
 one receive-order reflection while time constrained with asynchronous delivery
 enabled and a separate timestamp-order reflection with its retraction handle;
 this is only a selected §§8.1.4/8.15.3 branch, not the full order matrix.
+The interaction-order classification case is likewise default-run after
+HLA_EVOKED and HLA_IMMEDIATE installed-package passes. It witnesses an ordinary
+RO interaction and a separate timestamped TSO interaction at one receiver
+under §8.1.4, with adapter-owned FOM and logical-time inputs.
 Timestamped reflection checks that the constrained receiver gets no reflection
 and does not advance logical time before requesting an advance, then checks the
 callback's exact logical time and order metadata, reflection-before-grant

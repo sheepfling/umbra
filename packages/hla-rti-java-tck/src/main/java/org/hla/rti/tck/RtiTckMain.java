@@ -2730,7 +2730,7 @@ public final class RtiTckMain {
                 "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
                 "cpp-1516.1-interaction-parameter-delivery",
                 "cpp-1516.1-timestamped-interaction-delivery"
-             }, false), RtiTckMain::interactionOrderClassification);
+             }, true), RtiTckMain::interactionOrderClassification);
        run(new Scenario("java-tck.attribute-update-order-classification",
              "classify receive-order and timestamp-order attribute updates at the same receiver",
              "attribute-update-order-classification",
