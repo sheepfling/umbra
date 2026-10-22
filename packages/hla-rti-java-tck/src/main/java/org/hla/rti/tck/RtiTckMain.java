@@ -3087,7 +3087,7 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
                "cpp-1516.1-query-galt-lits",
                "cpp-1516.1-time-bounds-pending-advance"
-            }, false),
+            }, true),
          RtiTckMain::timeBoundsQueries);
       run(new Scenario("java-tck.time-constrained-enable-galt-equality",
             "release constrained enablement at GALT equality, then gate TAR on the regulator",

@@ -1738,6 +1738,13 @@ typed interaction/parameter names, FOM, endpoint, and time implementation.
 HLA_IMMEDIATE is explicitly unsupported for this request-boundary assertion;
 independent-provider conformance is not claimed.
 
+The default `java-tck.time-bounds-queries` case checks standard Query GALT and
+Query LITS bounds before, during, and after time regulation, including pending
+advances. It has six direct §8.18.1/§8.19.3 mappings and passed focused
+installed-provider runs in both HLA_EVOKED and HLA_IMMEDIATE. The adapter
+supplies the provider JAR, FOM, endpoint, logical-time implementation, and
+callback model; independent-provider conformance is not claimed.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

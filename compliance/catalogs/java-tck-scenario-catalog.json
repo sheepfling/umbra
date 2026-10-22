@@ -14311,7 +14311,7 @@
         "hla-1516.1-2025:clause-8.18.1",
         "hla-1516.1-2025:clause-8.19.3"
       ],
-      "mapping_note": "Source assertions directly cover §8.18.1 page-206-l26-3/l29-4/l32-5 and §8.19.3 page-207-l109-27/l112-28/l115-29: the joined observer invokes both queries and verifies undefined and defined minimum bounds through active and pending regulator advances, then the undefined state after regulation ends. This is API-only Java parity; provider-runtime evidence remains unavailable.",
+      "mapping_note": "Direct mappings cover §8.18.1 page-206-l26-3/l29-4/l32-5 and §8.19.3 page-207-l109-27/l112-28/l115-29: the joined observer invokes both queries and verifies undefined and defined minimum bounds through active and pending regulator advances, then the undefined state after regulation ends. The Java case uses only the official 1516.1-2025 API; focused installed-provider runs pass in both callback models, without an independent-provider conformance claim.",
       "contract_refs": [
         "standard-time-bounds-queries-contract.json",
         "time-bounds-api-contract.json",
@@ -14323,8 +14323,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timeBoundsQueries",
       "parity": "cpp-tck.time-bounds-queries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied provider JAR, FOM, endpoint, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.time-constrained-enable-galt-equality",
