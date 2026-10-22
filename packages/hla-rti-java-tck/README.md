@@ -1285,6 +1285,14 @@ metadata intact. It uses receiver-local standard handles and passed focused
 installed JNI runs in both callback models. Independent-provider conformance
 remains unverified.
 
+The default `java-tck.directed-interaction-received-class-projection` case
+rejects a base-class send containing a derived-only parameter, then sends a
+valid derived interaction. The publisher gets no loopback; the superclass
+subscriber receives only the inherited parameter, while the exact-class
+subscriber receives both. Its universal subscriptions and receiver-local
+handles match the C++ standard-API case. Focused installed JNI runs passed in
+both callback models; independent-provider conformance remains unverified.
+
 The `java-tck.receive-order-interaction` scenario sends two tagged interactions
 in succession and verifies callback FIFO order, exact parameter values, standard
 handle/name round-trips, producer and reliable-transport metadata, no region

@@ -7494,16 +7494,22 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions(set)",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally(set)",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.getTransportationTypeName",
@@ -7516,7 +7522,7 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.receiveDirectedInteraction"
+        "FederateAmbassador.receiveDirectedInteraction(receive-order overload)"
       ],
       "requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-101-l143-42",
@@ -7567,15 +7573,16 @@
         }
       ],
       "standard_sections": ["hla-1516.1-2025:clause-5.12", "hla-1516.1-2025:clause-5.1.5", "hla-1516.1-2025:clause-6.14.3"],
-      "mapping_note": "The Java peer subscribes the publisher to both directed classes but checks it receives no callback for its own valid send (§6.14.3 page-127 l46), while both other receivers get the supplied tag unchanged (l52). It also rejects a base-class send containing the derived-only parameter without delivery (§5.1.5 page-085 l65), then checks the valid derived send's exact/superclass parameter views (l74/l92) and one received class per subscriber (l56). The §5.12 declaration mapping remains separate. C++ passed 2/2 focused installed-package runs; Java provider runtime remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ case: the publisher universally subscribes to both directed classes but receives no callback for its own valid send (§6.14.3 page-127-l46-14), while both receivers get the tag unchanged (page-127-l52-16). A base-class send containing the FDD-defined derived-only parameter throws InteractionParameterNotDefined without delivery (§5.1.5 page-085-l65-21). The valid derived send preserves exact-class inherited/derived values (l74-24), projects only the inherited value to the superclass (l92-30), and gives each recipient one class view (l56-18). The §5.12 page-101-l143-42 declaration mapping remains separate. Receiver-local standard handles and bounded callback servicing avoid cross-ambassador identity assumptions. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "standard-directed-interaction-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionReceivedClassProjection",
       "parity": "cpp-tck.directed-interaction-received-class-projection",
-      "default_status": "unsupported",
-      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM with the typed base/derived object and interaction hierarchy."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied FOM with typed base/derived object and interaction classes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.directed-known-object-class-fallback",

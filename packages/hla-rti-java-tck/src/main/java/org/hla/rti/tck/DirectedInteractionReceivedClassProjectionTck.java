@@ -16,13 +16,18 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 
 /** Verifies the received interaction class and parameter projection. */
 final class DirectedInteractionReceivedClassProjectionTck {
+   private static final long CALLBACK_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(10);
+
    private DirectedInteractionReceivedClassProjectionTck() {
    }
 
@@ -78,11 +83,22 @@ final class DirectedInteractionReceivedClassProjectionTck {
             superclassSubscriber.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle sentClassDerivedInteraction =
             sentClassSubscriber.getInteractionClassHandle(derivedInteractionClassName);
-         JavaTckSupport.check(publisherObjectClass.equals(superclassObjectClass)
-               && publisherObjectClass.equals(sentClassObjectClass)
-               && publisherBaseInteraction.equals(superclassBaseInteraction)
-               && publisherDerivedInteraction.equals(sentClassDerivedInteraction),
-            "directed received-class handles changed across federates");
+         JavaTckSupport.check(derivedObjectClassName.equals(
+               publisher.getObjectClassName(publisherObjectClass))
+               && derivedObjectClassName.equals(
+                  superclassSubscriber.getObjectClassName(superclassObjectClass))
+               && derivedObjectClassName.equals(
+                  sentClassSubscriber.getObjectClassName(sentClassObjectClass))
+               && interactionClassName.equals(
+                  publisher.getInteractionClassName(publisherBaseInteraction))
+               && interactionClassName.equals(
+                  superclassSubscriber.getInteractionClassName(superclassBaseInteraction))
+               && derivedInteractionClassName.equals(
+                  publisher.getInteractionClassName(publisherDerivedInteraction))
+               && derivedInteractionClassName.equals(
+                  sentClassSubscriber.getInteractionClassName(sentClassDerivedInteraction))
+               && !publisherBaseInteraction.equals(publisherDerivedInteraction),
+            "directed received-class names did not round-trip locally");
 
          AttributeHandle publisherIdentity = publisher.getAttributeHandle(
             publisherObjectClass, identityAttributeName);
@@ -102,13 +118,26 @@ final class DirectedInteractionReceivedClassProjectionTck {
             sentClassDerivedInteraction, integerParameterName);
          ParameterHandle sentClassDerivedParameter = sentClassSubscriber.getParameterHandle(
             sentClassDerivedInteraction, derivedParameterName);
-         JavaTckSupport.check(publisherIdentity.equals(superclassIdentity)
-               && publisherIdentity.equals(sentClassIdentity)
-               && publisherBaseParameter.equals(publisherDerivedBaseParameter)
-               && publisherBaseParameter.equals(superclassBaseParameter)
-               && publisherBaseParameter.equals(sentClassBaseParameter)
-               && publisherDerivedParameter.equals(sentClassDerivedParameter),
-            "directed received-class member handles changed across federates");
+         JavaTckSupport.check(identityAttributeName.equals(publisher.getAttributeName(
+               publisherObjectClass, publisherIdentity))
+               && identityAttributeName.equals(superclassSubscriber.getAttributeName(
+                  superclassObjectClass, superclassIdentity))
+               && identityAttributeName.equals(sentClassSubscriber.getAttributeName(
+                  sentClassObjectClass, sentClassIdentity))
+               && integerParameterName.equals(publisher.getParameterName(
+                  publisherBaseInteraction, publisherBaseParameter))
+               && integerParameterName.equals(publisher.getParameterName(
+                  publisherDerivedInteraction, publisherDerivedBaseParameter))
+               && derivedParameterName.equals(publisher.getParameterName(
+                  publisherDerivedInteraction, publisherDerivedParameter))
+               && integerParameterName.equals(superclassSubscriber.getParameterName(
+                  superclassBaseInteraction, superclassBaseParameter))
+               && integerParameterName.equals(sentClassSubscriber.getParameterName(
+                  sentClassDerivedInteraction, sentClassBaseParameter))
+               && derivedParameterName.equals(sentClassSubscriber.getParameterName(
+                  sentClassDerivedInteraction, sentClassDerivedParameter))
+               && !publisherDerivedBaseParameter.equals(publisherDerivedParameter),
+            "directed received-class member names did not round-trip locally");
 
          AttributeHandleSet publisherAttributes =
             JavaTckSupport.attributeSet(publisher, publisherIdentity);
@@ -129,17 +158,35 @@ final class DirectedInteractionReceivedClassProjectionTck {
          InteractionClassHandleSet sentClassSelection = JavaTckSupport.interactionSet(
             sentClassSubscriber, sentClassDerivedInteraction);
          publisher.publishObjectClassDirectedInteractions(publisherObjectClass, published);
-         publisher.subscribeObjectClassDirectedInteractions(publisherObjectClass, published);
-         superclassSubscriber.subscribeObjectClassDirectedInteractions(
+         publisher.subscribeObjectClassDirectedInteractionsUniversally(
+            publisherObjectClass, published);
+         superclassSubscriber.subscribeObjectClassDirectedInteractionsUniversally(
             superclassObjectClass, superclassSelection);
-         sentClassSubscriber.subscribeObjectClassDirectedInteractions(
+         sentClassSubscriber.subscribeObjectClassDirectedInteractionsUniversally(
             sentClassObjectClass, sentClassSelection);
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherObjectClass);
-         JavaTckSupport.drain(superclassSubscriber);
-         JavaTckSupport.drain(sentClassSubscriber);
-         JavaTckSupport.check(superclassRecorder.discoveries.contains(target)
-               && sentClassRecorder.discoveries.contains(target),
+         String targetName = publisher.getObjectInstanceName(target);
+         JavaTckSupport.check(targetName != null && !targetName.isEmpty(),
+            "registered directed target has no object name");
+         await(superclassSubscriber, callbackModel,
+            () -> superclassRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)),
+            "superclass subscriber target discovery");
+         await(sentClassSubscriber, callbackModel,
+            () -> sentClassRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)),
+            "exact-class subscriber target discovery");
+         ObjectInstanceHandle superclassTarget =
+            superclassSubscriber.getObjectInstanceHandle(targetName);
+         ObjectInstanceHandle sentClassTarget =
+            sentClassSubscriber.getObjectInstanceHandle(targetName);
+         JavaTckSupport.check(superclassRecorder.discoveries.stream()
+               .anyMatch(discovery -> targetName.equals(discovery.name)
+                  && superclassTarget.equals(discovery.handle))
+               && sentClassRecorder.discoveries.stream()
+                  .anyMatch(discovery -> targetName.equals(discovery.name)
+                     && sentClassTarget.equals(discovery.handle)),
             "directed received-class subscribers did not discover the target object");
 
          byte[] baseValue = new byte[] {0x51};
@@ -161,31 +208,45 @@ final class DirectedInteractionReceivedClassProjectionTck {
                publisherBaseInteraction, target, unavailableParameters, tag),
             "InteractionParameterNotDefined",
             "directed send using a parameter unavailable to its interaction class");
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(superclassSubscriber);
-         JavaTckSupport.drain(sentClassSubscriber);
+         pumpQuiet(publisher, callbackModel);
+         pumpQuiet(superclassSubscriber, callbackModel);
+         pumpQuiet(sentClassSubscriber, callbackModel);
          JavaTckSupport.check(publisherRecorder.directed.isEmpty()
                && superclassRecorder.directed.isEmpty()
-               && sentClassRecorder.directed.isEmpty(),
+               && sentClassRecorder.directed.isEmpty()
+               && publisherRecorder.nonReceiveOrderDirectedCount.get() == 0
+               && superclassRecorder.nonReceiveOrderDirectedCount.get() == 0
+               && sentClassRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "rejected directed send delivered an interaction callback");
 
          publisher.sendDirectedInteraction(
             publisherDerivedInteraction, target, parameters, tag);
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(superclassSubscriber);
-         JavaTckSupport.drain(sentClassSubscriber);
-         JavaTckSupport.check(publisherRecorder.directed.isEmpty(),
+         await(superclassSubscriber, callbackModel,
+            () -> !superclassRecorder.directed.isEmpty()
+               || superclassRecorder.nonReceiveOrderDirectedCount.get() > 0,
+            "superclass directed callback");
+         await(sentClassSubscriber, callbackModel,
+            () -> !sentClassRecorder.directed.isEmpty()
+               || sentClassRecorder.nonReceiveOrderDirectedCount.get() > 0,
+            "exact-class directed callback");
+         pumpQuiet(publisher, callbackModel);
+         pumpQuiet(superclassSubscriber, callbackModel);
+         pumpQuiet(sentClassSubscriber, callbackModel);
+         JavaTckSupport.check(publisherRecorder.directed.isEmpty()
+               && publisherRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "directed sender received its own interaction despite a matching subscription");
 
-         JavaTckSupport.check(superclassRecorder.directed.size() == 1,
+         JavaTckSupport.check(superclassRecorder.directed.size() == 1
+               && superclassRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "superclass subscriber did not receive exactly one directed interaction");
-         JavaTckSupport.check(sentClassRecorder.directed.size() == 1,
+         JavaTckSupport.check(sentClassRecorder.directed.size() == 1
+               && sentClassRecorder.nonReceiveOrderDirectedCount.get() == 0,
             "sent-class subscriber did not receive exactly one directed interaction");
          assertSuperclassDelivery(superclassSubscriber, superclassRecorder.directed.get(0),
-            superclassBaseInteraction, target, superclassBaseParameter, publisherDerivedParameter,
+            superclassBaseInteraction, superclassTarget, superclassBaseParameter,
             baseValue, tag, publisherFederate);
          assertSentClassDelivery(sentClassSubscriber, sentClassRecorder.directed.get(0),
-            sentClassDerivedInteraction, target, sentClassBaseParameter,
+            sentClassDerivedInteraction, sentClassTarget, sentClassBaseParameter,
             sentClassDerivedParameter, baseValue, derivedValue, tag, publisherFederate);
 
          superclassSubscriber.unsubscribeObjectClassDirectedInteractions(
@@ -218,14 +279,13 @@ final class DirectedInteractionReceivedClassProjectionTck {
 
    private static void assertSuperclassDelivery(RTIambassador inspector, Directed delivery,
          InteractionClassHandle expectedInteraction, ObjectInstanceHandle target,
-         ParameterHandle baseParameter, ParameterHandle derivedParameter,
-         byte[] baseValue, byte[] tag, FederateHandle producer) throws Exception {
+         ParameterHandle baseParameter, byte[] baseValue, byte[] tag,
+         FederateHandle producer) throws Exception {
       JavaTckSupport.check(expectedInteraction.equals(delivery.interaction)
             && target.equals(delivery.target),
          "directed callback did not report the closest subscribed superclass and target");
       JavaTckSupport.check(delivery.parameters.size() == 1
             && delivery.parameters.containsKey(baseParameter)
-            && !delivery.parameters.containsKey(derivedParameter)
             && Arrays.equals(baseValue, delivery.parameters.get(baseParameter)),
          "directed superclass callback did not project only the inherited parameter");
       assertCommonDelivery(inspector, delivery, tag, producer);
@@ -250,14 +310,33 @@ final class DirectedInteractionReceivedClassProjectionTck {
 
    private static void assertCommonDelivery(RTIambassador inspector, Directed delivery,
          byte[] tag, FederateHandle producer) throws Exception {
-      JavaTckSupport.check(Arrays.equals(tag, delivery.tag) && delivery.tag != tag,
-         "directed callback did not preserve a distinct copy of the sent tag");
+      JavaTckSupport.check(Arrays.equals(tag, delivery.tag),
+         "directed callback did not preserve the sent tag");
       JavaTckSupport.check(producer.equals(delivery.producer),
          "directed callback carried the wrong producing federate");
       JavaTckSupport.check(delivery.transportation != null
             && "HLAreliable".equals(
                inspector.getTransportationTypeName(delivery.transportation)),
          "directed callback did not preserve reliable transportation");
+   }
+
+   private static void await(RTIambassador ambassador, CallbackModel callbackModel,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.yield();
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static void pumpQuiet(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100);
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) ambassador.evokeCallback(0.01);
+         else Thread.sleep(1);
+      }
    }
 
    private static void resign(RTIambassador ambassador) {
@@ -294,9 +373,20 @@ final class DirectedInteractionReceivedClassProjectionTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle handle;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle handle, String name) {
+         this.handle = handle;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final AtomicInteger nonReceiveOrderDirectedCount = new AtomicInteger();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -305,8 +395,10 @@ final class DirectedInteractionReceivedClassProjectionTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
-               } else if ("receiveDirectedInteraction".equals(name)) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (String) arguments[2]));
+               } else if ("receiveDirectedInteraction".equals(name)
+                     && arguments != null && arguments.length == 6) {
                   ParameterHandleValueMap parameters =
                      ((ParameterHandleValueMap) arguments[2]).clone();
                   byte[] tag = ((byte[]) arguments[3]).clone();
@@ -314,6 +406,8 @@ final class DirectedInteractionReceivedClassProjectionTck {
                      (ObjectInstanceHandle) arguments[1], parameters, tag,
                      (TransportationTypeHandle) arguments[4],
                      (FederateHandle) arguments[5]));
+               } else if ("receiveDirectedInteraction".equals(name)) {
+                  nonReceiveOrderDirectedCount.incrementAndGet();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK received-class recorder";
