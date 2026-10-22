@@ -427,7 +427,13 @@ final class NegotiatedDivestitureNoAccepterTck {
             requesterClass, firstAttributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
                && ownerFirst != null && ownerSecond != null && requesterFirst != null
-               && !ownerFirst.equals(ownerSecond),
+               && !ownerFirst.equals(ownerSecond)
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && firstAttributeName.equals(owner.getAttributeName(ownerClass, ownerFirst))
+               && secondAttributeName.equals(owner.getAttributeName(ownerClass, ownerSecond))
+               && firstAttributeName.equals(requester.getAttributeName(
+                  requesterClass, requesterFirst)),
             "adapter two-attribute FOM returned invalid or duplicate handles");
          AttributeHandleSet ownerBoth = JavaTckSupport.attributeSet(
             owner, ownerFirst, ownerSecond);
@@ -439,13 +445,18 @@ final class NegotiatedDivestitureNoAccepterTck {
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null,
             "mixed confirmation registration returned a null object handle");
-         await(requester, callbackModel, () -> requesterRecorder.discoveries.contains(object),
+         String objectName = owner.getObjectInstanceName(object);
+         await(requester, callbackModel, () -> requesterRecorder.discoveries.size() == 1,
             "requester discovery before mixed confirmation");
+         ObjectInstanceHandle requesterObject = requester.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(requesterObject.equals(requesterRecorder.discoveries.get(0)),
+            "requester discovery did not resolve to its local object handle");
          requester.publishObjectClassAttributes(requesterClass, requesterRequested);
 
          byte[] negotiatedTag = new byte[] {(byte) 0xc3, 0x11, 0x6d, 0x09};
          byte[] confirmationTag = new byte[] {(byte) 0xe1, 0x6a, (byte) 0xb4, 0x2d};
-         requester.attributeOwnershipAcquisition(object, requesterRequested, negotiatedTag);
+         requester.attributeOwnershipAcquisition(
+            requesterObject, requesterRequested, negotiatedTag);
          AtomicBoolean mixedAttempted = new AtomicBoolean();
          AtomicBoolean mixedRejected = new AtomicBoolean();
          ownerRecorder.confirmationHook.set(() -> {
@@ -475,7 +486,8 @@ final class NegotiatedDivestitureNoAccepterTck {
          JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty()
                && owner.isAttributeOwnedByFederate(object, ownerFirst)
                && owner.isAttributeOwnedByFederate(object, ownerSecond)
-               && !requester.isAttributeOwnedByFederate(object, requesterFirst),
+               && !requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterFirst),
             "rejected mixed set changed ownership or notified acquisition");
 
          owner.confirmDivestiture(object, ownerRequested, confirmationTag);
@@ -483,11 +495,13 @@ final class NegotiatedDivestitureNoAccepterTck {
             "valid confirmation after mixed-set rejection");
          JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
             "valid confirmation emitted duplicate acquisition callbacks");
-         checkEvent(requesterRecorder.acquisitions.get(0), object, requesterRequested,
+         checkEvent(requesterRecorder.acquisitions.get(0), requesterObject,
+            requesterRequested,
             confirmationTag, "valid confirmation after mixed rejection");
          JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerFirst)
                && owner.isAttributeOwnedByFederate(object, ownerSecond)
-               && requester.isAttributeOwnedByFederate(object, requesterFirst),
+               && requester.isAttributeOwnedByFederate(
+                  requesterObject, requesterFirst),
             "rejected mixed set partially consumed the valid confirmation path");
 
          requester.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);

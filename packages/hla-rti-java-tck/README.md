@@ -1705,6 +1705,14 @@ federate's locally resolved standard handles. Callback re-entry is supplemental
 public-API evidence; C++ process transport is excluded. Focused installed JNI
 runs passed in both callback modes; independent-provider conformance is unverified.
 
+The default `java-tck.confirm-divestiture-mixed-set-atomicity` case submits
+one requested and one unrequested attribute together to Confirm Divestiture.
+It checks the typed rejection, unchanged ownership and acquisition callbacks,
+then successful confirmation of the requested attribute alone. The two-attribute
+FOM and names come from the adapter; the requester uses its local standard
+handles. Focused installed JNI runs passed in both callback modes; process and
+MOM mechanics and independent-provider conformance remain outside this evidence.
+
 The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
 establishes foreign ownership of a surviving federate's object, then resigns
 the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object
