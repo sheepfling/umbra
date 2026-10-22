@@ -1663,6 +1663,21 @@ installed JNI runs in both callback models with adapter-supplied provider,
 typed FOM, time, endpoint, and names; independent-provider conformance is
 unverified.
 
+The default `java-tck.nmr-received-tso-directed-interaction-floor` case uses
+adapter-supplied typed FOM names and logical time. After NMR(10) receives a
+timestamped interaction at 5 and grants at 5, it checks that a timestamped
+directed send at 5 throws `InvalidLogicalTime` and a send at 6 does not throw.
+The direct mapping is limited to the §8.10.2 received-TSO floor. Focused
+installed JNI runs passed in both callback models; independent-provider
+conformance is unverified.
+
+The separate default `java-tck.nmr-received-tso-attribute-update-floor` case
+uses the same NMR(10) / received TSO(5) grant setup, then rejects a timestamped
+attribute update at 5 and accepts one at 6. It has its own direct §8.10.2
+mapping and passed focused installed JNI runs in both callback models. The
+provider, typed FOM names, time implementation, and callback model remain
+adapter inputs; independent-provider conformance is unverified.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction

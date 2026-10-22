@@ -3227,14 +3227,14 @@ public final class RtiTckMain {
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.changeAttributeOrderType(TIMESTAMP);RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.nextMessageRequest;RTIambassador.timeAdvanceRequest;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled",
             new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-timestamped-attribute-update"}, false),
+               "cpp-1516.1-timestamped-attribute-update"}, true),
          RtiTckMain::nmrReceivedTsoAttributeUpdateFloor);
       run(new Scenario("java-tck.nmr-received-tso-directed-interaction-floor",
             "enforce the NMR received-TSO floor for timestamped directed interactions",
             "next-message-request",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryLookahead;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(LogicalTime);RTIambassador.nextMessageRequest;RTIambassador.timeAdvanceRequest;RTIambassador.sendDirectedInteraction(LogicalTime);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(TSO);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled",
             new String[] {"cpp-1516.1-next-message-request",
-               "cpp-1516.1-timestamped-directed-interaction-delivery"}, false),
+               "cpp-1516.1-timestamped-directed-interaction-delivery"}, true),
          RtiTckMain::nmrReceivedTsoDirectedInteractionFloor);
       run(new Scenario("java-tck.nmr-empty-message-set-grant-time",
             "grant NMR at the requested time when no TSO message is delivered",
@@ -9470,15 +9470,15 @@ public final class RtiTckMain {
 
    private static void nmrReceivedTsoAttributeUpdateFloor() throws Exception {
       NmrReceivedTsoAttributeUpdateFloorTck.run(factory(), requireFom(), timeImplementation(),
-         objectClassName(), attributeName(), interactionClassName(), parameterName(),
-         callbackModel());
+         typedObjectClassName(), typedIdentityAttributeName(),
+         typedDerivedInteractionClassName(), typedDerivedParameterName(), callbackModel());
    }
 
    private static void nmrReceivedTsoDirectedInteractionFloor() throws Exception {
       NmrReceivedTsoDirectedInteractionFloorTck.run(factory(), requireFom(),
-         timeImplementation(), requireAdapterValue(SECONDARY_DIRECTED_OBJECT_CLASS_PROPERTY),
-         attributeName(), interactionClassName(), parameterName(),
-         requireAdapterValue(DIRECTED_INTERACTION_CLASS_PROPERTY), callbackModel());
+         timeImplementation(), typedObjectClassName(), typedIdentityAttributeName(),
+         typedDerivedInteractionClassName(), typedDerivedParameterName(),
+         typedInteractionClassName(), callbackModel());
    }
 
    private static void nmrEmptyMessageSetGrantTime() throws Exception {
