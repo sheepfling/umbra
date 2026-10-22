@@ -364,10 +364,12 @@ configured values and the tag are initially reflected, invokes the standard
 whole-class unsubscribe service, and verifies that later updates produce no
 reflection. It resolves the receiver's local object and attribute handles and
 passed focused installed JNI runs in both callback modes; independent-provider
-conformance remains unverified. The opt-in
+conformance remains unverified. The default
 `java-tck.empty-attribute-unsubscription-is-no-op` case submits an empty set
 to the standard attribute-set unsubscribe service and verifies both previously
-subscribed values continue to arrive. Its Java provider runtime gate is pending.
+subscribed values continue to arrive using receiver-local handles. Focused
+installed JNI runs passed in both callback modes; the passive-state branch
+and independent-provider conformance remain unverified.
 The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
 active non-empty attribute subscription, submits an empty active set, and
 verifies the original subscription still delivers the next update. The

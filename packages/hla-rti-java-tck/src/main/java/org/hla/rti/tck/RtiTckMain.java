@@ -1318,13 +1318,10 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.empty-attribute-unsubscription-is-no-op",
             "preserve all active class-attribute subscriptions after an empty-set unsubscription",
             "object-attribute-unsubscription",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes(empty set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes(empty set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
             new String[] {
-               "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-attribute-update-reflect",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::emptyAttributeUnsubscriptionNoOp);
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6"
+            }, true), RtiTckMain::emptyAttributeUnsubscriptionNoOp);
       run(new Scenario("java-tck.passive-subscription-no-start-registration",
             "ensure a passive subscription does not trigger Start Registration at a publisher",
             "passive-subscription-no-start-registration",

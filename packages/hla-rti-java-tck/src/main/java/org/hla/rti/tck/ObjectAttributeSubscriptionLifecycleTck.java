@@ -873,7 +873,17 @@ final class ObjectAttributeSubscriptionLifecycleTck {
                && publisherFirst != null && publisherSecond != null
                && subscriberFirst != null && subscriberSecond != null
                && !publisherFirst.equals(publisherSecond)
-               && !subscriberFirst.equals(subscriberSecond),
+               && !subscriberFirst.equals(subscriberSecond)
+               && objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(subscriber.getObjectClassName(subscriberClass))
+               && firstAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherFirst))
+               && secondAttributeName.equals(publisher.getAttributeName(
+                  publisherClass, publisherSecond))
+               && firstAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberFirst))
+               && secondAttributeName.equals(subscriber.getAttributeName(
+                  subscriberClass, subscriberSecond)),
             "adapter FOM did not resolve distinct empty-set unsubscription attributes");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
@@ -888,9 +898,14 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "empty-set unsubscription registration returned an invalid object handle");
+         String objectName = publisher.getObjectInstanceName(object);
          await(subscriber, callbackModel,
-            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            () -> subscriberCallbacks.discoveries.size() == 1,
             "empty-set unsubscription object discovery");
+         ObjectInstanceHandle subscriberObject = subscriber.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(findDiscovery(subscriberCallbacks.discoveries,
+               subscriberObject) != null,
+            "subscriber discovery did not resolve to its local object handle");
 
          byte[] firstValue = new byte[] {0x45, 0x4d, 0x50, 0x31};
          byte[] secondValue = new byte[] {0x54, 0x41, 0x49, 0x31};
@@ -902,10 +917,11 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "empty-set positive control produced an unexpected reflection count");
          Reflection beforeUnsubscribe = subscriberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(beforeUnsubscribe.object)
+         JavaTckSupport.check(subscriberObject.equals(beforeUnsubscribe.object)
                && beforeUnsubscribe.values.size() == 2
-               && beforeUnsubscribe.values.containsKey(subscriberFirst)
-               && beforeUnsubscribe.values.containsKey(subscriberSecond),
+               && Arrays.equals(firstValue, beforeUnsubscribe.values.get(subscriberFirst))
+               && Arrays.equals(secondValue, beforeUnsubscribe.values.get(subscriberSecond))
+               && Arrays.equals(firstTag, beforeUnsubscribe.tag),
             "active subscription did not receive both attributes before empty-set unsubscription");
 
          subscriberCallbacks.reflections.clear();
@@ -921,7 +937,7 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "empty-set unsubscription produced an unexpected reflection count");
          Reflection afterUnsubscribe = subscriberCallbacks.reflections.get(0);
-         JavaTckSupport.check(object.equals(afterUnsubscribe.object)
+         JavaTckSupport.check(subscriberObject.equals(afterUnsubscribe.object)
                && afterUnsubscribe.values.size() == 2
                && Arrays.equals(nextFirstValue, afterUnsubscribe.values.get(subscriberFirst))
                && Arrays.equals(nextSecondValue, afterUnsubscribe.values.get(subscriberSecond))
