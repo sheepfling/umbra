@@ -7580,7 +7580,7 @@
     {
       "id": "java-tck.directed-known-object-class-fallback",
       "category": "directed-interaction",
-      "title": "Select receive-order directed interaction by the target's known object class",
+      "title": "Project receive-order and timestamped directed interactions through the target's known object class",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
@@ -7601,21 +7601,31 @@
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.receiveDirectedInteraction(receive-order overload)"
+        "FederateAmbassador.receiveDirectedInteraction(receive-order overload)",
+        "RTIambassador.getTimeFactory", "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeConstrained", "RTIambassador.enableTimeRegulation",
+        "RTIambassador.changeInteractionOrderType", "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest", "RTIambassador.sendDirectedInteraction(timestamped)",
+        "RTIambassador.disableTimeConstrained", "RTIambassador.disableTimeRegulation",
+        "FederateAmbassador.timeConstrainedEnabled", "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.receiveDirectedInteraction(timestamped overload)"
       ],
-      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16"],
-      "standard_sections": ["hla-1516.1-2025:clause-6.1.9", "hla-1516.1-2025:clause-6.14.3"],
+      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16", "requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26", "requirement-candidate-content-clauses-08-time-management-page-197-l20-3"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "requirement-candidate-content-clauses-06-object-management-page-127-l52-16", "requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26", "requirement-candidate-content-clauses-08-time-management-page-197-l20-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9", "hla-1516.1-2025:clause-6.14.3", "hla-1516.1-2025:clause-8", "hla-1516.1-2025:clause-8.10.2"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "standard_section": "hla-1516.1-2025:clause-6.1.9"},
-        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16", "standard_section": "hla-1516.1-2025:clause-6.14.3"}
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16", "standard_section": "hla-1516.1-2025:clause-6.14.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26", "standard_section": "hla-1516.1-2025:clause-8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3", "standard_section": "hla-1516.1-2025:clause-8.10.2"}
       ],
-      "mapping_note": "Direct subset of the promoted C++ case: page-109-l88-26 -> §6.1.9 for exactly one base-class discovery and known-class lookup; page-127-l52-16 -> §6.14.3 for one receive-order directed callback projected to the base interaction and base parameter despite an inapplicable child-class subscription. The Java test uses standard universal subscriptions and receiver-local name/handle lookup. Focused installed-provider runs passed under both callback models. The C++ case's timestamped continuation and its page-175/page-197 mappings remain outside this Java peer pending a separate runtime gate; no full parity, independent-provider, or conformance claim.",
+      "mapping_note": "Direct mappings match the promoted C++ case: page-109-l88-26 -> §6.1.9 for exactly one base-class discovery and known-class lookup; page-127-l52-16 -> §6.14.3 for receive-order and timestamped directed callbacks projected to the base interaction and base parameter despite an inapplicable child-class subscription; page-175-l86-26 -> Clause 8's timestamped-activity statement (the pinned Lab has no narrower subsection); page-197-l20-3 -> §8.10.2 for timestamped delivery before the NMR grant at message time. The Java test uses standard universal subscriptions and receiver-local handles, checks timestamp/order/retraction metadata, and observes directed-before-grant callback order. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": ["directed-interaction-api-contract.json", "standard-directed-interaction-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedKnownObjectClassFallback",
       "parity": "cpp-tck.directed-known-object-class-fallback",
       "default_status": "run",
-      "exclusion": "Requires an adapter-supplied directed hierarchy FOM, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; timestamped C++ continuation is not yet covered.",
+      "exclusion": "Requires an adapter-supplied directed hierarchy FOM, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider.",
       "promotion": "promoted"
     },
     {
