@@ -181,6 +181,22 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
             "post-grant TSO send at current logical time plus lookahead returned no retraction handle");
          JavaTckSupport.check(flushGrant.equals(receiver.queryLogicalTime()),
             "post-grant TSO send changed the federate's logical time");
+
+         // Keep the second request focused on replay of the first three
+         // delivered interactions, not this receiver's post-grant send probe.
+         receiver.retract(postGrantSend.handle);
+         LogicalTime secondRequestBoundary = offset(receiverInitial, epsilon, 20);
+         receiverRecorder.callbackOrder.clear();
+         receiver.flushQueueRequest(secondRequestBoundary);
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRecorder.flushQueueGrantTimes.size() == 2
+               && receiverRecorder.interactions.size() == 3
+               && receiverRecorder.callbackOrder.equals(Arrays.asList("flushQueueGrant")),
+            "second Flush Queue Request replayed a delivered or retracted interaction");
+         JavaTckSupport.check(secondRequestBoundary.equals(
+                  receiverRecorder.flushQueueOptimisticTime)
+               && receiverRecorder.flushQueueGrantTime.equals(receiver.queryLogicalTime()),
+            "second Flush Queue Grant/query did not report its request frontier");
       } finally {
          if (receiverJoined) {
             try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }

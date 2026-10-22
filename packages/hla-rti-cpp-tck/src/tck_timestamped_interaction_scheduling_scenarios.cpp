@@ -791,6 +791,37 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       encodeTime(*logicalTimeAfterSend) == flushGrants.front().time,
       "Timestamped interaction Flush Queue future-input post-grant send advanced logical time");
 
+  // Retract the receiver's post-grant probe so the second FQR isolates replay
+  // of the three interactions already delivered by the first request.
+  receiver.rtiAmbassador().retract(postGrantRetraction);
+  auto const secondRequestBoundary = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      20U);
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().flushQueueRequest(*secondRequestBoundary);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().flushQueueGrants().size() >= 2U; },
+      options,
+      "Timestamped interaction second Flush Queue grant without replay");
+  auto const secondFlushGrants = receiver.recorder().flushQueueGrants();
+  require(
+      secondFlushGrants.size() == 2U &&
+          receiver.recorder().timedInteractions().size() == 3U &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"flush-grant"},
+      "Timestamped interaction second Flush Queue request replayed a delivered or retracted interaction");
+  require(
+      secondFlushGrants.back().optimisticTime == encodeTime(*secondRequestBoundary),
+      "Timestamped interaction second Flush Queue grant did not report its request frontier");
+  auto queriedSecondFlushTime = receiverTime.factory->makeInitial();
+  receiver.rtiAmbassador().queryLogicalTime(*queriedSecondFlushTime);
+  require(
+      encodeTime(*queriedSecondFlushTime) == secondFlushGrants.back().time,
+      "Timestamped interaction second Flush Queue query did not match its grant");
+
   receiver.rtiAmbassador().disableTimeConstrained();
   receiver.rtiAmbassador().disableTimeRegulation();
   publisher.rtiAmbassador().disableTimeRegulation();
