@@ -8702,6 +8702,22 @@
       "exclusion": "Configure hla.rti.tck.variantMemberUnknownFom, variantMemberUnknownEndpointFom, variantMemberIncompleteFom, variantMemberLaterConsumerFom, and variantMemberLaterProviderFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-variant-range-semantics",
+      "category": "fom-composition",
+      "title": "Resolve merged variant ranges and reject conflicting named alternatives",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-077-l70-5", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-4", "hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1", "standard_section": "hla-1516.2-2025:clause-C.3"}],
+      "mapping_note": "Java 2025 API-only compile passed for compatible merged range, overlapping named alternative, non-extendable HLAother coexistence, and valid retry. RL-049/RL-050 provenance limits and unverified Java provider runtime remain explicit.",
+      "contract_refs": ["standard-fom-variant-range-semantics-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantRangeSemantics",
+      "parity": "cpp-tck.fom-variant-range-semantics",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.variantRangeOrderBaseFom, variantRangeOrderValidExtensionFom, variantRangeOrderConflictExtensionFom, and variantRangeOtherComplementFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-reference-class-resolution",
       "category": "fom-composition",
       "title": "Resolve reference-data classes across FOM modules",

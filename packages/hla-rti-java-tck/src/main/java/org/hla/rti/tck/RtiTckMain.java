@@ -224,6 +224,14 @@ public final class RtiTckMain {
       "hla.rti.tck.variantMemberLaterConsumerFom";
    private static final String VARIANT_MEMBER_LATER_PROVIDER_FOM_PROPERTY =
       "hla.rti.tck.variantMemberLaterProviderFom";
+   private static final String VARIANT_RANGE_ORDER_BASE_FOM_PROPERTY =
+      "hla.rti.tck.variantRangeOrderBaseFom";
+   private static final String VARIANT_RANGE_ORDER_VALID_EXTENSION_FOM_PROPERTY =
+      "hla.rti.tck.variantRangeOrderValidExtensionFom";
+   private static final String VARIANT_RANGE_ORDER_CONFLICT_EXTENSION_FOM_PROPERTY =
+      "hla.rti.tck.variantRangeOrderConflictExtensionFom";
+   private static final String VARIANT_RANGE_OTHER_COMPLEMENT_FOM_PROPERTY =
+      "hla.rti.tck.variantRangeOtherComplementFom";
    private static final String REFERENCE_ATTRIBUTE_CONSUMER_FOM_PROPERTY =
       "hla.rti.tck.referenceAttributeConsumerFom";
    private static final String REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY =
@@ -2050,6 +2058,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomVariantEnumeratorMembership);
+      run(new Scenario("java-tck.fom-variant-range-semantics",
+            "Resolve merged variant ranges and reject an overlapping named alternative",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomVariantRangeSemantics);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",
             "fom-composition",
@@ -11962,6 +11976,8 @@ public final class RtiTckMain {
             method = "fomVariantEnumeratorSyntax"; break;
          case "java-tck.fom-variant-enumerator-membership":
             method = "fomVariantEnumeratorMembership"; break;
+         case "java-tck.fom-variant-range-semantics":
+            method = "fomVariantRangeSemantics"; break;
          case "java-tck.fom-reference-attribute-resolution":
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
@@ -13761,6 +13777,15 @@ public final class RtiTckMain {
          requireAdapterFile(VARIANT_MEMBER_INCOMPLETE_FOM_PROPERTY),
          requireAdapterFile(VARIANT_MEMBER_LATER_CONSUMER_FOM_PROPERTY),
          requireAdapterFile(VARIANT_MEMBER_LATER_PROVIDER_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomVariantRangeSemantics() throws Exception {
+      FomVariantRangeSemanticsTck.run(factory(),
+         requireAdapterFile(VARIANT_RANGE_ORDER_BASE_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_RANGE_ORDER_VALID_EXTENSION_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_RANGE_ORDER_CONFLICT_EXTENSION_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_RANGE_OTHER_COMPLEMENT_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

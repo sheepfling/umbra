@@ -14055,7 +14055,7 @@
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"
       ],
       "test_case": "The FOM composition preflight expands variant-record ranges in enumerator-table order",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1521",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1368",
       "tags": [
         "unit",
         "fom",
@@ -14063,7 +14063,7 @@
         "variant-discriminant-enumerator-range-semantics"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice preserves enumerated-table declaration order, expands direct/range assignments after the complete module set merges, rejects a member reached by more than one named alternative, and models non-extendable HLAother as the complement of explicit members. It retains an enumeration with no declared members as incomplete DIF. It intentionally does not infer a separate endpoint-direction rule, complete Annex C merge, dependency packaging, JUnit/protected review, or conformance. RL-049 and RL-050 record the Requirements Lab provenance limits."
+      "next_action": "This private composition slice expands direct/range assignments after the complete module set merges and rejects an enumerator reached by more than one named alternative; it also accepts the official Restaurant variant with HLAother. Its public standard-API witness is cpp-tck.fom-variant-range-semantics with Java scenario-ID parity; installed-package C++ focused CTest and direct runner passed 4/4 each across both callback models. The public API does not expose the internal HLAother complement set or establish a separate endpoint-direction rule. Complete Annex C merge, Java provider runtime, and conformance remain open. RL-049/RL-050 record Lab provenance limits."
     },
     {
       "id": "umbra-cpp-fom-dimension-input-data-type-composition-integration",

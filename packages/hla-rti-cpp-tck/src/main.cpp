@@ -19452,6 +19452,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-discriminant-category-contract",
       "cpp-tck.fom-variant-enumerator-syntax-contract",
       "cpp-tck.fom-variant-enumerator-membership-contract",
+      "cpp-tck.fom-variant-range-semantics-contract",
       "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-data-representation-resolution-contract",
       "cpp-tck.fom-transportation-reference-resolution-contract",
@@ -20204,6 +20205,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-discriminant-category",
       "cpp-tck.fom-variant-enumerator-syntax",
       "cpp-tck.fom-variant-enumerator-membership",
+      "cpp-tck.fom-variant-range-semantics",
       "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-data-representation-resolution",
       "cpp-tck.fom-transportation-reference-resolution",
@@ -21122,6 +21124,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-variant-enumerator-membership-contract") {
     return scenarioFomVariantEnumeratorMembershipContract;
+  }
+  if (id == "cpp-tck.fom-variant-range-semantics-contract") {
+    return scenarioFomVariantRangeSemanticsContract;
   }
   if (id == "cpp-tck.fom-reference-attribute-resolution-contract") {
     return scenarioFomReferenceAttributeResolutionContract;
@@ -23513,6 +23518,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-variant-enumerator-membership") {
     return scenarioFomVariantEnumeratorMembership;
   }
+  if (id == "cpp-tck.fom-variant-range-semantics") {
+    return scenarioFomVariantRangeSemantics;
+  }
   if (id == "cpp-tck.fom-reference-attribute-resolution") {
     return scenarioFomReferenceAttributeResolution;
   }
@@ -24190,6 +24198,14 @@ int run(Options const& options) {
                   options.scenarioFoms.count("variant-member-later-provider") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied variant member FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-range-semantics" ||
+                  scenario == "cpp-tck.fom-variant-range-semantics-contract") &&
+                 (options.scenarioFoms.count("variant-range-order-base") == 0U ||
+                  options.scenarioFoms.count("variant-range-order-valid-extension") == 0U ||
+                  options.scenarioFoms.count("variant-range-order-conflict-extension") == 0U ||
+                  options.scenarioFoms.count("variant-range-other-complement") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant range FOM modules";
       } else if ((scenario == "cpp-tck.fom-reference-attribute-resolution" ||
                   scenario == "cpp-tck.fom-reference-attribute-resolution-contract") &&
                  (options.scenarioFoms.count("reference-attribute-consumer") == 0U ||

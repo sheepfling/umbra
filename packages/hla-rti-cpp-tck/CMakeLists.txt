@@ -191,6 +191,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_variant_discriminant_category.cpp
   src/tck_fom_variant_enumerator_syntax.cpp
   src/tck_fom_variant_enumerator_membership.cpp
+  src/tck_fom_variant_range_semantics.cpp
   src/tck_fom_dimension_duplicate.cpp
   src/tck_fom_reference_attribute_resolution.cpp
   src/tck_fom_data_representation_resolution.cpp

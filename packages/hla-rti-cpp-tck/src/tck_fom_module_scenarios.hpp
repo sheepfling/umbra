@@ -100,6 +100,8 @@ void scenarioFomVariantEnumeratorSyntax(Options const&, rti::CallbackModel);
 void scenarioFomVariantEnumeratorSyntaxContract(Options const&, rti::CallbackModel);
 void scenarioFomVariantEnumeratorMembership(Options const&, rti::CallbackModel);
 void scenarioFomVariantEnumeratorMembershipContract(Options const&, rti::CallbackModel);
+void scenarioFomVariantRangeSemantics(Options const&, rti::CallbackModel);
+void scenarioFomVariantRangeSemanticsContract(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolution(Options const&, rti::CallbackModel);
 void scenarioFomReferenceAttributeResolutionContract(Options const&, rti::CallbackModel);
 void scenarioFomDataRepresentationResolution(Options const&, rti::CallbackModel);
