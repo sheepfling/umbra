@@ -186,6 +186,14 @@ public final class RtiTckMain {
       "hla.rti.tck.arrayElementOmittedFom";
    private static final String ARRAY_ELEMENT_BASIC_FOM_PROPERTY =
       "hla.rti.tck.arrayElementBasicFom";
+   private static final String RECORD_MEMBER_VALID_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberValidFom";
+   private static final String RECORD_MEMBER_OMITTED_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberOmittedFom";
+   private static final String RECORD_MEMBER_BASIC_FIELD_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberBasicFieldFom";
+   private static final String RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberBasicAlternativeFom";
    private static final String REFERENCE_ATTRIBUTE_CONSUMER_FOM_PROPERTY =
       "hla.rti.tck.referenceAttributeConsumerFom";
    private static final String REFERENCE_ATTRIBUTE_PROVIDER_FOM_PROPERTY =
@@ -1988,6 +1996,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomArrayElementCategory);
+      run(new Scenario("java-tck.fom-record-member-category",
+            "Accept named and omitted record member types and reject raw basic-data members",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomRecordMemberCategory);
       run(new Scenario("java-tck.fom-reference-attribute-resolution",
             "Resolve referenced attributes and representations across FOM modules",
             "fom-composition",
@@ -11892,6 +11906,8 @@ public final class RtiTckMain {
             method = "fomEnumeratedRepresentation"; break;
          case "java-tck.fom-array-element-category":
             method = "fomArrayElementCategory"; break;
+         case "java-tck.fom-record-member-category":
+            method = "fomRecordMemberCategory"; break;
          case "java-tck.fom-reference-attribute-resolution":
             method = "fomReferenceAttributeResolution"; break;
          case "java-tck.fom-data-representation-resolution":
@@ -13652,6 +13668,15 @@ public final class RtiTckMain {
          requireAdapterFile(ARRAY_ELEMENT_VALID_FOM_PROPERTY),
          requireAdapterFile(ARRAY_ELEMENT_OMITTED_FOM_PROPERTY),
          requireAdapterFile(ARRAY_ELEMENT_BASIC_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomRecordMemberCategory() throws Exception {
+      FomRecordMemberCategoryTck.run(factory(),
+         requireAdapterFile(RECORD_MEMBER_VALID_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_BASIC_FIELD_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

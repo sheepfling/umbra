@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Four schema-valid adapter FOMs exercise fixed-record Field Type and variant-record Alternative Type categories at public Create Federation Execution. A named simple type and omitted incomplete member types are accepted; separate raw basic-data member types are rejected as InconsistentFOM. The variant discriminant uses a valid enumerated type so its rejected branch isolates Alternative Type. Two pinned Requirements Lab candidates have broad clause-4 metadata (RL-047); no fabricated subsection mapping, Java provider runtime, interoperability, or conformance is claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-record-member-category",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_record_member_category.cpp::scenarioFomRecordMemberCategoryContract"]
+    }
+  ]
+}

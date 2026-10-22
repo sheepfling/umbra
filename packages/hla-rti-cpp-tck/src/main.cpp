@@ -19448,6 +19448,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-reference-class-resolution-contract",
       "cpp-tck.fom-enumerated-representation-contract",
       "cpp-tck.fom-array-element-category-contract",
+      "cpp-tck.fom-record-member-category-contract",
       "cpp-tck.fom-reference-attribute-resolution-contract",
       "cpp-tck.fom-data-representation-resolution-contract",
       "cpp-tck.fom-transportation-reference-resolution-contract",
@@ -20196,6 +20197,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-reference-class-resolution",
       "cpp-tck.fom-enumerated-representation",
       "cpp-tck.fom-array-element-category",
+      "cpp-tck.fom-record-member-category",
       "cpp-tck.fom-reference-attribute-resolution",
       "cpp-tck.fom-data-representation-resolution",
       "cpp-tck.fom-transportation-reference-resolution",
@@ -21102,6 +21104,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-array-element-category-contract") {
     return scenarioFomArrayElementCategoryContract;
+  }
+  if (id == "cpp-tck.fom-record-member-category-contract") {
+    return scenarioFomRecordMemberCategoryContract;
   }
   if (id == "cpp-tck.fom-reference-attribute-resolution-contract") {
     return scenarioFomReferenceAttributeResolutionContract;
@@ -23481,6 +23486,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-array-element-category") {
     return scenarioFomArrayElementCategory;
   }
+  if (id == "cpp-tck.fom-record-member-category") {
+    return scenarioFomRecordMemberCategory;
+  }
   if (id == "cpp-tck.fom-reference-attribute-resolution") {
     return scenarioFomReferenceAttributeResolution;
   }
@@ -24123,6 +24131,14 @@ int run(Options const& options) {
                   options.scenarioFoms.count("array-element-basic") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied array Element Type FOM modules";
+      } else if ((scenario == "cpp-tck.fom-record-member-category" ||
+                  scenario == "cpp-tck.fom-record-member-category-contract") &&
+                 (options.scenarioFoms.count("record-member-valid") == 0U ||
+                  options.scenarioFoms.count("record-member-omitted") == 0U ||
+                  options.scenarioFoms.count("record-member-basic-field") == 0U ||
+                  options.scenarioFoms.count("record-member-basic-alternative") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied record member FOM modules";
       } else if ((scenario == "cpp-tck.fom-reference-attribute-resolution" ||
                   scenario == "cpp-tck.fom-reference-attribute-resolution-contract") &&
                  (options.scenarioFoms.count("reference-attribute-consumer") == 0U ||

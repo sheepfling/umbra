@@ -13988,7 +13988,7 @@
         "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7"
       ],
       "test_case": "The FOM composition preflight requires table-defined data types for fixed-record fields and variant alternatives",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1265",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1112",
       "tags": [
         "unit",
         "fom",
@@ -13996,7 +13996,7 @@
         "record-member-data-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied fixed-record Field Type or variant-record Alternative Type after complete-model resolution, while retaining omitted member types for incomplete DIF rows and accepting the standard MIM/Restaurant records. RL-047 records the Requirements Lab export's broad clause-4 metadata for these otherwise precise source candidates. Remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied fixed-record Field Type or variant-record Alternative Type after complete-model resolution, while retaining omitted member types for incomplete DIF rows and accepting the standard MIM/Restaurant records. Its public standard-API witness is cpp-tck.fom-record-member-category with Java scenario-ID parity; the installed-package C++ pair passed 4/4 focused CTest and direct runs across both callback models. RL-047 records the Lab export's broad clause-4 metadata; no narrower subsection is claimed. Other table constraints, Java provider runtime, and conformance remain open."
     },
     {
       "id": "umbra-cpp-fom-variant-discriminant-data-type-composition-integration",

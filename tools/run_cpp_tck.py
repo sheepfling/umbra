@@ -802,6 +802,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-omitted-tck.xml")),
             "array-element-basic="
             + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml")),
+            "record-member-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-valid-tck.xml")),
+            "record-member-omitted="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-omitted-tck.xml")),
+            "record-member-basic-field="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-field-tck.xml")),
+            "record-member-basic-alternative="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml")),
             "reference-attribute-consumer="
             + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
             "reference-attribute-provider="
