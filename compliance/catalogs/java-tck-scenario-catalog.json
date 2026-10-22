@@ -19048,11 +19048,16 @@
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
-        "RTIambassador.getObjectClassHandle", "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getObjectClassHandle", "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle", "RTIambassador.getAttributeName",
+        "RTIambassador.getInteractionClassHandle", "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle", "RTIambassador.getParameterName",
         "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions",
-        "RTIambassador.registerObjectInstance", "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
+        "RTIambassador.registerObjectInstance", "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle", "RTIambassador.getFederateName",
+        "RTIambassador.getFederateHandle", "RTIambassador.changeInteractionOrderType",
         "RTIambassador.enableTimeRegulation", "RTIambassador.timeAdvanceRequest",
         "RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract",
         "FederateAmbassador.discoverObjectInstance",
@@ -19074,12 +19079,13 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
       ],
-      "mapping_note": "After the publisher advances, the Java peer sends a timestamped directed interaction to one non-Time-Constrained subscriber. The receive callback retains TIMESTAMP/RECEIVE order and the valid retraction designator; Retract produces one matching Request Retraction. No constrained recipient or temporal queue exists. Java provider runtime is not yet verified.",
+      "mapping_note": "After the publisher advances, the Java peer sends a timestamped directed interaction to one non-Time-Constrained subscriber. The receive callback retains TIMESTAMP/RECEIVE order and the valid retraction designator; Retract produces one matching Request Retraction. No constrained recipient or temporal queue exists. The standard-API-only Java source passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": ["request-retraction-api-contract.json", "standard-directed-retraction-immediate-only-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedRetractionImmediateOnly",
       "parity": "cpp-tck.directed-retraction-immediate-only",
-      "default_status": "unsupported",
-      "exclusion": "Java provider runtime evidence is not available; official IEEE 1516.1-2025 API compilation and parity only. Provider JAR, FOM, endpoint, callback model, and logical-time implementation must come from the adapter."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied provider JAR, compatible typed FOM, endpoint, class/member names, callback model, and logical-time implementation.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-directed-interaction-source-resignation-fanout",

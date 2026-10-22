@@ -1655,6 +1655,14 @@ focused installed JNI runs in both callback models. Provider, typed FOM,
 logical-time implementation, endpoint, names, and callback model remain adapter
 inputs; independent-provider conformance is unverified.
 
+The separate default `java-tck.directed-retraction-immediate-only` case has
+one nonconstrained recipient and no queued peer. After a publisher grant, it
+checks a timestamped directed callback with TIMESTAMP/RECEIVE order and its
+valid designator, then one matching Request Retraction. It passed focused
+installed JNI runs in both callback models with adapter-supplied provider,
+typed FOM, time, endpoint, and names; independent-provider conformance is
+unverified.
+
 The `java-tck.timestamped-directed-interaction-retraction` scenario is the
 single-recipient counterpart: it retracts one queued directed interaction,
 advances the receiver without a stale delivery, then sends a later interaction
