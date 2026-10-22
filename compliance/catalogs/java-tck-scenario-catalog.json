@@ -7908,6 +7908,9 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.subscribeObjectClassAttributes(default update rate)",
@@ -7917,6 +7920,7 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues"
       ],
@@ -7938,7 +7942,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-097-l26-6 -> §5.8: with the optional update-rate designator omitted, three distinct ordinary updates are sent before callback servicing and all three are reflected with their original values and tags. The scenario does not claim a named-rate or rate-query behavior. Java provider runtime evidence is not recorded.",
+      "mapping_note": "Direct mapping is limited to page-097-l26-6 -> §5.8: with the optional update-rate designator omitted, three distinct ordinary updates are sent before callback servicing and all three are reflected with their original values and tags. The receiver resolves its own object handle by standard name, and the case does not require callback order to match sender order. It does not claim a named-rate or rate-query behavior. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -7950,8 +7954,9 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#defaultRateSubscriptionNoReduction",
       "parity": "cpp-tck.default-rate-subscription-no-reduction",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible FOM, object-class and attribute names, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object-class and attribute names, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.federation-teardown-isolation",

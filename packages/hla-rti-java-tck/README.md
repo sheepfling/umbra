@@ -458,12 +458,13 @@ to arrive. Its adapter supplies `hla.rti.tck.updateRateFom`,
 `hla.rti.tck.updateRateDesignator`, along with the provider's standard logical-
 time and callback configuration.
 
-The opt-in `java-tck.default-rate-subscription-no-reduction` case omits the
+The default `java-tck.default-rate-subscription-no-reduction` case omits the
 optional update-rate designator, sends three distinct ordinary updates before
 servicing an evoked callback, and verifies that every original value and tag is
-reflected. Its FOM, object class, attribute, endpoint, callback model, and
-logical-time implementation are adapter-supplied; Java provider runtime
-verification remains pending.
+reflected on the receiver's locally known object without assuming callback
+order. Its FOM, object class, attribute, endpoint, callback model, and logical
+time are adapter-supplied. Focused installed JNI execution passed in both
+callback modes; independent-provider conformance remains unverified.
 
 The opt-in `java-tck.mixed-update-rate-subscriptions` case uses the same
 adapter inputs to verify ordinary receive-order updates are independently

@@ -204,8 +204,13 @@ final class ReceiveOrderAttributeUpdateTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "default-rate subscription registration returned an invalid handle");
-         await(receiver, callbackModel, () -> receiverCallbacks.discoveries.contains(object),
+         String objectName = publisher.getObjectInstanceName(object);
+         await(receiver, callbackModel, () -> !receiverCallbacks.discoveries.isEmpty(),
             "default-rate subscription discovery");
+         ObjectInstanceHandle receiverObject = receiver.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(receiverCallbacks.discoveries.contains(receiverObject)
+               && receiverClass.equals(receiver.getKnownObjectClassHandle(receiverObject)),
+            "default-rate receiver did not preserve its local object identity");
          receiverCallbacks.reflections.clear();
          publisherCallbacks.reflections.clear();
 
@@ -231,13 +236,28 @@ final class ReceiveOrderAttributeUpdateTck {
             "default-rate subscription update burst");
          JavaTckSupport.check(receiverCallbacks.reflections.size() == values.length,
             "default-rate subscription did not reflect every update in the burst");
-         for (int index = 0; index < values.length; index++) {
-            Reflection reflection = receiverCallbacks.reflections.get(index);
-            JavaTckSupport.check(object.equals(reflection.object)
-                  && reflection.values.size() == 1
-                  && Arrays.equals(values[index], reflection.values.get(receiverAttribute))
-                  && Arrays.equals(tags[index], reflection.tag),
-               "default-rate subscription altered or reduced update " + (index + 1));
+         boolean[] seen = new boolean[values.length];
+         for (Reflection reflection : receiverCallbacks.reflections) {
+            JavaTckSupport.check(receiverObject.equals(reflection.object)
+                  && reflection.values.size() == 1,
+               "default-rate subscription reflected the wrong local object or attribute set");
+            boolean matched = false;
+            for (int index = 0; index < values.length; ++index) {
+               if (Arrays.equals(values[index], reflection.values.get(receiverAttribute))
+                     && Arrays.equals(tags[index], reflection.tag)) {
+                  JavaTckSupport.check(!seen[index],
+                     "default-rate subscription duplicated update " + (index + 1));
+                  seen[index] = true;
+                  matched = true;
+                  break;
+               }
+            }
+            JavaTckSupport.check(matched,
+               "default-rate subscription changed a value or tag");
+         }
+         for (boolean delivered : seen) {
+            JavaTckSupport.check(delivered,
+               "default-rate subscription reduced the ordinary update burst");
          }
          JavaTckSupport.check(publisherCallbacks.reflections.isEmpty(),
             "default-rate attribute update looped a reflection back to its publisher");
