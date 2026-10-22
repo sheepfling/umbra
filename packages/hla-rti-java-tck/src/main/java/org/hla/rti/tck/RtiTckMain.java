@@ -2136,19 +2136,19 @@ public final class RtiTckMain {
             "Require a meaningful description when a dimension has no named input type",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomDimensionInputDescription);
       run(new Scenario("java-tck.fom-dimension-input-na-exclusivity",
             "Keep the NA dimension input marker exclusive of named types",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomDimensionInputNaExclusivity);
       run(new Scenario("java-tck.fom-dimension-name-uniqueness",
             "Reject repeated dimension names within one module, preserving legal cross-module duplicates",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomDimensionNameUniqueness);
       run(new Scenario("java-tck.fom-object-class-name-conventions",
             "Reject invalid object-class local names and accept permitted punctuation",

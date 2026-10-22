@@ -9361,12 +9361,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l10-2", "requirement-candidate-sections-semantic-clause-4b-page-056-l14-3"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2", "standard_section": "hla-1516.2-2025:clause-4"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l14-3", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Java API parity for empty inputDataTypes plus NA rejection, meaningful description acceptance, and named HLAcount inputs with either NA or descriptive text. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-input-description-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Java API parity for empty inputDataTypes plus NA rejection, meaningful description acceptance, and named HLAcount inputs with either NA or descriptive text. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-input-description-20261021.json. Requirements Lab provenance remains broad clause 4; no narrower subsection or independent-provider conformance is claimed.",
       "contract_refs": ["standard-fom-dimension-input-description-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionInputDescription",
       "parity": "cpp-tck.fom-dimension-input-description",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures dimensionDescriptionNaInvalidFom, dimensionDescriptionTextFom, dimensionDescriptionNamedNaFom, dimensionDescriptionNamedTextFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-input-description-{evoked,immediate}-default-20261022.json. Adapter supplies dimension-description FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-input-na-exclusivity",
@@ -9377,12 +9377,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Standard Java API parity for mixed NA plus named-type rejection and separate explicit-NA, empty-list, and named-type acceptance. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-input-na-exclusivity-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for mixed NA plus named-type rejection and separate explicit-NA, empty-list, and named-type acceptance. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-input-na-exclusivity-20261021.json. Requirements Lab provenance remains broad clause 4; no narrower subsection or independent-provider conformance is claimed.",
       "contract_refs": ["standard-fom-dimension-input-na-exclusivity-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionInputNaExclusivity",
       "parity": "cpp-tck.fom-dimension-input-na-exclusivity",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures dimensionInputMixedNaFom, dimensionInputNaFom, dimensionDescriptionTextFom, dimensionInputTableTypeFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-input-na-exclusivity-{evoked,immediate}-default-20261022.json. Adapter supplies dimension-input FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-dimension-name-uniqueness",
@@ -9393,12 +9393,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4b-page-056-l6-1"],
       "standard_sections": ["hla-1516.2-2025:clause-4"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1", "standard_section": "hla-1516.2-2025:clause-4"}],
-      "mapping_note": "Standard Java API parity for same-module duplicate-name rejection, single-module acceptance, and legal equivalent cross-module union. One focused packaged Umbra JNI runtime run passed (out/java-tck/dimension-name-uniqueness-jni-20261021.json); other providers and conformance are not claimed.",
+      "mapping_note": "Standard Java API parity for same-module duplicate-name rejection, single-module acceptance, and legal equivalent cross-module union. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-name-uniqueness-20261021.json. Requirements Lab provenance remains broad clause 4; no narrower subsection or independent-provider conformance is claimed.",
       "contract_refs": ["standard-fom-dimension-name-uniqueness-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionNameUniqueness",
       "parity": "cpp-tck.fom-dimension-name-uniqueness",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled until each provider configures dimensionDuplicateWithinModuleFom, dimensionDuplicateBaseFom, dimensionDuplicateEqualUniqueFom, and hla.rti.tck.mim; the packaged Umbra JNI focused runtime passed."
+      "default_status": "run",
+      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-name-uniqueness-{evoked,immediate}-default-20261022.json. Adapter supplies dimension-duplicate FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
     },
     {
       "id": "java-tck.fom-object-class-name-conventions",

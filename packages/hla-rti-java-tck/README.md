@@ -522,6 +522,16 @@ MIM-defined table-type acceptance. All three use adapter-supplied FOMs, MIM
 where needed, logical time, and callback model, and passed focused
 installed-provider evoked and immediate runs. Independent-provider conformance
 is not claimed.
+
+The default-run `java-tck.fom-dimension-input-description`,
+`java-tck.fom-dimension-input-na-exclusivity`, and
+`java-tck.fom-dimension-name-uniqueness` cases check description requirements,
+exclusive NA input, and within-module name uniqueness through standard Create,
+Join, and dimension lookups. All three passed installed-provider evoked and
+immediate runs with adapter-supplied FOM modules, MIM, logical time, and
+callback model. Their Requirements Lab mappings retain broad clause-4
+provenance; independent-provider conformance is not claimed.
+
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
