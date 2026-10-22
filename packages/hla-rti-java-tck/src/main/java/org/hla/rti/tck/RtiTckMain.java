@@ -2040,13 +2040,13 @@ public final class RtiTckMain {
             "Resolve reference-data classes from a later module and reject unresolved classes",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomReferenceClassResolution);
       run(new Scenario("java-tck.fom-enumerated-representation",
             "Accept omitted and reject non-basic enumerated representations",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomEnumeratedRepresentation);
       run(new Scenario("java-tck.fom-array-element-category",
             "Accept named and omitted array Element Types and reject raw basic-data elements",

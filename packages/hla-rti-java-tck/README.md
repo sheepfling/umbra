@@ -471,6 +471,14 @@ The opt-in `java-tck.fom-dimension-handle-stability` case checks base and
 extension dimension metadata and object/interaction-class associations across
 FOM composition. It uses no DDM region services; the FOMs, dimensions, and class
 names are adapter-provided.
+The default-run `java-tck.fom-reference-class-resolution` case uses three
+adapter-supplied FOM modules to verify a later-module reference class, reject
+an unresolved reference, and retry a valid create with the same federation name.
+The default-run `java-tck.fom-enumerated-representation` case uses two
+adapter-supplied modules to accept an omitted representation, reject a
+non-basic representation, and retry a valid create. Both passed focused
+installed-provider runs under evoked and immediate callbacks; neither is an
+independent-provider conformance claim.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,

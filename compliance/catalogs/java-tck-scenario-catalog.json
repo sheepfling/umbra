@@ -8913,12 +8913,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-072-l128-3"],
       "standard_sections": ["hla-1516.2-2025:clause-4.14.5"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-072-l128-3", "standard_section": "hla-1516.2-2025:clause-4.14.5"}],
-      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance, non-basic representation rejection, and valid retry. Java provider runtime unverified.",
+      "mapping_note": "Compiles against the 2025 Java API for parity with public Create acceptance, non-basic representation rejection, and valid retry. Matching C++ primary and contract passed 4/4 across both callback models at out/mgw/fom-enumerated-representation-20261021.json.",
       "contract_refs": ["standard-fom-enumerated-representation-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomEnumeratedRepresentation",
       "parity": "cpp-tck.fom-enumerated-representation",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.enumeratedRepresentationOmittedFom and enumeratedRepresentationNonbasicFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-enumerated-representation-{evoked,immediate}-default-20261022.json. Adapter supplies the omitted- and nonbasic-representation FOM modules, logical time, factory, endpoint, and callback model; independent-provider behavior remains unverified."
     },
     {
       "id": "java-tck.fom-array-element-category",
@@ -9041,12 +9041,12 @@
       "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-094-l94-18", "requirement-candidate-sections-semantic-clause-4c-page-079-l53-4"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.17", "hla-1516.2-2025:clause-4.14.9"],
       "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l94-18", "standard_section": "hla-1516.2-2025:clause-6.2.17"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l53-4", "standard_section": "hla-1516.2-2025:clause-4.14.9"}],
-      "mapping_note": "Standard Java API parity for later-module reference-class acceptance, unresolved-class rejection, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Standard Java API parity for later-module reference-class acceptance, unresolved-class rejection, and valid federation-name retry. Matching C++ primary and contract passed 4/4 across both callback models at out/mgw/reference-class-resolution-20261021.json.",
       "contract_refs": ["standard-fom-reference-class-resolution-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomReferenceClassResolution",
       "parity": "cpp-tck.fom-reference-class-resolution",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.referenceClassConsumerFom, referenceClassProviderFom, and referenceClassUnresolvedFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-reference-class-resolution-{evoked,immediate}-default-20261022.json. Adapter supplies the consumer, provider, and unresolved FOM modules, logical time, factory, endpoint, and callback model; independent-provider behavior remains unverified."
     },
     {
       "id": "java-tck.fom-equivalent-class-conflict",
