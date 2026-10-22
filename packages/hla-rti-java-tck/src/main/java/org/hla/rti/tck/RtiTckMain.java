@@ -652,7 +652,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.explicit-mim-creation",
             "explicit MIM federation creation and shared standard declarations", "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.1-explicit-mim-composition"}, false),
+            new String[] {"cpp-1516.1-explicit-mim-composition"}, true),
          RtiTckMain::explicitMimCreation);
       run(new Scenario("java-tck.federation-mom-current-fdd",
             "federation MOM current FDD composition and refresh", "federation-mom",
@@ -1021,7 +1021,7 @@ public final class RtiTckMain {
             "require an RTI connection for federation Create, Destroy, Join, and Resign services",
             "federation-management",
             "RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.resignFederationExecution",
-            new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, false),
+            new String[] {"cpp-1516.1-federation-create-join-resign-destroy"}, true),
             RtiTckMain::federationManagementRequiresConnection);
       run(new Scenario("java-tck.connect-before-federation-disconnect-after-resign",
             "require Connect before federation creation and Disconnect after resignation",
@@ -1030,7 +1030,7 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
                "java-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::connectBeforeFederationDisconnectAfterResign);
+            }, true), RtiTckMain::connectBeforeFederationDisconnectAfterResign);
       run(new Scenario("java-tck.asynchronous-delivery",
             "gate receive-order attribute reflections with asynchronous delivery", "asynchronous-delivery",
             "RTIambassador.connect(adapter callback model);RTIambassador.enableTimeConstrained;RTIambassador.disableAsynchronousDelivery;RTIambassador.enableAsynchronousDelivery;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.updateAttributeValues;FederateAmbassador.reflectAttributeValues;FederateAmbassador.timeConstrainedEnabled",

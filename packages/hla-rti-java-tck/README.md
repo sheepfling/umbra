@@ -521,12 +521,19 @@ checks that the deleting member loses known-class lookup immediately, the
 other member receives the standard removal callback, and that member then
 also receives `ObjectInstanceNotKnown` for the removed handle.
 
-The opt-in `java-tck.explicit-mim-creation` scenario uses only the standard
-`createFederationExecutionWithMIM` API. Enable it in the provider capability
-profile and supply the MIM file with `-Dhla.rti.tck.mim=...`; the adapter also
-supplies the caller FOM. It checks rejection of the reserved standard-MIM
-designator, shared MOM handles/names across federates, and continued lookup of
-the caller's object and interaction declarations.
+The `java-tck.explicit-mim-creation` scenario runs by default using only the
+standard `createFederationExecutionWithMIM` API. The adapter supplies the MIM
+file (`-Dhla.rti.tck.mim=...`), caller FOM, and the FOM's object, attribute,
+interaction, and parameter names. It checks rejection of the reserved
+standard-MIM designator, shared MOM handles/names across federates, and
+continued lookup of the caller's declarations. The bundled P0 FOM uses
+`Payload` as the `TckInteraction` parameter name. Both callback models passed
+focused JNI runs; this is not independent-provider or conformance evidence.
+
+The `java-tck.federation-management-requires-connection` case checks that
+Create, Destroy, Join, and Resign reject calls before Connect. The companion
+`java-tck.connect-before-federation-disconnect-after-resign` case checks Create
+both before Connect and after a successful Join, Resign, and Disconnect.
 
 The opt-in `java-tck.federation-mom-current-fdd` scenario consumes the
 adapter-supplied FOM, standard MIM, and an additional extension FOM

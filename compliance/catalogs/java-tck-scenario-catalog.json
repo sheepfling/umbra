@@ -869,7 +869,7 @@
           "standard_section": "hla-1516.1-2025:clause-4.6.5"
         }
       ],
-      "mapping_note": "Direct mapping only for the rejected createFederationExecutionWithMIM call using the reserved HLAstandardMIM designator and expecting DesignatorIsHLAstandardMIM, per page-054-l38-10 -> §4.6.5. Subsequent adapter-supplied MIM composition checks remain covered by the existing API contract and are not attributed to this requirement.",
+      "mapping_note": "Direct mapping only for the rejected createFederationExecutionWithMIM call using the reserved HLAstandardMIM designator and expecting DesignatorIsHLAstandardMIM, per page-054-l38-10 -> §4.6.5. Subsequent adapter-supplied MIM composition checks remain covered by the existing API contract and are not attributed to this requirement. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models with the adapter FOM's Payload parameter; no independent-provider or conformance claim.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -877,8 +877,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#explicitMimCreation",
       "parity": "cpp-tck.explicit-mim-creation-contract",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM module, logical-time implementation, federate type, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending.",
+      "default_status": "run",
+      "promotion": "promoted",
       "adapter_inputs": [
         "provider JAR and factory",
         "application FOM and standard MIM module",
@@ -2896,14 +2896,14 @@
           "standard_section": "hla-1516.1-2025:clause-4"
         }
       ],
-      "mapping_note": "Directly asserts only that Create, Destroy, Join, and Resign Federation Execution invoked before Connect fail with NotConnected, mapped to Clause 4. It makes no claim about successful lifecycle behavior or provider conformance.",
+      "mapping_note": "Directly asserts only that Create, Destroy, Join, and Resign Federation Execution invoked before Connect fail with NotConnected, mapped to Clause 4. The Java case compiled against the official 2025 API JAR and passed a focused JNI run; no successful lifecycle, independent-provider, or conformance claim.",
       "contract_refs": [
         "standard-service-exception-boundaries-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationManagementRequiresConnection",
       "parity": "cpp-tck.federation-management-requires-connection",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied Java IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; provider runtime remains unverified."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.connect-before-federation-disconnect-after-resign",
@@ -2932,14 +2932,14 @@
           "standard_section": "hla-1516.1-2025:clause-4"
         }
       ],
-      "mapping_note": "Maps the direct Clause 4 NotConnected outcomes for Create before Connect and after the federate has resigned and disconnected. Successful Create/Join/Resign and federation cleanup are controls; no provider-conformance claim is made.",
+      "mapping_note": "Maps the direct Clause 4 NotConnected outcomes for Create before Connect and after the federate has resigned and disconnected. Successful Create/Join/Resign and federation cleanup are controls. The Java case compiled against the official 2025 API JAR and passed focused JNI runs in both callback models; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-service-exception-boundaries-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#connectBeforeFederationDisconnectAfterResign",
       "parity": "cpp-tck.connect-before-federation-disconnect-after-resign",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback configuration; Java provider runtime evidence is not yet available."
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.connection-loss-cleanup",
