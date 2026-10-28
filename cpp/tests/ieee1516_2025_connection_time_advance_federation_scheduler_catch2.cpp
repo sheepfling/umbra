@@ -625,8 +625,13 @@ void verifyProcessTimeAdvanceFederationScheduler(
     REQUIRE(constrainedHandle.isValid());
     constrainedJoined = true;
 
+    // Keep initial GALT strictly ahead of the shared current time so Time
+    // Constrained Enabled completes before the scheduler cases begin. The
+    // zero-lookahead setup made TCE remain pending at GALT == current time;
+    // HLA_EVOKED then polled an extra receive operation the scripted process
+    // service did not model, while HLA_IMMEDIATE never observed the callback.
     REQUIRE_NOTHROW(regulatingRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(1)));
     if (callbackModel == HLA_EVOKED) {
       REQUIRE(regulatingFederate.timeRegulationEnabledCount == 0U);
       REQUIRE_FALSE(regulatingRti->evokeCallback(0.0));

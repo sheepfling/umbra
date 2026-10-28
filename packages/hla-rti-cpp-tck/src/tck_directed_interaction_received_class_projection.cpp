@@ -382,6 +382,114 @@ void scenarioDirectedKnownObjectClassFallback(
           deliveries.front().tag == tagBytes,
       "directed receipt did not select the base known-class subscription and parameter projection");
 
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Timestamped directed known-class projection requires an adapter-supplied time implementation");
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "directed known-class members selected different time factories");
+  auto const publisherLookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto publisherLookahead = publisherTime.factory->makeZero();
+  require(
+      publisherLookahead != nullptr,
+      "directed known-class case could not allocate publisher lookahead");
+  publisherLookahead->setToDifference(
+      *publisherLookaheadTime,
+      *publisherTime.initial);
+  targetMember.enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "directed known-class Time Constrained Enabled");
+  sender.enableTimeRegulation(*publisherLookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "directed known-class Time Regulation Enabled");
+  sender.changeInteractionOrderType(sentInteraction, rti::TIMESTAMP);
+
+  auto const publisherCurrentTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  sender.timeAdvanceRequest(*publisherCurrentTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "directed known-class regulating sender advance");
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherCurrentTime,
+      *publisherTime.epsilon,
+      5U);
+  auto const requestBoundary = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      10U);
+  receiver.recorder().clearTimedDirectedInteractions();
+  receiver.recorder().clearTimeCallbacks();
+  receiver.recorder().clearCallbackOrder();
+  targetMember.nextMessageRequest(*requestBoundary);
+  receiver.pump();
+  require(
+      receiver.recorder().timedDirectedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "directed known-class NMR completed before its future message arrived");
+  auto const designator = sender.sendDirectedInteraction(
+      sentInteraction,
+      object,
+      parameters,
+      rti::VariableLengthData(tagBytes.data(), tagBytes.size()),
+      *messageTime);
+  require(
+      designator.isValid(),
+      "timestamped directed known-class send returned no retraction designator");
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timedDirectedInteractions().size() == 1U;
+      },
+      options,
+      "timestamped directed known-class NMR delivery and grant");
+
+  auto const timedDeliveries = receiver.recorder().timedDirectedInteractions();
+  require(
+      timedDeliveries.size() == 1U &&
+          timedDeliveries.front().interaction == receivedBaseInteraction &&
+          timedDeliveries.front().object == object &&
+          timedDeliveries.front().producer == publisher.federateHandle() &&
+          timedDeliveries.front().parameters.size() == 1U &&
+          timedDeliveries.front().parameters.count(receivedBaseParameter) == 1U &&
+          timedDeliveries.front().parameters.count(sentChildParameter) == 0U &&
+          copyBytes(timedDeliveries.front().parameters.at(receivedBaseParameter)) == baseValue &&
+          timedDeliveries.front().tag == tagBytes &&
+          timedDeliveries.front().time == encodeTime(*messageTime) &&
+          timedDeliveries.front().timeText == messageTime->toString() &&
+          timedDeliveries.front().sentOrder == rti::TIMESTAMP &&
+          timedDeliveries.front().receivedOrder == rti::TIMESTAMP &&
+          timedDeliveries.front().retractionPresent &&
+          !timedDeliveries.front().retraction.empty() &&
+          receiver.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*messageTime) &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"directed", "grant"},
+      "timestamped directed receipt did not preserve known-class projection and TSO metadata");
+  require(
+      receiver.recorder().directedInteractions().size() == 1U,
+      "timestamped directed known-class delivery produced a duplicate receive-order callback");
+
   targetMember.unsubscribeObjectClassDirectedInteractions(
       inapplicableChildClass, childSubscription);
   targetMember.unsubscribeObjectClassDirectedInteractions(
@@ -389,6 +497,8 @@ void scenarioDirectedKnownObjectClassFallback(
   sender.unpublishObjectClassDirectedInteractions(publishedObjectClass, sentClasses);
   targetMember.unsubscribeObjectClassAttributes(knownBaseClass, receiverAttributes);
   sender.unpublishObjectClassAttributes(publishedObjectClass, senderAttributes);
+  targetMember.disableTimeConstrained();
+  sender.disableTimeRegulation();
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::DELETE_OBJECTS);
   sender.destroyFederationExecution(federation);

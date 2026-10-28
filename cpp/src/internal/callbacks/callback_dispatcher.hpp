@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <string_view>
 #include <thread>
 
 namespace umbra::detail {
@@ -18,6 +19,13 @@ enum class CallbackDispatchModel {
   immediate,
   evoked,
 };
+
+namespace callback_dispatch_instrumentation {
+inline constexpr std::string_view queue_delay_immediate = "queue_delay.immediate";
+inline constexpr std::string_view queue_delay_evoked = "queue_delay.evoked";
+inline constexpr std::string_view execute_immediate = "execute.immediate";
+inline constexpr std::string_view execute_evoked = "execute.evoked";
+}  // namespace callback_dispatch_instrumentation
 
 // Private callback-delivery context. CallbackSession uses this only while a
 // dispatcher task is executing so actual FederateAmbassador timing retains the
@@ -48,9 +56,14 @@ class CallbackDispatcher final {
   // dispatcher. Disabled tasks remain pending until callbacks are enabled.
   void submit(CallbackTask callback);
 
-  // Return whether callbacks remain pending after the invocation. In the
-  // immediate model the HLA Evoke services have no effect and return false.
-  bool evokeOne(std::chrono::milliseconds minimumWait);
+  // Return whether callbacks remain pending after the invocation. When
+  // callbackInvoked is non-null, also report whether this call invoked one;
+  // callers must not infer that from the return value because a final callback
+  // leaves no pending work. In the immediate model the HLA Evoke services
+  // have no effect and return false.
+  bool evokeOne(
+      std::chrono::milliseconds minimumWait,
+      bool* callbackInvoked = nullptr);
   bool evokeMultiple(
       std::chrono::milliseconds minimumWait,
       std::chrono::milliseconds maximumWait);
@@ -68,7 +81,7 @@ class CallbackDispatcher final {
   // therefore appended behind the current callback instead of being invoked
   // concurrently by another producer thread.
   void drainImmediate();
-  void invoke(QueuedCallback callback, CallbackDispatchModel dispatchModel);
+  void invoke(const QueuedCallback &callback, CallbackDispatchModel dispatchModel) const;
 
   QueuedCallback takeNextLocked();
   std::deque<QueuedCallback> takeAllLocked();

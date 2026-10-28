@@ -25,9 +25,7 @@ class HlaFomNames:
     REGIONAL_THING: str = "HLAobjectRoot.RegionalThing"
 
     CUSTOMER_TRANSACTIONS: str = "HLAinteractionRoot.CustomerTransactions"
-    CUSTOMER_SEATED: str = (
-        "HLAinteractionRoot.CustomerTransactions.CustomerSeated"
-    )
+    CUSTOMER_SEATED: str = "HLAinteractionRoot.CustomerTransactions.CustomerSeated"
     FOOD_SERVED: str = "HLAinteractionRoot.CustomerTransactions.FoodServed"
     MAIN_COURSE_SERVED: str = (
         "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
@@ -45,9 +43,7 @@ class HlaFomNames:
     )
     DIMENSION_FIXTURE_OBJECT: str = "HLAobjectRoot.UmbraDimensionFixtureObject"
     DIRECTED_FIXTURE_OBJECT: str = "HLAobjectRoot.UmbraDirectedFixtureObject"
-    PARAMETER_FIXTURE_BASE: str = (
-        "HLAinteractionRoot.UmbraParameterFixtureBase"
-    )
+    PARAMETER_FIXTURE_BASE: str = "HLAinteractionRoot.UmbraParameterFixtureBase"
     PARAMETER_FIXTURE_CHILD: str = (
         "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
     )
@@ -64,9 +60,7 @@ class HlaFomNames:
     TRANSPORTATION_REGIONAL_OBJECT: str = (
         "HLAobjectRoot.UmbraTransportationRegionalObject"
     )
-    TWO_DIMENSIONAL_REGION_OBJECT: str = (
-        "HLAobjectRoot.UmbraTwoDimensionalRegionObject"
-    )
+    TWO_DIMENSIONAL_REGION_OBJECT: str = "HLAobjectRoot.UmbraTwoDimensionalRegionObject"
 
     ATTRIBUTE_FIXTURE_INTERACTION: str = (
         "HLAinteractionRoot.UmbraAttributeFixtureInteraction"
@@ -84,8 +78,7 @@ class HlaFomNames:
         "HLAinteractionRoot.UmbraTransportationRegionalInteraction"
     )
     PARAMETER_FIXTURE_CHILD_INTERACTION: str = (
-        "HLAinteractionRoot.UmbraParameterFixtureBase."
-        "UmbraParameterFixtureChild"
+        "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
     )
     TWO_DIMENSIONAL_REGION_INTERACTION: str = (
         "HLAinteractionRoot.UmbraTwoDimensionalRegionInteraction"
@@ -129,24 +122,20 @@ class HlaMomNames:
         "HLArequestObjectInstanceInformation"
     )
     REQUEST_FOM_MODULE_DATA_FEDERATE: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
-        "HLArequestFOMmoduleData"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestFOMmoduleData"
     )
     REQUEST_PUBLICATIONS: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
-        "HLArequestPublications"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestPublications"
     )
     REQUEST_SUBSCRIPTIONS: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
-        "HLArequestSubscriptions"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestSubscriptions"
     )
     REQUEST_REFLECTIONS_RECEIVED: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
         "HLArequestReflectionsReceived"
     )
     REQUEST_UPDATES_SENT: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
-        "HLArequestUpdatesSent"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestUpdatesSent"
     )
     REQUEST_INTERACTIONS_SENT: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
@@ -173,33 +162,27 @@ class HlaMomNames:
         "HLArequestSynchronizationPointStatus"
     )
     REQUEST_FOM_MODULE_DATA_FEDERATION: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest."
-        "HLArequestFOMmoduleData"
+        "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestFOMmoduleData"
     )
     REQUEST_MIM_DATA: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest."
-        "HLArequestMIMdata"
+        "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestMIMdata"
     )
     REQUEST_MIM_DATA_NAME: str = "HLArequestMIMdata"
 
     REPORT_SERVICE_INVOCATION: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
-        "HLAreportServiceInvocation"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation"
     )
     REPORT_FEDERATE_LOST: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
-        "HLAreportFederateLost"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost"
     )
     REPORT_EXCEPTION: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException"
     )
     REPORT_MOM_EXCEPTION: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
-        "HLAreportMOMexception"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception"
     )
     REPORT_FOM_MODULE_DATA_FEDERATE: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
-        "HLAreportFOMmoduleData"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFOMmoduleData"
     )
     REPORT_OBJECT_INSTANCES_UPDATED: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
@@ -221,8 +204,7 @@ class HlaMomNames:
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportUpdatesSent"
     )
     REPORT_INTERACTIONS_SENT: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
-        "HLAreportInteractionsSent"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionsSent"
     )
     REPORT_DIRECTED_INTERACTIONS_SENT: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport."
@@ -265,8 +247,7 @@ class HlaMomNames:
         "HLAreportDirectedInteractionSubscription"
     )
     REPORT_FOM_MODULE_DATA_FEDERATION: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport."
-        "HLAreportFOMmoduleData"
+        "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportFOMmoduleData"
     )
     REPORT_MIM_DATA: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportMIMdata"
@@ -285,9 +266,7 @@ class HlaMomNames:
     INTERACTIONS_RECEIVED: str = "HLAinteractionsReceived"
     INTERACTIONS_SENT: str = "HLAinteractionsSent"
 
-    SET_TIMING: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
-    )
+    SET_TIMING: str = "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
     SET_SWITCHES_FEDERATE: str = (
         "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches"
     )
@@ -299,8 +278,7 @@ class HlaMomNames:
         "HLAsetSwitches.UmbraExtendedSetSwitches"
     )
     MODIFY_ATTRIBUTE_STATE: str = (
-        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust."
-        "HLAmodifyAttributeState"
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAmodifyAttributeState"
     )
 
     FEDERATE: str = "HLAfederate"

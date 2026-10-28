@@ -132,7 +132,8 @@ TEST_CASE(
     "[federate.callback.start-registration-for-object-class]"
     "[federate.callback.stop-registration-for-object-class]"
     "[federate.callback.turn-interactions-on][federate.callback.turn-interactions-off]"
-    "[declaration-relevance-advisory-regional][2025]") {
+    "[declaration-relevance-advisory-regional]"
+    "[lane.declaration-relevance-advisory-regional][2025]") {
   RegionalDeclarationFederateAmbassador publisherReports;
   RegionalDeclarationFederateAmbassador subscriberReports;
   auto publisher = makeRti();

@@ -12,7 +12,9 @@ from .attribution import ParticipantPerspective
 from .models import JsonObject, to_json_object
 
 TimeKind = Literal["request", "grant", "state", "failed", "cancelled"]
-RequestStatus = Literal["pending", "granted", "failed", "cancelled", "ambiguous", "session-ended"]
+RequestStatus = Literal[
+    "pending", "granted", "failed", "cancelled", "ambiguous", "session-ended"
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +41,17 @@ class TimeScope:
 
     @property
     def key(self) -> tuple[str | None, ...]:
-        return ("perspective", self.perspective.key) if self.perspective else ("legacy-scope", self.source, self.session_id, self.federation, self.federate)
+        return (
+            ("perspective", self.perspective.key)
+            if self.perspective
+            else (
+                "legacy-scope",
+                self.source,
+                self.session_id,
+                self.federation,
+                self.federate,
+            )
+        )
 
     def __hash__(self) -> int:
         return hash(self.key)
@@ -49,12 +61,24 @@ class TimeScope:
 
     @property
     def correlatable(self) -> bool:
-        return self.source != "unknown" and self.session_id is not None and (self.federate is not None or self.perspective is not None and self.perspective.attribution is not None)
+        return (
+            self.source != "unknown"
+            and self.session_id is not None
+            and (
+                self.federate is not None
+                or self.perspective is not None
+                and self.perspective.attribution is not None
+            )
+        )
 
     def to_json(self) -> JsonObject:
-        return {"source": self.source, "session_id": self.session_id,
-                "federation": self.federation, "federate": self.federate,
-                **({"perspective": self.perspective.to_json()} if self.perspective else {})}
+        return {
+            "source": self.source,
+            "session_id": self.session_id,
+            "federation": self.federation,
+            "federate": self.federate,
+            **({"perspective": self.perspective.to_json()} if self.perspective else {}),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,8 +89,12 @@ class TimeSample:
     request_id: str | None
 
     def to_json(self) -> JsonObject:
-        return {"sequence": self.sequence, "logical_time": self.logical_time,
-                "observed_at": self.observed_at, "request_id": self.request_id}
+        return {
+            "sequence": self.sequence,
+            "logical_time": self.logical_time,
+            "observed_at": self.observed_at,
+            "request_id": self.request_id,
+        }
 
 
 @dataclass(slots=True)
@@ -84,20 +112,31 @@ class TimeSnapshot:
 
     def to_json(self) -> JsonObject:
         state = self.reported_state
-        return to_json_object({
-            "scope": self.scope.to_json(), "last_sequence": self.last_sequence,
-            "observed_at": self.observed_at, "status": self.status,
-            "last_grant": self.last_grant.to_json() if self.last_grant else None,
-            "last_request": self.last_request.to_json() if self.last_request else None,
-            "state_sequence": self.state_sequence,
-            "reported_state": None if state is None else {
-                "logical_time": state.logical_time, "lookahead": state.lookahead,
-                "regulating": state.regulating, "constrained": state.constrained,
-                "galt": state.galt, "lbts": state.lbts,
-            },
-            "uncorrelated_requests": self.uncorrelated_requests,
-            "uncorrelated_grants": self.uncorrelated_grants,
-        })
+        return to_json_object(
+            {
+                "scope": self.scope.to_json(),
+                "last_sequence": self.last_sequence,
+                "observed_at": self.observed_at,
+                "status": self.status,
+                "last_grant": self.last_grant.to_json() if self.last_grant else None,
+                "last_request": self.last_request.to_json()
+                if self.last_request
+                else None,
+                "state_sequence": self.state_sequence,
+                "reported_state": None
+                if state is None
+                else {
+                    "logical_time": state.logical_time,
+                    "lookahead": state.lookahead,
+                    "regulating": state.regulating,
+                    "constrained": state.constrained,
+                    "galt": state.galt,
+                    "lbts": state.lbts,
+                },
+                "uncorrelated_requests": self.uncorrelated_requests,
+                "uncorrelated_grants": self.uncorrelated_grants,
+            }
+        )
 
 
 @dataclass(slots=True)
@@ -117,22 +156,37 @@ class TimeRequest:
 
     def to_json(self, now: float) -> JsonObject:
         duration = now - self.started_monotonic
-        return to_json_object({
-            "scope": self.scope.to_json(), "request_id": self.request_id,
-            "request_sequence": self.request_sequence, "requested_time": self.requested_time,
-            "requested_at": self.requested_at, "status": self.status,
-            "outcome_sequence": self.outcome_sequence, "outcome_at": self.outcome_at,
-            "granted_time": self.granted_time, "latency_seconds": self.latency_seconds,
-            "pending_seconds": duration if self.status == "pending" and math.isfinite(duration) and duration >= 0 else None,
-            "reason": self.reason,
-        })
+        return to_json_object(
+            {
+                "scope": self.scope.to_json(),
+                "request_id": self.request_id,
+                "request_sequence": self.request_sequence,
+                "requested_time": self.requested_time,
+                "requested_at": self.requested_at,
+                "status": self.status,
+                "outcome_sequence": self.outcome_sequence,
+                "outcome_at": self.outcome_at,
+                "granted_time": self.granted_time,
+                "latency_seconds": self.latency_seconds,
+                "pending_seconds": duration
+                if self.status == "pending"
+                and math.isfinite(duration)
+                and duration >= 0
+                else None,
+                "reason": self.reason,
+            }
+        )
 
 
 def _number(value: object) -> int | float | None:
     if value is None:
         return None
     try:
-        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
+        if (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+        ):
             return value
     except OverflowError:
         pass
@@ -147,12 +201,16 @@ def _identity(value: object) -> str | None:
     raise ValueError("time IDs must be nonblank strings of at most 256 characters")
 
 
+# opaque-boundary: Parse provider time observations before normalized storage.
 def time_data(event: Mapping[str, object]) -> TimeData | None:
     raw = event.get("time_observation")
     if raw is None:
         # This exact callback is an explicit grant, not a timestamped payload.
         # Legacy grants are useful snapshots, but never get invented IDs.
-        if event.get("event_type") != "callback.invoked" or event.get("operation") != "timeAdvanceGrant":
+        if (
+            event.get("event_type") != "callback.invoked"
+            or event.get("operation") != "timeAdvanceGrant"
+        ):
             return None
         logical = event.get("logical_time")
         details = event.get("details")
@@ -170,9 +228,13 @@ def time_data(event: Mapping[str, object]) -> TimeData | None:
     if kind not in ("request", "grant", "state", "failed", "cancelled"):
         raise ValueError("unknown time_observation kind")
     common = {"kind", "session_id"}
-    allowed = common | ({"logical_time", "request_id"} if kind in ("request", "grant") else
-                        {"request_id", "reason"} if kind in ("failed", "cancelled") else
-                        {"logical_time", "lookahead", "regulating", "constrained", "galt", "lbts"})
+    allowed = common | (
+        {"logical_time", "request_id"}
+        if kind in ("request", "grant")
+        else {"request_id", "reason"}
+        if kind in ("failed", "cancelled")
+        else {"logical_time", "lookahead", "regulating", "constrained", "galt", "lbts"}
+    )
     if set(values) - allowed:
         raise ValueError("unknown fields in time_observation")
     logical = _number(values.get("logical_time"))
@@ -183,9 +245,14 @@ def time_data(event: Mapping[str, object]) -> TimeData | None:
     if reason is not None and not isinstance(reason, str):
         raise ValueError("time outcome reason must be a string")
     return TimeData(
-        kind=kind, session_id=_identity(values.get("session_id")),
-        request_id=_identity(values.get("request_id")), logical_time=logical,
-        lookahead=_number(values.get("lookahead")), galt=_number(values.get("galt")), lbts=_number(values.get("lbts")),
-        regulating=cast(bool | None, values.get("regulating")), constrained=cast(bool | None, values.get("constrained")),
+        kind=kind,
+        session_id=_identity(values.get("session_id")),
+        request_id=_identity(values.get("request_id")),
+        logical_time=logical,
+        lookahead=_number(values.get("lookahead")),
+        galt=_number(values.get("galt")),
+        lbts=_number(values.get("lbts")),
+        regulating=cast(bool | None, values.get("regulating")),
+        constrained=cast(bool | None, values.get("constrained")),
         reason=reason,
     )

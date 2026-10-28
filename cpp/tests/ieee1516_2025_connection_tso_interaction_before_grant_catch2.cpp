@@ -776,7 +776,7 @@ TEST_CASE(
     REQUIRE_NOTHROW(receiverRti->subscribeInteractionClass(receiverInteraction, true));
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(1)));
     REQUIRE(senderFederate.timeRegulationEnabledCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
@@ -913,6 +913,13 @@ TEST_CASE(
     "[2025]") {
   class ImmediateInteractionAmbassador final : public NullFederateAmbassador {
    public:
+    void timeConstrainedEnabled(
+        rti1516_2025::LogicalTime const&) override {
+      std::scoped_lock lock(mutex);
+      ++timeConstrainedEnabledCount;
+      callbacksAvailable.notify_all();
+    }
+
     void receiveInteraction(
         rti1516_2025::InteractionClassHandle const& interactionClass,
         rti1516_2025::ParameterHandleValueMap const& parameterValues,
@@ -975,8 +982,15 @@ TEST_CASE(
       });
     }
 
+    bool waitForTimeConstrainedEnabled(std::chrono::milliseconds timeout) {
+      std::unique_lock lock(mutex);
+      return callbacksAvailable.wait_for(
+          lock, timeout, [this] { return timeConstrainedEnabledCount == 1U; });
+    }
+
     std::mutex mutex;
     std::condition_variable callbacksAvailable;
+    std::size_t timeConstrainedEnabledCount = 0U;
     std::size_t receivedInteractionCount = 0U;
     std::size_t receivedParameterCount = 0U;
     std::size_t timeAdvanceGrantCount = 0U;
@@ -1218,8 +1232,10 @@ TEST_CASE(
     REQUIRE_NOTHROW(receiverRti->subscribeInteractionClass(receiverInteraction, true));
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(1)));
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+    REQUIRE(receiverFederate.waitForTimeConstrainedEnabled(
+        std::chrono::seconds(5)));
     try {
       receiverRti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5));
     } catch (rti1516_2025::Exception const& error) {

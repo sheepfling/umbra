@@ -1043,6 +1043,9 @@ void verifyProcessTsoAttributeBeforeGrant(
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.reflectedCount == 1U);
+      // The timestamp-6 reflection is delivered before the pending TAR(6)
+      // grant. Once that message has been delivered, the inclusive GALT
+      // boundary permits the receiver to grant at 6.
       REQUIRE(receiverFederate.timeAdvanceGrantCount ==
               (pendingTceTransition ? 2U : 1U));
       REQUIRE(receiverFederate.timeAdvanceGrantValue ==

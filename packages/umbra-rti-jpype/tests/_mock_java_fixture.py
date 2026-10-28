@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import shutil
 import subprocess
-
+from pathlib import Path
 
 FIXTURE_ROOT = Path(__file__).parents[1] / "test-fixtures" / "mock-java-rti"
 SMOKE_TEST_CLASS = "org.umbra.testfixture.rti1516_2025.MockSmokeTest"

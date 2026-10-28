@@ -78,6 +78,14 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
     }
   }
 
+  void requestAttributeOwnershipRelease(
+      rti::ObjectInstanceHandle const& object,
+      rti::AttributeHandleSet const& attributes,
+      rti::VariableLengthData const& tag) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    releaseRequests_.push_back(AssumptionEvent{object, attributes, copyBytes(tag)});
+  }
+
   bool discovered(rti::ObjectInstanceHandle const& object) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return std::find(discovered_.begin(), discovered_.end(), object) != discovered_.end();
@@ -103,6 +111,11 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
     return divestitureRequests_;
   }
 
+  std::vector<AssumptionEvent> releaseRequests() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return releaseRequests_;
+  }
+
   std::exception_ptr divestitureFailure() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return divestitureFailure_;
@@ -125,6 +138,7 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
   std::vector<AssumptionEvent> cancellations_;
   std::vector<AssumptionEvent> acquisitions_;
   std::vector<AssumptionEvent> divestitureRequests_;
+  std::vector<AssumptionEvent> releaseRequests_;
   std::function<void()> assumptionHook_;
   std::function<void()> divestitureHook_;
   std::exception_ptr divestitureFailure_;
@@ -630,6 +644,117 @@ void scenarioNegotiatedDivestitureConcurrentAssumption(
 void scenarioNegotiatedDivestitureConcurrentAssumptionContract(
     Options const& options, rti::CallbackModel model) {
   scenarioNegotiatedDivestitureConcurrentAssumption(options, model);
+}
+
+void scenarioAcquisitionWhileOwnerWaitsForNewOwner(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Waiting-for-new-owner acquisition requires an adapter-supplied FOM");
+  rti::RTIambassadorFactory factory;
+  auto owner = factory.createRTIambassador();
+  auto requester = factory.createRTIambassador();
+  require(owner && requester,
+          "The standard factory returned no ownership ambassador");
+  AssumptionCallbacks ownerCallbacks;
+  AssumptionCallbacks requesterCallbacks;
+  connect(*owner, ownerCallbacks, options, model, true);
+  connect(*requester, requesterCallbacks, options, model, false);
+  auto const federation = federationName(
+      options, "ownership-acquisition-waiting-for-new-owner");
+  owner->createFederationExecution(
+      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+  static_cast<void>(owner->joinFederationExecution(
+      options.ownerFederateName + L"-waiting-owner",
+      options.federateType, federation));
+  static_cast<void>(requester->joinFederationExecution(
+      options.memberFederateName + L"-waiting-requester",
+      options.federateType, federation));
+
+  auto const ownerClass = owner->getObjectClassHandle(options.objectClassName);
+  auto const requesterClass = requester->getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner->getAttributeHandle(ownerClass, options.attributeName);
+  auto const requesterAttribute = requester->getAttributeHandle(
+      requesterClass, options.attributeName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerClass == requesterClass && ownerAttribute.isValid() &&
+              requesterAttribute == ownerAttribute,
+          "Waiting-for-new-owner FOM lookup returned inconsistent handles");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->subscribeObjectClassAttributes(
+      requesterClass, requesterAttributes, true, L"");
+  auto const object = owner->registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Waiting-for-new-owner registration returned an invalid handle");
+  evokeUntil(*requester, [&] { return requesterCallbacks.discovered(object); },
+             options, model, "waiting-for-new-owner discovery");
+  requester->publishObjectClassAttributes(requesterClass, requesterAttributes);
+
+  std::vector<std::uint8_t> const divestitureTagBytes{0xD7U, 0x18U, 0x01U};
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xA7U, 0x18U, 0x02U};
+  std::vector<std::uint8_t> const confirmationTagBytes{0xC7U, 0x18U, 0x03U};
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(), divestitureTagBytes.size());
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(), confirmationTagBytes.size());
+
+  // With no pending acquirer, this puts the owner in Waiting for a New Owner
+  // to be Found. A later acquisition must request confirmation, not release.
+  owner->negotiatedAttributeOwnershipDivestiture(
+      object, ownerAttributes, divestitureTag);
+  require(ownerCallbacks.divestitureRequests().empty() &&
+              ownerCallbacks.releaseRequests().empty() &&
+              owner->isAttributeOwnedByFederate(object, ownerAttribute),
+          "Negotiated divestiture did not leave the owner waiting with ownership intact");
+
+  requester->attributeOwnershipAcquisition(
+      object, requesterAttributes, acquisitionTag);
+  evokeUntil(*owner,
+             [&] { return ownerCallbacks.divestitureRequests().size() == 1U; },
+             options, model, "request divestiture confirmation from waiting owner");
+  if (model == rti::HLA_EVOKED) {
+    for (int pass = 0; pass != 32; ++pass) {
+      if (!owner->evokeCallback(0.0)) break;
+    }
+  }
+  auto const requests = ownerCallbacks.divestitureRequests();
+  auto const releaseRequests = ownerCallbacks.releaseRequests();
+  require(requests.size() == 1U && requests.front().object == object &&
+              requests.front().attributes == ownerAttributes &&
+              requests.front().tag == acquisitionTagBytes,
+          "Waiting-for-new-owner acquisition returned the wrong confirmation request");
+  require(releaseRequests.empty(),
+          "RTI invoked Request Attribute Ownership Release while the owner was waiting for a new owner");
+  require(owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !requester->isAttributeOwnedByFederate(object, requesterAttribute) &&
+              requesterCallbacks.acquisitions().empty(),
+          "Waiting-for-new-owner acquisition transferred before owner confirmation");
+
+  owner->confirmDivestiture(object, ownerAttributes, confirmationTag);
+  evokeUntil(*requester,
+             [&] { return requesterCallbacks.acquisitions().size() == 1U; },
+             options, model, "acquisition notification after owner confirmation");
+  auto const acquisitions = requesterCallbacks.acquisitions();
+  require(acquisitions.size() == 1U && acquisitions.front().object == object &&
+              acquisitions.front().attributes == requesterAttributes &&
+              acquisitions.front().tag == confirmationTagBytes &&
+              !owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              requester->isAttributeOwnedByFederate(object, requesterAttribute),
+          "Confirmed waiting-owner divestiture did not transfer the requested attribute");
+
+  requester->resignFederationExecution(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner->destroyFederationExecution(federation);
+  requester->disconnect();
+  owner->disconnect();
+}
+
+void scenarioAcquisitionWhileOwnerWaitsForNewOwnerContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioAcquisitionWhileOwnerWaitsForNewOwner(options, model);
 }
 
 void scenarioConfirmDivestitureFromCallback(

@@ -78,6 +78,9 @@ class ProcessFederationClient final {
 
   [[nodiscard]] ProcessFederationDestroyResult destroyFederationExecution(
       std::wstring federationName);
+  [[nodiscard]] ProcessFederationExecutionMembersResult
+  listFederationExecutionMembers(std::wstring federationName);
+  [[nodiscard]] ProcessFederationExecutionsResult listFederationExecutions();
 
   [[nodiscard]] ProcessFederationJoinResult joinFederationExecution(
       std::wstring federationName,
@@ -930,6 +933,10 @@ class ProcessFederationClient final {
   // was in flight.  This is used by the request path before it returns so an
   // HLA_IMMEDIATE callback is not stranded behind a later explicit Evoke.
   void dispatchPendingPushedEvents();
+  // The requesting thread holds callback-dispatch suppression to keep the
+  // background stream dispatcher from racing it.  Its synchronous drain may
+  // cross that suppression after the request/response exchange has ended.
+  void dispatchPendingPushedEvents(bool allowRequestOwnedSuppression);
 
   // Events captured while a request was in flight are drained by the public
   // ambassador before it returns from that service. This count never reads

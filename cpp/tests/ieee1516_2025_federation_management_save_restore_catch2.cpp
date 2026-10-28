@@ -89,7 +89,8 @@ TEST_CASE(
   // The receiver first receives the TSO payload at the scheduled-save
   // boundary, then receives Initiate Federate Save while still Time
   // Advancing, and only then receives its grant.
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
   REQUIRE(receiverReports.initiateFederateSaveReports ==

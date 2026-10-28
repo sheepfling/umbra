@@ -285,8 +285,10 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
     --ctest "${UMBRA_CTEST_COMMAND}"
     --test-dir "${consumer_binary_directory}"
     --index "${UMBRA_SOURCE_DIRECTORY}/docs/planning/ROADMAP-INDEX.json"
-    --junit "${package_junit_artifact}"
   )
+  if(NOT UMBRA_EXPECT_SHARED_LIBRARIES)
+    list(APPEND package_junit_verify_command --junit "${package_junit_artifact}")
+  endif()
   if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
     list(APPEND package_junit_verify_command --config "${UMBRA_CONFIGURATION}")
   endif()

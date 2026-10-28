@@ -463,9 +463,9 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
   switch (message.operation) {
     case TransportServiceOperation::receive_interaction: {
       auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
-      auto const count = pendingEvents_.size();
+      auto const pendingEventCount = pendingEvents_.size();
       bufferReceiveResult(std::move(result));
-      if (pendingEvents_.size() == count) {
+      if (pendingEvents_.size() == pendingEventCount) {
         throw ProcessFederationClientError(
             "Process federation client received an empty unsolicited event.");
       }
@@ -619,7 +619,7 @@ TransportServiceMessage ProcessFederationClient::request(
 
     if (dispatchCallbacks) {
       try {
-        dispatchPendingPushedEvents();
+        dispatchPendingPushedEvents(true);
         flushDeferredTsoDeliveryAcknowledgements();
       } catch (...) {
         {

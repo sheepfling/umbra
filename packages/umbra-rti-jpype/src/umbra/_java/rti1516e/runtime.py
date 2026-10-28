@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import EnumType
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Literal, TypeAlias, TypedDict, cast
 
 from hla.rti1516e import (
     AttributeHandle,
@@ -49,11 +52,42 @@ from hla.rti1516e import (
 )
 from hla.rti1516e.contracts import FEDERATE_AMBASSADOR_PARAMETER_TYPES
 from hla.rti1516e.exceptions import RTIinternalError
+from hla.rti1516e.values import EncodedHandle
 
 from .config import Java2010ProviderConfiguration
 
 _JVM_LOCK = Lock()
 _STARTED_CONFIGURATION: Java2010ProviderConfiguration | None = None
+
+JavaHandleTypeName: TypeAlias = Literal[
+    "FederateHandle",
+    "ObjectClassHandle",
+    "ObjectInstanceHandle",
+    "AttributeHandle",
+    "InteractionClassHandle",
+    "ParameterHandle",
+    "TransportationTypeHandle",
+    "DimensionHandle",
+    "RegionHandle",
+    "MessageRetractionHandle",
+]
+JavaEnumTypeName: TypeAlias = Literal[
+    "ResignAction",
+    "OrderType",
+    "ServiceGroup",
+    "SynchronizationPointFailureReason",
+    "SaveFailureReason",
+    "SaveStatus",
+    "RestoreFailureReason",
+    "RestoreStatus",
+]
+JavaHandleClass: TypeAlias = type[EncodedHandle]
+
+
+class JVMStartOptions(TypedDict, total=False):
+    classpath: list[str]
+    convertStrings: bool
+    jvmpath: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,29 +96,33 @@ class Java2010CallbackBinding:
     target: object
 
 
-_JAVA_HANDLE_TYPES: dict[str, type[object]] = {
-    "FederateHandle": FederateHandle,
-    "ObjectClassHandle": ObjectClassHandle,
-    "ObjectInstanceHandle": ObjectInstanceHandle,
-    "AttributeHandle": AttributeHandle,
-    "InteractionClassHandle": InteractionClassHandle,
-    "ParameterHandle": ParameterHandle,
-    "TransportationTypeHandle": TransportationTypeHandle,
-    "DimensionHandle": DimensionHandle,
-    "RegionHandle": RegionHandle,
-    "MessageRetractionHandle": MessageRetractionHandle,
-}
+_JAVA_HANDLE_TYPES: Mapping[JavaHandleTypeName, JavaHandleClass] = MappingProxyType(
+    {
+        "FederateHandle": FederateHandle,
+        "ObjectClassHandle": ObjectClassHandle,
+        "ObjectInstanceHandle": ObjectInstanceHandle,
+        "AttributeHandle": AttributeHandle,
+        "InteractionClassHandle": InteractionClassHandle,
+        "ParameterHandle": ParameterHandle,
+        "TransportationTypeHandle": TransportationTypeHandle,
+        "DimensionHandle": DimensionHandle,
+        "RegionHandle": RegionHandle,
+        "MessageRetractionHandle": MessageRetractionHandle,
+    }
+)
 
-_JAVA_ENUM_TYPES: dict[str, type[object]] = {
-    "ResignAction": ResignAction,
-    "OrderType": OrderType,
-    "ServiceGroup": ServiceGroup,
-    "SynchronizationPointFailureReason": SynchronizationPointFailureReason,
-    "SaveFailureReason": SaveFailureReason,
-    "SaveStatus": SaveStatus,
-    "RestoreFailureReason": RestoreFailureReason,
-    "RestoreStatus": RestoreStatus,
-}
+_JAVA_ENUM_TYPES: Mapping[JavaEnumTypeName, EnumType] = MappingProxyType(
+    {
+        "ResignAction": ResignAction,
+        "OrderType": OrderType,
+        "ServiceGroup": ServiceGroup,
+        "SynchronizationPointFailureReason": SynchronizationPointFailureReason,
+        "SaveFailureReason": SaveFailureReason,
+        "SaveStatus": SaveStatus,
+        "RestoreFailureReason": RestoreFailureReason,
+        "RestoreStatus": RestoreStatus,
+    }
+)
 
 
 class _FederateAmbassadorProxy:
@@ -411,12 +449,14 @@ class JPype2010Runtime:
         if expected_type == "String":
             return str(value)
         if expected_type in _JAVA_HANDLE_TYPES:
-            return _JAVA_HANDLE_TYPES[expected_type](self.handle_bytes(value))  # type: ignore[call-arg]
+            handle_class = _JAVA_HANDLE_TYPES[cast(JavaHandleTypeName, expected_type)]
+            return handle_class(self.handle_bytes(value))
         if expected_type in _JAVA_ENUM_TYPES:
+            enum_class = _JAVA_ENUM_TYPES[cast(JavaEnumTypeName, expected_type)]
             name = getattr(value, "name", None)
             name = name() if callable(name) else name
             try:
-                return _JAVA_ENUM_TYPES[expected_type][str(name)]  # type: ignore[index]
+                return enum_class[str(name)]
             except KeyError as error:
                 raise RTIinternalError(
                     f"Java 1516e callback returned unknown {expected_type}: {name}"
@@ -684,7 +724,7 @@ class JPype2010Runtime:
                     )
                 return jpype
             arguments = list(configuration.jvm_options)
-            kwargs: dict[str, object] = {
+            kwargs: JVMStartOptions = {
                 "classpath": list(configuration.classpath),
                 "convertStrings": configuration.convert_strings,
             }

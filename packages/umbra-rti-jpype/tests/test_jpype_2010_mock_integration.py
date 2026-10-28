@@ -183,9 +183,7 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                 try:
                     callback_model = CallbackModel[case.callback_model]
                     expected_time = (
-                        5.25
-                        if case.time_implementation == "HLAfloat64Time"
-                        else 5
+                        5.25 if case.time_implementation == "HLAfloat64Time" else 5
                     )
                     publisher.connect(publisher_callback, callback_model)
                     # The Java 1516e signature consumes ``java.net.URL``.
@@ -222,20 +220,24 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                     publisher.publishInteractionClass(publisher_interaction)
 
                     time_factory = publisher.getTimeFactory()
-                    self.assertEqual(
-                        time_factory.getName(), case.time_implementation
-                    )
+                    self.assertEqual(time_factory.getName(), case.time_implementation)
                     target = time_factory.makeLogicalTime(expected_time)
                     getattr(publisher, case.advance_service)(target)
                     drain(publisher)
                     if case.time_implementation == "HLAfloat64Time":
-                        self.assertIsInstance(publisher.queryLogicalTime(), HLAfloat64Time)
+                        self.assertIsInstance(
+                            publisher.queryLogicalTime(), HLAfloat64Time
+                        )
                         self.assertAlmostEqual(
                             publisher.queryLogicalTime().getTime(), expected_time
                         )
                     else:
-                        self.assertIsInstance(publisher.queryLogicalTime(), HLAinteger64Time)
-                        self.assertEqual(publisher.queryLogicalTime().getTime(), expected_time)
+                        self.assertIsInstance(
+                            publisher.queryLogicalTime(), HLAinteger64Time
+                        )
+                        self.assertEqual(
+                            publisher.queryLogicalTime().getTime(), expected_time
+                        )
 
                     for member in range(case.member_count - 1):
                         subscriber = self.factory.getRtiAmbassador()
@@ -261,13 +263,19 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                         getattr(subscriber, case.advance_service)(target)
                         drain(subscriber)
                         if case.time_implementation == "HLAfloat64Time":
-                            self.assertIsInstance(subscriber.queryLogicalTime(), HLAfloat64Time)
+                            self.assertIsInstance(
+                                subscriber.queryLogicalTime(), HLAfloat64Time
+                            )
                             self.assertAlmostEqual(
                                 subscriber.queryLogicalTime().getTime(), expected_time
                             )
                         else:
-                            self.assertIsInstance(subscriber.queryLogicalTime(), HLAinteger64Time)
-                            self.assertEqual(subscriber.queryLogicalTime().getTime(), expected_time)
+                            self.assertIsInstance(
+                                subscriber.queryLogicalTime(), HLAinteger64Time
+                            )
+                            self.assertEqual(
+                                subscriber.queryLogicalTime().getTime(), expected_time
+                            )
                         subscribers.append(subscriber)
                         callbacks.append(callback)
                         attributes.append(subscriber_attribute)
@@ -319,20 +327,18 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                     # about exact Java carrier shape and Python conversion,
                     # not a claim about timestamp scheduling.
                     reflection_value = (
-                        6.25
-                        if case.time_implementation == "HLAfloat64Time"
-                        else 6
+                        6.25 if case.time_implementation == "HLAfloat64Time" else 6
                     )
                     interaction_value = (
-                        7.5
-                        if case.time_implementation == "HLAfloat64Time"
-                        else 7
+                        7.5 if case.time_implementation == "HLAfloat64Time" else 7
                     )
                     reflection_time = time_factory.makeLogicalTime(reflection_value)
                     interaction_time = time_factory.makeLogicalTime(interaction_value)
                     publisher.updateAttributeValues(
                         object_instance,
-                        AttributeHandleValueMap({publisher_attribute: b"2010-tso-value"}),
+                        AttributeHandleValueMap(
+                            {publisher_attribute: b"2010-tso-value"}
+                        ),
                         b"2010-tso-update-tag",
                         reflection_time,
                     )
@@ -365,7 +371,9 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                                 timed_reflection[5].getTime(), reflection_value
                             )
                         else:
-                            self.assertEqual(timed_reflection[5].getTime(), reflection_value)
+                            self.assertEqual(
+                                timed_reflection[5].getTime(), reflection_value
+                            )
                         self.assertEqual(len(callback.interactions), 2)
                         timed_interaction = callback.interactions[-1]
                         self.assertEqual(len(timed_interaction), 8)
@@ -378,7 +386,9 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                                 timed_interaction[5].getTime(), interaction_value
                             )
                         else:
-                            self.assertEqual(timed_interaction[5].getTime(), interaction_value)
+                            self.assertEqual(
+                                timed_interaction[5].getTime(), interaction_value
+                            )
                 finally:
                     for subscriber in subscribers:
                         with suppress(Exception):
@@ -445,9 +455,7 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                     try:
                         callback_model = CallbackModel[case.callback_model]
                         save_time_value = (
-                            7.5
-                            if case.time_implementation == "HLAfloat64Time"
-                            else 7
+                            7.5 if case.time_implementation == "HLAfloat64Time" else 7
                         )
                         for member in range(case.member_count):
                             ambassador = self.factory.getRtiAmbassador()
@@ -525,7 +533,9 @@ class Jpype2010MockIntegrationTests(unittest.TestCase):
                                         timed_time.getTime(), save_time_value
                                     )
                                 else:
-                                    self.assertEqual(timed_time.getTime(), save_time_value)
+                                    self.assertEqual(
+                                        timed_time.getTime(), save_time_value
+                                    )
                             else:
                                 self.assertEqual(
                                     callback.save_initiations, [save_label]

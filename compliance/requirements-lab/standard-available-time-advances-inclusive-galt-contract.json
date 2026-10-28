@@ -3,17 +3,17 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 available time-advance services at the inclusive GALT boundary. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies timestamped interaction delivery through Time Advance Request Available and Next Message Request Available, boundary ordering, retraction metadata, and grant servicing without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 available time-advance services at the inclusive GALT boundary. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies timestamped interaction delivery through Time Advance Request Available and Next Message Request Available, boundary ordering, retraction metadata, and grant servicing without asserting provider-specific names, registries, headers, or implementation behavior. The §8.11.3 mapping covers only the sender-side rule that a zero-lookahead federate may submit a new message timestamped T after receiving a grant to T: the test sets lookahead to zero, receives TAR(9)'s grant, and checks sendInteraction at timestamp 9 is accepted. It makes no claim about when that message is delivered. The page-198 statement that all equal-time messages are not guaranteed before a grant is a non-guarantee, not a required outcome; that incomplete candidate remains unmapped under RL-386.",
   "api_surfaces": [
     {
       "id": "standard-cpp-available-time-advances-inclusive-galt",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador available time-advance services with timestamped interaction delivery and FederateAmbassador grant callbacks",
+      "signature": "RTIambassador available time-advance services, lookahead control, timestamped interaction submission, and FederateAmbassador grant callbacks",
       "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "IEEE 1516.1 RTIambassador timeAdvanceRequestAvailable and nextMessageRequestAvailable declarations",
+      "source_symbol": "IEEE 1516.1 RTIambassador timeAdvanceRequestAvailable, nextMessageRequestAvailable, modifyLookahead, queryLookahead, and timestamped sendInteraction declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAvailableTimeAdvancesInclusiveGaltContract"
+        "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp::scenarioAvailableTimeAdvancesInclusiveGaltContract"
       ]
     }
   ]

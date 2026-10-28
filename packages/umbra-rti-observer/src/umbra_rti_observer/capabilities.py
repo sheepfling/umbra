@@ -189,47 +189,58 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
 
 OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
     "participant_provenance": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
     },
     "storage_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
     },
     "fom_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Read-only supplied metadata; no FOM files parsed, attribute values decoded or domain meanings inferred.",
     },
     "mom_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Read-only management reports; they never replace ordinary roster/time/attributes or imply control authority.",
     },
     "regions_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Explicit region reports only; geometric overlap or class matches never establish routing or delivery.",
     },
     "ownership_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Named explicit ownership evidence only; updates, publishers and successful calls never establish an owner.",
     },
     "interaction_flow": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Exact send/receive counts; pairing requires explicit transmission and endpoint join identities.",
     },
     "synchronization": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Read-only normalized phase inspection; no register/achieve command is implied.",
     },
     "persistence_inspection": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Read-only explicit save/restore phases; local success is not federation-wide completion.",
     },
     "relationships": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Accepts explicit adapter-supplied edges only; an empty index does not establish absent routing.",
     },
     "declarations": {
-        "state": "available", "owner": "observer",
+        "state": "available",
+        "owner": "observer",
         "reason": "Optional snapshots of normalized declarations; delivery never establishes a declaration.",
     },
     "time_inspection": {
@@ -260,6 +271,7 @@ OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
 }
 
 
+# opaque-boundary: Normalize open-ended adapter capability manifests before serialization.
 def normalize_capabilities(
     capabilities: Mapping[str, object] | None,
     *,
@@ -272,7 +284,9 @@ def normalize_capabilities(
         return {}
     if not isinstance(capabilities, Mapping):
         raise TypeError("capabilities must be a mapping")
-    if "capabilities" in capabilities and isinstance(capabilities["capabilities"], Mapping):
+    if "capabilities" in capabilities and isinstance(
+        capabilities["capabilities"], Mapping
+    ):
         capabilities = capabilities["capabilities"]
 
     normalized: dict[str, CapabilityRecord] = {}
@@ -294,11 +308,18 @@ def normalize_capabilities(
         state = str(item.get("state", "unknown")).strip().lower()
         if state not in CAPABILITY_STATES:
             allowed = ", ".join(CAPABILITY_STATES)
-            raise ValueError(f"capability {name!r} has invalid state {state!r}; expected one of {allowed}")
+            raise ValueError(
+                f"capability {name!r} has invalid state {state!r}; expected one of {allowed}"
+            )
         item["state"] = state
         definition = CAPABILITY_DEFINITIONS.get(name, {})
-        item.setdefault("label", definition.get("label", name.replace("_", " ").title()))
-        item.setdefault("description", definition.get("description", "Provider or backend capability."))
+        item.setdefault(
+            "label", definition.get("label", name.replace("_", " ").title())
+        )
+        item.setdefault(
+            "description",
+            definition.get("description", "Provider or backend capability."),
+        )
         item.setdefault("owner", owner)
         if source is not None:
             item.setdefault("source", source)
@@ -351,7 +372,9 @@ def normalize_capabilities(
             event_types=event_types,
             reason=str(item["reason"]) if item.get("reason") is not None else None,
             reasons=reasons,
-            extensions={key: value for key, value in item.items() if key not in known_keys},
+            extensions={
+                key: value for key, value in item.items() if key not in known_keys
+            },
         )
     return normalized
 
@@ -369,7 +392,10 @@ def _aggregate_state(states: list[CapabilityState]) -> CapabilityState:
     return "disabled"
 
 
-def merge_capabilities(*manifests: Mapping[str, object] | None) -> dict[str, CapabilityRecord]:
+# opaque-boundary: Merge provider manifests while preserving their runtime values.
+def merge_capabilities(
+    *manifests: Mapping[str, object] | None,
+) -> dict[str, CapabilityRecord]:
     """Merge capability observations while preserving their provenance."""
 
     observations: dict[str, list[CapabilityRecord]] = {}
@@ -383,11 +409,7 @@ def merge_capabilities(*manifests: Mapping[str, object] | None) -> dict[str, Cap
         states: list[CapabilityState] = [entry.state for entry in entries]
         sources = sorted({entry.source for entry in entries if entry.source})
         event_types = sorted(
-            {
-                str(event_type)
-                for entry in entries
-                for event_type in entry.event_types
-            }
+            {str(event_type) for entry in entries for event_type in entry.event_types}
         )
         reasons = sorted({entry.reason for entry in entries if entry.reason})
         if len(reasons) == 1:

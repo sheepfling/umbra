@@ -21,21 +21,69 @@ void runTimeRepresentation(Options const& options, rti::CallbackModel model,
       ? "fom-time-representation-rejections"
       : "fom-time-representation-valid");
   creator.connect();
-  auto const create = [&](std::filesystem::path const& module) {
+  auto const create = [&](std::filesystem::path const& module,
+                          std::wstring const& implementationName) {
     creator.rtiAmbassador().createFederationExecution(
         federation, std::vector<std::wstring>{module.wstring()},
-        options.logicalTimeImplementationName);
+        implementationName);
   };
-  create(valid);
-  creator.rtiAmbassador().destroyFederationExecution(federation);
+  if (!rejectInvalid) {
+    auto const verify = [&](std::filesystem::path const& module,
+                            std::wstring const& implementationName) {
+      create(module, implementationName);
+      creator.join(options.ownerFederateName, options.federateType, federation);
+      auto const factory = creator.rtiAmbassador().getTimeFactory();
+      require(factory != nullptr,
+              "Join returned no factory for the federation logical-time representation");
+      require(factory->getName() == implementationName,
+              "Joined factory did not preserve the representation selected at Create");
 
-  if (rejectInvalid) {
+      auto const time = makeTimeContext(creator);
+      auto const oneStep = timeAfter(
+          *time.factory, *time.initial, *time.epsilon, 1U);
+      require(!oneStep->isInitial(),
+              "Standard logical-time representation did not advance by epsilon");
+      auto const decodedTime = decodeTime(*time.factory, encodeTime(*oneStep));
+      require(decodedTime != nullptr,
+              "Standard logical-time representation could not decode its encoded time");
+      requireTimeEquals(
+          *decodedTime, *oneStep,
+          "Standard logical-time representation time round trip");
+
+      auto measuredStep = time.factory->makeZero();
+      require(measuredStep != nullptr,
+              "Standard logical-time representation returned no working interval");
+      measuredStep->setToDifference(*oneStep, *time.initial);
+      require(*measuredStep == *time.epsilon,
+              "Standard logical-time representation computed the wrong interval difference");
+      auto const encodedEpsilon = copyBytes(time.epsilon->encode());
+      auto const decodedEpsilon = time.factory->decodeLogicalTimeInterval(
+          encodedEpsilon.data(), encodedEpsilon.size());
+      require(decodedEpsilon != nullptr,
+              "Standard logical-time representation could not decode its interval");
+      require(*decodedEpsilon == *time.epsilon,
+              "Standard logical-time representation interval round trip changed epsilon");
+
+      creator.resign(rti::NO_ACTION);
+      creator.rtiAmbassador().destroyFederationExecution(federation);
+    };
+
+    verify(valid, L"HLAinteger64Time");
+    verify(
+        requiredFom(options, "time-representation-valid-float64"),
+        L"HLAfloat64Time");
+  } else {
+    create(valid, options.logicalTimeImplementationName);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
     for (auto const& key : {"time-representation-basic-data",
                             "time-representation-reference-data"}) {
       auto const& invalid = requiredFom(options, key);
-      requireException([&] { create(invalid); }, L"InconsistentFOM", key);
+      requireException(
+          [&] { create(invalid, options.logicalTimeImplementationName); },
+          L"InconsistentFOM",
+          key);
       // A rejected Create must not reserve the execution name.
-      create(valid);
+      create(valid, options.logicalTimeImplementationName);
       creator.rtiAmbassador().destroyFederationExecution(federation);
     }
   }

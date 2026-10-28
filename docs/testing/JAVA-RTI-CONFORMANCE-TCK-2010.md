@@ -69,7 +69,7 @@ python tools\java_tck_2010.py out\java-tck-2010\script-results.json \
   --provider "Umbra mock Java 1516e"
 ```
 
-### Capability profiles
+## Capability profiles
 
 `run.ps1` accepts `-CapabilityProfile` using the same Java-properties format as
 the Python/JPype runner. Each `scenario.<id>` entry is `run`/`pass`,

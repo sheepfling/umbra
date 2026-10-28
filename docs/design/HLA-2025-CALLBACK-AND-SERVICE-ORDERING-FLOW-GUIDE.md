@@ -1219,7 +1219,10 @@ callback inline while the Resign API call is still in progress. This is a
 source-derived route, not test evidence that FederationSynchronized is
 delivered after Resign.
 
-Source path: [client event buffering and post-response dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L504), [Resign clearing local membership after the request returns](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89), and [callback-dispatch model gate](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122).
+Source path:
+[client event buffering and post-response dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L504),
+[Resign clearing local membership after the request returns](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89),
+and [callback-dispatch model gate](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122).
 
 | Where the outcome is when the recipient leaves | Embedded path | Process path |
 | --- | --- | --- |
@@ -1228,7 +1231,21 @@ Source path: [client event buffering and post-response dispatch](../../cpp/src/i
 | Already received by the process client or submitted to its callback bridge | Not applicable. | Process Resign clears the client’s joined identity and cancels exception-report projections, but does not clear `pendingEvents_` or reset the callback bridge. Frames buffered when the correlated request performs its explicit drain are submitted before the client Resign method returns; HLA_IMMEDIATE may invoke them before public Resign returns, while HLA_EVOKED or disabled-immediate tasks can remain queued. Later-arriving frames resume through the background dispatch loop after request suppression lifts, without a source-established ordering against the public return. A later client close clears buffered events and resets the bridge dispatcher. These are source-observed paths, not runtime- or test-proven post-Resign outcomes. |
 | Frame in transit when a process connection is lost | Not applicable. | Server-side session detachment and an already-sent frame are different boundaries. The bounded source/test review does not establish whether a frame in transit is observed, dropped, or retried. |
 
-Evidence: embedded [Resign queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L956), [forced-loss queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L341), and [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L72); process [server queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L28), [client Resign](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89), [buffered-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L279), [FederationSynchronized bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1673), and [client/bridge close](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L550). The [embedded resignation test](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L186) checks a survivor receiving a new completion after another member resigns; it does not test cancellation of a completion already queued for the departing member. The selected [process synchronization cases](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457) drain normal callbacks before Resign. No focused case found here asserts FederationSynchronized delivery after recipient Resign or connection loss. Keep that outcome unverified and do not infer 2010 parity.
+Evidence: embedded
+[Resign queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L956),
+[forced-loss queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L341), and
+[dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L72); process
+[server queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L28),
+[client Resign](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89),
+[buffered-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L279),
+[FederationSynchronized bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1673),
+and [client/bridge close](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L550). The
+[embedded resignation test](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L186)
+checks a survivor receiving a new completion after another member resigns; it does not test cancellation of a completion
+already queued for the departing member. The selected
+[process synchronization cases](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457) drain
+normal callbacks before Resign. No focused case found here asserts FederationSynchronized delivery after recipient
+Resign or connection loss. Keep that outcome unverified and do not infer 2010 parity.
 
 The HLA_IMMEDIATE process [case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L674)
 also observes its ordinary synchronization callback before Resign; it does
@@ -1273,6 +1290,18 @@ post-Resign regression test are absent. It also does not merge 2010 and 2025
 callback semantics. Those require their own exact-standard and source/test
 surveys.
 
-Rechecked 2026-10-17: the current process discovery source now plans ordinary selected values after a new discovery, and the focused public late-subscription test source asserts discovery plus the selected stored value under both callback-model sections ([source](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90), [test](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652)). The process implementation is modified in the current worktree; this documentation review did not build or run the case, so it records source shape and test assertions, not a passing result. The RTI-owned MOM branch remains separate. The already-known-object/value-only scenario and licensed §5.8 interpretation remain open; no normative or cross-profile parity conclusion is warranted.
+Rechecked 2026-10-17: the current process discovery source now plans ordinary selected values after a new discovery, and
+the focused public late-subscription test source asserts discovery plus the selected stored value under both
+callback-model sections
+([source](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90),
+[test](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652)). The process implementation
+is modified in the current worktree; this documentation review did not build or run the case, so it records source shape
+and test assertions, not a passing result. The RTI-owned MOM branch remains separate. The
+already-known-object/value-only scenario and licensed §5.8 interpretation remain open; no normative or cross-profile
+parity conclusion is warranted.
 
-Next, the 2025 total/directed interaction-send report survey is complete; the existing [send-report section](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#mom-interaction-send-reports-separate-total-sends-from-the-directed-subset) already explains the MIM shape, sender-ledger boundary, and evidence limits, so no duplicate chart was needed. Resume the four pending 2025 diagrams in the [visual-QA backlog](HLA-BEHAVIOR-FLOW-GUIDES.md#pending-validation) once a safe browser render is available. Documentation-only and 2025-only; no builds, tests, or CI.
+Next, the 2025 total/directed interaction-send report survey is complete; the existing
+[send-report section](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#mom-interaction-send-reports-separate-total-sends-from-the-directed-subset)
+already explains the MIM shape, sender-ledger boundary, and evidence limits, so no duplicate chart was needed. Resume
+the four pending 2025 diagrams in the [visual-QA backlog](HLA-2025-DOCUMENTATION-ROADMAP.md) once a safe browser render
+is available. Documentation-only and 2025-only; no builds, tests, or CI.

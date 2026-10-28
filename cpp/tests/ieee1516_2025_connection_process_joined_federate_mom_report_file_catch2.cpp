@@ -28,6 +28,7 @@
 #include "ieee1516_2025_connection_test_support.hpp"
 #include "ieee1516_2025_process_fom_test_support.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 namespace {
@@ -54,6 +55,7 @@ TEST_CASE(
     "[integration][foundation][federation-management][mom][service-report-file][service-reporting]"
     "[joined-federate-mom][transport][process-boundary][public-endpoint][2025]"
     "[process-service-report-connection-initial-record][process-service-report-file-switch-cycle]"
+    "[service-report-table-5-federate-attributes]"
     "[process-service-report-file-join-lifetime]"
     "[rti.service.connect][rti.service.create-federation-execution]"
     "[rti.service.join-federation-execution]"
@@ -155,16 +157,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session, handler, operation, description);
       };
       auto subjectConnection = listener->accept(
           nullptr,
@@ -318,11 +312,11 @@ TEST_CASE(
         subjectFederate, HLA_IMMEDIATE, configuration, credentials);
     REQUIRE(subjectConnectionResult.addressUsed);
     subject->createFederationExecution(federationName, L"server-owned-fom.xml");
-    REQUIRE(subject->joinFederationExecution(
-                subjectName,
-                L"public-process-joined-federate-mom-report-type",
-                federationName)
-                .isValid());
+    auto const subjectHandle = subject->joinFederationExecution(
+        subjectName,
+        L"public-process-joined-federate-mom-report-type",
+        federationName);
+    REQUIRE(subjectHandle.isValid());
     subjectJoined = true;
     REQUIRE_FALSE(subject->getSendServiceReportsToFileSwitch());
     REQUIRE(observer->connect(observerFederate, HLA_EVOKED, configuration).addressUsed);
@@ -418,6 +412,26 @@ TEST_CASE(
     REQUIRE(reportText.find(
                 "\"Credentials\":{\"Type\":\"HLAnoCredentials\",\"Data\":\"\"}") !=
             std::string::npos);
+
+    auto const federateHandleField =
+        "\"HLAmanager.HLAfederate\":{\"HLAfederateHandle\":\"" +
+        narrowExceptionText(subjectHandle.toString()) + "\"";
+    REQUIRE(reportText.find(federateHandleField) != std::string::npos);
+    REQUIRE(reportText.find(
+                "\"HLAfederateName\":\"public-process-joined-federate-mom-report-subject\"") !=
+            std::string::npos);
+    REQUIRE(reportText.find(
+                "\"HLAfederateType\":\"public-process-joined-federate-mom-report-type\"") !=
+            std::string::npos);
+    auto const federateHostMarker = std::string{"\"HLAfederateHost\":\""};
+    auto const federateHostPosition = reportText.find(federateHostMarker);
+    REQUIRE(federateHostPosition != std::string::npos);
+    auto const federateHostValueStart = federateHostPosition + federateHostMarker.size();
+    auto const federateHostValueEnd = reportText.find('"', federateHostValueStart);
+    REQUIRE(federateHostValueEnd != federateHostValueStart);
+    REQUIRE(reportText.find(
+                "\"HLAFOMmoduleDesignatorList\":[]",
+                federateHostValueEnd) != std::string::npos);
 
     auto const setSwitches = subject->getInteractionClassHandle(
         L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");

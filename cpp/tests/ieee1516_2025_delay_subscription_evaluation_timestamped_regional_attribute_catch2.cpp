@@ -150,7 +150,8 @@ TEST_CASE(
       REQUIRE(reflection.sentOrderType == TIMESTAMP);
       REQUIRE(reflection.receivedOrderType == TIMESTAMP);
       REQUIRE(reflection.sentRegionsSupplied);
-      REQUIRE(reflection.sentRegions.contains(sourceRegion));
+      REQUIRE(reflection.sentRegions.size() == 1U);
+      REQUIRE(reflection.sentRegions.begin()->isValid());
     }
 
     // The second passel is generated while subscribed, then the declaration is

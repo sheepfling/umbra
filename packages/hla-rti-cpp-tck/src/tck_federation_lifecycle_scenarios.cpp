@@ -451,6 +451,97 @@ void scenarioFederationLifecycleContract(
   scenarioFederationLifecycle(options, model);
 }
 
+void scenarioApplicationMultipleFederatesAcrossExecutions(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "multiple-execution participation requires an adapter-supplied FOM");
+
+  Session creator(options, model, "multiple-executions-creator");
+  Session firstExecutionOne(options, model, "multiple-executions-first-one");
+  Session firstExecutionTwo(options, model, "multiple-executions-first-two");
+  Session secondExecutionOne(options, model, "multiple-executions-second-one");
+  Session secondExecutionTwo(options, model, "multiple-executions-second-two");
+  auto const firstFederation =
+      federationName(options, "application-multiple-federates-first-execution");
+  auto const secondFederation =
+      federationName(options, "application-multiple-federates-second-execution");
+
+  static_cast<void>(creator.connect());
+  static_cast<void>(firstExecutionOne.connect());
+  static_cast<void>(firstExecutionTwo.connect());
+  static_cast<void>(secondExecutionOne.connect());
+  static_cast<void>(secondExecutionTwo.connect());
+  creator.rtiAmbassador().createFederationExecution(
+      firstFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  creator.rtiAmbassador().createFederationExecution(
+      secondFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+
+  auto const firstOneName = std::wstring(L"multiple-executions-first-one");
+  auto const firstTwoName = std::wstring(L"multiple-executions-first-two");
+  auto const secondOneName = std::wstring(L"multiple-executions-second-one");
+  auto const secondTwoName = std::wstring(L"multiple-executions-second-two");
+  firstExecutionOne.join(
+      firstOneName, options.federateType, firstFederation);
+  firstExecutionTwo.join(
+      firstTwoName, options.federateType, firstFederation);
+  secondExecutionOne.join(
+      secondOneName, options.federateType, secondFederation);
+  secondExecutionTwo.join(
+      secondTwoName, options.federateType, secondFederation);
+
+  auto const* firstOneAmbassador = &firstExecutionOne.rtiAmbassador();
+  auto const* firstTwoAmbassador = &firstExecutionTwo.rtiAmbassador();
+  auto const* secondOneAmbassador = &secondExecutionOne.rtiAmbassador();
+  auto const* secondTwoAmbassador = &secondExecutionTwo.rtiAmbassador();
+  require(
+      firstOneAmbassador != firstTwoAmbassador &&
+          firstOneAmbassador != secondOneAmbassador &&
+          firstOneAmbassador != secondTwoAmbassador &&
+          firstTwoAmbassador != secondOneAmbassador &&
+          firstTwoAmbassador != secondTwoAmbassador &&
+          secondOneAmbassador != secondTwoAmbassador,
+      "one application did not receive distinct RTIambassador objects");
+  require(
+      firstExecutionOne.federateHandle().isValid() &&
+          firstExecutionTwo.federateHandle().isValid() &&
+          secondExecutionOne.federateHandle().isValid() &&
+          secondExecutionTwo.federateHandle().isValid(),
+      "one application could not join multiple federates across two executions");
+
+  firstExecutionTwo.resign(rti::NO_ACTION);
+  firstExecutionTwo.join(
+      L"multiple-executions-first-two-rejoined",
+      options.federateType,
+      secondFederation);
+  require(
+      firstExecutionTwo.federateHandle().isValid(),
+      "an application ambassador could not join another execution after resigning");
+
+  firstExecutionOne.resign(rti::NO_ACTION);
+  secondExecutionOne.resign(rti::NO_ACTION);
+  secondExecutionTwo.resign(rti::NO_ACTION);
+  firstExecutionTwo.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(firstFederation);
+  creator.rtiAmbassador().destroyFederationExecution(secondFederation);
+
+  firstExecutionOne.disconnect();
+  firstExecutionTwo.disconnect();
+  secondExecutionOne.disconnect();
+  secondExecutionTwo.disconnect();
+  creator.disconnect();
+}
+
+void scenarioApplicationMultipleFederatesAcrossExecutionsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioApplicationMultipleFederatesAcrossExecutions(options, model);
+}
+
 void scenarioConnectBeforeFederationAndDisconnectAfterResign(
     Options const& options,
     rti::CallbackModel model) {

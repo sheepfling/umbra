@@ -9,7 +9,6 @@ import re
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "cpp-tck-scenario-catalog.json"
 DEFAULT_JAVA_MAIN = (
@@ -64,7 +63,8 @@ def main() -> int:
             and row["parity"].startswith("not-applicable:")
         ]
         unpaired = [
-            row for row in candidates
+            row
+            for row in candidates
             if not (
                 isinstance(row.get("parity"), str)
                 and (
@@ -85,13 +85,14 @@ def main() -> int:
         if len(unpaired) > 40:
             print(f"  ... {len(unpaired) - 40} additional candidates")
         for row in not_applicable:
-            print(f"  not applicable {row['id']}: {row['parity'].split(':', 1)[1].strip()}")
+            print(
+                f"  not applicable {row['id']}: {row['parity'].split(':', 1)[1].strip()}"
+            )
 
     parity_targets = {
         row["parity"]
         for row in rows
-        if isinstance(row.get("parity"), str)
-        and row["parity"].startswith("java-tck.")
+        if isinstance(row.get("parity"), str) and row["parity"].startswith("java-tck.")
     }
     parity_aliases = {
         alias

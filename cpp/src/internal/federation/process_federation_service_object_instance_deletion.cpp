@@ -78,9 +78,13 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
     auto const producingTimeSnapshot = producingTimeState
         ? producingTimeState->snapshot()
         : FederateTimeSnapshot{};
-    bool const provideRetraction =
+    auto const deletionSentOrderType =
         producingTimeSnapshot.timeRegulating &&
-        plan.preferredOrderType == rti1516_2025::TIMESTAMP;
+                plan.preferredOrderType == rti1516_2025::TIMESTAMP
+            ? rti1516_2025::TIMESTAMP
+            : rti1516_2025::RECEIVE;
+    bool const provideRetraction =
+        deletionSentOrderType == rti1516_2025::TIMESTAMP;
     bool const queueTimestampedDeletion = provideRetraction;
     std::vector<std::uint64_t> queuedRecipientFederateIds;
     if (queueTimestampedDeletion && !plan.recipients.empty()) {
@@ -112,7 +116,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
           deletionRequest.userSuppliedTag.size());
     }
     message.timestamp = timestamp;
-    message.sentOrderType = plan.preferredOrderType;
+    message.sentOrderType = deletionSentOrderType;
     message.recipients.reserve(plan.recipients.size());
     for (auto const &recipient : plan.recipients) {
       message.recipients.push_back({
@@ -152,7 +156,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
           recipient.callbackRoute,
           recipient.serviceReportRoute,
           false,
-          plan.preferredOrderType,
+          deletionSentOrderType,
           rti1516_2025::RECEIVE});
     }
     if (!enqueueObjectInstanceRemovals(

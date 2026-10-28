@@ -1,0 +1,11 @@
+# Alphus's extras install the Python tools and C++ complexity backend it
+# coordinates. Keep the checker on an immutable commit.
+alphus[python,cyclomatic-lizard] @ git+https://github.com/sheepfling/alphus.git@b4b6055a6ae0286912b461cd2b4262b3318c5a0c
+# The profile baseline is tied to this exact Ruff version.
+ruff==0.16.1
+# Alphus currently advertises Pyright in its Python extra, but the installed
+# profile did not contain the executable. Pin it directly so type checks are
+# available after a clean requirements install.
+pyright==1.1.414
+# Markdown syntax, formatting, and link-fragment checks in the Alphus profile.
+rumdl==0.2.49

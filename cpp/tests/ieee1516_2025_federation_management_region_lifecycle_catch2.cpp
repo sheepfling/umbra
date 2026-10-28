@@ -84,6 +84,12 @@ TEST_CASE(
       owner->setRangeBounds(region, barQuantity, RangeBounds(0UL, 26UL)),
       rti1516_2025::InvalidRangeBound);
 
+  REQUIRE_NOTHROW(
+      owner->setRangeBounds(region, barQuantity, RangeBounds(10UL, 11UL)));
+  auto const minimumWidth = owner->getRangeBounds(region, barQuantity);
+  REQUIRE(minimumWidth.getLowerBound() == 10UL);
+  REQUIRE(minimumWidth.getUpperBound() == 11UL);
+
   REQUIRE_NOTHROW(owner->setRangeBounds(region, barQuantity, RangeBounds(0UL, 10UL)));
   auto const pendingBar = owner->getRangeBounds(region, barQuantity);
   REQUIRE(pendingBar.getLowerBound() == 0UL);

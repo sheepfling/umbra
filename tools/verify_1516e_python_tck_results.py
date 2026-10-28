@@ -4,25 +4,31 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
-from typing import Any
-
+from pathlib import Path
+from types import NoneType
+from typing import TypeAlias, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "python-2010-tck-scenario-catalog.json"
+DEFAULT_CATALOG = (
+    ROOT / "compliance" / "catalogs" / "python-2010-tck-scenario-catalog.json"
+)
+
+JsonScalar: TypeAlias = NoneType | bool | int | float | str
+JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonObject: TypeAlias = dict[str, JsonValue]
 
 
-def _load(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
+def load_json_object(path: Path) -> JsonObject:
+    value: object = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict) or not all(isinstance(key, str) for key in value):
         raise ValueError(f"{path} must contain a JSON object")
-    return value
+    return cast(JsonObject, value)
 
 
 def verify(catalog_path: Path, result_path: Path) -> list[str]:
-    catalog = _load(catalog_path)
-    result = _load(result_path)
+    catalog = load_json_object(catalog_path)
+    result = load_json_object(result_path)
     findings: list[str] = []
     if catalog.get("kind") != "portable-python-tck-catalog":
         findings.append("catalog kind must be portable-python-tck-catalog")
@@ -30,7 +36,11 @@ def verify(catalog_path: Path, result_path: Path) -> list[str]:
         findings.append("catalog standard must be IEEE 1516.1-2010")
     if result.get("standard") != "IEEE 1516.1-2010":
         findings.append("result standard must be IEEE 1516.1-2010")
-    if result.get("transport") not in {"python-jpype", "python-native"}:
+    transport = result.get("transport")
+    if not isinstance(transport, str) or transport not in {
+        "python-jpype",
+        "python-native",
+    }:
         findings.append("result transport must be python-jpype or python-native")
     if not isinstance(result.get("capability_profile", "default"), str):
         findings.append("result capability_profile must be a string")
@@ -38,19 +48,57 @@ def verify(catalog_path: Path, result_path: Path) -> list[str]:
     actual = result.get("scenarios")
     if not isinstance(expected, list) or not isinstance(actual, list):
         return findings + ["catalog and result scenarios must be arrays"]
-    expected_ids = [item.get("id") for item in expected if isinstance(item, dict)]
-    actual_ids = [item.get("id") for item in actual if isinstance(item, dict)]
-    if actual_ids != expected_ids:
-        findings.append(f"scenario IDs/order differ: expected {expected_ids!r}, got {actual_ids!r}")
-    statuses = {"pass", "fail", "unsupported", "not applicable"}
-    for item in actual:
+
+    expected_ids: list[str] = []
+    for index, item in enumerate(expected):
         if not isinstance(item, dict):
-            findings.append("result contains a non-object scenario")
+            findings.append(f"catalog contains a non-object scenario at index {index}")
             continue
+        scenario_id = item.get("id")
+        if not isinstance(scenario_id, str):
+            findings.append(f"catalog scenario {index} must have a string id")
+            continue
+        expected_ids.append(scenario_id)
+        for field in (
+            "requirements_lab_requirement_ids",
+            "requirements_lab_mapping_ids",
+            "transition_ids",
+            "api_methods",
+        ):
+            values = item.get(field, [])
+            if not isinstance(values, list) or not all(
+                isinstance(value, str) for value in values
+            ):
+                findings.append(f"{scenario_id}: {field} must be a string array")
+
+    actual_ids: list[str] = []
+    actual_rows: list[JsonObject] = []
+    for index, item in enumerate(actual):
+        if not isinstance(item, dict):
+            findings.append(f"result contains a non-object scenario at index {index}")
+            continue
+        actual_rows.append(item)
+        scenario_id = item.get("id")
+        if not isinstance(scenario_id, str):
+            findings.append(f"result scenario {index} must have a string id")
+        else:
+            actual_ids.append(scenario_id)
+    if actual_ids != expected_ids:
+        findings.append(
+            f"scenario IDs/order differ: expected {expected_ids!r}, got {actual_ids!r}"
+        )
+    if len(expected_ids) != len(set(expected_ids)):
+        findings.append("catalog scenario IDs must be unique")
+    if len(actual_ids) != len(set(actual_ids)):
+        findings.append("result scenario IDs must be unique")
+    statuses = {"pass", "fail", "unsupported", "not applicable"}
+    for item in actual_rows:
         scenario_id = item.get("id", "<unknown>")
-        if item.get("status") not in statuses:
+        status = item.get("status")
+        if not isinstance(status, str) or status not in statuses:
             findings.append(f"{scenario_id}: invalid status {item.get('status')!r}")
-        if not isinstance(item.get("category"), str) or not item["category"]:
+        category = item.get("category")
+        if not isinstance(category, str) or not category:
             findings.append(f"{scenario_id}: missing category")
         if not isinstance(item.get("message", ""), str):
             findings.append(f"{scenario_id}: message must be a string")
@@ -59,11 +107,14 @@ def verify(catalog_path: Path, result_path: Path) -> list[str]:
         findings.append("result summary must be an object")
     else:
         for status in ("pass", "fail", "unsupported"):
-            expected_count = sum(item.get("status") == status for item in actual if isinstance(item, dict))
+            expected_count = sum(item.get("status") == status for item in actual_rows)
             if summary.get(status) != expected_count:
                 findings.append(f"summary.{status} does not match scenario statuses")
-    if result.get("status") not in {"pass", "fail"}:
-        findings.append(f"result status must be pass or fail, got {result.get('status')!r}")
+    overall_status = result.get("status")
+    if not isinstance(overall_status, str) or overall_status not in {"pass", "fail"}:
+        findings.append(
+            f"result status must be pass or fail, got {result.get('status')!r}"
+        )
     return findings
 
 
@@ -75,7 +126,9 @@ def main() -> int:
     try:
         findings = verify(args.catalog, args.result)
     except (OSError, ValueError, json.JSONDecodeError) as error:
-        print(f"IEEE 1516e Python TCK result verification: FAIL: {error}", file=sys.stderr)
+        print(
+            f"IEEE 1516e Python TCK result verification: FAIL: {error}", file=sys.stderr
+        )
         return 1
     if findings:
         print("IEEE 1516e Python TCK result verification: FAIL", file=sys.stderr)

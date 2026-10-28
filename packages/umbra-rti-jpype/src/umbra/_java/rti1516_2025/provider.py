@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-from dataclasses import dataclass
 import math
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, Protocol, TypeVar, cast
 
 from hla.rti1516_2025 import (
     AdditionalSettingsResultCode,
-    BytesLike,
     AttributeHandle,
     AttributeHandleFactory,
     AttributeHandleSet,
@@ -18,9 +17,8 @@ from hla.rti1516_2025 import (
     AttributeHandleValueMap,
     AttributeHandleValueMapFactory,
     AttributeSetRegionSetPairList,
-    AttributeRegionAssociation,
     AttributeSetRegionSetPairListFactory,
-    MutableAttributeSetRegionSetPairList,
+    BytesLike,
     CallbackModel,
     ConfigurationResult,
     DimensionHandle,
@@ -33,21 +31,29 @@ from hla.rti1516_2025 import (
     FederateHandleSet,
     FederateHandleSetFactory,
     HandleFactory,
-    InteractionClassHandle,
-    InteractionClassHandleFactory,
-    InteractionClassHandleSet,
-    InteractionClassHandleSetFactory,
     HLAfloat64Interval,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
     HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
+    InteractionClassHandle,
+    InteractionClassHandleFactory,
+    InteractionClassHandleSet,
+    InteractionClassHandleSetFactory,
     LogicalTime,
     LogicalTimeFactory,
     LogicalTimeInterval,
     MessageRetractionHandle,
     MessageRetractionHandleFactory,
+    MutableAttributeHandleSet,
+    MutableAttributeHandleValueMap,
+    MutableAttributeSetRegionSetPairList,
+    MutableDimensionHandleSet,
+    MutableFederateHandleSet,
+    MutableInteractionClassHandleSet,
+    MutableParameterHandleValueMap,
+    MutableRegionHandleSet,
     ObjectClassHandle,
     ObjectClassHandleFactory,
     ObjectInstanceHandle,
@@ -58,47 +64,50 @@ from hla.rti1516_2025 import (
     ParameterHandleFactory,
     ParameterHandleValueMap,
     ParameterHandleValueMapFactory,
-    RTIambassador,
-    RtiConfiguration,
     RangeBounds,
     RegionHandle,
     RegionHandleFactory,
     RegionHandleSet,
     RegionHandleSetFactory,
     ResignAction,
+    RTIambassador,
+    RtiConfiguration,
     RtiFactory,
     ServiceGroup,
     TimeQueryResult,
     TransportationTypeHandle,
     TransportationTypeHandleFactory,
-    MutableAttributeHandleSet,
-    MutableAttributeHandleValueMap,
-    MutableDimensionHandleSet,
-    MutableFederateHandleSet,
-    MutableParameterHandleValueMap,
-    MutableRegionHandleSet,
-    MutableInteractionClassHandleSet,
 )
 from hla.rti1516_2025.core import _require_callback_model, _resolve_connect_arguments
 from hla.rti1516_2025.encoding import EncoderFactory
 from hla.rti1516_2025.exceptions import (
     CouldNotDecode,
     FederateNotExecutionMember,
+    IllegalTimeArithmetic,
     InvalidLogicalTime,
     InvalidLogicalTimeInterval,
     InvalidLookahead,
-    IllegalTimeArithmetic,
+    NotConnected,
     RTIexception,
     RTIinternalError,
-    NotConnected,
     exceptionForName,
 )
 
-from ._runtime import JPypeJavaRuntime, JavaCallbackBinding, JavaRuntime
+from ._runtime import JavaCallbackBinding, JavaRuntime, JPypeJavaRuntime
 from .config import JavaProviderConfiguration
 from .encoding import JavaEncoderFactory
 
 _Result = TypeVar("_Result")
+
+
+class _JavaMessageRetractionHandle(Protocol):
+    """Java handle proxy retained so the RTI can retract a sent message."""
+
+    def encodedLength(self) -> int:
+        """Return the standard encoded length used by the Java handle API."""
+
+    def encode(self, buffer: object, offset: int) -> None:
+        """Write this handle's standard encoding into a Java byte buffer."""
 
 
 def _simple_java_exception_name(name: str) -> str:
@@ -121,7 +130,7 @@ class _JavaProviderLogicalTime(LogicalTime):
     for delegated arithmetic when it is available.
     """
 
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
     def add(self, addend: LogicalTimeInterval) -> LogicalTime:
         if not isinstance(addend, LogicalTimeInterval):
@@ -191,7 +200,7 @@ class _JavaProviderLogicalTime(LogicalTime):
 class _JavaProviderLogicalTimeInterval(LogicalTimeInterval):
     """Opaque Python snapshot for a non-reference Java interval implementation."""
 
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
     def add(self, addend: LogicalTimeInterval) -> LogicalTimeInterval:
         if not isinstance(addend, LogicalTimeInterval):
@@ -285,6 +294,8 @@ def _java_interval_value(value: object) -> object:
         return legacy()
     standard = getattr(value, "getValue", None)
     return standard() if standard is not None else None
+
+
 _Handle = TypeVar("_Handle")
 
 
@@ -300,7 +311,7 @@ def _enum_name(value: object) -> str:
 
 
 def _configuration_result(java_result: object) -> ConfigurationResult:
-    setting_name = _enum_name(getattr(java_result, "additionalSettingsResultCode"))
+    setting_name = _enum_name(java_result.additionalSettingsResultCode)
     try:
         setting_code = AdditionalSettingsResultCode[setting_name]
     except KeyError as error:
@@ -308,10 +319,10 @@ def _configuration_result(java_result: object) -> ConfigurationResult:
             f"Java RTI returned an unknown AdditionalSettingsResultCode: {setting_name}"
         ) from error
     return ConfigurationResult(
-        configurationUsed=bool(getattr(java_result, "configurationUsed")),
-        addressUsed=bool(getattr(java_result, "addressUsed")),
+        configurationUsed=bool(java_result.configurationUsed),
+        addressUsed=bool(java_result.addressUsed),
         additionalSettingsResultCode=setting_code,
-        message=str(getattr(java_result, "message")),
+        message=str(java_result.message),
     )
 
 
@@ -326,20 +337,29 @@ def _encoded_handle(value: object, expected_type: type[_Handle]) -> bytes:
 def _attribute_handle_bytes(attributes: object) -> tuple[bytes, ...]:
     if not isinstance(attributes, (AttributeHandleSet, MutableAttributeHandleSet)):
         raise TypeError("attributes must be AttributeHandleSet or its factory builder")
-    return tuple(_encoded_handle(attribute, AttributeHandle) for attribute in attributes)
+    return tuple(
+        _encoded_handle(attribute, AttributeHandle) for attribute in attributes
+    )
 
 
 def _interaction_class_handle_bytes(interactions: object) -> tuple[bytes, ...]:
-    if not isinstance(interactions, (InteractionClassHandleSet, MutableInteractionClassHandleSet)):
-        raise TypeError("interactionClasses must be InteractionClassHandleSet or its factory builder")
+    if not isinstance(
+        interactions, (InteractionClassHandleSet, MutableInteractionClassHandleSet)
+    ):
+        raise TypeError(
+            "interactionClasses must be InteractionClassHandleSet or its factory builder"
+        )
     return tuple(
-        _encoded_handle(interaction, InteractionClassHandle) for interaction in interactions
+        _encoded_handle(interaction, InteractionClassHandle)
+        for interaction in interactions
     )
 
 
 def _federate_handle_bytes(handles: object) -> tuple[bytes, ...]:
     if not isinstance(handles, (FederateHandleSet, MutableFederateHandleSet)):
-        raise TypeError("synchronizationSet must be FederateHandleSet or its factory builder")
+        raise TypeError(
+            "synchronizationSet must be FederateHandleSet or its factory builder"
+        )
     return tuple(_encoded_handle(handle, FederateHandle) for handle in handles)
 
 
@@ -350,8 +370,12 @@ def _object_instance_names(value: object) -> tuple[str, ...]:
 
 
 def _attribute_value_pairs(values: object) -> tuple[tuple[bytes, bytes], ...]:
-    if not isinstance(values, (AttributeHandleValueMap, MutableAttributeHandleValueMap)):
-        raise TypeError("attributeValues must be AttributeHandleValueMap or its factory builder")
+    if not isinstance(
+        values, (AttributeHandleValueMap, MutableAttributeHandleValueMap)
+    ):
+        raise TypeError(
+            "attributeValues must be AttributeHandleValueMap or its factory builder"
+        )
     return tuple(
         (_encoded_handle(attribute, AttributeHandle), bytes(value))
         for attribute, value in values.items()
@@ -361,7 +385,9 @@ def _attribute_value_pairs(values: object) -> tuple[tuple[bytes, bytes], ...]:
 def _attribute_region_pairs(
     values: object,
 ) -> tuple[tuple[tuple[bytes, ...], tuple[bytes, ...]], ...]:
-    if not isinstance(values, (AttributeSetRegionSetPairList, MutableAttributeSetRegionSetPairList)):
+    if not isinstance(
+        values, (AttributeSetRegionSetPairList, MutableAttributeSetRegionSetPairList)
+    ):
         raise TypeError(
             "attributesAndRegions must be AttributeSetRegionSetPairList or its factory builder"
         )
@@ -375,8 +401,12 @@ def _attribute_region_pairs(
 
 
 def _parameter_value_pairs(values: object) -> tuple[tuple[bytes, bytes], ...]:
-    if not isinstance(values, (ParameterHandleValueMap, MutableParameterHandleValueMap)):
-        raise TypeError("parameterValues must be ParameterHandleValueMap or its factory builder")
+    if not isinstance(
+        values, (ParameterHandleValueMap, MutableParameterHandleValueMap)
+    ):
+        raise TypeError(
+            "parameterValues must be ParameterHandleValueMap or its factory builder"
+        )
     return tuple(
         (_encoded_handle(parameter, ParameterHandle), bytes(value))
         for parameter, value in values.items()
@@ -386,7 +416,9 @@ def _parameter_value_pairs(values: object) -> tuple[tuple[bytes, bytes], ...]:
 def _dimension_handle_bytes(dimensions: object) -> tuple[bytes, ...]:
     if not isinstance(dimensions, (DimensionHandleSet, MutableDimensionHandleSet)):
         raise TypeError("dimensions must be DimensionHandleSet or its factory builder")
-    return tuple(_encoded_handle(dimension, DimensionHandle) for dimension in dimensions)
+    return tuple(
+        _encoded_handle(dimension, DimensionHandle) for dimension in dimensions
+    )
 
 
 def _region_handle_bytes(regions: object) -> tuple[bytes, ...]:
@@ -396,7 +428,9 @@ def _region_handle_bytes(regions: object) -> tuple[bytes, ...]:
 
 
 class _JavaTimeFactoryBase:
-    def __init__(self, ambassador: object, runtime: JavaRuntime, java_factory: object) -> None:
+    def __init__(
+        self, ambassador: object, runtime: JavaRuntime, java_factory: object
+    ) -> None:
         self._ambassador = ambassador
         self._runtime = runtime
         self._java_factory = java_factory
@@ -416,8 +450,12 @@ class _JavaTimeFactoryBase:
         except Exception as error:
             name = self._runtime.exception_name(error)
             if name is None:
-                raise RTIinternalError(f"Java logical-time factory call failed: {error}") from error
-            raise exceptionForName(_simple_java_exception_name(name), str(error)) from error
+                raise RTIinternalError(
+                    f"Java logical-time factory call failed: {error}"
+                ) from error
+            raise exceptionForName(
+                _simple_java_exception_name(name), str(error)
+            ) from error
 
     def implementationName(self) -> str:
         return str(self._factory_call(self._java_factory.getName))
@@ -521,7 +559,9 @@ class _JavaTimeFactoryBase:
             self.implementationName() in {"HLAinteger64Time", "HLAfloat64Time"}
             and len(encoded) != 8
         ):
-            raise CouldNotDecode("Logical-time encoding must contain exactly eight bytes")
+            raise CouldNotDecode(
+                "Logical-time encoding must contain exactly eight bytes"
+            )
         try:
             return self._time(
                 self._runtime.decode_logical_time(self._ambassador, encoded)
@@ -541,7 +581,9 @@ class _JavaTimeFactoryBase:
             self.implementationName() in {"HLAinteger64Time", "HLAfloat64Time"}
             and len(encoded) != 8
         ):
-            raise CouldNotDecode("Logical-time interval encoding must contain exactly eight bytes")
+            raise CouldNotDecode(
+                "Logical-time interval encoding must contain exactly eight bytes"
+            )
         try:
             return self._interval(
                 self._runtime.decode_logical_interval(self._ambassador, encoded)
@@ -549,11 +591,15 @@ class _JavaTimeFactoryBase:
         except (InvalidLogicalTimeInterval, CouldNotDecode) as error:
             if isinstance(error, CouldNotDecode):
                 raise
-            raise CouldNotDecode(f"Could not decode logical-time interval: {error}") from error
+            raise CouldNotDecode(
+                f"Could not decode logical-time interval: {error}"
+            ) from error
         except RTIexception:
             raise
         except Exception as error:
-            raise CouldNotDecode(f"Could not decode logical-time interval: {error}") from error
+            raise CouldNotDecode(
+                f"Could not decode logical-time interval: {error}"
+            ) from error
 
     def _require_time(self, value: LogicalTime, name: str) -> None:
         if value.implementationName() != self.implementationName():
@@ -580,7 +626,9 @@ class _JavaTimeFactoryBase:
         except Exception as error:
             name = self._runtime.exception_name(error)
             if name is None:
-                raise RTIinternalError(f"Java logical-time arithmetic failed: {error}") from error
+                raise RTIinternalError(
+                    f"Java logical-time arithmetic failed: {error}"
+                ) from error
             name = _simple_java_exception_name(name)
             if allow_unsupported and name == "UnsupportedOperationException":
                 raise _UnsupportedJavaArithmetic(str(error)) from error
@@ -607,7 +655,9 @@ class _JavaTimeFactoryBase:
             )
         return self._time(self._arithmetic_call(java_time.add, java_addend))
 
-    def subtract(self, time: LogicalTime, subtrahend: LogicalTimeInterval) -> LogicalTime:
+    def subtract(
+        self, time: LogicalTime, subtrahend: LogicalTimeInterval
+    ) -> LogicalTime:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         if not isinstance(subtrahend, LogicalTimeInterval):
@@ -626,7 +676,9 @@ class _JavaTimeFactoryBase:
             )
         return self._time(self._arithmetic_call(java_time.subtract, java_subtrahend))
 
-    def difference(self, minuend: LogicalTime, subtrahend: LogicalTime) -> LogicalTimeInterval:
+    def difference(
+        self, minuend: LogicalTime, subtrahend: LogicalTime
+    ) -> LogicalTimeInterval:
         if not isinstance(minuend, LogicalTime):
             raise TypeError("minuend must be LogicalTime")
         if not isinstance(subtrahend, LogicalTime):
@@ -667,7 +719,9 @@ class _JavaTimeFactoryBase:
             self._arithmetic_call(set_to_difference, java_minuend, java_subtrahend)
             return self._interval(java_difference)
         java_difference = self._factory_call(self._java_factory.makeZero)
-        self._arithmetic_call(java_difference.setToDifference, java_minuend, java_subtrahend)
+        self._arithmetic_call(
+            java_difference.setToDifference, java_minuend, java_subtrahend
+        )
         return self._interval(java_difference)
 
 
@@ -774,7 +828,9 @@ class _JavaAttributeHandleFactory(_JavaHandleFactory, AttributeHandleFactory):
     pass
 
 
-class _JavaInteractionClassHandleFactory(_JavaHandleFactory, InteractionClassHandleFactory):
+class _JavaInteractionClassHandleFactory(
+    _JavaHandleFactory, InteractionClassHandleFactory
+):
     pass
 
 
@@ -805,28 +861,36 @@ class _JavaMessageRetractionHandleFactory(
 class _JavaSetFactory:
     """Common Java set-factory adapter returning Python mutable builders."""
 
-    def __init__(self, owner: JavaRTIambassador, method_name: str, builder_type: type[Any]) -> None:
+    def __init__(
+        self, owner: JavaRTIambassador, method_name: str, builder_type: type[Any]
+    ) -> None:
         self._owner = owner
         self._method_name = method_name
         self._builder_type = builder_type
 
     def create(self) -> Any:
-        factory = self._owner._call(getattr(self._owner._implementation, self._method_name))
-        self._owner._call(getattr(factory, "create"))
+        factory = self._owner._call(
+            getattr(self._owner._implementation, self._method_name)
+        )
+        self._owner._call(factory.create)
         return self._builder_type()
 
 
 class _JavaMapFactory:
     """Common Java map-factory adapter returning Python mutable builders."""
 
-    def __init__(self, owner: JavaRTIambassador, method_name: str, builder_type: type[Any]) -> None:
+    def __init__(
+        self, owner: JavaRTIambassador, method_name: str, builder_type: type[Any]
+    ) -> None:
         self._owner = owner
         self._method_name = method_name
         self._builder_type = builder_type
 
     def create(self) -> Any:
-        factory = self._owner._call(getattr(self._owner._implementation, self._method_name))
-        self._owner._call(getattr(factory, "create"), 0)
+        factory = self._owner._call(
+            getattr(self._owner._implementation, self._method_name)
+        )
+        self._owner._call(factory.create, 0)
         return self._builder_type()
 
 
@@ -846,7 +910,9 @@ class _JavaRegionHandleSetFactory(_JavaSetFactory, RegionHandleSetFactory):
     pass
 
 
-class _JavaInteractionClassHandleSetFactory(_JavaSetFactory, InteractionClassHandleSetFactory):
+class _JavaInteractionClassHandleSetFactory(
+    _JavaSetFactory, InteractionClassHandleSetFactory
+):
     pass
 
 
@@ -862,18 +928,24 @@ class _JavaAttributeSetRegionSetPairListFactory(AttributeSetRegionSetPairListFac
         self._owner = owner
 
     def create(self, capacity: int = 0) -> MutableAttributeSetRegionSetPairList:
-        factory_method = getattr(self._owner._implementation, "getAttributeSetRegionSetPairListFactory", None)
+        factory_method = getattr(
+            self._owner._implementation, "getAttributeSetRegionSetPairListFactory", None
+        )
         if factory_method is not None:
             factory = self._owner._call(factory_method)
-            self._owner._call(getattr(factory, "create"), int(capacity))
+            self._owner._call(factory.create, int(capacity))
         return MutableAttributeSetRegionSetPairList(int(capacity))
 
 
-class _JavaAttributeHandleValueMapFactory(_JavaMapFactory, AttributeHandleValueMapFactory):
+class _JavaAttributeHandleValueMapFactory(
+    _JavaMapFactory, AttributeHandleValueMapFactory
+):
     pass
 
 
-class _JavaParameterHandleValueMapFactory(_JavaMapFactory, ParameterHandleValueMapFactory):
+class _JavaParameterHandleValueMapFactory(
+    _JavaMapFactory, ParameterHandleValueMapFactory
+):
     pass
 
 
@@ -884,7 +956,7 @@ class JavaRTIambassador(RTIambassador):
         self._implementation = implementation
         self._runtime = runtime
         self._callback_binding: JavaCallbackBinding | None = None
-        self._message_retractions: dict[bytes, object] = {}
+        self._message_retractions: dict[bytes, _JavaMessageRetractionHandle] = {}
         self._connected = False
         self._joined = False
 
@@ -899,7 +971,7 @@ class JavaRTIambassador(RTIambassador):
             )
 
     def getHLAversion(self) -> str:
-        return str(self._call(getattr(self._implementation, "getHLAversion")))
+        return str(self._call(self._implementation.getHLAversion))
 
     def connect(
         self,
@@ -909,7 +981,9 @@ class JavaRTIambassador(RTIambassador):
         credentials: object | None = None,
     ) -> ConfigurationResult:
         callbackModel = _require_callback_model(callbackModel)
-        configuration, credentials = _resolve_connect_arguments(configuration, credentials)
+        configuration, credentials = _resolve_connect_arguments(
+            configuration, credentials
+        )
         callback_binding = self._runtime.bind_federate_ambassador(federateAmbassador)
         arguments: list[object] = [
             callback_binding.proxy,
@@ -920,7 +994,7 @@ class JavaRTIambassador(RTIambassador):
         if credentials is not None:
             arguments.append(self._runtime.credentials(credentials))
         result = self._call(
-            getattr(self._implementation, "connect"),
+            self._implementation.connect,
             *arguments,
         )
         # A Java proxy must outlive the connection, even if Java keeps only a
@@ -930,7 +1004,7 @@ class JavaRTIambassador(RTIambassador):
         return _configuration_result(result)
 
     def disconnect(self) -> None:
-        self._call(getattr(self._implementation, "disconnect"))
+        self._call(self._implementation.disconnect)
         self._callback_binding = None
         self._message_retractions.clear()
         self._connected = False
@@ -938,7 +1012,7 @@ class JavaRTIambassador(RTIambassador):
 
     def evokeCallback(self, approximateMinimumTimeInSeconds: float) -> bool:
         return self._call(
-            getattr(self._implementation, "evokeCallback"),
+            self._implementation.evokeCallback,
             approximateMinimumTimeInSeconds,
         )
 
@@ -948,23 +1022,23 @@ class JavaRTIambassador(RTIambassador):
         approximateMaximumTimeInSeconds: float,
     ) -> bool:
         return self._call(
-            getattr(self._implementation, "evokeMultipleCallbacks"),
+            self._implementation.evokeMultipleCallbacks,
             approximateMinimumTimeInSeconds,
             approximateMaximumTimeInSeconds,
         )
 
     def enableCallbacks(self) -> None:
-        self._call(getattr(self._implementation, "enableCallbacks"))
+        self._call(self._implementation.enableCallbacks)
 
     def disableCallbacks(self) -> None:
-        self._call(getattr(self._implementation, "disableCallbacks"))
+        self._call(self._implementation.disableCallbacks)
 
     def listFederationExecutions(self) -> None:
-        self._call(getattr(self._implementation, "listFederationExecutions"))
+        self._call(self._implementation.listFederationExecutions)
 
     def listFederationExecutionMembers(self, federationExecutionName: str) -> None:
         self._call(
-            getattr(self._implementation, "listFederationExecutionMembers"),
+            self._implementation.listFederationExecutionMembers,
             federationExecutionName,
         )
 
@@ -980,21 +1054,21 @@ class JavaRTIambassador(RTIambassador):
         if federateName is None:
             if modules:
                 raw_handle = self._call(
-                    getattr(self._implementation, "joinFederationExecution"),
+                    self._implementation.joinFederationExecution,
                     federateType,
                     federationExecutionName,
                     self._runtime.fom_module_urls(modules),
                 )
             else:
                 raw_handle = self._call(
-                    getattr(self._implementation, "joinFederationExecution"),
+                    self._implementation.joinFederationExecution,
                     federateType,
                     federationExecutionName,
                 )
         else:
             if modules:
                 raw_handle = self._call(
-                    getattr(self._implementation, "joinFederationExecution"),
+                    self._implementation.joinFederationExecution,
                     federateName,
                     federateType,
                     federationExecutionName,
@@ -1002,7 +1076,7 @@ class JavaRTIambassador(RTIambassador):
                 )
             else:
                 raw_handle = self._call(
-                    getattr(self._implementation, "joinFederationExecution"),
+                    self._implementation.joinFederationExecution,
                     federateName,
                     federateType,
                     federationExecutionName,
@@ -1014,7 +1088,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(resignAction, ResignAction):
             raise TypeError("resignAction must be ResignAction")
         self._call(
-            getattr(self._implementation, "resignFederationExecution"),
+            self._implementation.resignFederationExecution,
             self._runtime.resign_action(resignAction.name),
         )
         self._joined = False
@@ -1031,23 +1105,31 @@ class JavaRTIambassador(RTIambassador):
             self._runtime.byte_array(bytes(userSuppliedTag)),
         )
         if synchronizationSet is not None:
-            arguments += (self._runtime.federate_handle_set(self._implementation, _federate_handle_bytes(synchronizationSet)),)
-        self._call(getattr(self._implementation, "registerFederationSynchronizationPoint"), *arguments)
+            arguments += (
+                self._runtime.federate_handle_set(
+                    self._implementation, _federate_handle_bytes(synchronizationSet)
+                ),
+            )
+        self._call(
+            self._implementation.registerFederationSynchronizationPoint, *arguments
+        )
 
     def synchronizationPointAchieved(
         self, synchronizationPointLabel: str, successfully: bool = True
     ) -> None:
         self._call(
-            getattr(self._implementation, "synchronizationPointAchieved"),
+            self._implementation.synchronizationPointAchieved,
             synchronizationPointLabel,
             bool(successfully),
         )
 
     def queryFederationSaveStatus(self) -> None:
-        self._call(getattr(self._implementation, "queryFederationSaveStatus"))
+        self._call(self._implementation.queryFederationSaveStatus)
 
-    def requestFederationSave(self, label: str, time: LogicalTime | None = None) -> None:
-        method = getattr(self._implementation, "requestFederationSave")
+    def requestFederationSave(
+        self, label: str, time: LogicalTime | None = None
+    ) -> None:
+        method = self._implementation.requestFederationSave
         if time is None:
             self._call(method, label)
             return
@@ -1057,31 +1139,31 @@ class JavaRTIambassador(RTIambassador):
         self._call(method, label, raw_time)
 
     def federateSaveBegun(self) -> None:
-        self._call(getattr(self._implementation, "federateSaveBegun"))
+        self._call(self._implementation.federateSaveBegun)
 
     def federateSaveComplete(self) -> None:
-        self._call(getattr(self._implementation, "federateSaveComplete"))
+        self._call(self._implementation.federateSaveComplete)
 
     def federateSaveNotComplete(self) -> None:
-        self._call(getattr(self._implementation, "federateSaveNotComplete"))
+        self._call(self._implementation.federateSaveNotComplete)
 
     def abortFederationSave(self) -> None:
-        self._call(getattr(self._implementation, "abortFederationSave"))
+        self._call(self._implementation.abortFederationSave)
 
     def queryFederationRestoreStatus(self) -> None:
-        self._call(getattr(self._implementation, "queryFederationRestoreStatus"))
+        self._call(self._implementation.queryFederationRestoreStatus)
 
     def requestFederationRestore(self, label: str) -> None:
-        self._call(getattr(self._implementation, "requestFederationRestore"), label)
+        self._call(self._implementation.requestFederationRestore, label)
 
     def federateRestoreComplete(self) -> None:
-        self._call(getattr(self._implementation, "federateRestoreComplete"))
+        self._call(self._implementation.federateRestoreComplete)
 
     def federateRestoreNotComplete(self) -> None:
-        self._call(getattr(self._implementation, "federateRestoreNotComplete"))
+        self._call(self._implementation.federateRestoreNotComplete)
 
     def abortFederationRestore(self) -> None:
-        self._call(getattr(self._implementation, "abortFederationRestore"))
+        self._call(self._implementation.abortFederationRestore)
 
     def _attribute_handle_set(self, attributes: AttributeHandleSet) -> object:
         return self._call(
@@ -1113,7 +1195,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectClass: ObjectClassHandle, attributes: AttributeHandleSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "publishObjectClassAttributes"),
+            self._implementation.publishObjectClassAttributes,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1123,7 +1205,7 @@ class JavaRTIambassador(RTIambassador):
 
     def unpublishObjectClass(self, objectClass: ObjectClassHandle) -> None:
         self._call(
-            getattr(self._implementation, "unpublishObjectClass"),
+            self._implementation.unpublishObjectClass,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1134,7 +1216,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectClass: ObjectClassHandle, attributes: AttributeHandleSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "unpublishObjectClassAttributes"),
+            self._implementation.unpublishObjectClassAttributes,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1148,7 +1230,7 @@ class JavaRTIambassador(RTIambassador):
         interactionClasses: InteractionClassHandleSet,
     ) -> None:
         self._call(
-            getattr(self._implementation, "publishObjectClassDirectedInteractions"),
+            self._implementation.publishObjectClassDirectedInteractions,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1169,7 +1251,9 @@ class JavaRTIambassador(RTIambassador):
         ]
         if interactionClasses is not None:
             arguments.append(self._interaction_class_set(interactionClasses))
-        self._call(getattr(self._implementation, "unpublishObjectClassDirectedInteractions"), *arguments)
+        self._call(
+            self._implementation.unpublishObjectClassDirectedInteractions, *arguments
+        )
 
     def subscribeObjectClassAttributes(
         self,
@@ -1202,8 +1286,11 @@ class JavaRTIambassador(RTIambassador):
         updateRateDesignator: str = "",
     ) -> None:
         self._call(
-            getattr(self._implementation, "subscribeObjectClassAttributesPassively"),
-            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._implementation.subscribeObjectClassAttributesPassively,
+            self._decode_handle(
+                "getObjectClassHandleFactory",
+                _encoded_handle(objectClass, ObjectClassHandle),
+            ),
             self._attribute_handle_set(attributes),
             *([str(updateRateDesignator)] if updateRateDesignator else []),
         )
@@ -1232,17 +1319,21 @@ class JavaRTIambassador(RTIambassador):
     def subscribeObjectClassDirectedInteractionsUniversally(
         self,
         objectClass: ObjectClassHandle,
-        interactionClasses: InteractionClassHandleSet | MutableInteractionClassHandleSet,
+        interactionClasses: InteractionClassHandleSet
+        | MutableInteractionClassHandleSet,
     ) -> None:
         self._call(
-            getattr(self._implementation, "subscribeObjectClassDirectedInteractionsUniversally"),
-            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._implementation.subscribeObjectClassDirectedInteractionsUniversally,
+            self._decode_handle(
+                "getObjectClassHandleFactory",
+                _encoded_handle(objectClass, ObjectClassHandle),
+            ),
             self._interaction_class_set(interactionClasses),
         )
 
     def unsubscribeObjectClass(self, objectClass: ObjectClassHandle) -> None:
         self._call(
-            getattr(self._implementation, "unsubscribeObjectClass"),
+            self._implementation.unsubscribeObjectClass,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1253,7 +1344,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectClass: ObjectClassHandle, attributes: AttributeHandleSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "unsubscribeObjectClassAttributes"),
+            self._implementation.unsubscribeObjectClassAttributes,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1274,7 +1365,9 @@ class JavaRTIambassador(RTIambassador):
         ]
         if interactionClasses is not None:
             arguments.append(self._interaction_class_set(interactionClasses))
-        self._call(getattr(self._implementation, "unsubscribeObjectClassDirectedInteractions"), *arguments)
+        self._call(
+            self._implementation.unsubscribeObjectClassDirectedInteractions, *arguments
+        )
 
     def subscribeObjectClassAttributesWithRegions(
         self,
@@ -1303,12 +1396,16 @@ class JavaRTIambassador(RTIambassador):
     def subscribeObjectClassAttributesPassivelyWithRegions(
         self,
         objectClass: ObjectClassHandle,
-        attributesAndRegions: AttributeSetRegionSetPairList | MutableAttributeSetRegionSetPairList,
+        attributesAndRegions: AttributeSetRegionSetPairList
+        | MutableAttributeSetRegionSetPairList,
         updateRateDesignator: str = "",
     ) -> None:
         self._call(
-            getattr(self._implementation, "subscribeObjectClassAttributesPassivelyWithRegions"),
-            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._implementation.subscribeObjectClassAttributesPassivelyWithRegions,
+            self._decode_handle(
+                "getObjectClassHandleFactory",
+                _encoded_handle(objectClass, ObjectClassHandle),
+            ),
             self._attribute_region_pair_list(attributesAndRegions),
             *([str(updateRateDesignator)] if updateRateDesignator else []),
         )
@@ -1319,7 +1416,7 @@ class JavaRTIambassador(RTIambassador):
         attributesAndRegions: AttributeSetRegionSetPairList,
     ) -> None:
         self._call(
-            getattr(self._implementation, "unsubscribeObjectClassAttributesWithRegions"),
+            self._implementation.unsubscribeObjectClassAttributesWithRegions,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1329,16 +1426,18 @@ class JavaRTIambassador(RTIambassador):
 
     def publishInteractionClass(self, interactionClass: InteractionClassHandle) -> None:
         self._call(
-            getattr(self._implementation, "publishInteractionClass"),
+            self._implementation.publishInteractionClass,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
             ),
         )
 
-    def unpublishInteractionClass(self, interactionClass: InteractionClassHandle) -> None:
+    def unpublishInteractionClass(
+        self, interactionClass: InteractionClassHandle
+    ) -> None:
         self._call(
-            getattr(self._implementation, "unpublishInteractionClass"),
+            self._implementation.unpublishInteractionClass,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1348,7 +1447,11 @@ class JavaRTIambassador(RTIambassador):
     def subscribeInteractionClass(
         self, interactionClass: InteractionClassHandle, *, active: bool = True
     ) -> None:
-        method = "subscribeInteractionClass" if active else "subscribeInteractionClassPassively"
+        method = (
+            "subscribeInteractionClass"
+            if active
+            else "subscribeInteractionClassPassively"
+        )
         self._call(
             getattr(self._implementation, method),
             self._decode_handle(
@@ -1361,13 +1464,18 @@ class JavaRTIambassador(RTIambassador):
         self, interactionClass: InteractionClassHandle
     ) -> None:
         self._call(
-            getattr(self._implementation, "subscribeInteractionClassPassively"),
-            self._decode_handle("getInteractionClassHandleFactory", _encoded_handle(interactionClass, InteractionClassHandle)),
+            self._implementation.subscribeInteractionClassPassively,
+            self._decode_handle(
+                "getInteractionClassHandleFactory",
+                _encoded_handle(interactionClass, InteractionClassHandle),
+            ),
         )
 
-    def unsubscribeInteractionClass(self, interactionClass: InteractionClassHandle) -> None:
+    def unsubscribeInteractionClass(
+        self, interactionClass: InteractionClassHandle
+    ) -> None:
         self._call(
-            getattr(self._implementation, "unsubscribeInteractionClass"),
+            self._implementation.unsubscribeInteractionClass,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1376,28 +1484,32 @@ class JavaRTIambassador(RTIambassador):
 
     def reserveObjectInstanceName(self, objectInstanceName: str) -> None:
         self._call(
-            getattr(self._implementation, "reserveObjectInstanceName"), str(objectInstanceName)
+            self._implementation.reserveObjectInstanceName, str(objectInstanceName)
         )
 
     def releaseObjectInstanceName(self, objectInstanceName: str) -> None:
         self._call(
-            getattr(self._implementation, "releaseObjectInstanceName"), str(objectInstanceName)
+            self._implementation.releaseObjectInstanceName, str(objectInstanceName)
         )
 
     def reserveMultipleObjectInstanceNames(
         self, objectInstanceNames: ObjectInstanceNameSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "reserveMultipleObjectInstanceNames"),
-            self._runtime.object_instance_name_set(_object_instance_names(objectInstanceNames)),
+            self._implementation.reserveMultipleObjectInstanceNames,
+            self._runtime.object_instance_name_set(
+                _object_instance_names(objectInstanceNames)
+            ),
         )
 
     def releaseMultipleObjectInstanceNames(
         self, objectInstanceNames: ObjectInstanceNameSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "releaseMultipleObjectInstanceNames"),
-            self._runtime.object_instance_name_set(_object_instance_names(objectInstanceNames)),
+            self._implementation.releaseMultipleObjectInstanceNames,
+            self._runtime.object_instance_name_set(
+                _object_instance_names(objectInstanceNames)
+            ),
         )
 
     def registerObjectInstance(
@@ -1412,12 +1524,12 @@ class JavaRTIambassador(RTIambassador):
         )
         if objectInstanceName is None:
             raw_handle = self._call(
-                getattr(self._implementation, "registerObjectInstance"),
+                self._implementation.registerObjectInstance,
                 decoded_object_class,
             )
         else:
             raw_handle = self._call(
-                getattr(self._implementation, "registerObjectInstance"),
+                self._implementation.registerObjectInstance,
                 decoded_object_class,
                 str(objectInstanceName),
             )
@@ -1437,13 +1549,13 @@ class JavaRTIambassador(RTIambassador):
         pair_list = self._attribute_region_pair_list(attributesAndRegions)
         if objectInstanceName is None:
             raw_handle = self._call(
-                getattr(self._implementation, "registerObjectInstanceWithRegions"),
+                self._implementation.registerObjectInstanceWithRegions,
                 decoded_object_class,
                 pair_list,
             )
         else:
             raw_handle = self._call(
-                getattr(self._implementation, "registerObjectInstanceWithRegions"),
+                self._implementation.registerObjectInstanceWithRegions,
                 decoded_object_class,
                 pair_list,
                 str(objectInstanceName),
@@ -1456,7 +1568,7 @@ class JavaRTIambassador(RTIambassador):
         attributesAndRegions: AttributeSetRegionSetPairList,
     ) -> None:
         self._call(
-            getattr(self._implementation, "associateRegionsForUpdates"),
+            self._implementation.associateRegionsForUpdates,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1470,7 +1582,7 @@ class JavaRTIambassador(RTIambassador):
         attributesAndRegions: AttributeSetRegionSetPairList,
     ) -> None:
         self._call(
-            getattr(self._implementation, "unassociateRegionsForUpdates"),
+            self._implementation.unassociateRegionsForUpdates,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1480,14 +1592,14 @@ class JavaRTIambassador(RTIambassador):
 
     def getObjectInstanceHandle(self, objectInstanceName: str) -> ObjectInstanceHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getObjectInstanceHandle"), str(objectInstanceName)
+            self._implementation.getObjectInstanceHandle, str(objectInstanceName)
         )
         return ObjectInstanceHandle(self._runtime.handle_bytes(raw_handle))
 
     def getObjectInstanceName(self, objectInstance: ObjectInstanceHandle) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getObjectInstanceName"),
+                self._implementation.getObjectInstanceName,
                 self._decode_handle(
                     "getObjectInstanceHandleFactory",
                     _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1499,7 +1611,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectInstance: ObjectInstanceHandle, userSuppliedTag: BytesLike = b""
     ) -> None:
         self._call(
-            getattr(self._implementation, "deleteObjectInstance"),
+            self._implementation.deleteObjectInstance,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1509,7 +1621,7 @@ class JavaRTIambassador(RTIambassador):
 
     def localDeleteObjectInstance(self, objectInstance: ObjectInstanceHandle) -> None:
         self._call(
-            getattr(self._implementation, "localDeleteObjectInstance"),
+            self._implementation.localDeleteObjectInstance,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1524,13 +1636,16 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
-        implementation = getattr(self._implementation, "deleteObjectInstanceWithTime", None)
+        implementation = getattr(
+            self._implementation, "deleteObjectInstanceWithTime", None
+        )
         if implementation is None:
-            implementation = getattr(self._implementation, "deleteObjectInstance")
+            implementation = self._implementation.deleteObjectInstance
         raw_handle = self._call(
             implementation,
             self._decode_handle(
-                "getObjectInstanceHandleFactory", _encoded_handle(objectInstance, ObjectInstanceHandle)
+                "getObjectInstanceHandleFactory",
+                _encoded_handle(objectInstance, ObjectInstanceHandle),
             ),
             self._runtime.byte_array(bytes(userSuppliedTag)),
             self._decode_time_argument(time),
@@ -1544,7 +1659,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "updateAttributeValues"),
+            self._implementation.updateAttributeValues,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1566,13 +1681,16 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
-        implementation = getattr(self._implementation, "updateAttributeValuesWithTime", None)
+        implementation = getattr(
+            self._implementation, "updateAttributeValuesWithTime", None
+        )
         if implementation is None:
-            implementation = getattr(self._implementation, "updateAttributeValues")
+            implementation = self._implementation.updateAttributeValues
         raw_handle = self._call(
             implementation,
             self._decode_handle(
-                "getObjectInstanceHandleFactory", _encoded_handle(objectInstance, ObjectInstanceHandle)
+                "getObjectInstanceHandleFactory",
+                _encoded_handle(objectInstance, ObjectInstanceHandle),
             ),
             self._call(
                 self._runtime.attribute_handle_value_map,
@@ -1591,19 +1709,23 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         if isinstance(objectClassOrInstance, ObjectClassHandle):
-            implementation = getattr(self._implementation, "requestAttributeValueUpdate")
+            implementation = self._implementation.requestAttributeValueUpdate
             handle = self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClassOrInstance, ObjectClassHandle),
             )
-            handle = self._runtime.cast_handle(handle, "hla.rti1516_2025.ObjectClassHandle")
+            handle = self._runtime.cast_handle(
+                handle, "hla.rti1516_2025.ObjectClassHandle"
+            )
         elif isinstance(objectClassOrInstance, ObjectInstanceHandle):
-            implementation = getattr(self._implementation, "requestAttributeValueUpdate")
+            implementation = self._implementation.requestAttributeValueUpdate
             handle = self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectClassOrInstance, ObjectInstanceHandle),
             )
-            handle = self._runtime.cast_handle(handle, "hla.rti1516_2025.ObjectInstanceHandle")
+            handle = self._runtime.cast_handle(
+                handle, "hla.rti1516_2025.ObjectInstanceHandle"
+            )
         else:
             raise TypeError(
                 "objectClassOrInstance must be ObjectClassHandle or ObjectInstanceHandle"
@@ -1622,7 +1744,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "requestAttributeValueUpdateWithRegions"),
+            self._implementation.requestAttributeValueUpdateWithRegions,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1640,7 +1762,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(orderType, OrderType):
             raise TypeError("orderType must be OrderType")
         self._call(
-            getattr(self._implementation, "changeAttributeOrderType"),
+            self._implementation.changeAttributeOrderType,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1658,7 +1780,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(orderType, OrderType):
             raise TypeError("orderType must be OrderType")
         self._call(
-            getattr(self._implementation, "changeDefaultAttributeOrderType"),
+            self._implementation.changeDefaultAttributeOrderType,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1673,7 +1795,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(orderType, OrderType):
             raise TypeError("orderType must be OrderType")
         self._call(
-            getattr(self._implementation, "changeInteractionOrderType"),
+            self._implementation.changeInteractionOrderType,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1688,7 +1810,7 @@ class JavaRTIambassador(RTIambassador):
         transportationType: TransportationTypeHandle,
     ) -> None:
         self._call(
-            getattr(self._implementation, "requestAttributeTransportationTypeChange"),
+            self._implementation.requestAttributeTransportationTypeChange,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1707,7 +1829,7 @@ class JavaRTIambassador(RTIambassador):
         transportationType: TransportationTypeHandle,
     ) -> None:
         self._call(
-            getattr(self._implementation, "changeDefaultAttributeTransportationType"),
+            self._implementation.changeDefaultAttributeTransportationType,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -1723,7 +1845,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectInstance: ObjectInstanceHandle, attribute: AttributeHandle
     ) -> None:
         self._call(
-            getattr(self._implementation, "queryAttributeTransportationType"),
+            self._implementation.queryAttributeTransportationType,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1739,7 +1861,7 @@ class JavaRTIambassador(RTIambassador):
         transportationType: TransportationTypeHandle,
     ) -> None:
         self._call(
-            getattr(self._implementation, "requestInteractionTransportationTypeChange"),
+            self._implementation.requestInteractionTransportationTypeChange,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1754,7 +1876,7 @@ class JavaRTIambassador(RTIambassador):
         self, federate: FederateHandle, interactionClass: InteractionClassHandle
     ) -> None:
         self._call(
-            getattr(self._implementation, "queryInteractionTransportationType"),
+            self._implementation.queryInteractionTransportationType,
             self._decode_handle(
                 "getFederateHandleFactory", _encoded_handle(federate, FederateHandle)
             ),
@@ -1770,7 +1892,7 @@ class JavaRTIambassador(RTIambassador):
         attributes: AttributeHandleSet,
     ) -> None:
         self._call(
-            getattr(self._implementation, "queryAttributeOwnership"),
+            self._implementation.queryAttributeOwnership,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1785,7 +1907,7 @@ class JavaRTIambassador(RTIambassador):
     ) -> bool:
         return bool(
             self._call(
-                getattr(self._implementation, "isAttributeOwnedByFederate"),
+                self._implementation.isAttributeOwnedByFederate,
                 self._decode_handle(
                     "getObjectInstanceHandleFactory",
                     _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1804,7 +1926,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "unconditionalAttributeOwnershipDivestiture"),
+            self._implementation.unconditionalAttributeOwnershipDivestiture,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1820,7 +1942,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "negotiatedAttributeOwnershipDivestiture"),
+            self._implementation.negotiatedAttributeOwnershipDivestiture,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1836,7 +1958,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "confirmDivestiture"),
+            self._implementation.confirmDivestiture,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1851,7 +1973,7 @@ class JavaRTIambassador(RTIambassador):
         attributes: AttributeHandleSet,
     ) -> None:
         self._call(
-            getattr(self._implementation, "cancelNegotiatedAttributeOwnershipDivestiture"),
+            self._implementation.cancelNegotiatedAttributeOwnershipDivestiture,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1866,7 +1988,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "attributeOwnershipAcquisition"),
+            self._implementation.attributeOwnershipAcquisition,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1882,7 +2004,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "attributeOwnershipAcquisitionIfAvailable"),
+            self._implementation.attributeOwnershipAcquisitionIfAvailable,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1897,7 +2019,7 @@ class JavaRTIambassador(RTIambassador):
         attributes: AttributeHandleSet,
     ) -> None:
         self._call(
-            getattr(self._implementation, "cancelAttributeOwnershipAcquisition"),
+            self._implementation.cancelAttributeOwnershipAcquisition,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1912,7 +2034,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "attributeOwnershipReleaseDenied"),
+            self._implementation.attributeOwnershipReleaseDenied,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1928,7 +2050,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> AttributeHandleSet:
         raw_attributes = self._call(
-            getattr(self._implementation, "attributeOwnershipDivestitureIfWanted"),
+            self._implementation.attributeOwnershipDivestitureIfWanted,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -1937,7 +2059,8 @@ class JavaRTIambassador(RTIambassador):
             self._runtime.byte_array(bytes(userSuppliedTag)),
         )
         return AttributeHandleSet(
-            AttributeHandle(self._runtime.handle_bytes(attribute)) for attribute in raw_attributes
+            AttributeHandle(self._runtime.handle_bytes(attribute))
+            for attribute in raw_attributes
         )
 
     def sendInteraction(
@@ -1947,7 +2070,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "sendInteraction"),
+            self._implementation.sendInteraction,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1971,7 +2094,7 @@ class JavaRTIambassador(RTIambassador):
             raise TypeError("time must be LogicalTime")
         implementation = getattr(self._implementation, "sendInteractionWithTime", None)
         if implementation is None:
-            implementation = getattr(self._implementation, "sendInteraction")
+            implementation = self._implementation.sendInteraction
         raw_handle = self._call(
             implementation,
             self._decode_handle(
@@ -1996,7 +2119,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "sendDirectedInteraction"),
+            self._implementation.sendDirectedInteraction,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2024,7 +2147,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         raw_handle = self._call(
-            getattr(self._implementation, "sendDirectedInteraction"),
+            self._implementation.sendDirectedInteraction,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2072,8 +2195,11 @@ class JavaRTIambassador(RTIambassador):
         self, interactionClass: InteractionClassHandle, regions: RegionHandleSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "subscribeInteractionClassPassivelyWithRegions"),
-            self._decode_handle("getInteractionClassHandleFactory", _encoded_handle(interactionClass, InteractionClassHandle)),
+            self._implementation.subscribeInteractionClassPassivelyWithRegions,
+            self._decode_handle(
+                "getInteractionClassHandleFactory",
+                _encoded_handle(interactionClass, InteractionClassHandle),
+            ),
             self._call(
                 self._runtime.region_handle_set,
                 self._implementation,
@@ -2085,7 +2211,7 @@ class JavaRTIambassador(RTIambassador):
         self, interactionClass: InteractionClassHandle, regions: RegionHandleSet
     ) -> None:
         self._call(
-            getattr(self._implementation, "unsubscribeInteractionClassWithRegions"),
+            self._implementation.unsubscribeInteractionClassWithRegions,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2105,7 +2231,7 @@ class JavaRTIambassador(RTIambassador):
         userSuppliedTag: BytesLike = b"",
     ) -> None:
         self._call(
-            getattr(self._implementation, "sendInteractionWithRegions"),
+            self._implementation.sendInteractionWithRegions,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2133,9 +2259,11 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
-        implementation = getattr(self._implementation, "sendInteractionWithRegionsWithTime", None)
+        implementation = getattr(
+            self._implementation, "sendInteractionWithRegionsWithTime", None
+        )
         if implementation is None:
-            implementation = getattr(self._implementation, "sendInteractionWithRegions")
+            implementation = self._implementation.sendInteractionWithRegions
         raw_handle = self._call(
             implementation,
             self._decode_handle(
@@ -2170,14 +2298,16 @@ class JavaRTIambassador(RTIambassador):
                 "getMessageRetractionHandleFactory", encoded
             )
         self._call(
-            getattr(self._implementation, "retract"),
+            self._implementation.retract,
             raw_handle,
         )
 
     def getFederateHandleFactory(self) -> FederateHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getFederateHandleFactory"))
-        return _JavaFederateHandleFactory(self, "getFederateHandleFactory", FederateHandle)
+        self._call(self._implementation.getFederateHandleFactory)
+        return _JavaFederateHandleFactory(
+            self, "getFederateHandleFactory", FederateHandle
+        )
 
     def getFederateHandleSetFactory(self) -> FederateHandleSetFactory:
         return _JavaFederateHandleSetFactory(
@@ -2186,17 +2316,21 @@ class JavaRTIambassador(RTIambassador):
 
     def getObjectClassHandleFactory(self) -> ObjectClassHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getObjectClassHandleFactory"))
-        return _JavaObjectClassHandleFactory(self, "getObjectClassHandleFactory", ObjectClassHandle)
+        self._call(self._implementation.getObjectClassHandleFactory)
+        return _JavaObjectClassHandleFactory(
+            self, "getObjectClassHandleFactory", ObjectClassHandle
+        )
 
     def getAttributeHandleFactory(self) -> AttributeHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getAttributeHandleFactory"))
-        return _JavaAttributeHandleFactory(self, "getAttributeHandleFactory", AttributeHandle)
+        self._call(self._implementation.getAttributeHandleFactory)
+        return _JavaAttributeHandleFactory(
+            self, "getAttributeHandleFactory", AttributeHandle
+        )
 
     def getInteractionClassHandleFactory(self) -> InteractionClassHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getInteractionClassHandleFactory"))
+        self._call(self._implementation.getInteractionClassHandleFactory)
         return _JavaInteractionClassHandleFactory(
             self, "getInteractionClassHandleFactory", InteractionClassHandle
         )
@@ -2210,29 +2344,33 @@ class JavaRTIambassador(RTIambassador):
 
     def getParameterHandleFactory(self) -> ParameterHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getParameterHandleFactory"))
-        return _JavaParameterHandleFactory(self, "getParameterHandleFactory", ParameterHandle)
+        self._call(self._implementation.getParameterHandleFactory)
+        return _JavaParameterHandleFactory(
+            self, "getParameterHandleFactory", ParameterHandle
+        )
 
     def getTransportationTypeHandleFactory(self) -> TransportationTypeHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getTransportationTypeHandleFactory"))
+        self._call(self._implementation.getTransportationTypeHandleFactory)
         return _JavaTransportationTypeHandleFactory(
             self, "getTransportationTypeHandleFactory", TransportationTypeHandle
         )
 
     def getDimensionHandleFactory(self) -> DimensionHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getDimensionHandleFactory"))
-        return _JavaDimensionHandleFactory(self, "getDimensionHandleFactory", DimensionHandle)
+        self._call(self._implementation.getDimensionHandleFactory)
+        return _JavaDimensionHandleFactory(
+            self, "getDimensionHandleFactory", DimensionHandle
+        )
 
     def getRegionHandleFactory(self) -> RegionHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getRegionHandleFactory"))
+        self._call(self._implementation.getRegionHandleFactory)
         return _JavaRegionHandleFactory(self, "getRegionHandleFactory", RegionHandle)
 
     def getMessageRetractionHandleFactory(self) -> MessageRetractionHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getMessageRetractionHandleFactory"))
+        self._call(self._implementation.getMessageRetractionHandleFactory)
         return _JavaMessageRetractionHandleFactory(
             self,
             "getMessageRetractionHandleFactory",
@@ -2241,7 +2379,7 @@ class JavaRTIambassador(RTIambassador):
 
     def getObjectInstanceHandleFactory(self) -> ObjectInstanceHandleFactory:
         self._require_factory_membership()
-        self._call(getattr(self._implementation, "getObjectInstanceHandleFactory"))
+        self._call(self._implementation.getObjectInstanceHandleFactory)
         return _JavaObjectInstanceHandleFactory(
             self, "getObjectInstanceHandleFactory", ObjectInstanceHandle
         )
@@ -2271,12 +2409,14 @@ class JavaRTIambassador(RTIambassador):
             self, "getParameterHandleValueMapFactory", MutableParameterHandleValueMap
         )
 
-    def getAttributeSetRegionSetPairListFactory(self) -> AttributeSetRegionSetPairListFactory:
+    def getAttributeSetRegionSetPairListFactory(
+        self,
+    ) -> AttributeSetRegionSetPairListFactory:
         return _JavaAttributeSetRegionSetPairListFactory(self)
 
     def createRegion(self, dimensions: DimensionHandleSet) -> RegionHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "createRegion"),
+            self._implementation.createRegion,
             self._call(
                 self._runtime.dimension_handle_set,
                 self._implementation,
@@ -2287,7 +2427,7 @@ class JavaRTIambassador(RTIambassador):
 
     def commitRegionModifications(self, regions: RegionHandleSet) -> None:
         self._call(
-            getattr(self._implementation, "commitRegionModifications"),
+            self._implementation.commitRegionModifications,
             self._call(
                 self._runtime.region_handle_set,
                 self._implementation,
@@ -2297,24 +2437,34 @@ class JavaRTIambassador(RTIambassador):
 
     def deleteRegion(self, region: RegionHandle) -> None:
         self._call(
-            getattr(self._implementation, "deleteRegion"),
-            self._decode_handle("getRegionHandleFactory", _encoded_handle(region, RegionHandle)),
+            self._implementation.deleteRegion,
+            self._decode_handle(
+                "getRegionHandleFactory", _encoded_handle(region, RegionHandle)
+            ),
         )
 
     def getDimensionHandleSet(self, region: RegionHandle) -> DimensionHandleSet:
         raw_set = self._call(
-            getattr(self._implementation, "getDimensionHandleSet"),
-            self._decode_handle("getRegionHandleFactory", _encoded_handle(region, RegionHandle)),
+            self._implementation.getDimensionHandleSet,
+            self._decode_handle(
+                "getRegionHandleFactory", _encoded_handle(region, RegionHandle)
+            ),
         )
         return DimensionHandleSet(
             DimensionHandle(self._runtime.handle_bytes(value)) for value in raw_set
         )
 
-    def getRangeBounds(self, region: RegionHandle, dimension: DimensionHandle) -> RangeBounds:
+    def getRangeBounds(
+        self, region: RegionHandle, dimension: DimensionHandle
+    ) -> RangeBounds:
         raw_bounds = self._call(
-            getattr(self._implementation, "getRangeBounds"),
-            self._decode_handle("getRegionHandleFactory", _encoded_handle(region, RegionHandle)),
-            self._decode_handle("getDimensionHandleFactory", _encoded_handle(dimension, DimensionHandle)),
+            self._implementation.getRangeBounds,
+            self._decode_handle(
+                "getRegionHandleFactory", _encoded_handle(region, RegionHandle)
+            ),
+            self._decode_handle(
+                "getDimensionHandleFactory", _encoded_handle(dimension, DimensionHandle)
+            ),
         )
         lower = getattr(raw_bounds, "lower", None)
         upper = getattr(raw_bounds, "upper", None)
@@ -2335,159 +2485,149 @@ class JavaRTIambassador(RTIambassador):
             rangeBounds.getLowerBound(), rangeBounds.getUpperBound()
         )
         self._call(
-            getattr(self._implementation, "setRangeBounds"),
-            self._decode_handle("getRegionHandleFactory", _encoded_handle(region, RegionHandle)),
-            self._decode_handle("getDimensionHandleFactory", _encoded_handle(dimension, DimensionHandle)),
+            self._implementation.setRangeBounds,
+            self._decode_handle(
+                "getRegionHandleFactory", _encoded_handle(region, RegionHandle)
+            ),
+            self._decode_handle(
+                "getDimensionHandleFactory", _encoded_handle(dimension, DimensionHandle)
+            ),
             java_bounds,
         )
 
     def getConveyRegionDesignatorSetsSwitch(self) -> bool:
         return bool(
-            self._call(getattr(self._implementation, "getConveyRegionDesignatorSetsSwitch"))
+            self._call(self._implementation.getConveyRegionDesignatorSetsSwitch)
         )
 
     def setConveyRegionDesignatorSetsSwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setConveyRegionDesignatorSetsSwitch"),
+            self._implementation.setConveyRegionDesignatorSetsSwitch,
             bool(switchValue),
         )
 
     def getObjectClassRelevanceAdvisorySwitch(self) -> bool:
         return bool(
-            self._call(
-                getattr(self._implementation, "getObjectClassRelevanceAdvisorySwitch")
-            )
+            self._call(self._implementation.getObjectClassRelevanceAdvisorySwitch)
         )
 
     def setObjectClassRelevanceAdvisorySwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setObjectClassRelevanceAdvisorySwitch"),
+            self._implementation.setObjectClassRelevanceAdvisorySwitch,
             bool(switchValue),
         )
 
     def getAttributeRelevanceAdvisorySwitch(self) -> bool:
         return bool(
-            self._call(
-                getattr(self._implementation, "getAttributeRelevanceAdvisorySwitch")
-            )
+            self._call(self._implementation.getAttributeRelevanceAdvisorySwitch)
         )
 
     def setAttributeRelevanceAdvisorySwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setAttributeRelevanceAdvisorySwitch"),
+            self._implementation.setAttributeRelevanceAdvisorySwitch,
             bool(switchValue),
         )
 
     def getAttributeScopeAdvisorySwitch(self) -> bool:
-        return bool(
-            self._call(
-                getattr(self._implementation, "getAttributeScopeAdvisorySwitch")
-            )
-        )
+        return bool(self._call(self._implementation.getAttributeScopeAdvisorySwitch))
 
     def setAttributeScopeAdvisorySwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setAttributeScopeAdvisorySwitch"),
+            self._implementation.setAttributeScopeAdvisorySwitch,
             bool(switchValue),
         )
 
     def getInteractionRelevanceAdvisorySwitch(self) -> bool:
         return bool(
-            self._call(
-                getattr(self._implementation, "getInteractionRelevanceAdvisorySwitch")
-            )
+            self._call(self._implementation.getInteractionRelevanceAdvisorySwitch)
         )
 
     def setInteractionRelevanceAdvisorySwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setInteractionRelevanceAdvisorySwitch"),
+            self._implementation.setInteractionRelevanceAdvisorySwitch,
             bool(switchValue),
         )
 
     def getAutomaticResignDirective(self) -> ResignAction:
-        name = _enum_name(
-            self._call(getattr(self._implementation, "getAutomaticResignDirective"))
-        )
+        name = _enum_name(self._call(self._implementation.getAutomaticResignDirective))
         try:
             return ResignAction[name]
         except KeyError as error:
-            raise RTIinternalError(f"Java RTI returned an unknown ResignAction: {name}") from error
+            raise RTIinternalError(
+                f"Java RTI returned an unknown ResignAction: {name}"
+            ) from error
 
     def setAutomaticResignDirective(self, resignAction: ResignAction) -> None:
         if not isinstance(resignAction, ResignAction):
             raise TypeError("resignAction must be ResignAction")
         self._call(
-            getattr(self._implementation, "setAutomaticResignDirective"),
+            self._implementation.setAutomaticResignDirective,
             self._runtime.resign_action(resignAction.name),
         )
 
     def getServiceReportingSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getServiceReportingSwitch"))
-        )
+        return bool(self._call(self._implementation.getServiceReportingSwitch))
 
     def setServiceReportingSwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setServiceReportingSwitch"),
+            self._implementation.setServiceReportingSwitch,
             bool(switchValue),
         )
 
     def getExceptionReportingSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getExceptionReportingSwitch"))
-        )
+        return bool(self._call(self._implementation.getExceptionReportingSwitch))
 
     def setExceptionReportingSwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setExceptionReportingSwitch"),
+            self._implementation.setExceptionReportingSwitch,
             bool(switchValue),
         )
 
     def getSendServiceReportsToFileSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getSendServiceReportsToFileSwitch"))
-        )
+        return bool(self._call(self._implementation.getSendServiceReportsToFileSwitch))
 
     def setSendServiceReportsToFileSwitch(self, switchValue: bool) -> None:
         self._call(
-            getattr(self._implementation, "setSendServiceReportsToFileSwitch"),
+            self._implementation.setSendServiceReportsToFileSwitch,
             bool(switchValue),
         )
 
     def getAutoProvideSwitch(self) -> bool:
-        return bool(self._call(getattr(self._implementation, "getAutoProvideSwitch")))
+        return bool(self._call(self._implementation.getAutoProvideSwitch))
 
     def getDelaySubscriptionEvaluationSwitch(self) -> bool:
         return bool(
-            self._call(getattr(self._implementation, "getDelaySubscriptionEvaluationSwitch"))
+            self._call(self._implementation.getDelaySubscriptionEvaluationSwitch)
         )
 
     def getAdvisoriesUseKnownClassSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getAdvisoriesUseKnownClassSwitch"))
-        )
+        return bool(self._call(self._implementation.getAdvisoriesUseKnownClassSwitch))
 
     def getAllowRelaxedDDMSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getAllowRelaxedDDMSwitch"))
-        )
+        return bool(self._call(self._implementation.getAllowRelaxedDDMSwitch))
 
     def getNonRegulatedGrantSwitch(self) -> bool:
-        return bool(
-            self._call(getattr(self._implementation, "getNonRegulatedGrantSwitch"))
-        )
+        return bool(self._call(self._implementation.getNonRegulatedGrantSwitch))
 
     def getTimeFactory(self) -> LogicalTimeFactory:
-        java_factory = self._call(self._runtime.logical_time_factory, self._implementation)
+        java_factory = self._call(
+            self._runtime.logical_time_factory, self._implementation
+        )
         name = str(java_factory.getName())
         if name == "HLAinteger64Time":
-            return _JavaInteger64TimeFactory(self._implementation, self._runtime, java_factory)
+            return _JavaInteger64TimeFactory(
+                self._implementation, self._runtime, java_factory
+            )
         if name == "HLAfloat64Time":
-            return _JavaFloat64TimeFactory(self._implementation, self._runtime, java_factory)
+            return _JavaFloat64TimeFactory(
+                self._implementation, self._runtime, java_factory
+            )
         # IEEE 1516.1 permits provider-defined logical-time factories.  Keep
         # their Java carrier opaque instead of rejecting the otherwise valid
         # standard factory surface or guessing an integer/float representation.
-        return _JavaProviderTimeFactory(self._implementation, self._runtime, java_factory)
+        return _JavaProviderTimeFactory(
+            self._implementation, self._runtime, java_factory
+        )
 
     def _selected_time_implementation_name(self) -> str:
         """Return the C++ federation's selected logical-time implementation."""
@@ -2521,9 +2661,7 @@ class JavaRTIambassador(RTIambassador):
         expected = self._selected_time_implementation_name()
         actual = interval.implementationName()
         if actual != expected:
-            raise mismatch_exception(
-                f"interval uses {actual}, expected {expected}"
-            )
+            raise mismatch_exception(f"interval uses {actual}, expected {expected}")
         return self._call(
             self._runtime.decode_logical_interval,
             self._implementation,
@@ -2534,35 +2672,35 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(lookahead, LogicalTimeInterval):
             raise TypeError("lookahead must be LogicalTimeInterval")
         self._call(
-            getattr(self._implementation, "enableTimeRegulation"),
+            self._implementation.enableTimeRegulation,
             self._decode_interval_argument(lookahead, InvalidLookahead),
         )
 
     def disableTimeRegulation(self) -> None:
-        self._call(getattr(self._implementation, "disableTimeRegulation"))
+        self._call(self._implementation.disableTimeRegulation)
 
     def enableTimeConstrained(self) -> None:
-        self._call(getattr(self._implementation, "enableTimeConstrained"))
+        self._call(self._implementation.enableTimeConstrained)
 
     def disableTimeConstrained(self) -> None:
-        self._call(getattr(self._implementation, "disableTimeConstrained"))
+        self._call(self._implementation.disableTimeConstrained)
 
     def enableAsynchronousDelivery(self) -> None:
-        self._call(getattr(self._implementation, "enableAsynchronousDelivery"))
+        self._call(self._implementation.enableAsynchronousDelivery)
 
     def disableAsynchronousDelivery(self) -> None:
-        self._call(getattr(self._implementation, "disableAsynchronousDelivery"))
+        self._call(self._implementation.disableAsynchronousDelivery)
 
     def modifyLookahead(self, lookahead: LogicalTimeInterval) -> None:
         if not isinstance(lookahead, LogicalTimeInterval):
             raise TypeError("lookahead must be LogicalTimeInterval")
         self._call(
-            getattr(self._implementation, "modifyLookahead"),
+            self._implementation.modifyLookahead,
             self._decode_interval_argument(lookahead, InvalidLookahead),
         )
 
     def queryLookahead(self) -> LogicalTimeInterval:
-        raw = self._call(getattr(self._implementation, "queryLookahead"))
+        raw = self._call(self._implementation.queryLookahead)
         # Let the selected factory own carrier classification.  In
         # particular, provider-defined 2025 intervals must remain opaque
         # instead of being guessed as HLAfloat64Interval merely because they
@@ -2573,7 +2711,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         self._call(
-            getattr(self._implementation, "timeAdvanceRequest"),
+            self._implementation.timeAdvanceRequest,
             self._decode_time_argument(time),
         )
 
@@ -2581,7 +2719,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         self._call(
-            getattr(self._implementation, "timeAdvanceRequestAvailable"),
+            self._implementation.timeAdvanceRequestAvailable,
             self._decode_time_argument(time),
         )
 
@@ -2589,7 +2727,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         self._call(
-            getattr(self._implementation, "nextMessageRequest"),
+            self._implementation.nextMessageRequest,
             self._decode_time_argument(time),
         )
 
@@ -2597,7 +2735,7 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         self._call(
-            getattr(self._implementation, "nextMessageRequestAvailable"),
+            self._implementation.nextMessageRequestAvailable,
             self._decode_time_argument(time),
         )
 
@@ -2605,17 +2743,17 @@ class JavaRTIambassador(RTIambassador):
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         self._call(
-            getattr(self._implementation, "flushQueueRequest"),
+            self._implementation.flushQueueRequest,
             self._decode_time_argument(time),
         )
 
     def queryLogicalTime(self) -> LogicalTime:
-        raw = self._call(getattr(self._implementation, "queryLogicalTime"))
+        raw = self._call(self._implementation.queryLogicalTime)
         return self.getTimeFactory()._time(raw)  # type: ignore[return-value]
 
     def _timeQuery(self, method_name: str) -> TimeQueryResult:
         raw = self._call(getattr(self._implementation, method_name))
-        valid = bool(getattr(raw, "timeIsValid"))
+        valid = bool(raw.timeIsValid)
         if not valid:
             return TimeQueryResult(False, None)
         value = raw.time
@@ -2643,30 +2781,34 @@ class JavaRTIambassador(RTIambassador):
     def _remember_retraction(self, raw_handle: object) -> MessageRetractionHandle:
         valid = getattr(raw_handle, "retractionHandleIsValid", True)
         if not bool(valid):
-            raise RTIinternalError("Java RTI did not issue a valid message-retraction handle")
+            raise RTIinternalError(
+                "Java RTI did not issue a valid message-retraction handle"
+            )
         raw_handle = getattr(raw_handle, "handle", raw_handle)
         if raw_handle is None:
             raise RTIinternalError("Java RTI returned no message-retraction handle")
         encoded = self._runtime.handle_bytes(raw_handle)
-        self._message_retractions[encoded] = raw_handle
+        self._message_retractions[encoded] = cast(
+            _JavaMessageRetractionHandle, raw_handle
+        )
         return MessageRetractionHandle(encoded)
 
     def getObjectClassHandle(self, objectClassName: str) -> ObjectClassHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getObjectClassHandle"), str(objectClassName)
+            self._implementation.getObjectClassHandle, str(objectClassName)
         )
         return ObjectClassHandle(self._runtime.handle_bytes(raw_handle))
 
     def getFederateHandle(self, federateName: str) -> FederateHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getFederateHandle"), str(federateName)
+            self._implementation.getFederateHandle, str(federateName)
         )
         return FederateHandle(self._runtime.federate_handle_bytes(raw_handle))
 
     def getFederateName(self, federate: FederateHandle) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getFederateName"),
+                self._implementation.getFederateName,
                 self._decode_handle(
                     "getFederateHandleFactory",
                     _encoded_handle(federate, FederateHandle),
@@ -2677,7 +2819,7 @@ class JavaRTIambassador(RTIambassador):
     def getObjectClassName(self, objectClass: ObjectClassHandle) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getObjectClassName"),
+                self._implementation.getObjectClassName,
                 self._decode_handle(
                     "getObjectClassHandleFactory",
                     _encoded_handle(objectClass, ObjectClassHandle),
@@ -2689,7 +2831,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectInstance: ObjectInstanceHandle
     ) -> ObjectClassHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getKnownObjectClassHandle"),
+            self._implementation.getKnownObjectClassHandle,
             self._decode_handle(
                 "getObjectInstanceHandleFactory",
                 _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -2701,7 +2843,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectClass: ObjectClassHandle, attributeName: str
     ) -> AttributeHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getAttributeHandle"),
+            self._implementation.getAttributeHandle,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -2715,7 +2857,7 @@ class JavaRTIambassador(RTIambassador):
     ) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getAttributeName"),
+                self._implementation.getAttributeName,
                 self._decode_handle(
                     "getObjectClassHandleFactory",
                     _encoded_handle(objectClass, ObjectClassHandle),
@@ -2730,7 +2872,7 @@ class JavaRTIambassador(RTIambassador):
     def getUpdateRateValue(self, updateRateDesignator: str) -> float:
         return float(
             self._call(
-                getattr(self._implementation, "getUpdateRateValue"),
+                self._implementation.getUpdateRateValue,
                 str(updateRateDesignator),
             )
         )
@@ -2740,7 +2882,7 @@ class JavaRTIambassador(RTIambassador):
     ) -> float:
         return float(
             self._call(
-                getattr(self._implementation, "getUpdateRateValueForAttribute"),
+                self._implementation.getUpdateRateValueForAttribute,
                 self._decode_handle(
                     "getObjectInstanceHandleFactory",
                     _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -2752,16 +2894,18 @@ class JavaRTIambassador(RTIambassador):
             )
         )
 
-    def getInteractionClassHandle(self, interactionClassName: str) -> InteractionClassHandle:
+    def getInteractionClassHandle(
+        self, interactionClassName: str
+    ) -> InteractionClassHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getInteractionClassHandle"), str(interactionClassName)
+            self._implementation.getInteractionClassHandle, str(interactionClassName)
         )
         return InteractionClassHandle(self._runtime.handle_bytes(raw_handle))
 
     def getInteractionClassName(self, interactionClass: InteractionClassHandle) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getInteractionClassName"),
+                self._implementation.getInteractionClassName,
                 self._decode_handle(
                     "getInteractionClassHandleFactory",
                     _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2773,7 +2917,7 @@ class JavaRTIambassador(RTIambassador):
         self, interactionClass: InteractionClassHandle, parameterName: str
     ) -> ParameterHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getParameterHandle"),
+            self._implementation.getParameterHandle,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2787,7 +2931,7 @@ class JavaRTIambassador(RTIambassador):
     ) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getParameterName"),
+                self._implementation.getParameterName,
                 self._decode_handle(
                     "getInteractionClassHandleFactory",
                     _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2800,21 +2944,21 @@ class JavaRTIambassador(RTIambassador):
         )
 
     def getOrderType(self, orderTypeName: str) -> OrderType:
-        raw_order = self._call(
-            getattr(self._implementation, "getOrderType"), str(orderTypeName)
-        )
+        raw_order = self._call(self._implementation.getOrderType, str(orderTypeName))
         name = _enum_name(raw_order)
         try:
             return OrderType[name]
         except KeyError as error:
-            raise RTIinternalError(f"Java RTI returned an unknown OrderType: {name}") from error
+            raise RTIinternalError(
+                f"Java RTI returned an unknown OrderType: {name}"
+            ) from error
 
     def getOrderName(self, orderType: OrderType) -> str:
         if not isinstance(orderType, OrderType):
             raise TypeError("orderType must be OrderType")
         return str(
             self._call(
-                getattr(self._implementation, "getOrderName"),
+                self._implementation.getOrderName,
                 self._runtime.order_type(orderType.name),
             )
         )
@@ -2823,15 +2967,17 @@ class JavaRTIambassador(RTIambassador):
         self, transportationTypeName: str
     ) -> TransportationTypeHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getTransportationTypeHandle"),
+            self._implementation.getTransportationTypeHandle,
             str(transportationTypeName),
         )
         return TransportationTypeHandle(self._runtime.handle_bytes(raw_handle))
 
-    def getTransportationTypeName(self, transportationType: TransportationTypeHandle) -> str:
+    def getTransportationTypeName(
+        self, transportationType: TransportationTypeHandle
+    ) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getTransportationTypeName"),
+                self._implementation.getTransportationTypeName,
                 self._decode_handle(
                     "getTransportationTypeHandleFactory",
                     _encoded_handle(transportationType, TransportationTypeHandle),
@@ -2841,14 +2987,14 @@ class JavaRTIambassador(RTIambassador):
 
     def getDimensionHandle(self, dimensionName: str) -> DimensionHandle:
         raw_handle = self._call(
-            getattr(self._implementation, "getDimensionHandle"), str(dimensionName)
+            self._implementation.getDimensionHandle, str(dimensionName)
         )
         return DimensionHandle(self._runtime.handle_bytes(raw_handle))
 
     def getDimensionName(self, dimension: DimensionHandle) -> str:
         return str(
             self._call(
-                getattr(self._implementation, "getDimensionName"),
+                self._implementation.getDimensionName,
                 self._decode_handle(
                     "getDimensionHandleFactory",
                     _encoded_handle(dimension, DimensionHandle),
@@ -2860,7 +3006,7 @@ class JavaRTIambassador(RTIambassador):
         self, objectClass: ObjectClassHandle
     ) -> DimensionHandleSet:
         raw_set = self._call(
-            getattr(self._implementation, "getAvailableDimensionsForObjectClass"),
+            self._implementation.getAvailableDimensionsForObjectClass,
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
@@ -2874,7 +3020,7 @@ class JavaRTIambassador(RTIambassador):
         self, interactionClass: InteractionClassHandle
     ) -> DimensionHandleSet:
         raw_set = self._call(
-            getattr(self._implementation, "getAvailableDimensionsForInteractionClass"),
+            self._implementation.getAvailableDimensionsForInteractionClass,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2887,7 +3033,7 @@ class JavaRTIambassador(RTIambassador):
     def getDimensionUpperBound(self, dimension: DimensionHandle) -> int:
         return int(
             self._call(
-                getattr(self._implementation, "getDimensionUpperBound"),
+                self._implementation.getDimensionUpperBound,
                 self._decode_handle(
                     "getDimensionHandleFactory",
                     _encoded_handle(dimension, DimensionHandle),
@@ -2900,7 +3046,7 @@ class JavaRTIambassador(RTIambassador):
             raise TypeError("serviceGroup must be ServiceGroup")
         return int(
             self._call(
-                getattr(self._implementation, "normalizeServiceGroup"),
+                self._implementation.normalizeServiceGroup,
                 self._runtime.service_group(serviceGroup.name),
             )
         )
@@ -2908,9 +3054,10 @@ class JavaRTIambassador(RTIambassador):
     def normalizeFederateHandle(self, federate: FederateHandle) -> int:
         return int(
             self._call(
-                getattr(self._implementation, "normalizeFederateHandle"),
+                self._implementation.normalizeFederateHandle,
                 self._decode_handle(
-                    "getFederateHandleFactory", _encoded_handle(federate, FederateHandle)
+                    "getFederateHandleFactory",
+                    _encoded_handle(federate, FederateHandle),
                 ),
             )
         )
@@ -2918,9 +3065,10 @@ class JavaRTIambassador(RTIambassador):
     def normalizeObjectClassHandle(self, objectClass: ObjectClassHandle) -> int:
         return int(
             self._call(
-                getattr(self._implementation, "normalizeObjectClassHandle"),
+                self._implementation.normalizeObjectClassHandle,
                 self._decode_handle(
-                    "getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)
+                    "getObjectClassHandleFactory",
+                    _encoded_handle(objectClass, ObjectClassHandle),
                 ),
             )
         )
@@ -2930,7 +3078,7 @@ class JavaRTIambassador(RTIambassador):
     ) -> int:
         return int(
             self._call(
-                getattr(self._implementation, "normalizeInteractionClassHandle"),
+                self._implementation.normalizeInteractionClassHandle,
                 self._decode_handle(
                     "getInteractionClassHandleFactory",
                     _encoded_handle(interactionClass, InteractionClassHandle),
@@ -2938,10 +3086,12 @@ class JavaRTIambassador(RTIambassador):
             )
         )
 
-    def normalizeObjectInstanceHandle(self, objectInstance: ObjectInstanceHandle) -> int:
+    def normalizeObjectInstanceHandle(
+        self, objectInstance: ObjectInstanceHandle
+    ) -> int:
         return int(
             self._call(
-                getattr(self._implementation, "normalizeObjectInstanceHandle"),
+                self._implementation.normalizeObjectInstanceHandle,
                 self._decode_handle(
                     "getObjectInstanceHandleFactory",
                     _encoded_handle(objectInstance, ObjectInstanceHandle),
@@ -2955,9 +3105,13 @@ class JavaRTIambassador(RTIambassador):
         fomModule: str | Iterable[str],
         logicalTimeImplementationName: str = "",
     ) -> None:
-        modules = (fomModule,) if isinstance(fomModule, str) else tuple(str(module) for module in fomModule)
+        modules = (
+            (fomModule,)
+            if isinstance(fomModule, str)
+            else tuple(str(module) for module in fomModule)
+        )
         self._call(
-            getattr(self._implementation, "createFederationExecution"),
+            self._implementation.createFederationExecution,
             federationName,
             self._runtime.fom_module_urls(tuple(str(module) for module in modules)),
             logicalTimeImplementationName,
@@ -2971,7 +3125,7 @@ class JavaRTIambassador(RTIambassador):
         logicalTimeImplementationName: str = "",
     ) -> None:
         self._call(
-            getattr(self._implementation, "createFederationExecutionWithMIM"),
+            self._implementation.createFederationExecutionWithMIM,
             federationName,
             self._runtime.fom_module_urls(tuple(str(module) for module in fomModules)),
             self._runtime.fom_module_url(str(mimModule)),
@@ -2979,7 +3133,7 @@ class JavaRTIambassador(RTIambassador):
         )
 
     def destroyFederationExecution(self, federationName: str) -> None:
-        self._call(getattr(self._implementation, "destroyFederationExecution"), federationName)
+        self._call(self._implementation.destroyFederationExecution, federationName)
 
     def unwrap_java_object(self) -> object:
         """Return the underlying Java object for explicit migration-only use.
@@ -3092,12 +3246,14 @@ class JavaRtiFactory(RtiFactory):
         *,
         runtime: JavaRuntime | None = None,
     ) -> None:
-        self._configuration = configuration or JavaProviderConfiguration.from_environment()
+        self._configuration = (
+            configuration or JavaProviderConfiguration.from_environment()
+        )
         self._runtime = runtime or JPypeJavaRuntime()
         self._implementation: object | None = None
 
     def getRtiAmbassador(self) -> RTIambassador:
-        implementation = self._call(getattr(self._java_factory(), "getRtiAmbassador"))
+        implementation = self._call(self._java_factory().getRtiAmbassador)
         return JavaRTIambassador(implementation, self._runtime)
 
     def probe(self) -> JavaRtiProbe:
@@ -3111,14 +3267,14 @@ class JavaRtiFactory(RtiFactory):
         )
 
     def getEncoderFactory(self) -> EncoderFactory:
-        implementation = self._call(getattr(self._java_factory(), "getEncoderFactory"))
+        implementation = self._call(self._java_factory().getEncoderFactory)
         return JavaEncoderFactory(implementation, self._runtime)
 
     def rtiName(self) -> str:
-        return str(self._call(getattr(self._java_factory(), "rtiName")))
+        return str(self._call(self._java_factory().rtiName))
 
     def rtiVersion(self) -> str:
-        return str(self._call(getattr(self._java_factory(), "rtiVersion")))
+        return str(self._call(self._java_factory().rtiVersion))
 
     def unwrap_java_factory(self) -> object:
         """Return the underlying Java ``RtiFactory`` for explicit migration use."""
@@ -3128,7 +3284,7 @@ class JavaRtiFactory(RtiFactory):
     def unwrap_java_encoder_factory(self) -> object:
         """Return the Java encoder only as an explicit non-portable escape hatch."""
 
-        return self._call(getattr(self._java_factory(), "getEncoderFactory"))
+        return self._call(self._java_factory().getEncoderFactory)
 
     def _java_factory(self) -> object:
         if self._implementation is None:

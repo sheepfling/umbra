@@ -5,7 +5,7 @@ legacy Python RTI project. It is a source of test ideas and adversarial inputs,
 not a source of public API, runtime semantics, or conformance evidence.
 
 The companion [test-resource register](LEGACY-PYTHON-RTI-TEST-RESOURCES.md)
-preserves the wider harvested scenario, fixture, and oracle inventory.  The
+preserves the wider harvested scenario, fixture, and oracle inventory. The
 [FOM stress-corpus backlog](../fom/FOM-STRESS-CORPUS-BACKLOG.md) separately records
 richer model families, provenance gates, and their intended capability phase.
 This backlog contains only the items chosen for Umbra implementation planning.
@@ -14,35 +14,35 @@ This backlog contains only the items chosen for Umbra implementation planning.
 
 - Inspected source revision: `7d92a5e24563ad996d2ec7ea5c1840c7c4a9c9bc`
   on 2026-08-16.
-- The sibling worktree had unrelated local changes at inspection time.  Refresh
+- The sibling worktree had unrelated local changes at inspection time. Refresh
   both the revision and worktree state before taking a later reading from it.
 - No Python implementation, pytest requirement marker, FOM XML, or test result
   has been copied into Umbra or executed as an Umbra test.
 - Its own bounded time-management proof is useful context, but it is evidence
-  for that Python runtime only.  It is not portable evidence for the official
+  for that Python runtime only. It is not portable evidence for the official
   C++ binding or an IEEE 1516.1-2025 conformance claim.
 
 The immutable IEEE 1516.1/1516.2 assets and the HLA Requirements Lab remain
-Umbra's normative inputs.  A selected scenario becomes an Umbra test only
+Umbra's normative inputs. A selected scenario becomes an Umbra test only
 after its expected outcome has been checked against those inputs, expressed
 through the official C++ API where applicable, and given its own Catch2
 evidence and Requirements-Lab traceability.
 
 ## Intake rules
 
-1. Treat a sibling assertion as a hypothesis.  Locate the pertinent 2025
+1. Treat a sibling assertion as a hypothesis. Locate the pertinent 2025
    source-derived requirement in the Requirements Lab before fixing an Umbra
    expectation.
 2. State the intended runtime boundary explicitly: private kernel, embedded
    no-TSO profile, TSO profile, or eventual transport/interoperability suite.
-3. Start with deterministic `HLAinteger64Time` cases.  Add floating-time and
+3. Start with deterministic `HLAinteger64Time` cases. Add floating-time and
    cross-process variants only after the integer kernel behavior is stable.
 4. Keep an unsupported or unimplemented scenario in this backlog (or a named
    exploratory target); do not add expected failures to the normal green
    Catch2 target.
 5. Before importing a FOM, record its upstream source, license/attribution,
    exact digest, edition/schema compatibility, module order, and the intended
-   verdict.  A parser-stress corpus is not automatically a federation root or
+   verdict. A parser-stress corpus is not automatically a federation root or
    a 2025-compatible runtime scenario.
 
 ## Current overlap
@@ -148,7 +148,7 @@ bounded in-flight ownership seam only; the complete ownership/resignation,
 alternate-advance, save/restore, regional, transport, and cross-process
 matrices remain backlog work.
 
-`SB-TIME-001` was intentionally first.  It prevented a superficially helpful
+`SB-TIME-001` was intentionally first. It prevented a superficially helpful
 Python helper test from silently choosing Umbra's time semantics; the official
 2025 source now supplies the recorded decision.
 
@@ -170,7 +170,7 @@ Python helper test from silently choosing Umbra's time semantics; the official
 ## FOM and stress-corpus candidates
 
 The detailed [FOM stress-corpus backlog](../fom/FOM-STRESS-CORPUS-BACKLOG.md) is the
-source of record for the broader model families.  The rows here retain only
+source of record for the broader model families. The rows here retain only
 the scenario-level handoff points.
 
 | ID | Candidate | Sibling source | Intended first use |

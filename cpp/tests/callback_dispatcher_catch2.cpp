@@ -223,6 +223,25 @@ TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time"
 }
 
 TEST_CASE(
+    "An evoked callback reports invocation separately from remaining work",
+    "[unit][kernel][callbacks][foundation][evoke-one-result]") {
+  CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
+  std::vector<int> order;
+  dispatcher.submit([&] { order.push_back(1); });
+
+  bool callbackInvoked = false;
+  REQUIRE_FALSE(dispatcher.evokeOne(0ms, &callbackInvoked));
+  REQUIRE(callbackInvoked);
+  REQUIRE(order == std::vector<int>{1});
+
+  dispatcher.submit([&] { order.push_back(2); });
+  callbackInvoked = false;
+  REQUIRE_FALSE(dispatcher.evokeOne(0ms, &callbackInvoked));
+  REQUIRE(callbackInvoked);
+  REQUIRE(order == std::vector<int>{1, 2});
+}
+
+TEST_CASE(
     "Concurrent evokers cannot enter one FederateAmbassador at the same time",
     "[unit][kernel][callbacks][concurrency]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);

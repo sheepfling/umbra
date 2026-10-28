@@ -22,6 +22,8 @@ TEST_CASE(
     "[federate.callback.time-advance-grant]") {
   auto runScenario = [](std::int64_t reenabledLookahead,
                         std::int64_t producerAdvance) {
+  INFO("reenabled lookahead " << reenabledLookahead << ", producer advance "
+                              << producerAdvance);
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -116,10 +118,12 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(producerAdvance)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
 
   auto const& report = receiverReports.attributeReflectionReports.front();
   REQUIRE(report.objectInstance == objectInstance);
@@ -152,10 +156,10 @@ TEST_CASE(
   };
 
   // Exercise both the unchanged-lookahead lifecycle and the changed-lookahead
-  // boundary.  With lookahead three, TAR(3) is the first producer position
-  // that raises GALT to the queued timestamp six.
+  // boundary.  With lookahead three, TAR(4) moves GALT strictly beyond the
+  // queued timestamp six so a grant at six is safe.
   runScenario(5, 2);
-  runScenario(3, 3);
+  runScenario(3, 4);
 }
 
 } // namespace

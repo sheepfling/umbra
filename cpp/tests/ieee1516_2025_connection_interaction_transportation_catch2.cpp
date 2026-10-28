@@ -75,9 +75,11 @@ class InteractionTransportationFederateAmbassador final
 void awaitTransportationCallback(
     rti1516_2025::RTIambassador &rti,
     CallbackModel callbackModel,
-    std::atomic_size_t const &count) {
+    std::atomic_size_t const &count,
+    std::size_t const expectedCount = 1U) {
   for (unsigned attempt = 0U;
-       attempt < 40U && count.load(std::memory_order_acquire) == 0U;
+       attempt < 40U &&
+       count.load(std::memory_order_acquire) < expectedCount;
        ++attempt) {
     if (callbackModel == HLA_EVOKED) {
       rti.evokeCallback(0.05);
@@ -92,7 +94,7 @@ void awaitTransportationCallback(
 
 TEST_CASE(
     "RTIambassador routes interaction transportation type change and query through a configured process endpoint",
-    "[integration][foundation][interaction-management][transportation][transport][process-boundary][public-endpoint][process-transportation-interaction-control][rti.service.request-interaction-transportation-type-change][rti.service.query-interaction-transportation-type]") {
+    "[integration][foundation][interaction-management][transportation][transport][process-boundary][public-endpoint][process-transportation-interaction-control][rti.service.request-interaction-transportation-type-change][rti.service.query-interaction-transportation-type][federate.callback.confirm-interaction-transportation-type-change]") {
   auto runScenario = [](CallbackModel callbackModel) {
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
     REQUIRE(listener);
@@ -166,6 +168,9 @@ TEST_CASE(
             !serveExpected(
                 TransportServiceOperation::query_interaction_transportation_type) ||
             !serveExpected(TransportServiceOperation::receive_interaction) ||
+            !serveExpected(
+                TransportServiceOperation::request_interaction_transportation_type_change) ||
+            !serveExpected(TransportServiceOperation::receive_interaction) ||
             !serveExpected(TransportServiceOperation::resign_federation_execution)) {
           throw std::runtime_error(
               "The public process transportation-interaction server lost a declaration, callback, or Resign operation.");
@@ -226,6 +231,15 @@ TEST_CASE(
       REQUIRE(federate.queriedFederate == queriedFederate);
       REQUIRE(federate.queriedInteractionClass == interactionClass);
       REQUIRE(federate.queriedTransportationType == transportation);
+      // Request the now-achieved type again: confirmation is required even
+      // though this request does not change the transportation type.
+      REQUIRE_NOTHROW(rti->requestInteractionTransportationTypeChange(
+          interactionClass, transportation));
+      REQUIRE_NOTHROW(awaitTransportationCallback(
+          *rti, callbackModel, federate.changeCount, 2U));
+      REQUIRE(federate.changeCount.load(std::memory_order_acquire) == 2U);
+      REQUIRE(federate.changedInteractionClass == interactionClass);
+      REQUIRE(federate.changedTransportationType == transportation);
       rti->resignFederationExecution(NO_ACTION);
       clientJoined = false;
       rti->disconnect();

@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 
@@ -34,9 +35,9 @@ TEST_CASE(
       L"timestamped-delete-receiver", L"subscriber", federationName));
 
   auto const child = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
-  auto const bestEffort = publisher->getAttributeHandle(child, L"BestEffortBase");
+  auto const bestEffort = publisher->getAttributeHandle(child, umbra::test::hla::wide::fixture::best_effort_base);
   AttributeHandleSet const attributes{reliable, bestEffort};
   REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
   REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(child, attributes));
@@ -166,7 +167,7 @@ void requireProducerCanUpdateBeforeTimestampedDeletion(
   }
 
   auto const child = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
   AttributeHandleSet const attributes{reliable};
   REQUIRE(child.isValid());

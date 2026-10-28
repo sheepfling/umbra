@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -163,12 +164,12 @@ void verifyAutomaticResignMomReflection(
     monitorJoined = true;
 
     auto const momClass = monitor->getObjectClassHandle(
-        L"HLAobjectRoot.HLAmanager.HLAfederate");
+        umbra::test::hla::wide::standard::manager_federate_object);
     auto const nameAttribute =
-        monitor->getAttributeHandle(momClass, L"HLAfederateName");
+        monitor->getAttributeHandle(momClass, umbra::test::hla::wide::standard::federate_name);
     auto const actionAttribute =
-        monitor->getAttributeHandle(momClass, L"HLAautomaticResignAction");
-    auto const reliable = monitor->getTransportationTypeHandle(L"HLAreliable");
+        monitor->getAttributeHandle(momClass, umbra::test::hla::wide::standard::automatic_resign_action);
+    auto const reliable = monitor->getTransportationTypeHandle(umbra::test::hla::wide::standard::reliable_transportation);
     REQUIRE(momClass.isValid());
     REQUIRE(nameAttribute.isValid());
     REQUIRE(actionAttribute.isValid());

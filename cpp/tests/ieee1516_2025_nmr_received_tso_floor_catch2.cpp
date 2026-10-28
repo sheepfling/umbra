@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 #include <catch2/generators/catch_generators.hpp>
 
@@ -224,8 +225,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->subscribeInteractionClass(interactionClass));
 
   auto const objectClass = requester->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
-  auto const attribute = requester->getAttributeHandle(objectClass, L"ReliableBaseA");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
+  auto const attribute = requester->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::reliable_base_a);
   REQUIRE(objectClass.isValid());
   REQUIRE(attribute.isValid());
   REQUIRE_NOTHROW(requester->publishObjectClassAttributes(objectClass, {attribute}));

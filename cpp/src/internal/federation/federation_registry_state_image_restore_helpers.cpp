@@ -1,6 +1,6 @@
 #include "internal/federation/federation_registry_state_image_restore_helpers.hpp"
 
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -14,7 +14,7 @@ std::shared_ptr<rti1516_2025::LogicalTime const> decodeLogicalTimeEncoding(
   if (!encoding) {
     return nullptr;
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw std::logic_error(
@@ -36,7 +36,7 @@ decodeLogicalTimeIntervalEncoding(
   if (!encoding) {
     return nullptr;
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw std::logic_error(

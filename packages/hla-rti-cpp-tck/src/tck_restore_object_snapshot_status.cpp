@@ -1,5 +1,7 @@
 #include "tck_restore_object_snapshot_status.hpp"
 
+#include <algorithm>
+#include <string>
 #include <vector>
 
 namespace hla_rti_cpp_tck::detail {
@@ -22,8 +24,9 @@ void requireStatusFor(rti::FederateRestoreStatusVector const& statuses,
 void runRestoreObjectSnapshotStatus(Options const& options, rti::CallbackModel model) {
   require(model == rti::HLA_IMMEDIATE,
           "Object snapshot restore has native evidence only for immediate callbacks");
-  require(!options.fom.empty() && !options.logicalTimeImplementationName.empty(),
-          "Object snapshot restore requires adapter FOM and time implementation");
+  require(!options.fom.empty() && !options.mimFom.empty() &&
+              !options.logicalTimeImplementationName.empty(),
+          "Object snapshot restore requires adapter FOM, standard MIM, and time implementation");
 
   Session owner(options, model, "owner");
   Session peer(options, model, "member");
@@ -31,13 +34,45 @@ void runRestoreObjectSnapshotStatus(Options const& options, rti::CallbackModel m
   std::wstring const saveLabel = L"tck-object-baseline";
   owner.connect();
   peer.connect();
-  owner.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
   owner.join(options.ownerFederateName, options.federateType + L"-owner", federation);
   peer.join(options.memberFederateName, options.federateType + L"-peer", federation);
+
+  auto const reportClass = peer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(reportClass.isValid(),
+          "Restore-status reporting returned an invalid service-report class");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = peer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(parameter.isValid(),
+            "Restore-status reporting returned an invalid service-report parameter");
+    reportParameters.push_back(parameter);
+  }
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  owner.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  peer.rtiAmbassador().setServiceReportingSwitch(false);
+  peer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  peer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
   auto const ownerHandle = owner.federateHandle();
   auto const peerHandle = peer.federateHandle();
 
+  // Capture the enabled switch in the save image so it remains enabled after
+  // restore; Set Service Reporting Switch is unavailable during restoration.
+  owner.rtiAmbassador().setServiceReportingSwitch(true);
   owner.rtiAmbassador().requestFederationSave(saveLabel);
   require(owner.federateSaveInitiations() == std::vector<std::wstring>{saveLabel} &&
               peer.federateSaveInitiations() == std::vector<std::wstring>{saveLabel},
@@ -81,8 +116,27 @@ void runRestoreObjectSnapshotStatus(Options const& options, rti::CallbackModel m
               peerRestore.postRestoreFederateHandle == peerHandle,
           "Restore initiation lost participant name or post-restore handle");
 
+  auto const restoreStatusBefore = owner.federationRestoreStatusResponses().size();
+  auto const reportsBeforeStatusQuery = peer.recorder().interactions().size();
   owner.rtiAmbassador().queryFederationRestoreStatus();
-  require(owner.federationRestoreStatusResponses().size() == 1U,
+  waitFor(
+      owner,
+      peer,
+      [&] {
+        auto const reports = peer.recorder().interactions();
+        return owner.federationRestoreStatusResponses().size() > restoreStatusBefore &&
+            std::any_of(
+                reports.begin(),
+                reports.end(),
+                [&](InteractionRecord const& report) {
+                  rti::HLAunicodeString decodedService;
+                  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+                  return decodedService.get() == L"FederationRestoreStatusResponse";
+                });
+      },
+      options,
+      "restore-status callback and public service-report interaction");
+  require(owner.federationRestoreStatusResponses().size() == restoreStatusBefore + 1U,
           "Immediate restoring-status response was not delivered directly");
   auto const restoring = owner.federationRestoreStatusResponses().back();
   require(restoring.size() == 2U,
@@ -90,6 +144,55 @@ void runRestoreObjectSnapshotStatus(Options const& options, rti::CallbackModel m
   requireStatusFor(restoring, ownerHandle, ownerHandle, rti::FEDERATE_RESTORING);
   requireStatusFor(restoring, peerHandle, peerHandle, rti::FEDERATE_RESTORING);
 
+  std::wstring expectedRestoreStatusRecords = L"[";
+  for (std::size_t index = 0; index < restoring.size(); ++index) {
+    if (index != 0U) expectedRestoreStatusRecords.push_back(L',');
+    auto const& descriptor = restoring[index];
+    expectedRestoreStatusRecords +=
+        L"{\"preRestoreHandle\":\"" + descriptor.preRestoreHandle.toString() +
+        L"\",\"postRestoreHandle\":\"" + descriptor.postRestoreHandle.toString() +
+        L"\",\"status\":\"FEDERATE_RESTORING\"}";
+  }
+  expectedRestoreStatusRecords.push_back(L']');
+  auto const reports = peer.recorder().interactions();
+  require(reports.size() >= reportsBeforeStatusQuery + 2U,
+          "Restore-status query omitted the service call or RTI response report");
+  auto const responseReport = std::find_if(
+      reports.begin(),
+      reports.end(),
+      [&](InteractionRecord const& report) {
+        rti::HLAunicodeString decodedService;
+        decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+        return decodedService.get() == L"FederationRestoreStatusResponse";
+      });
+  require(responseReport != reports.end(),
+          "Federation restore-status response report was not observed");
+  auto const responseReportIndex = static_cast<std::size_t>(
+      std::distance(reports.begin(), responseReport));
+  for (std::size_t index = 0U; index <= responseReportIndex; ++index) {
+    rti::HLAinteger32BE decodedSerial;
+    decodedSerial.decode(reports.at(index).parameters.at(reportParameters.at(6U)));
+    require(
+        decodedSerial.get() == static_cast<rti::Integer32>(index),
+        "Restore-status MOM reports did not preserve the joined-federate serial sequence");
+  }
+  requirePortableServiceReport(
+      peer,
+      *responseReport,
+      reportClass,
+      reportParameters,
+      L"FederationRestoreStatusResponse",
+      {{20,
+        L"List of joined federates and restore status for each",
+        expectedRestoreStatusRecords}},
+      {34, L"", L"null"},
+      static_cast<rti::Integer32>(responseReportIndex),
+      "Federation restore-status Table 5 argument encoding",
+      0);
+  require(
+      peer.rtiAmbassador().decodeFederateHandle(
+          responseReport->parameters.at(reportParameters.at(7U))) == ownerHandle,
+      "Federation restore-status response report identified the wrong federate");
   owner.rtiAmbassador().federateRestoreComplete();
   require(owner.federationRestoredCount() == 0U &&
               peer.federationRestoredCount() == 0U,
@@ -100,6 +203,7 @@ void runRestoreObjectSnapshotStatus(Options const& options, rti::CallbackModel m
               owner.federationNotRestoredReasons().empty() &&
               peer.federationNotRestoredReasons().empty(),
           "Object snapshot restore did not complete successfully");
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
   requireException([&] { owner.rtiAmbassador().getKnownObjectClassHandle(mutated); },
                    L"ObjectInstanceNotKnown",
                    "post-save object after baseline restore");

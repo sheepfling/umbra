@@ -163,7 +163,7 @@ boundary observation, not a conformance verdict or a Requirements-Lab defect.
 
 Richer external model families are deliberately kept in the
 [FOM stress-corpus backlog](FOM-STRESS-CORPUS-BACKLOG.md), outside this
-vendored authority boundary.  They require their own provenance, license,
+vendored authority boundary. They require their own provenance, license,
 edition, module-order, and expected-verdict review before they become inputs.
 
 ## Development-profile error boundary

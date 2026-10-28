@@ -7,7 +7,6 @@ import json
 import sys
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 COMPONENT_ROOT = REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025"
 HEADER_ROOT = COMPONENT_ROOT / "include"
@@ -41,8 +40,14 @@ def verify() -> tuple[str, ...]:
         path.relative_to(HEADER_ROOT).as_posix(): path
         for path in HEADER_ROOT.rglob("*.h")
     }
-    findings = [f"unexpected header {path}" for path in sorted(actual_files.keys() - expected.keys())]
-    findings.extend(f"missing header {path}" for path in sorted(expected.keys() - actual_files.keys()))
+    findings = [
+        f"unexpected header {path}"
+        for path in sorted(actual_files.keys() - expected.keys())
+    ]
+    findings.extend(
+        f"missing header {path}"
+        for path in sorted(expected.keys() - actual_files.keys())
+    )
     for relative_path in sorted(actual_files.keys() & expected.keys()):
         actual_digest = _sha256(actual_files[relative_path])
         if actual_digest != expected[relative_path]:

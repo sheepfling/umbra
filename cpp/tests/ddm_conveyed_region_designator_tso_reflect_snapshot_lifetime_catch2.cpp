@@ -200,15 +200,15 @@ TEST_CASE(
       L"ddm-tso-reflect-snapshot-receiver", L"receiver", federationName));
 
   auto const publisherSoda = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.Food.Drink.Soda");
+      umbra::test::hla::wide::fom::food_drink_soda);
   auto const receiverSoda = receiver->getObjectClassHandle(
-      L"HLAobjectRoot.Food.Drink.Soda");
+      umbra::test::hla::wide::fom::food_drink_soda);
   auto const publisherFlavor = publisher->getAttributeHandle(
-      publisherSoda, L"Flavor");
+      publisherSoda, umbra::test::hla::wide::fixture::flavor);
   auto const receiverFlavor = receiver->getAttributeHandle(
-      receiverSoda, L"Flavor");
-  auto const publisherDimension = publisher->getDimensionHandle(L"SodaFlavor");
-  auto const receiverDimension = receiver->getDimensionHandle(L"SodaFlavor");
+      receiverSoda, umbra::test::hla::wide::fixture::flavor);
+  auto const publisherDimension = publisher->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
+  auto const receiverDimension = receiver->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
   REQUIRE(publisherSoda.isValid());
   REQUIRE(receiverSoda.isValid());
   REQUIRE(publisherFlavor.isValid());

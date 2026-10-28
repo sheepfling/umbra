@@ -238,47 +238,119 @@ def test_known_membership_failure_preserves_connected_state_and_can_retry() -> N
         created[0].join_error = None
         retry = wait_for(
             commands,
-            commands.submit(JoinCommand.model_validate({**dict(request), "request_id": "retry",
-                "expected_version": commands.catalog().targets[0].version})),
+            commands.submit(
+                JoinCommand.model_validate(
+                    {
+                        **dict(request),
+                        "request_id": "retry",
+                        "expected_version": commands.catalog().targets[0].version,
+                    }
+                )
+            ),
         )
         assert retry.status == "succeeded"
     finally:
         commands.close()
 
 
-def test_optional_umbra_inspection_reads_the_owned_ambassador_on_its_owner_and_recovers_an_effectful_failure() -> None:
+def test_optional_umbra_inspection_reads_the_owned_ambassador_on_its_owner_and_recovers_an_effectful_failure() -> (
+    None
+):
     created: list[StrictAmbassador] = []
+
     class EffectfulFailure(StrictAmbassador):
-        def joinFederationExecution(self, federateType: str, federationExecutionName: str, *, federateName: str | None = None) -> object:
-            super().joinFederationExecution(federateType, federationExecutionName, federateName=federateName)
+        def joinFederationExecution(
+            self,
+            federateType: str,
+            federationExecutionName: str,
+            *,
+            federateName: str | None = None,
+        ) -> object:
+            super().joinFederationExecution(
+                federateType, federationExecutionName, federateName=federateName
+            )
             raise RuntimeError("unclassified failure after joining")
+
     def factory() -> StrictAmbassador:
         result = EffectfulFailure()
         created.append(result)
         return result
+
     def inspect(rti: LifecycleAmbassador) -> SessionStateObservation:
         assert isinstance(rti, StrictAmbassador) and rti is created[0]
         rti._call("inspect")
-        return SessionStateObservation(connection="connected" if rti.connected else "disconnected",
-            membership="joined" if rti.joined else "not-joined", federation="Allowed" if rti.joined else None,
-            federate="MyObserver" if rti.joined else None, federate_handle="handle-101" if rti.joined else None)
+        return SessionStateObservation(
+            connection="connected" if rti.connected else "disconnected",
+            membership="joined" if rti.joined else "not-joined",
+            federation="Allowed" if rti.joined else None,
+            federate="MyObserver" if rti.joined else None,
+            federate_handle="handle-101" if rti.joined else None,
+        )
+
     commands = CommandDispatcher()
-    session = create_umbra_command_session(factory, target_id="umbra", federations=("Allowed",),
-        sink=lambda _: None, inspection=inspect)
+    session = create_umbra_command_session(
+        factory,
+        target_id="umbra",
+        federations=("Allowed",),
+        sink=lambda _: None,
+        inspection=inspect,
+    )
     commands.register(session)
     try:
-        wait_for(commands, commands.submit(ConnectCommand(action="session.connect", request_id="connect", target_id="umbra",
-            expected_version=commands.catalog().targets[0].version, parameters=EmptyParameters())))
-        failed = wait_for(commands, commands.submit(JoinCommand(action="federate.join", request_id="join", target_id="umbra",
-            expected_version=commands.catalog().targets[0].version, parameters=JoinParameters(federation="Allowed", federate_name="MyObserver"))))
+        wait_for(
+            commands,
+            commands.submit(
+                ConnectCommand(
+                    action="session.connect",
+                    request_id="connect",
+                    target_id="umbra",
+                    expected_version=commands.catalog().targets[0].version,
+                    parameters=EmptyParameters(),
+                )
+            ),
+        )
+        failed = wait_for(
+            commands,
+            commands.submit(
+                JoinCommand(
+                    action="federate.join",
+                    request_id="join",
+                    target_id="umbra",
+                    expected_version=commands.catalog().targets[0].version,
+                    parameters=JoinParameters(
+                        federation="Allowed", federate_name="MyObserver"
+                    ),
+                )
+            ),
+        )
         assert failed.status == "failed" and session.describe().state == "unknown"
         current = commands.catalog().targets[0].version
         assert current is not None
-        recovered = wait_for(commands, commands.submit(RecoverSessionCommand(action="session.recover", target_id="umbra",
-            request_id="recover", expected_version=current, parameters=EmptyParameters(), confirmed=True)))
-        assert recovered.outcome is not None and recovered.outcome.inspection is not None and recovered.outcome.inspection.reconciled
-        assert session.describe().state == "joined" and created[0].calls.count("join") == 1
-        assert created[0].calls.count("inspect") == 2 and created[0].owner != threading.get_ident()
+        recovered = wait_for(
+            commands,
+            commands.submit(
+                RecoverSessionCommand(
+                    action="session.recover",
+                    target_id="umbra",
+                    request_id="recover",
+                    expected_version=current,
+                    parameters=EmptyParameters(),
+                    confirmed=True,
+                )
+            ),
+        )
+        assert (
+            recovered.outcome is not None
+            and recovered.outcome.inspection is not None
+            and recovered.outcome.inspection.reconciled
+        )
+        assert (
+            session.describe().state == "joined" and created[0].calls.count("join") == 1
+        )
+        assert (
+            created[0].calls.count("inspect") == 2
+            and created[0].owner != threading.get_ident()
+        )
         assert commands.get(failed.command_id) == failed
     finally:
         commands.close()

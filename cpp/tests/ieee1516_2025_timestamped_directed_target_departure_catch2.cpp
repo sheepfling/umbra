@@ -135,6 +135,10 @@ TEST_CASE(
   // Crossing the later grant boundary rechecks the target at callback entry.
   // The accepted time-seven directed passel is therefore suppressed, and the
   // receiver still advances without a stale directed callback.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(3)));
+  while (publisher->evokeCallback(0.0)) {
+  }
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(7)));
   while (receiver->evokeCallback(0.0)) {
@@ -142,9 +146,9 @@ TEST_CASE(
   REQUIRE(receiverReports.directedInteractionReports.empty());
   REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
-  REQUIRE_THROWS_AS(
-      publisher->getObjectInstanceName(target),
-      rti1516_2025::ObjectInstanceNotKnown);
+  // The owner has only advanced to time 3, so its local object-knowledge
+  // boundary has not reached the timestamp-six deletion yet.
+  REQUIRE(publisher->getObjectInstanceName(target) == targetName);
 
   REQUIRE_NOTHROW(receiver->unsubscribeObjectClassDirectedInteractions(
       objectClass,

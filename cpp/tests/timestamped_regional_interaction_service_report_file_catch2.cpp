@@ -363,7 +363,7 @@ TEST_CASE(
   };
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(1)));
+      rti1516_2025::HLAinteger64Time(2)));
   drain(*publisher);
   drain(*receiver);
   REQUIRE(reportPresentAtCallbackEntry);

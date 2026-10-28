@@ -262,7 +262,11 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
 
   auto timestamp = cloneAmbassadorReferenceLogicalTime(timeState->implementationName(), time);
   auto const timeSnapshot = timeState->snapshot();
-  validateAmbassadorTsoTimestamp(timeSnapshot, *timestamp);
+  // A Flush Queue Grant can expose an optimistic advance floor above the
+  // federate's actual time. Timestamped Delete uses the standard sender bound
+  // (actual logical time plus lookahead); the optimistic floor remains a
+  // precondition for a later time-advance request.
+  validateAmbassadorTsoTimestamp(timeSnapshot, *timestamp, false);
   VariableLengthData copiedTag(userSuppliedTag);
 
   std::wstring federationName;
@@ -297,10 +301,12 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     if (plan.status != umbra::detail::ObjectInstanceDeletionStatus::applied) {
       throwObjectInstanceDeletionFailure(plan.status);
     }
-    deletionSentOrderType = plan.preferredOrderType;
-    provideRetraction =
+    deletionSentOrderType =
         timeSnapshot.timeRegulating &&
-        plan.preferredOrderType == rti1516_2025::TIMESTAMP;
+                plan.preferredOrderType == rti1516_2025::TIMESTAMP
+            ? rti1516_2025::TIMESTAMP
+            : rti1516_2025::RECEIVE;
+    provideRetraction = deletionSentOrderType == rti1516_2025::TIMESTAMP;
 
     std::set<std::uint64_t> timeConstrainedRecipients;
     if (provideRetraction) {
@@ -327,7 +333,7 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     message.objectInstanceHandle = *objectInstanceHandle;
     message.userSuppliedTag = copiedTag;
     message.timestamp = std::shared_ptr<LogicalTime const>(timestamp);
-    message.sentOrderType = plan.preferredOrderType;
+    message.sentOrderType = deletionSentOrderType;
     enqueueResult = registry.enqueueTsoObjectDeletion(
         federationName,
         producingFederateId,

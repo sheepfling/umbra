@@ -2384,14 +2384,14 @@
         }
       },
       "required": [
+        "kind",
+        "phase",
         "operation_id",
         "session_id",
         "identity_namespace",
         "federation_id",
         "label",
         "scope",
-        "kind",
-        "phase",
         "source",
         "sequence",
         "observed_at"
@@ -3043,7 +3043,35 @@
             },
             {
               "additionalProperties": {
-                "$ref": "#/$defs/JsonValue"
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -3244,7 +3272,35 @@
             },
             {
               "additionalProperties": {
-                "$ref": "#/$defs/JsonValue"
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "additionalProperties": {
+                      "$ref": "#/$defs/JsonValue"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -9425,14 +9481,14 @@
         }
       },
       "required": [
+        "kind",
+        "phase",
         "operation_id",
         "session_id",
         "identity_namespace",
         "federation_id",
         "label",
-        "scope",
-        "kind",
-        "phase"
+        "scope"
       ],
       "title": "PersistenceObservation",
       "type": "object"
@@ -12451,14 +12507,14 @@
         }
       },
       "required": [
+        "kind",
+        "phase",
         "operation_id",
         "session_id",
         "identity_namespace",
         "federation_id",
         "label",
-        "scope",
-        "kind",
-        "phase"
+        "scope"
       ],
       "title": "SynchronizationObservation",
       "type": "object"

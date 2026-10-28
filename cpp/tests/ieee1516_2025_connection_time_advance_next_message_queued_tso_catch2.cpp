@@ -1069,7 +1069,7 @@ TEST_CASE(
         receiverRti->subscribeInteractionClass(receiverInteraction, true));
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(1)));
     if (callbackModel == HLA_EVOKED) {
       REQUIRE(senderFederate.timeRegulationEnabledCount == 0U);
       REQUIRE_FALSE(senderRti->evokeCallback(0.0));
@@ -1284,7 +1284,7 @@ TEST_CASE(
     // NMRA shares the dynamic retarget path but permits equality at GALT.
     // The timestamp-18 message was retained behind the earlier NMR grant;
     // NMRA selects it from the queued process input when the producer reaches
-    // 17 and the zero-lookahead GALT reaches 18.
+    // 17 and the lookahead-one GALT reaches 18.
     REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
         rti1516_2025::HLAinteger64Time(25)));
     REQUIRE(receiverFederate.receivedInteractionCount == 4U);

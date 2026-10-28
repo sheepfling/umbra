@@ -6,7 +6,9 @@ import importlib.util
 import os
 import struct
 import unittest
+from dataclasses import dataclass
 from pathlib import Path
+from typing import TypeAlias, TypedDict, TypeVar, cast
 
 from hla.rti1516e import (
     AttributeHandle,
@@ -60,6 +62,12 @@ from hla.rti1516e.encoding import (
     EncoderException,
 )
 from hla.rti1516e.exceptions import CouldNotDecode, RTIinternalError
+from hla.rti1516e.values import (
+    EncodedHandle,
+    SupplementalReceiveInfo,
+    SupplementalReflectInfo,
+    SupplementalRemoveInfo,
+)
 from umbra._java.rti1516e import (
     Java2010ProviderConfiguration,
     Java2010RtiFactory,
@@ -74,14 +82,67 @@ from umbra_rti_test_support import (
     assert_callback_delivery_parity,
     iter_callback_provenance_matrix,
     iter_data_element_value_matrix,
-    iter_vendor_data_element_encode_matrix,
     iter_logical_time_wire_matrix,
+    iter_vendor_data_element_encode_matrix,
     iter_vendor_data_element_wire_matrix,
     iter_vendor_time_arithmetic_matrix,
 )
 
 JPYPE_AVAILABLE = importlib.util.find_spec("jpype") is not None
 ENABLED = os.environ.get("UMBRA_ENABLE_JNI_2010_TYPE_ROUNDTRIP_TESTS") == "1"
+
+ReflectCallbackArguments: TypeAlias = tuple[
+    ObjectInstanceHandle,
+    AttributeHandleValueMap,
+    bytes,
+    OrderType,
+    TransportationTypeHandle,
+    HLAinteger64Time,
+    OrderType,
+    MessageRetractionHandle,
+    SupplementalReflectInfo,
+]
+ReceiveCallbackArguments: TypeAlias = tuple[
+    InteractionClassHandle,
+    ParameterHandleValueMap,
+    bytes,
+    OrderType,
+    TransportationTypeHandle,
+    HLAinteger64Time,
+    OrderType,
+    MessageRetractionHandle,
+    SupplementalReceiveInfo,
+]
+RemoveCallbackArguments: TypeAlias = tuple[
+    ObjectInstanceHandle,
+    bytes,
+    OrderType,
+    HLAinteger64Time,
+    OrderType,
+    MessageRetractionHandle,
+    SupplementalRemoveInfo,
+]
+
+
+class CallbackCaptures(TypedDict):
+    reflect: ReflectCallbackArguments | None
+    receive: ReceiveCallbackArguments | None
+    remove: RemoveCallbackArguments | None
+
+
+@dataclass(frozen=True, slots=True)
+class PendingRtiReturn:
+    method_name: str
+    java_carrier: object
+
+
+CaptureT = TypeVar("CaptureT")
+
+
+def _required_capture(value: CaptureT | None, callback_name: str) -> CaptureT:
+    if value is None:
+        raise AssertionError(f"JNI callback {callback_name} was not captured")
+    return value
 
 
 def _as_bytes(value: object) -> bytes:
@@ -138,7 +199,12 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
         self.assertEqual(factory.rtiName(), "Umbra JNI IEEE 1516e Null RTI")
         self.assertEqual(factory.rtiVersion(), "0.1.0-null")
         raw_factory = factory.unwrap_java_factory()
-        for factory_method in ("rtiName", "rtiVersion", "getRtiAmbassador", "getEncoderFactory"):
+        for factory_method in (
+            "rtiName",
+            "rtiVersion",
+            "getRtiAmbassador",
+            "getEncoderFactory",
+        ):
             with self.subTest(factory_method=factory_method):
                 self.assertTrue(callable(getattr(raw_factory, factory_method)))
         encoder = factory.getEncoderFactory()
@@ -177,9 +243,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
         than to a duplicated list in the adapter.
         """
 
-        import jpype
-
-        standard_interface = jpype.JClass(
+        standard_interface = self.jpype.JClass(
             "hla.rti1516e.encoding.EncoderFactory"
         ).class_
         java_signatures: dict[str, set[int]] = {}
@@ -187,9 +251,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             name = str(method.getName())
             if not name.startswith("createHLA"):
                 continue
-            java_signatures.setdefault(name, set()).add(
-                int(method.getParameterCount())
-            )
+            java_signatures.setdefault(name, set()).add(int(method.getParameterCount()))
 
         scalar_names = {
             "createHLAASCIIchar",
@@ -226,9 +288,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
 
         encoder = JavaEncoderFactory(self.probe.encoderFactoryCarrier(), self.runtime)
         python_names = {
-            name
-            for name in dir(type(encoder))
-            if name.startswith("createHLA")
+            name for name in dir(type(encoder)) if name.startswith("createHLA")
         }
         self.assertEqual(python_names, set(java_signatures))
         for name in sorted(java_signatures):
@@ -287,9 +347,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.raw.disconnect()
 
             def getTimeFactory(self) -> object:
-                return self.probe.logicalTimeFactoryCarrier(
-                    self.time_kind + "Factory"
-                )
+                return self.probe.logicalTimeFactoryCarrier(self.time_kind + "Factory")
 
             def getFederateHandleFactory(self) -> object:
                 return self.probe.handleFactoryCarrier("FederateHandleFactory")
@@ -298,17 +356,13 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.probe.handleFactoryCarrier("ObjectClassHandleFactory")
 
             def getObjectInstanceHandleFactory(self) -> object:
-                return self.probe.handleFactoryCarrier(
-                    "ObjectInstanceHandleFactory"
-                )
+                return self.probe.handleFactoryCarrier("ObjectInstanceHandleFactory")
 
             def getAttributeHandleFactory(self) -> object:
                 return self.probe.handleFactoryCarrier("AttributeHandleFactory")
 
             def getInteractionClassHandleFactory(self) -> object:
-                return self.probe.handleFactoryCarrier(
-                    "InteractionClassHandleFactory"
-                )
+                return self.probe.handleFactoryCarrier("InteractionClassHandleFactory")
 
             def getParameterHandleFactory(self) -> object:
                 return self.probe.handleFactoryCarrier("ParameterHandleFactory")
@@ -322,19 +376,13 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.probe.handleFactoryCarrier("DimensionHandleFactory")
 
             def getAttributeHandleSetFactory(self) -> object:
-                return self.probe.collectionFactoryCarrier(
-                    "AttributeHandleSetFactory"
-                )
+                return self.probe.collectionFactoryCarrier("AttributeHandleSetFactory")
 
             def getDimensionHandleSetFactory(self) -> object:
-                return self.probe.collectionFactoryCarrier(
-                    "DimensionHandleSetFactory"
-                )
+                return self.probe.collectionFactoryCarrier("DimensionHandleSetFactory")
 
             def getFederateHandleSetFactory(self) -> object:
-                return self.probe.collectionFactoryCarrier(
-                    "FederateHandleSetFactory"
-                )
+                return self.probe.collectionFactoryCarrier("FederateHandleSetFactory")
 
             def getRegionHandleSetFactory(self) -> object:
                 return self.probe.collectionFactoryCarrier("RegionHandleSetFactory")
@@ -412,9 +460,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 if expected_type == "Set<String>":
                     return frozenset(("jni-service-matrix",))
                 if expected_type == "AttributeHandleSet":
-                    return AttributeHandleSet(
-                        (argument("AttributeHandle"),)
-                    )
+                    return AttributeHandleSet((argument("AttributeHandle"),))
                 if expected_type == "DimensionHandleSet":
                     return DimensionHandleSet((argument("DimensionHandle"),))
                 if expected_type == "FederateHandleSet":
@@ -501,7 +547,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 }:
                     with self.subTest(method=name, time_kind=time_kind):
                         if name == "getTimeFactory":
-                            self.assertIsInstance(ambassador.getTimeFactory(), Java2010TimeFactory)
+                            self.assertIsInstance(
+                                ambassador.getTimeFactory(), Java2010TimeFactory
+                            )
                         else:
                             self.assertIsNotNone(getattr(ambassador, name)())
                     continue
@@ -509,11 +557,14 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                     RTIAMBASSADOR_PARAMETER_TYPES[name]
                 ):
                     arguments = tuple(argument(parameter) for parameter in parameters)
-                    with self.subTest(
-                        method=name,
-                        overload=overload_index,
-                        time_kind=time_kind,
-                    ), self.assertRaises(RTIinternalError):
+                    with (
+                        self.subTest(
+                            method=name,
+                            overload=overload_index,
+                            time_kind=time_kind,
+                        ),
+                        self.assertRaises(RTIinternalError),
+                    ):
                         getattr(ambassador, name)(*arguments)
 
             ambassador.connect(NullFederateAmbassador(), CallbackModel.HLA_IMMEDIATE)
@@ -623,9 +674,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 self.fail(name + " was not thrown")
 
     def test_standard_data_elements_handles_collections_and_times(self) -> None:
-        byte_wrapper_type = self.jpype.JClass(
-            "hla.rti1516e.encoding.ByteWrapper"
-        )
+        byte_wrapper_type = self.jpype.JClass("hla.rti1516e.encoding.ByteWrapper")
         for kind in self.probe.dataElementKinds():
             name = str(kind)
             seed = _as_bytes(self.probe.seedDataElement(name))
@@ -655,21 +704,15 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             # direction as well.  Keep a non-zero offset and trailing
             # sentinel so a successful JNI encode must advance exactly one
             # carrier and leave the caller-owned suffix untouched.
-            signed_seed = [
-                value if value < 0x80 else value - 0x100 for value in seed
-            ]
+            signed_seed = [value if value < 0x80 else value - 0x100 for value in seed]
             encode_buffer = self.jpype.JArray(self.jpype.JByte)(
                 [0, *signed_seed, -0x5B]
             )
-            encode_wrapper = byte_wrapper_type(
-                encode_buffer, 1, len(seed) + 1
-            )
+            encode_wrapper = byte_wrapper_type(encode_buffer, 1, len(seed) + 1)
             carrier.encode(encode_wrapper)
             self.assertEqual(encode_wrapper.getPos(), len(seed) + 1, name)
             self.assertEqual(encode_wrapper.remaining(), 1, name)
-            self.assertEqual(
-                _as_bytes(encode_buffer)[1 : len(seed) + 1], seed, name
-            )
+            self.assertEqual(_as_bytes(encode_buffer)[1 : len(seed) + 1], seed, name)
             self.assertEqual(
                 int(encode_buffer[encode_wrapper.getPos()]) & 0xFF,
                 0xA5,
@@ -1162,14 +1205,20 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 self.assertIs(element.encode(encoded_window), element)
                 self.assertEqual(encoded_window.getPos(), len(encoded) + 1, kind)
                 self.assertEqual(encoded_window.remaining(), 1, kind)
-                self.assertEqual(encoded_window.array()[1 : len(encoded) + 1], encoded, kind)
-                self.assertEqual(encoded_window.array()[encoded_window.getPos()], 0xA5, kind)
+                self.assertEqual(
+                    encoded_window.array()[1 : len(encoded) + 1], encoded, kind
+                )
+                self.assertEqual(
+                    encoded_window.array()[encoded_window.getPos()], 0xA5, kind
+                )
             short_window = ByteWrapper(bytearray(max(len(encoded) - 1, 0)))
             with self.subTest(encode_short_kind=kind):
                 with self.assertRaises(EncoderException):
                     element.encode(short_window)
                 self.assertEqual(short_window.getPos(), 0, kind)
-                self.assertEqual(bytes(short_window.array()), b"\0" * max(len(encoded) - 1, 0), kind)
+                self.assertEqual(
+                    bytes(short_window.array()), b"\0" * max(len(encoded) - 1, 0), kind
+                )
             with self.subTest(malformed_kind=kind), self.assertRaises(DecoderException):
                 element.decode(encoded[:-1])
 
@@ -1359,7 +1408,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             with self.subTest(implementation=implementation):
                 raw_factory = self.probe.logicalTimeFactoryCarrier(factory_kind)
                 factory = Java2010TimeFactory(self.probe, self.runtime, raw_factory)
-                time = factory.makeTime(5 if implementation.startswith("HLAinteger") else 5.5)
+                time = factory.makeTime(
+                    5 if implementation.startswith("HLAinteger") else 5.5
+                )
                 other_time = factory.makeTime(
                     3 if implementation.startswith("HLAinteger") else 3.5
                 )
@@ -1484,7 +1535,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             ),
             ("DimensionHandle", DimensionHandle, "getDimensionHandleFactory"),
         )
-        decoded_handles: dict[str, object] = {}
+        decoded_handles: dict[type[EncodedHandle], EncodedHandle] = {}
         for kind, handle_type, factory_method in handle_specs:
             with self.subTest(handle=kind):
                 raw = self.probe.handleCarrier(kind, 0x0123456789ABCDEF)
@@ -1493,7 +1544,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 decoded = factory.decode(encoded)
                 self.assertIsInstance(decoded, handle_type)
                 self.assertEqual(decoded.encodedValue, encoded)
-                decoded_handles[kind] = decoded
+                decoded_handles[handle_type] = decoded
 
         transportation_factory = ambassador.getTransportationTypeHandleFactory()
         self.assertEqual(
@@ -1524,9 +1575,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
 
         retraction_raw = self.probe.handleCarrier("MessageRetractionHandle", 32)
         ambassador._remember_raw_handle(MessageRetractionHandle, retraction_raw)
-        retraction = MessageRetractionHandle(
-            self.runtime.handle_bytes(retraction_raw)
-        )
+        retraction = MessageRetractionHandle(self.runtime.handle_bytes(retraction_raw))
         returned_retraction_raw = ambassador._convert_argument(
             retraction, "MessageRetractionHandle"
         )
@@ -1539,7 +1588,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             "MessageRetractionHandle opaque carrier round-trip",
         )
 
-        attribute = decoded_handles["AttributeHandle"]
+        attribute = cast(AttributeHandle, decoded_handles[AttributeHandle])
+        dimension = cast(DimensionHandle, decoded_handles[DimensionHandle])
+        federate = cast(FederateHandle, decoded_handles[FederateHandle])
         attribute_set = AttributeHandleSet((attribute,))
         region_set = RegionHandleSet((region,))
 
@@ -1551,13 +1602,13 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             ),
             (
                 "DimensionHandleSet",
-                DimensionHandleSet((decoded_handles["DimensionHandle"],)),
-                {decoded_handles["DimensionHandle"].encodedValue},
+                DimensionHandleSet((dimension,)),
+                {dimension.encodedValue},
             ),
             (
                 "FederateHandleSet",
-                FederateHandleSet((decoded_handles["FederateHandle"],)),
-                {decoded_handles["FederateHandle"].encodedValue},
+                FederateHandleSet((federate,)),
+                {federate.encodedValue},
             ),
             ("RegionHandleSet", region_set, {region.encodedValue}),
         )
@@ -1804,9 +1855,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
         for vector in iter_vendor_data_element_wire_matrix():
             with self.subTest(vector=vector.case_id):
                 target = _wrap_element(
-                    self.probe.roundTripObject(
-                        self.probe.vendorDataElementCarrier()
-                    ),
+                    self.probe.roundTripObject(self.probe.vendorDataElementCarrier()),
                     self.runtime,
                 )
                 if vector.valid:
@@ -1845,16 +1894,21 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
 
         class Callback(NullFederateAmbassador):
             def __init__(self) -> None:
-                self.calls: dict[str, tuple[object, ...]] = {}
+                self.calls: CallbackCaptures = {
+                    "reflect": None,
+                    "receive": None,
+                    "remove": None,
+                }
 
+            # The assertions below inspect the final retraction-bearing overload.
             def reflectAttributeValues(self, *args: object) -> None:
-                self.calls["reflect"] = args
+                self.calls["reflect"] = cast(ReflectCallbackArguments, args)
 
             def receiveInteraction(self, *args: object) -> None:
-                self.calls["receive"] = args
+                self.calls["receive"] = cast(ReceiveCallbackArguments, args)
 
             def removeObjectInstance(self, *args: object) -> None:
-                self.calls["remove"] = args
+                self.calls["remove"] = cast(RemoveCallbackArguments, args)
 
         callback = Callback()
         binding = self.runtime.bind_federate_ambassador(callback)
@@ -1958,29 +2012,42 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             raw_remove_info,
         )
 
-        reflect = callback.calls["reflect"]
+        reflect = _required_capture(callback.calls["reflect"], "reflect")
         self.assertEqual(len(reflect), 9)
         self.assertIsInstance(reflect[0], ObjectInstanceHandle)
         self.assertIsInstance(reflect[1], AttributeHandleValueMap)
-        self.assertEqual(reflect[1][AttributeHandle(self.runtime.handle_bytes(raw_attribute))], b"reflect")
+        self.assertEqual(
+            reflect[1][AttributeHandle(self.runtime.handle_bytes(raw_attribute))],
+            b"reflect",
+        )
         self.assertEqual(reflect[2], b"reflect-retraction")
         self.assertIs(reflect[3], OrderType.RECEIVE)
         self.assertIsInstance(reflect[4], TransportationTypeHandle)
         self.assertEqual(reflect[5].getTime(), raw_time.getValue())
         self.assertIs(reflect[6], OrderType.RECEIVE)
         self.assertIsInstance(reflect[7], MessageRetractionHandle)
-        self.assertIsInstance(reflect[8], type(self.runtime.from_java_value(raw_reflect_info, "SupplementalReflectInfo")))
+        self.assertIsInstance(
+            reflect[8],
+            type(
+                self.runtime.from_java_value(
+                    raw_reflect_info, "SupplementalReflectInfo"
+                )
+            ),
+        )
 
-        receive = callback.calls["receive"]
+        receive = _required_capture(callback.calls["receive"], "receive")
         self.assertEqual(len(receive), 9)
         self.assertIsInstance(receive[0], InteractionClassHandle)
         self.assertIsInstance(receive[1], ParameterHandleValueMap)
-        self.assertEqual(receive[1][ParameterHandle(self.runtime.handle_bytes(raw_parameter))], b"receive")
+        self.assertEqual(
+            receive[1][ParameterHandle(self.runtime.handle_bytes(raw_parameter))],
+            b"receive",
+        )
         self.assertEqual(receive[2], b"receive-retraction")
         self.assertIsInstance(receive[4], TransportationTypeHandle)
         self.assertIsInstance(receive[7], MessageRetractionHandle)
 
-        remove = callback.calls["remove"]
+        remove = _required_capture(callback.calls["remove"], "remove")
         self.assertEqual(len(remove), 7)
         self.assertIsInstance(remove[0], ObjectInstanceHandle)
         self.assertEqual(remove[1], b"remove-retraction")
@@ -2087,9 +2154,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 "RestoreFailureReason",
                 "RestoreStatus",
             }:
-                return self.jpype.JClass(
-                    "hla.rti1516e." + expected_type
-                ).values()[0]
+                return self.jpype.JClass("hla.rti1516e." + expected_type).values()[0]
             if expected_type == "FederateHandleSaveStatusPair[]":
                 pair_type = self.jpype.JClass(
                     "hla.rti1516e.FederateHandleSaveStatusPair"
@@ -2100,9 +2165,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 )
                 return self.jpype.JArray(pair_type)([pair])
             if expected_type == "FederateRestoreStatus[]":
-                pair_type = self.jpype.JClass(
-                    "hla.rti1516e.FederateRestoreStatus"
-                )
+                pair_type = self.jpype.JClass("hla.rti1516e.FederateRestoreStatus")
                 pair = pair_type(
                     self.probe.handleCarrier("FederateHandle", 24),
                     self.probe.handleCarrier("FederateHandle", 25),
@@ -2152,9 +2215,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                     returned_name, returned = calls[-1]
                     self.assertEqual(returned_name, name)
                     self.assertEqual(len(returned), len(overload), name)
-                    for expected_type, value in zip(
-                        overload, returned, strict=True
-                    ):
+                    for expected_type, value in zip(overload, returned, strict=True):
                         with self.subTest(
                             callback=name,
                             overload=overload,
@@ -2342,11 +2403,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                         CallbackDeliveryObservation(
                             recipient=recipient,
                             sequence=len(
-                                [
-                                    item
-                                    for item in actual
-                                    if item.recipient == recipient
-                                ]
+                                [item for item in actual if item.recipient == recipient]
                             ),
                             vector_id=vector.case_id,
                             callback=vector.callback,
@@ -2375,9 +2432,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                             received_order=(
                                 result[6].name if vector.timed else result[3].name
                             ),
-                            retraction=(
-                                vector.retraction if vector.timed else None
-                            ),
+                            retraction=(vector.retraction if vector.timed else None),
                         )
                     )
 
@@ -2410,9 +2465,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.probe.handleFactoryCarrier("ParameterHandleFactory")
 
             def getInteractionClassHandleFactory(self) -> object:
-                return self.probe.handleFactoryCarrier(
-                    "InteractionClassHandleFactory"
-                )
+                return self.probe.handleFactoryCarrier("InteractionClassHandleFactory")
 
             def getParameterHandleValueMapFactory(self) -> object:
                 return self.probe.collectionFactoryCarrier(
@@ -2428,17 +2481,13 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.probe.handleFactoryCarrier("AttributeHandleFactory")
 
             def getObjectInstanceHandleFactory(self) -> object:
-                return self.probe.handleFactoryCarrier(
-                    "ObjectInstanceHandleFactory"
-                )
+                return self.probe.handleFactoryCarrier("ObjectInstanceHandleFactory")
 
             def getRegionHandleSetFactory(self) -> object:
                 return self.probe.collectionFactoryCarrier("RegionHandleSetFactory")
 
             def getTimeFactory(self) -> object:
-                return self.probe.logicalTimeFactoryCarrier(
-                    "HLAinteger64TimeFactory"
-                )
+                return self.probe.logicalTimeFactoryCarrier("HLAinteger64TimeFactory")
 
             def sendInteraction(self, *args: object) -> object:
                 return raw_return if len(args) == 4 else None
@@ -2470,7 +2519,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
         ambassador._remember_raw_handle(RegionHandle, region_raw)
         object_instance = ObjectInstanceHandle(self.runtime.handle_bytes(object_raw))
         attribute = AttributeHandle(self.runtime.handle_bytes(attribute_raw))
-        regions = RegionHandleSet((RegionHandle(self.runtime.handle_bytes(region_raw)),))
+        regions = RegionHandleSet(
+            (RegionHandle(self.runtime.handle_bytes(region_raw)),)
+        )
         attribute_values = AttributeHandleValueMap({attribute: b"attribute"})
         parameter_values = ParameterHandleValueMap()
         time = HLAinteger64Time(
@@ -2554,8 +2605,7 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             def __init__(self, probe: object, time_kind: str) -> None:
                 self.probe = probe
                 self.time_kind = time_kind
-                self.calls: list[tuple[str, tuple[object, ...]]] = []
-                self.results: dict[str, object] = {}
+                self.pending_return: PendingRtiReturn | None = None
 
             def _handle_factory(self, kind: str) -> object:
                 return self.probe.handleFactoryCarrier(kind + "Factory")
@@ -2615,12 +2665,12 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return self.probe.roundTripString("jni-2010-return-matrix")
 
             def __getattr__(self, name: str) -> object:
-                if name not in self.results:
+                pending_return = self.pending_return
+                if pending_return is None or name != pending_return.method_name:
                     raise AttributeError(name)
 
                 def invoke(*args: object) -> object:
-                    self.calls.append((name, args))
-                    return self.results[name]
+                    return pending_return.java_carrier
 
                 return invoke
 
@@ -2722,20 +2772,36 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
             if expected_type == "Set<String>":
                 return frozenset(("python-return-matrix",))
             if expected_type == "AttributeHandleSet":
-                return AttributeHandleSet((python_value("AttributeHandle", time_kind, ambassador),))
+                return AttributeHandleSet(
+                    (python_value("AttributeHandle", time_kind, ambassador),)
+                )
             if expected_type == "DimensionHandleSet":
-                return DimensionHandleSet((python_value("DimensionHandle", time_kind, ambassador),))
+                return DimensionHandleSet(
+                    (python_value("DimensionHandle", time_kind, ambassador),)
+                )
             if expected_type == "FederateHandleSet":
-                return FederateHandleSet((python_value("FederateHandle", time_kind, ambassador),))
+                return FederateHandleSet(
+                    (python_value("FederateHandle", time_kind, ambassador),)
+                )
             if expected_type == "RegionHandleSet":
-                return RegionHandleSet((python_value("RegionHandle", time_kind, ambassador),))
+                return RegionHandleSet(
+                    (python_value("RegionHandle", time_kind, ambassador),)
+                )
             if expected_type == "AttributeHandleValueMap":
                 return AttributeHandleValueMap(
-                    {python_value("AttributeHandle", time_kind, ambassador): b"attribute"}
+                    {
+                        python_value(
+                            "AttributeHandle", time_kind, ambassador
+                        ): b"attribute"
+                    }
                 )
             if expected_type == "ParameterHandleValueMap":
                 return ParameterHandleValueMap(
-                    {python_value("ParameterHandle", time_kind, ambassador): b"parameter"}
+                    {
+                        python_value(
+                            "ParameterHandle", time_kind, ambassador
+                        ): b"parameter"
+                    }
                 )
             if expected_type == "AttributeSetRegionSetPairList":
                 attributes = AttributeHandleSet(
@@ -2784,7 +2850,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                 return 2.25
             if expected_type == "boolean":
                 return True
-            raise AssertionError("return matrix has no Python value for " + expected_type)
+            raise AssertionError(
+                "return matrix has no Python value for " + expected_type
+            )
 
         expected_cases = 0
         for time_kind in ("HLAinteger64Time", "HLAfloat64Time"):
@@ -2801,7 +2869,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                     if return_type == "void":
                         continue
                     parameters = RTIAMBASSADOR_PARAMETER_TYPES[name][overload_index]
-                    owner.results[name] = raw_result(return_type, time_kind)
+                    owner.pending_return = PendingRtiReturn(
+                        name, raw_result(return_type, time_kind)
+                    )
                     arguments = tuple(
                         python_value(parameter, time_kind, ambassador)
                         for parameter in parameters
@@ -2842,7 +2912,9 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                         elif return_type == "MessageRetractionReturn":
                             self.assertIsInstance(result, MessageRetractionReturn)
                             self.assertTrue(result.retractionHandleIsValid)
-                            self.assertIsInstance(result.handle, MessageRetractionHandle)
+                            self.assertIsInstance(
+                                result.handle, MessageRetractionHandle
+                            )
                         elif return_type == "TimeQueryReturn":
                             self.assertIsInstance(result, TimeQueryReturn)
                             self.assertTrue(result.timeIsValid)
@@ -2857,7 +2929,10 @@ class Jpype2010JniTypeRoundTripTests(unittest.TestCase):
                         elif return_type == "String":
                             self.assertIsInstance(result, str)
                         elif return_type in enum_types or return_type == "ServiceGroup":
-                            self.assertIsInstance(result, type(python_value(return_type, time_kind, ambassador)))
+                            self.assertIsInstance(
+                                result,
+                                type(python_value(return_type, time_kind, ambassador)),
+                            )
                         elif return_type == "boolean":
                             self.assertIs(type(result), bool)
                         elif return_type == "double":

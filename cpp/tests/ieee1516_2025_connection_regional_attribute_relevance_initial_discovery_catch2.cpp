@@ -463,22 +463,36 @@ TEST_CASE(
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
+        std::lock_guard lock(mutex);
         ++turnedOnCount;
         turnedOnObjectInstance = objectInstance;
         turnedOnAttributes = attributes;
         turnedOnUpdateRateDesignator.reset();
+        callbacksChanged.notify_all();
       }
 
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes,
           std::wstring const& updateRateDesignator) override {
+        std::lock_guard lock(mutex);
         ++turnedOnCount;
         turnedOnObjectInstance = objectInstance;
         turnedOnAttributes = attributes;
         turnedOnUpdateRateDesignator = updateRateDesignator;
+        callbacksChanged.notify_all();
       }
 
+      void waitForTurnedOnCount(std::size_t expected) {
+        std::unique_lock lock(mutex);
+        REQUIRE(callbacksChanged.wait_for(
+            lock,
+            std::chrono::seconds(2),
+            [this, expected] { return turnedOnCount >= expected; }));
+      }
+
+      std::mutex mutex;
+      std::condition_variable callbacksChanged;
       std::size_t turnedOnCount = 0U;
       rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
       rti1516_2025::AttributeHandleSet turnedOnAttributes;
@@ -725,11 +739,15 @@ TEST_CASE(
       if (callbackModel == HLA_EVOKED) {
         static_cast<void>(ownerRti->evokeCallback(0.0));
       }
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
-              std::optional<std::wstring>{L"High"});
+      ownerFederate.waitForTurnedOnCount(1U);
+      {
+        std::lock_guard lock(ownerFederate.mutex);
+        REQUIRE(ownerFederate.turnedOnCount == 1U);
+        REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
+                std::optional<std::wstring>{L"High"});
+      }
       if (callbackModel == HLA_IMMEDIATE) {
         static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
       } else {

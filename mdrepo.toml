@@ -1,0 +1,12 @@
+# Local Markdown path policy. Rumdl owns ordinary missing targets and fragments.
+[links]
+require-posix = true
+allow-root-relative = false
+allow-outside-root = false
+check-missing-targets = false
+check-case = true
+check-durable-targets = true
+
+# Package, evidence, and history pages do not share a curated navigation root.
+[orphans]
+enabled = false

@@ -3,16 +3,20 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "source-backed-canonical-section-correction-not-conformance-evidence",
-  "notes": "RL-342 records that the pinned page-44 saved-message restore candidate is exported at Clause 4 although the complete 2025 source places it under §4.1.2 Federation execution save and restore. The stable Lab ID and exported metadata remain unchanged. The current C++ case directly covers only the post-restore delivery subclaim for one ordinary RO interaction replay in the embedded development profile; it does not establish that unrelated undelivered messages in the restoring federation execution are discarded. No TSO, attribute, process, validation, or conformance coverage is implied.",
-  "canonical_standard_section_overrides": [
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l54-17",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-4",
-      "canonical_clause_id": "clause-4.1.2",
-      "source_heading": "4.1.2 Federation execution save and restore",
-      "source_path": "output/semantic/content-block-content-15161-page-043.tex; output/semantic/content-block-content-15161-page-044.tex",
-      "known_issue_id": "RL-342"
-    }
-  ]
+  "notes": "RL-342 records that the pinned page-44 saved-message restore candidate is exported at Clause 4 although the complete 2025 source places it under \u00a74.1.2 Federation execution save and restore. The stable Lab ID and exported metadata remain unchanged. The current C++ case directly covers only the post-restore delivery subclaim for one ordinary RO interaction replay in the embedded development profile; it does not establish that unrelated undelivered messages in the restoring federation execution are discarded. No TSO, attribute, process, validation, or conformance coverage is implied. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [],
+    "retired_overrides": [
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l54-17",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-4",
+        "canonical_clause_id": "clause-4.1.2",
+        "source_heading": "4.1.2 Federation execution save and restore",
+        "source_path": "output/semantic/content-block-content-15161-page-043.tex; output/semantic/content-block-content-15161-page-044.tex",
+        "known_issue_id": "RL-342"
+      }
+    ]
+  }
 }

@@ -2,7 +2,7 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 TEST_CASE(
-    "Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
+    "Embedded Flush Queue Request enforces the optimistic-time send bound for timestamped regional interaction",
     "[integration][development-profile][interaction-management][ddm][time-management]"
     "[flush-queue-request][timestamped-regional-interaction][tso]"
     "[fqr-distinct-actual-optimistic-regional-interaction-bound]"
@@ -112,18 +112,26 @@ TEST_CASE(
   REQUIRE(report.retractionSupplied);
   REQUIRE(report.retractionValid);
 
-  // The FQR actual grant is 5 while its optimistic time is 7. The sender's
-  // timestamped regional-service bound uses actual current time plus
-  // lookahead, so a send at 6 succeeds without advancing logical time.
+  // The FQR actual grant is 5 while its optimistic time is 7. Under §8.12.3,
+  // the sender must not generate a TSO message before optimistic time plus the
+  // lookahead it would have at that time: 6 is rejected and 8 is accepted.
   rti1516_2025::HLAinteger64Time logicalTime;
   REQUIRE_NOTHROW(receiver->queryLogicalTime(logicalTime));
   REQUIRE(logicalTime.getTime() == 5);
+  REQUIRE_THROWS_AS(
+      receiver->sendInteractionWithRegions(
+          interactionClass,
+          parameterValues,
+          RegionHandleSet{receiverRegion},
+          tag,
+          rti1516_2025::HLAinteger64Time(6)),
+      rti1516_2025::InvalidLogicalTime);
   auto const postGrantRetraction = receiver->sendInteractionWithRegions(
       interactionClass,
       parameterValues,
       RegionHandleSet{receiverRegion},
       tag,
-      rti1516_2025::HLAinteger64Time(6));
+      rti1516_2025::HLAinteger64Time(8));
   REQUIRE(postGrantRetraction.isValid());
   REQUIRE_NOTHROW(receiver->queryLogicalTime(logicalTime));
   REQUIRE(logicalTime.getTime() == 5);

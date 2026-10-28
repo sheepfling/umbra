@@ -973,9 +973,9 @@ TEST_CASE(
       L"process-rti-owned-query-federate", L"observer", federationName));
 
   auto const momClass = rti->getObjectClassHandle(
-      L"HLAobjectRoot.HLAmanager.HLAfederate");
+      umbra::test::hla::wide::standard::manager_federate_object);
   auto const reportFileAttribute = rti->getAttributeHandle(
-      momClass, L"HLAreportServiceFile");
+      momClass, umbra::test::hla::wide::standard::report_service_file);
   REQUIRE(momClass.isValid());
   REQUIRE(reportFileAttribute.isValid());
   REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(

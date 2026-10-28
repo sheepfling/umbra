@@ -692,20 +692,76 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  auto response = handler(request);
-                  if (response.status != TransportServiceStatus::ok) {
-                    throw std::runtime_error(description);
-                  }
-                  return response;
-                })) {
-          throw std::runtime_error(description);
+        for (unsigned int attempt = 0U; attempt != 17U; ++attempt) {
+          bool expectedServed = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok) {
+                        throw std::runtime_error(
+                            "The directed callback-gating server rejected a callback poll.");
+                      }
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(
+                              request.operation)) + ".");
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(description);
+                    }
+                    expectedServed = true;
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (expectedServed) {
+            return;
+          }
         }
+        throw std::runtime_error(
+            std::string(description) + " was preceded by too many callback polls.");
+      };
+      auto serveTsoAcknowledgement = [&](ProcessTransportSession& session,
+                                         auto const& handler) {
+        for (unsigned int attempt = 0U; attempt != 9U; ++attempt) {
+          bool acknowledged = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation !=
+                            TransportServiceOperation::receive_interaction &&
+                        request.operation !=
+                            TransportServiceOperation::acknowledge_tso_delivery) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server expected a callback poll or TSO acknowledgement. Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(
+                              request.operation)) + ".");
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server rejected callback delivery progress.");
+                    }
+                    acknowledged = request.operation ==
+                        TransportServiceOperation::acknowledge_tso_delivery;
+                    return response;
+                  })) {
+            throw std::runtime_error(
+                "The directed callback-gating server lost callback delivery progress.");
+          }
+          if (acknowledged) {
+            return;
+          }
+        }
+        throw std::runtime_error(
+            "The directed callback-gating server received too many polls without a TSO acknowledgement.");
       };
 
       serveExpected(
@@ -820,11 +876,40 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
           TransportServiceOperation::register_object_instance,
           "The directed callback-gating server lost target registration.");
       if (!useImmediateCallbacks) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The directed callback-gating server lost discovery poll.");
+        bool targetDiscoveryServed = false;
+        for (unsigned int attempt = 0U;
+             attempt != 8U && !targetDiscoveryServed;
+             ++attempt) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver, receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation !=
+                        TransportServiceOperation::receive_interaction) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server expected a discovery poll. Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(
+                              request.operation)) + ".");
+                    }
+                    auto response = receiverHandler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server rejected a discovery poll.");
+                    }
+                    auto const result =
+                        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+                            response.payload);
+                    targetDiscoveryServed = result.discoveryEvent &&
+                        !result.discoveryEvent->rtiOwnedMomObject;
+                    return response;
+                  })) {
+            throw std::runtime_error(
+                "The directed callback-gating server lost discovery poll.");
+          }
+        }
+        if (!targetDiscoveryServed) {
+          throw std::runtime_error(
+              "The directed callback-gating server did not return target discovery after polling.");
+        }
       }
       serveExpected(
           sender,
@@ -874,13 +959,8 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
             TransportServiceOperation::report_successful_void_service_invocation,
             "The directed callback-gating server lost receiver NMR report.");
       }
-      if (!useImmediateCallbacks) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The directed callback-gating server lost pre-send poll.");
-      }
+      // No empty callback poll is issued at this boundary; the client checks
+      // callback counts directly before the timestamped Send below.
       if (!umbra::test::servePrimaryProcessRequest(
               sender, senderHandler,
               [&](TransportServiceMessage const& request) {
@@ -906,6 +986,18 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
         throw std::runtime_error(
             "The directed callback-gating server lost directed Send.");
       }
+      if (!useImmediateCallbacks && !pendingTimeConstrainedEnable) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost sender TAR after directed Send.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost sender TAR report after directed Send.");
+      }
       if (pendingTimeConstrainedEnable) {
         serveExpected(
             sender,
@@ -928,6 +1020,16 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
             TransportServiceOperation::report_successful_void_service_invocation,
             "The directed callback-gating server lost sender TAR(5) report.");
         serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost sender TAR(6).");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost sender TAR(6) report.");
+        serveExpected(
             receiver,
             receiverHandler,
             TransportServiceOperation::time_advance_request,
@@ -939,23 +1041,79 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
             "The directed callback-gating server lost receiver TAR boundary report.");
       }
       // The eligible TSO is already admitted through the active event path;
-      // the receiver's next service request after callback dispatch is its
-      // delivery acknowledgement, not another Receive Interaction poll.
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::acknowledge_tso_delivery,
-          "The directed callback-gating server lost TSO acknowledgement.");
-      serveExpected(
-          sender,
-          senderHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The directed callback-gating server lost sender Resign.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The directed callback-gating server lost receiver Resign.");
+      // the process client may observe it either from its pushed stream or a
+      // receive-order poll; both paths must eventually acknowledge it.
+      serveTsoAcknowledgement(receiver, receiverHandler);
+      // A grant may become available either with the TSO acknowledgement or
+      // on a subsequent receive poll. Serve the sender's later Resign in
+      // parallel so either receiver sequence can make progress before the
+      // receiver itself resigns.
+      std::exception_ptr senderResignError;
+      std::thread senderResignServer([&] {
+        try {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The directed callback-gating server lost sender Resign.");
+        } catch (...) {
+          senderResignError = std::current_exception();
+          if (serverReceiverConnection) {
+            serverReceiverConnection->close();
+          }
+        }
+      });
+      try {
+        bool receiverResigned = false;
+        for (unsigned int attempt = 0U;
+             attempt != 17U && !receiverResigned;
+             ++attempt) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver, receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    auto const operation = request.operation;
+                    if (operation !=
+                            TransportServiceOperation::receive_interaction &&
+                        operation != TransportServiceOperation::resign_federation_execution) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server expected a receiver poll or Resign. Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(operation)) + ".");
+                    }
+                    auto response = receiverHandler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          "The directed callback-gating server rejected receiver callback or Resign progress.");
+                    }
+                    receiverResigned = operation ==
+                        TransportServiceOperation::resign_federation_execution;
+                    return response;
+                  })) {
+            throw std::runtime_error(
+                "The directed callback-gating server lost receiver progress after TSO acknowledgement.");
+          }
+        }
+        if (!receiverResigned) {
+          throw std::runtime_error(
+              "The directed callback-gating receiver polled too many times without Resign.");
+        }
+      } catch (...) {
+        if (serverSenderConnection) {
+          serverSenderConnection->close();
+        }
+        if (serverReceiverConnection) {
+          serverReceiverConnection->close();
+        }
+        if (senderResignServer.joinable()) {
+          senderResignServer.join();
+        }
+        throw;
+      }
+      if (senderResignServer.joinable()) {
+        senderResignServer.join();
+      }
+      if (senderResignError) {
+        std::rethrow_exception(senderResignError);
+      }
       service.detach(sender);
       service.detach(receiver);
       senderConnection->close();
@@ -1065,8 +1223,19 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
     if (useImmediateCallbacks) {
       REQUIRE(receiverFederate.waitForDiscovery(std::chrono::seconds(5)));
     } else {
-      REQUIRE(receiverFederate.discoveredCount == 0U);
-      static_cast<void>(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.discoveredCount == 0U);
+      }
+      for (unsigned int attempt = 0U; attempt != 8U; ++attempt) {
+        {
+          std::scoped_lock lock(receiverFederate.callbackMutex);
+          if (receiverFederate.discoveredCount != 0U) {
+            break;
+          }
+        }
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
     }
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
@@ -1113,9 +1282,6 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
             rti1516_2025::HLAinteger64Time(10)));
       }
     }
-    if (!useImmediateCallbacks) {
-      static_cast<void>(receiverRti->evokeCallback(0.0));
-    }
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.receivedInteractionCount == 0U);
@@ -1145,6 +1311,13 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
                   pendingTimeConstrainedEnable ? 6 : 7));
     REQUIRE(retraction.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
+    if (!useImmediateCallbacks && !pendingTimeConstrainedEnable) {
+      // Move the producer beyond the directed TSO's timestamp before asking
+      // the process coordinator to complete the receiver's pending NMR/NMRA.
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      static_cast<void>(senderRti->evokeCallback(0.0));
+    }
     if (pendingTimeConstrainedEnable) {
       {
         std::scoped_lock lock(receiverFederate.callbackMutex);
@@ -1170,6 +1343,11 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
         REQUIRE(receiverFederate.receivedInteractionCount == 0U);
         REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
       }
+      // Advance the regulator beyond timestamp 6 so the constrained receiver's
+      // grant at the TSO boundary is strictly below the resulting GALT.
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      static_cast<void>(senderRti->evokeCallback(0.0));
       REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(6)));
       for (int attempt = 0;
@@ -1295,7 +1473,7 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
     server.join();
   }
   listener.reset();
-  if (serverError && !clientError) {
+  if (serverError) {
     try {
       std::rethrow_exception(serverError);
     } catch (std::exception const& error) {

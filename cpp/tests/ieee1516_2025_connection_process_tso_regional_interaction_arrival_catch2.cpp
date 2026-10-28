@@ -4,6 +4,18 @@
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
+    "RTIambassadors send timestamped regional interactions as receive order when the sender is not regulating",
+    "[integration][development-profile][2025][data-distribution-management]"
+    "[interaction-management][time-management][process-boundary][public-endpoint]"
+    "[regional-interaction][unregulated-timestamped-regional-interaction]"
+    "[rti.service.change-interaction-order-type]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction]") {
+  verifyProcessTsoRegionalInteraction(
+      RegionalInteractionAdvance::unregulated_timestamp);
+}
+
+TEST_CASE(
     "RTIambassadors retain a timestamped regional interaction while callbacks are disabled",
     "[integration][foundation][data-distribution-management][interaction-management]"
     "[time-management][time-advance][callbacks][callback-gating][transport]"

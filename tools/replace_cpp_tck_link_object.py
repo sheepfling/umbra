@@ -31,7 +31,9 @@ def main() -> None:
     old_token = re.compile(r"(?<!\S)" + re.escape(args.old_object) + r"(?=\s|$)")
     updated, count = old_token.subn(replacement.as_posix(), content)
     if count != 1:
-        parser.error("old object must appear as exactly one complete response-file token")
+        parser.error(
+            "old object must appear as exactly one complete response-file token"
+        )
     destination.write_text(updated, encoding="utf-8")
     print(f"replaced {args.old_object} with {replacement} in {destination}")
 

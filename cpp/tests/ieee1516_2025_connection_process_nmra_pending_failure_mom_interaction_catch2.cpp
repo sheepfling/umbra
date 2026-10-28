@@ -3,6 +3,7 @@
 #endif
 
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -237,7 +238,9 @@ TEST_CASE(
         L"process-nmra-mom-constrained", L"constrained", federationName);
     REQUIRE(constrainedHandle.isValid());
 
-    REQUIRE_NOTHROW(regulator->enableTimeRegulation(HLAinteger64Interval(0)));
+    // Keep initial GALT above the constrained federate's current time so
+    // Enable Time Constrained can complete before this test requests NMRA.
+    REQUIRE_NOTHROW(regulator->enableTimeRegulation(HLAinteger64Interval(1)));
     evokeUntil(regulator,
                [&] { return regulatorReports.regulationEnabled == 1U; });
     REQUIRE(regulatorReports.regulationEnabled == 1U);
@@ -258,19 +261,19 @@ TEST_CASE(
         L"process-nmra-mom-observer", L"observer", federationName);
     REQUIRE(observerHandle.isValid());
     auto const reportClass = observer->getInteractionClassHandle(
-        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+        umbra::test::hla::wide::standard::service_invocation);
     REQUIRE(reportClass.isValid());
     std::array<ParameterHandle, 8U> reportParameters;
     std::array<wchar_t const*, 8U> const parameterNames{
         L"HLAservice", L"HLAserviceType", L"HLAsuccessIndicator",
         L"HLAsuppliedArguments", L"HLAreturnedArgument", L"HLAexception",
-        L"HLAserialNumber", L"HLAfederate"};
+        L"HLAserialNumber", umbra::test::hla::wide::standard::federate};
     for (std::size_t index = 0U; index < reportParameters.size(); ++index) {
       reportParameters[index] = observer->getParameterHandle(
           reportClass, parameterNames[index]);
       REQUIRE(reportParameters[index].isValid());
     }
-    auto const reliable = observer->getTransportationTypeHandle(L"HLAreliable");
+    auto const reliable = observer->getTransportationTypeHandle(umbra::test::hla::wide::standard::reliable_transportation);
     REQUIRE(reliable.isValid());
     REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass, true));
     REQUIRE(observerReports.count == 0U);

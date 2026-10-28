@@ -282,6 +282,7 @@ python tools/run_java_tck.py run \
   --provider-jar C:/deps/provider-rti.jar \
   --factory-name "Provider RTI" \
   --fom-path C:/fom/RestaurantFOMmodule-2025.xml \
+  --mim-path C:/fom/HLAstandardMIM-2025.xml \
   --capability-profile C:/fom/provider.properties \
   --classes-directory out/java-tck/classes \
   --results-path out/java-tck/provider.results.json \
@@ -289,8 +290,22 @@ python tools/run_java_tck.py run \
 ```
 
 Use `--dependency-jar` for additional provider JARs and `--jvm-argument` for
-provider-owned JVM flags. The reusable runner passes those flags through
-without interpreting them.
+extra JVM settings or TCK fixture properties. Repeat it for each value; for
+example, `-Dhla.rti.tck.additionalFom=...` supplies an additional scenario FOM.
+The capability profile decides which scenarios run. It does not fill in the
+FOM class names or modules those scenarios require.
+
+### Current Umbra JNI TCK status
+
+The official 2025 API/JNI run on 2026-10-28 used the repository's
+`RestaurantFOMmodule-2025.xml`, `HLAstandardMIM-2025.xml`, and the Umbra JNI
+profile. It reported **121 passed, 148 failed, and 487 unsupported** out of 756
+scenarios. Of the failures, 84 asked for adapter-supplied TCK inputs, 47 failed
+while resolving FOM names or time models, 12 reached behavioral assertions, and
+5 ended in other exceptions. This is useful diagnostic evidence, not a clean
+Java conformance result. Keep unsupported scenarios distinct from passing
+scenarios, and check the result JSON for the exact property or service failure
+before interpreting a broad run.
 
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;

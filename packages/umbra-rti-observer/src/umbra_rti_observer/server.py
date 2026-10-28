@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
@@ -20,7 +20,7 @@ from .core import (
     ObserverStore,
     build_event_schema,
 )
-from .models import JsonObject, to_json_object
+from .models import JsonObject, RawObserverEvent, to_json_object
 
 try:  # The web extra is optional; only importing this transport requires it.
     from fastapi import (
@@ -63,7 +63,7 @@ try:  # The web extra is optional; only importing this transport requires it.
         RuntimeSummaryResponse,
         StateResponse,
         StatusRequest,
-        event_input_mapping,
+        event_input_to_raw_event,
         json_model,
     )
 except ImportError as error:  # pragma: no cover - depends on optional extra
@@ -92,10 +92,10 @@ def _dashboard_html() -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _event_payload(value: EventIngestRequest) -> list[Mapping[str, object]]:
+def _event_payload(value: EventIngestRequest) -> list[RawObserverEvent]:
     if isinstance(value, EventBatchRequest):
-        return [event_input_mapping(event) for event in value.events]
-    return [event_input_mapping(value)]
+        return [event_input_to_raw_event(event) for event in value.events]
+    return [event_input_to_raw_event(value)]
 
 
 def _csv_filter(value: str | None) -> list[str] | None:
@@ -114,7 +114,9 @@ def _validated_summary(observer: ObserverStore) -> RuntimeSummaryResponse:
 
 
 def _stream_json(message: BaseModel) -> str:
-    return json.dumps(message.model_dump(mode="json", exclude_none=True), sort_keys=True)
+    return json.dumps(
+        message.model_dump(mode="json", exclude_none=True), sort_keys=True
+    )
 
 
 def _validated_capabilities(observer: ObserverStore) -> dict[str, CapabilityResponse]:
@@ -125,7 +127,9 @@ def _validated_capabilities(observer: ObserverStore) -> dict[str, CapabilityResp
 
 
 def create_app(
-    store: ObserverStore | None = None, *, enable_analytics: bool = True,
+    store: ObserverStore | None = None,
+    *,
+    enable_analytics: bool = True,
     commands: CommandDispatcher | None = None,
     enable_recording: bool = True,
     enable_alerts: bool = True,
@@ -139,7 +143,9 @@ def create_app(
     observer = store or ObserverStore()
     recovery_supported = commands is not None and any(
         definition.action == "session.recover" and definition.state != "unsupported"
-        for target in commands.catalog().targets for definition in target.commands)
+        for target in commands.catalog().targets
+        for definition in target.commands
+    )
     observer.set_capabilities(
         {
             "command_versions": {
@@ -149,21 +155,26 @@ def create_app(
             "session_recovery": {
                 "state": "available" if recovery_supported else "unsupported",
                 "reason": "One or more explicitly owned adapters offer typed inspection/reconciliation."
-                if recovery_supported else "No owned adapter inspection is configured; observation views remain independent.",
+                if recovery_supported
+                else "No owned adapter inspection is configured; observation views remain independent.",
             },
             "workspace_validation": {
                 "state": "available" if enable_workspace_validation else "disabled",
                 "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
             },
             "alert_controls": {
-                "state": "available" if enable_alerts and enable_alert_controls else "disabled",
+                "state": "available"
+                if enable_alerts and enable_alert_controls
+                else "disabled",
                 "reason": "Observer rule configuration only; no provider commands."
-                if enable_alerts and enable_alert_controls else "Alert configuration is read-only or alerts are disabled.",
+                if enable_alerts and enable_alert_controls
+                else "Alert configuration is read-only or alerts are disabled.",
             },
             "alerts": {
                 "state": "available" if enable_alerts else "disabled",
                 "reason": "Typed thresholds with bounded process-local configuration/evidence; no RTI service dependency."
-                if enable_alerts else "Alert resources and periodic evaluation are disabled by this backend.",
+                if enable_alerts
+                else "Alert resources and periodic evaluation are disabled by this backend.",
             },
             "recording_compact": {
                 "state": "available" if enable_recording else "disabled",
@@ -176,7 +187,8 @@ def create_app(
             "recording": {
                 "state": "available" if enable_recording else "disabled",
                 "reason": "Bounded observer-state journal and validated read-only replay files."
-                if enable_recording else "Recording/import resources are disabled by this backend.",
+                if enable_recording
+                else "Recording/import resources are disabled by this backend.",
             },
             "http_api": {
                 "state": "available",
@@ -193,12 +205,14 @@ def create_app(
             "analytics": {
                 "state": "available" if enable_analytics else "disabled",
                 "reason": "Read-only analytics over retained normalized observations."
-                if enable_analytics else "Analytics is disabled by this backend's configuration.",
+                if enable_analytics
+                else "Analytics is disabled by this backend's configuration.",
             },
             "commands": {
                 "state": "available" if commands is not None else "disabled",
                 "reason": "Explicitly registered adapter-controlled sessions."
-                if commands is not None else "No command dispatcher is configured; this backend is read-only.",
+                if commands is not None
+                else "No command dispatcher is configured; this backend is read-only.",
             },
         },
         owner="backend",
@@ -209,14 +223,23 @@ def create_app(
         nonlocal recovery_supported
         current_recovery = commands is not None and any(
             definition.action == "session.recover" and definition.state != "unsupported"
-            for target in commands.catalog().targets for definition in target.commands)
+            for target in commands.catalog().targets
+            for definition in target.commands
+        )
         if current_recovery != recovery_supported:
             recovery_supported = current_recovery
-            observer.set_capabilities({"session_recovery": {
-                "state": "available" if current_recovery else "unsupported",
-                "reason": "One or more explicitly owned adapters offer typed inspection/reconciliation."
-                if current_recovery else "No owned adapter inspection is configured; observation views remain independent.",
-            }}, owner="backend", source="fastapi")
+            observer.set_capabilities(
+                {
+                    "session_recovery": {
+                        "state": "available" if current_recovery else "unsupported",
+                        "reason": "One or more explicitly owned adapters offer typed inspection/reconciliation."
+                        if current_recovery
+                        else "No owned adapter inspection is configured; observation views remain independent.",
+                    }
+                },
+                owner="backend",
+                source="fastapi",
+            )
         document = build_contract_document(
             EVENT_TYPES,
             event_schema_version=OBSERVER_SCHEMA_VERSION,
@@ -225,7 +248,9 @@ def create_app(
         stream = document.get("stream")
         if isinstance(stream, dict):
             paths = document.get("api_paths")
-            stream["resumption"] = isinstance(paths, dict) and ("websocket" in paths or "event_stream" in paths)
+            stream["resumption"] = isinstance(paths, dict) and (
+                "websocket" in paths or "event_stream" in paths
+            )
         return document
 
     @asynccontextmanager
@@ -270,12 +295,15 @@ def create_app(
     )
     if enable_recording:
         from .recording_routes import add_recording_routes
+
         add_recording_routes(app, observer)
     if enable_alerts:
         from .alert_routes import add_alert_routes
+
         add_alert_routes(app, observer, commands, controls=enable_alert_controls)
     if enable_workspace_validation:
         from .workspace_routes import add_workspace_routes
+
         add_workspace_routes(app)
 
     react_ui_dist = _react_ui_dist()
@@ -337,7 +365,9 @@ def create_app(
     async def schema() -> JsonObject:
         return build_event_schema()
 
-    @app.get("/api/state", response_model=StateResponse, response_model_exclude_none=True)
+    @app.get(
+        "/api/state", response_model=StateResponse, response_model_exclude_none=True
+    )
     async def state(include_events: bool = True) -> JsonObject:
         return observer.state(include_events=include_events)
 
@@ -356,14 +386,24 @@ def create_app(
     @app.get("/api/commands/catalog", response_model=CommandCatalog)
     def command_catalog() -> CommandCatalog:
         if commands is None:
-            return CommandCatalog(contract_version=OBSERVER_CONTRACT_VERSION, enabled=False,
-                                  timeout_seconds=0, history_limit=0, targets=())
+            return CommandCatalog(
+                contract_version=OBSERVER_CONTRACT_VERSION,
+                enabled=False,
+                timeout_seconds=0,
+                history_limit=0,
+                targets=(),
+            )
         return commands.catalog()
 
     @app.get("/api/commands", response_model=CommandHistory)
     def command_history() -> CommandHistory:
         if commands is None:
-            return CommandHistory(contract_version=OBSERVER_CONTRACT_VERSION, records=(), limit=0, evicted_records=0)
+            return CommandHistory(
+                contract_version=OBSERVER_CONTRACT_VERSION,
+                records=(),
+                limit=0,
+                evicted_records=0,
+            )
         return commands.history()
 
     @app.get("/api/commands/{command_id}", response_model=CommandRecord)
@@ -373,7 +413,9 @@ def create_app(
                 raise KeyError(command_id)
             return commands.get(command_id)
         except KeyError as error:
-            raise HTTPException(status_code=404, detail="command not found in retained history") from error
+            raise HTTPException(
+                status_code=404, detail="command not found in retained history"
+            ) from error
 
     @app.post("/api/commands", status_code=202, response_model=CommandRecord)
     def submit_command(payload: CommandRequest) -> CommandRecord:
@@ -382,21 +424,29 @@ def create_app(
         try:
             return commands.submit(payload)
         except KeyError as error:
-            raise HTTPException(status_code=404, detail="unknown controlled session") from error
+            raise HTTPException(
+                status_code=404, detail="unknown controlled session"
+            ) from error
         except CommandConflict as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
 
     if enable_analytics:
+
         @app.get("/api/analytics", response_model=AnalyticsResponse)
         def analytics(
             window_seconds: int = Query(default=300, ge=30, le=3600),
             bucket_count: int = Query(default=30, ge=10, le=120),
             federate: str | None = Query(default=None, min_length=1, max_length=512),
-            perspective: str | None = Query(default=None, min_length=1, max_length=8192),
+            perspective: str | None = Query(
+                default=None, min_length=1, max_length=8192
+            ),
         ) -> AnalyticsResponse:
             return build_analytics(
                 AnalyticsWindow.model_validate(observer.analytics_window()),
-                window_seconds=window_seconds, bucket_count=bucket_count, federate=federate, perspective=perspective,
+                window_seconds=window_seconds,
+                bucket_count=bucket_count,
+                federate=federate,
+                perspective=perspective,
             )
 
     @app.get("/api/inspectors/{kind}", response_model=InspectorResponse)
@@ -409,11 +459,13 @@ def create_app(
         }
         if kind not in values:
             raise HTTPException(status_code=404, detail="unknown inspector")
-        return InspectorResponse.model_validate({
-            "contract_version": OBSERVER_CONTRACT_VERSION,
-            "kind": kind,
-            "items": values[kind],
-        })
+        return InspectorResponse.model_validate(
+            {
+                "contract_version": OBSERVER_CONTRACT_VERSION,
+                "kind": kind,
+                "items": values[kind],
+            }
+        )
 
     @app.get("/api/events", response_model=EventPageResponse)
     async def events(
@@ -436,7 +488,9 @@ def create_app(
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
-    @app.post("/api/events", response_model=IngestResponse, response_model_exclude_none=True)
+    @app.post(
+        "/api/events", response_model=IngestResponse, response_model_exclude_none=True
+    )
     async def ingest(payload: EventIngestRequest) -> IngestResponse:
         try:
             rows = _event_payload(payload)
@@ -455,7 +509,11 @@ def create_app(
         except (ValueError, TypeError) as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
-    @app.post("/api/control/status", response_model=StateResponse, response_model_exclude_none=True)
+    @app.post(
+        "/api/control/status",
+        response_model=StateResponse,
+        response_model_exclude_none=True,
+    )
     async def status(payload: StatusRequest) -> StateResponse:
         try:
             context_values = dict(payload.extensions)
@@ -466,20 +524,32 @@ def create_app(
         except (ValueError, TypeError) as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
-    @app.delete("/api/events", response_model=StateResponse, response_model_exclude_none=True)
+    @app.delete(
+        "/api/events", response_model=StateResponse, response_model_exclude_none=True
+    )
     async def clear_events() -> JsonObject:
         observer.clear()
         return observer.state(include_events=False)
 
     @app.get("/api/events/stream", response_model=None)
-    async def event_stream(after: int = Query(default=0, ge=0),
-                           instance_id: str | None = Query(default=None, min_length=1, max_length=128)) -> StreamingResponse:
+    async def event_stream(
+        after: int = Query(default=0, ge=0),
+        instance_id: str | None = Query(default=None, min_length=1, max_length=128),
+    ) -> StreamingResponse:
         from .streaming import stream_messages
+
         if not enable_sse:
-            raise HTTPException(status_code=501, detail="SSE is disabled; use another advertised transport.")
+            raise HTTPException(
+                status_code=501,
+                detail="SSE is disabled; use another advertised transport.",
+            )
+
         async def generate() -> AsyncIterator[str]:
-            async for message in stream_messages(observer, after=after, instance_id=instance_id):
+            async for message in stream_messages(
+                observer, after=after, instance_id=instance_id
+            ):
                 yield f"data: {_stream_json(message)}\n\n"
+
         return StreamingResponse(
             generate(),
             media_type="text/event-stream",
@@ -487,20 +557,30 @@ def create_app(
         )
 
     @app.websocket("/ws/events")
-    async def websocket_events(socket: WebSocket, after: int = Query(default=0, ge=0),
-                               instance_id: str | None = Query(default=None, min_length=1, max_length=128)) -> None:
+    async def websocket_events(
+        socket: WebSocket,
+        after: int = Query(default=0, ge=0),
+        instance_id: str | None = Query(default=None, min_length=1, max_length=128),
+    ) -> None:
         from .streaming import stream_messages
+
         if not enable_websocket:
-            await socket.close(code=1008, reason="WebSocket disabled; use another advertised transport.")
+            await socket.close(
+                code=1008,
+                reason="WebSocket disabled; use another advertised transport.",
+            )
             return
         await socket.accept()
         try:
-            async for message in stream_messages(observer, after=after, instance_id=instance_id):
+            async for message in stream_messages(
+                observer, after=after, instance_id=instance_id
+            ):
                 await socket.send_json(json_model(message))
         except WebSocketDisconnect:
             return
 
     from .stream_schema import add_stream_schemas
+
     default_openapi = app.openapi
 
     def observer_openapi() -> JsonObject:

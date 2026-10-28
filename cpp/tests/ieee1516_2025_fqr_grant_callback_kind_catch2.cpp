@@ -17,6 +17,7 @@ TEST_CASE(
       fomModule,
       standard_hla::mom::integer64_time));
   REQUIRE_NOTHROW(rti->joinFederationExecution(L"fqr-grant-kind-client", federationName));
+  REQUIRE_FALSE(rti->getNonRegulatedGrantSwitch());
 
   REQUIRE_NOTHROW(rti->enableTimeConstrained());
   REQUIRE_FALSE(rti->evokeCallback(0.0));
@@ -29,7 +30,10 @@ TEST_CASE(
 
   REQUIRE_FALSE(rti->evokeCallback(0.0));
   REQUIRE(reports.flushQueueGrantReports.size() == 1U);
-  REQUIRE(reports.flushQueueGrantReports.front().value == L"7");
+  // With no regulating peer and NRG disabled, the actual grant remains at
+  // current time while the optimistic FQR time retains the requested target.
+  REQUIRE(reports.flushQueueGrantReports.front().value == L"0");
+  REQUIRE(reports.flushQueueGrantReports.front().optimisticValue == L"7");
   REQUIRE(reports.timeAdvanceGrantReports.empty());
 
   REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));

@@ -15,6 +15,8 @@
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/time/HLAinteger64Interval.h>
+#include <RTI/time/HLAinteger64Time.h>
 
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_federation_service.hpp"
@@ -48,12 +50,21 @@ using umbra::test::connection_support_2025::makeRti;
 using umbra::test::process_fom_support_2025::composedProcessDefinition;
 
 TEST_CASE(
-    "RTIambassador expands process class Request Attribute Value Update across registered instances",
+    "Process class Request Attribute Value Update preserves inherited timestamped attribute order through the coordinator",
     "[integration][foundation][object-management][callbacks][callback-controls]"
     "[transport][process-boundary][process-class-request-attribute-value-update]"
+    "[process-object-class-tso-provider-response][inherited-attribute-default-order]"
+    "[time-management][tso]"
     "[public-endpoint][rti.service.request-attribute-value-update]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.time-advance-request][rti.service.update-attribute-values]"
+    "[rti.service.retract][rti.service.change-default-attribute-order-type]"
     "[federate.callback.discover-object-instance]"
-    "[federate.callback.provide-attribute-value-update]") {
+    "[federate.callback.provide-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-regulation-enabled]"
+    "[federate.callback.time-constrained-enabled]"
+    "[federate.callback.time-advance-grant]") {
   auto runScenario = [](CallbackModel callbackModel) {
     class RecordingFederateAmbassador final : public NullFederateAmbassador {
      public:
@@ -83,6 +94,56 @@ TEST_CASE(
         }
       }
 
+      void reflectAttributeValues(
+          rti1516_2025::ObjectInstanceHandle const& objectInstance,
+          rti1516_2025::AttributeHandleValueMap const& attributeValues,
+          rti1516_2025::VariableLengthData const& userSuppliedTag,
+          rti1516_2025::TransportationTypeHandle const&,
+          rti1516_2025::FederateHandle const& producingFederate,
+          rti1516_2025::RegionHandleSet const*,
+          rti1516_2025::LogicalTime const& time,
+          rti1516_2025::OrderType sentOrder,
+          rti1516_2025::OrderType receivedOrder,
+          rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+        reflectedObjects.push_back(objectInstance);
+        reflectedValueBytes.emplace_back();
+        if (!attributeValues.empty() && attributeValues.begin()->second.size() != 0U) {
+          auto const& value = attributeValues.begin()->second;
+          auto const* first = static_cast<std::uint8_t const*>(value.data());
+          reflectedValueBytes.back().assign(first, first + value.size());
+        }
+        reflectedTags.emplace_back();
+        if (userSuppliedTag.size() != 0U) {
+          auto const* first = static_cast<std::uint8_t const*>(
+              userSuppliedTag.data());
+          reflectedTags.back().assign(first, first + userSuppliedTag.size());
+        }
+        reflectedProducers.push_back(producingFederate);
+        reflectedTimes.push_back(time.toString());
+        reflectedSentOrders.push_back(sentOrder);
+        reflectedReceivedOrders.push_back(receivedOrder);
+        reflectedRetractionValid.push_back(
+            optionalRetraction != nullptr && optionalRetraction->isValid());
+        callbackOrder.push_back('R');
+      }
+
+      void timeRegulationEnabled(
+          rti1516_2025::LogicalTime const&) override {
+        ++timeRegulationEnabledCount;
+      }
+
+      void timeConstrainedEnabled(
+          rti1516_2025::LogicalTime const&) override {
+        ++timeConstrainedEnabledCount;
+      }
+
+      void timeAdvanceGrant(
+          rti1516_2025::LogicalTime const& time) override {
+        ++timeAdvanceGrantCount;
+        timeAdvanceGrantValues.push_back(time.toString());
+        callbackOrder.push_back('G');
+      }
+
       std::vector<rti1516_2025::ObjectInstanceHandle> discoveredObjects;
       std::vector<rti1516_2025::ObjectClassHandle> discoveredClasses;
       std::vector<std::wstring> discoveredNames;
@@ -90,6 +151,19 @@ TEST_CASE(
       std::vector<rti1516_2025::ObjectInstanceHandle> providedObjects;
       std::vector<std::size_t> providedAttributeCounts;
       std::vector<std::vector<std::uint8_t>> providedTags;
+      std::vector<rti1516_2025::ObjectInstanceHandle> reflectedObjects;
+      std::vector<std::vector<std::uint8_t>> reflectedValueBytes;
+      std::vector<std::vector<std::uint8_t>> reflectedTags;
+      std::vector<rti1516_2025::FederateHandle> reflectedProducers;
+      std::vector<std::wstring> reflectedTimes;
+      std::vector<rti1516_2025::OrderType> reflectedSentOrders;
+      std::vector<rti1516_2025::OrderType> reflectedReceivedOrders;
+      std::vector<bool> reflectedRetractionValid;
+      std::size_t timeRegulationEnabledCount = 0U;
+      std::size_t timeConstrainedEnabledCount = 0U;
+      std::size_t timeAdvanceGrantCount = 0U;
+      std::vector<std::wstring> timeAdvanceGrantValues;
+      std::vector<char> callbackOrder;
     } providerFederate, requesterFederate;
 
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -99,10 +173,11 @@ TEST_CASE(
 
     constexpr wchar_t const* federationNameWide =
         L"public-process-class-attribute-execution";
-    constexpr wchar_t const* objectClassNameWide = L"HLAobjectRoot.Employee";
-    constexpr char const* objectClassName = "HLAobjectRoot.Employee";
-    constexpr wchar_t const* attributeNameWide = L"Name";
-    constexpr char const* attributeName = "Name";
+    constexpr wchar_t const* objectClassNameWide =
+        L"HLAobjectRoot.Food.Drink.Soda";
+    constexpr char const* objectClassName = "HLAobjectRoot.Food.Drink.Soda";
+    constexpr wchar_t const* attributeNameWide = L"NumberCups";
+    constexpr char const* attributeName = "NumberCups";
     std::atomic_uint64_t expectedObjectClass{0U};
     std::atomic_uint64_t expectedAttribute{0U};
     std::atomic_uint64_t expectedProviderFederate{0U};
@@ -245,13 +320,24 @@ TEST_CASE(
                       auto const operation = request.operation;
                       bool const providerOperation =
                           operation == TransportServiceOperation::publish_object_class_attributes ||
-                          operation == TransportServiceOperation::register_object_instance;
+                          operation == TransportServiceOperation::register_object_instance ||
+                          operation == TransportServiceOperation::change_default_attribute_order_type ||
+                          operation == TransportServiceOperation::enable_time_regulation ||
+                          operation == TransportServiceOperation::time_advance_request ||
+                          operation == TransportServiceOperation::update_attribute_values ||
+                          operation == TransportServiceOperation::retract;
                       bool const requesterOperation =
-                          operation == TransportServiceOperation::request_attribute_value_update_class;
+                          operation == TransportServiceOperation::request_attribute_value_update_class ||
+                          operation == TransportServiceOperation::publish_object_class_attributes ||
+                          operation == TransportServiceOperation::change_default_attribute_order_type ||
+                          operation == TransportServiceOperation::enable_time_constrained ||
+                          operation == TransportServiceOperation::time_advance_request;
                       bool const commonOperation =
                           operation == TransportServiceOperation::get_object_class_handle ||
                           operation == TransportServiceOperation::get_attribute_handle ||
                           operation == TransportServiceOperation::receive_interaction ||
+                          operation == TransportServiceOperation::acknowledge_tso_delivery ||
+                          operation == TransportServiceOperation::report_successful_void_service_invocation ||
                           operation == TransportServiceOperation::resign_federation_execution;
                       if (!commonOperation &&
                           !(isProvider ? providerOperation : requesterOperation)) {
@@ -311,11 +397,10 @@ TEST_CASE(
     // One Evoke need not deliver the callback under test: advisory callbacks
     // can be interleaved, and a process poll can return before the typed event
     // reaches the evoked dispatcher. Wait for the observed callback count.
-    auto evokeUntil = [](auto& rti, auto const& recordedEvents,
-                         std::size_t targetCount) {
+    auto evokeUntil = [](auto& rti, auto const& isComplete) {
       auto const deadline = std::chrono::steady_clock::now() +
                             std::chrono::seconds(5);
-      while (recordedEvents.size() < targetCount) {
+      while (!isComplete()) {
         auto const remaining = deadline - std::chrono::steady_clock::now();
         if (remaining <= std::chrono::steady_clock::duration::zero()) {
           break;
@@ -332,13 +417,14 @@ TEST_CASE(
     std::exception_ptr clientError;
     bool providerJoined = false;
     bool requesterJoined = false;
+    rti1516_2025::FederateHandle providerFederateHandle;
     std::vector<rti1516_2025::ObjectInstanceHandle> objectInstances;
     try {
       REQUIRE(providerRti->connect(providerFederate, callbackModel, configuration)
                   .addressUsed);
       providerRti->createFederationExecution(
           federationNameWide, L"server-owned-fom.xml");
-      providerRti->joinFederationExecution(
+      providerFederateHandle = providerRti->joinFederationExecution(
           L"public-process-class-attribute-provider",
           L"public-process-class-attribute-type",
           federationNameWide);
@@ -375,6 +461,21 @@ TEST_CASE(
       publishedAttributes.insert(providerAttribute);
       providerRti->publishObjectClassAttributes(
           providerObjectClass, publishedAttributes);
+      // NumberCups is declared by Drink and inherited by Soda. Keeping the
+      // public invocation handle at Soda exercises inherited-attribute order
+      // selection through the process-profile coordinator.
+      providerRti->changeDefaultAttributeOrderType(
+          providerObjectClass,
+          publishedAttributes,
+          rti1516_2025::TIMESTAMP);
+      rti1516_2025::AttributeHandleSet requestedAttributes;
+      requestedAttributes.insert(requesterAttribute);
+      // This second federate's RECEIVE default must not replace the provider's
+      // TIMESTAMP default for the same inherited class attribute.
+      REQUIRE_NOTHROW(requesterRti->changeDefaultAttributeOrderType(
+          requesterObjectClass,
+          requestedAttributes,
+          rti1516_2025::RECEIVE));
       for (std::size_t index = 0U; index < 2U; ++index) {
         auto const objectInstance =
             providerRti->registerObjectInstance(providerObjectClass);
@@ -385,16 +486,31 @@ TEST_CASE(
           static_cast<void>(requesterRti->getObjectClassHandle(objectClassNameWide));
         } else {
           static_cast<void>(providerRti->evokeCallback(0.0));
-          evokeUntil(requesterRti, requesterFederate.discoveredObjects,
-                     index + 1U);
+          evokeUntil(requesterRti, [&] {
+            return requesterFederate.discoveredObjects.size() >= index + 1U;
+          });
         }
       }
       REQUIRE(requesterFederate.discoveredObjects.size() == 2U);
       REQUIRE(requesterFederate.discoveredObjects[0] == objectInstances[0]);
       REQUIRE(requesterFederate.discoveredObjects[1] == objectInstances[1]);
 
-      rti1516_2025::AttributeHandleSet requestedAttributes;
-      requestedAttributes.insert(requesterAttribute);
+      REQUIRE_NOTHROW(requesterRti->enableTimeConstrained());
+      if (callbackModel == HLA_EVOKED) {
+        evokeUntil(requesterRti, [&] {
+          return requesterFederate.timeConstrainedEnabledCount == 1U;
+        });
+      }
+      REQUIRE(requesterFederate.timeConstrainedEnabledCount == 1U);
+      REQUIRE_NOTHROW(providerRti->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(1)));
+      if (callbackModel == HLA_EVOKED) {
+        evokeUntil(providerRti, [&] {
+          return providerFederate.timeRegulationEnabledCount == 1U;
+        });
+      }
+      REQUIRE(providerFederate.timeRegulationEnabledCount == 1U);
+
       std::array<std::uint8_t, 3U> encodedTag{0x43U, 0x4CU, 0x53U};
       VariableLengthData userSuppliedTag(encodedTag.data(), encodedTag.size());
       REQUIRE_NOTHROW(requesterRti->requestAttributeValueUpdate(
@@ -403,7 +519,9 @@ TEST_CASE(
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        evokeUntil(providerRti, providerFederate.providedObjects, 2U);
+        evokeUntil(providerRti, [&] {
+          return providerFederate.providedObjects.size() >= 2U;
+        });
       }
       REQUIRE(providerFederate.providedObjects.size() == 2U);
       REQUIRE(providerFederate.providedObjects[0] == objectInstances[0]);
@@ -413,6 +531,65 @@ TEST_CASE(
       REQUIRE(providerFederate.providedTags ==
               std::vector<std::vector<std::uint8_t>>{
                   {0x43U, 0x4CU, 0x53U}, {0x43U, 0x4CU, 0x53U}});
+
+      std::array<std::uint8_t, 3U> responseValueBytes{0x6AU, 0x25U, 0x02U};
+      std::vector<std::uint8_t> expectedResponseValueBytes(
+          responseValueBytes.begin(), responseValueBytes.end());
+      VariableLengthData responseValue(
+          responseValueBytes.data(), responseValueBytes.size());
+      std::array<std::uint8_t, 5U> responseTagBytes{
+          0x43U, 0x4CU, 0x53U, 0x2DU, 0x52U};
+      std::vector<std::uint8_t> expectedResponseTagBytes(
+          responseTagBytes.begin(), responseTagBytes.end());
+      VariableLengthData responseTag(
+          responseTagBytes.data(), responseTagBytes.size());
+      rti1516_2025::AttributeHandleValueMap responseValues;
+      responseValues.emplace(providerAttribute, responseValue);
+      auto const responseRetraction = providerRti->updateAttributeValues(
+          objectInstances.front(),
+          responseValues,
+          responseTag,
+          rti1516_2025::HLAinteger64Time(2));
+      REQUIRE(responseRetraction.isValid());
+      REQUIRE(requesterFederate.reflectedObjects.empty());
+
+      requesterFederate.callbackOrder.clear();
+      REQUIRE_NOTHROW(requesterRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(2)));
+      REQUIRE_NOTHROW(providerRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(2)));
+      if (callbackModel == HLA_EVOKED) {
+        evokeUntil(requesterRti, [&] {
+          return requesterFederate.reflectedObjects.size() == 1U &&
+              requesterFederate.timeAdvanceGrantCount == 1U;
+        });
+        evokeUntil(providerRti, [&] {
+          return providerFederate.timeAdvanceGrantCount == 1U;
+        });
+      }
+      REQUIRE(requesterFederate.reflectedObjects.size() == 1U);
+      REQUIRE(requesterFederate.reflectedObjects.front() == objectInstances.front());
+      REQUIRE(requesterFederate.reflectedValueBytes ==
+              std::vector<std::vector<std::uint8_t>>{
+                  expectedResponseValueBytes});
+      REQUIRE(requesterFederate.reflectedTags ==
+              std::vector<std::vector<std::uint8_t>>{
+                  expectedResponseTagBytes});
+      REQUIRE(requesterFederate.reflectedProducers ==
+              std::vector<rti1516_2025::FederateHandle>{providerFederateHandle});
+      REQUIRE(requesterFederate.reflectedTimes == std::vector<std::wstring>{L"2"});
+      REQUIRE(requesterFederate.reflectedSentOrders ==
+              std::vector<rti1516_2025::OrderType>{rti1516_2025::TIMESTAMP});
+      REQUIRE(requesterFederate.reflectedReceivedOrders ==
+              std::vector<rti1516_2025::OrderType>{rti1516_2025::TIMESTAMP});
+      REQUIRE(requesterFederate.reflectedRetractionValid ==
+              std::vector<bool>{true});
+      REQUIRE(requesterFederate.timeAdvanceGrantValues ==
+              std::vector<std::wstring>{L"2"});
+      REQUIRE(requesterFederate.callbackOrder == std::vector<char>{'R', 'G'});
+      REQUIRE_THROWS_AS(
+          providerRti->retract(responseRetraction),
+          rti1516_2025::MessageCanNoLongerBeRetracted);
 
       providerRti->resignFederationExecution(DELETE_OBJECTS);
       providerJoined = false;

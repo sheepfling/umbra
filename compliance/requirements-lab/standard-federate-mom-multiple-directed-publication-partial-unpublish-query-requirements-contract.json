@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-federate-mom-partial-directed-publication-query-publish",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
-      "clause_id": "clause-5.6.3",
+      "clause_id": "clause-5.6",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "publishObjectClassDirectedInteractions",
       "statement": "The subject publishes the inherited interaction and the class-specific interaction under the adapter-selected derived object class, and publishes the inherited interaction under its distinct base class, through the standard set-based publication service.",
@@ -20,7 +20,7 @@
     {
       "id": "cpp-tck-federate-mom-partial-directed-publication-query-unpublish",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
-      "clause_id": "clause-5.7.4",
+      "clause_id": "clause-5.7",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "unpublishObjectClassDirectedInteractions",
       "statement": "The subject supplies a set containing the inherited interaction published under the derived object class; the subsequent query checks that the unlisted class-specific interaction and the independent base object-class publication remain.",

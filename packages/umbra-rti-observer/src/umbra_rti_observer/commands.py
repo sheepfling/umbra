@@ -32,7 +32,7 @@ from .command_models import (
 from .contract import OBSERVER_CONTRACT_VERSION
 from .core import EventSink
 
-_TERMINAL = {"succeeded", "failed", "unavailable"}
+_TERMINAL = frozenset({"succeeded", "failed", "unavailable"})
 
 
 class CommandSession(Protocol):
@@ -133,9 +133,14 @@ class CommandDispatcher:
                             or "A previous command is still running or this dispatcher is closed.",
                         }
                     )
-                    if blocked and command.state == "available" and not (
-                        worker.fault is not None and not self._closed and worker.inflight is None
-                        and command.action in {"session.inspect", "session.recover"})
+                    if blocked
+                    and command.state == "available"
+                    and not (
+                        worker.fault is not None
+                        and not self._closed
+                        and worker.inflight is None
+                        and command.action in {"session.inspect", "session.recover"}
+                    )
                     else command
                     for command in target.commands
                 )
@@ -243,12 +248,28 @@ class CommandDispatcher:
         """Read owner caches only, including timed-out calls still in flight."""
         with self._lock:
             now = time.monotonic()
-            inflight = {row.inflight for row in self._workers.values() if row.inflight is not None}
-            return CommandWatch(tuple(PendingCommandFact(row.command_id, row.request.target_id,
-                max(0., now - self._accepted_clocks[row.command_id]), row.error is not None and row.error.effect == "unknown")
-                for row in self._records.values() if row.status in {"accepted", "running"} or
-                row.command_id in inflight and row.error is not None and row.error.effect == "unknown"),
-                not self._closed, tuple(self._workers))
+            inflight = {
+                row.inflight
+                for row in self._workers.values()
+                if row.inflight is not None
+            }
+            return CommandWatch(
+                tuple(
+                    PendingCommandFact(
+                        row.command_id,
+                        row.request.target_id,
+                        max(0.0, now - self._accepted_clocks[row.command_id]),
+                        row.error is not None and row.error.effect == "unknown",
+                    )
+                    for row in self._records.values()
+                    if row.status in {"accepted", "running"}
+                    or row.command_id in inflight
+                    and row.error is not None
+                    and row.error.effect == "unknown"
+                ),
+                not self._closed,
+                tuple(self._workers),
+            )
 
     def close(self) -> None:
         with self._lock:
@@ -279,7 +300,10 @@ class CommandDispatcher:
     def _unavailable(self, worker: _Worker, request: CommandRequest) -> str | None:
         if request.expected_version != self._version(worker):
             return "Owned target incarnation/revision changed or was not supplied. Refresh the catalog and review before submitting a new request."
-        if worker.fault and request.action not in {"session.inspect", "session.recover"}:
+        if worker.fault and request.action not in {
+            "session.inspect",
+            "session.recover",
+        }:
             return worker.fault
         descriptor = next(
             (
@@ -299,7 +323,9 @@ class CommandDispatcher:
 
     @staticmethod
     def _version(worker: _Worker) -> CommandTargetVersion:
-        return CommandTargetVersion(instance_id=worker.instance_id, revision=worker.revision)
+        return CommandTargetVersion(
+            instance_id=worker.instance_id, revision=worker.revision
+        )
 
     def _change(self, command_id: str, **changes: object) -> CommandRecord:
         # Revalidate every state transition; model_copy(update=...) skips validation.
@@ -329,9 +355,15 @@ class CommandDispatcher:
                         "details": {
                             "status": record.status,
                             "error": record.error.message if record.error else None,
-                        "outcome": record.outcome.summary if record.outcome else None,
-                        "late_outcome": record.late_outcome.summary if record.late_outcome else None,
-                        "late_error": record.late_error.message if record.late_error else None,
+                            "outcome": record.outcome.summary
+                            if record.outcome
+                            else None,
+                            "late_outcome": record.late_outcome.summary
+                            if record.late_outcome
+                            else None,
+                            "late_error": record.late_error.message
+                            if record.late_error
+                            else None,
                         },
                     }
                 )
@@ -418,8 +450,13 @@ class CommandDispatcher:
                 with self._lock:
                     if failure is not None and failure.effect == "unknown":
                         worker.fault = f"Provider effect is unknown: {failure.message}"
-                    if (failure is None and outcome is not None and outcome.inspection is not None
-                            and outcome.inspection.reconciled and record.request.action == "session.recover"):
+                    if (
+                        failure is None
+                        and outcome is not None
+                        and outcome.inspection is not None
+                        and outcome.inspection.reconciled
+                        and record.request.action == "session.recover"
+                    ):
                         worker.fault = None
                     current = self._records[command_id]
                     if current.status in _TERMINAL:

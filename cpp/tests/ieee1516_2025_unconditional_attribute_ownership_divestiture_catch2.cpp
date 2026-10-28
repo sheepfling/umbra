@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 TEST_CASE(
@@ -95,11 +96,11 @@ TEST_CASE(
       federationName));
 
   auto const child = owner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
-  auto const reliableBaseB = owner->getAttributeHandle(child, L"ReliableBaseB");
-  auto const reliableChild = owner->getAttributeHandle(child, L"ReliableChild");
-  auto const unownedChild = owner->getAttributeHandle(child, L"UnownedChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
+  auto const reliableBaseA = owner->getAttributeHandle(child, umbra::test::hla::wide::fixture::reliable_base_a);
+  auto const reliableBaseB = owner->getAttributeHandle(child, umbra::test::hla::wide::fixture::reliable_base_b);
+  auto const reliableChild = owner->getAttributeHandle(child, umbra::test::hla::wide::fixture::reliable_child);
+  auto const unownedChild = owner->getAttributeHandle(child, umbra::test::hla::wide::fixture::unowned_child);
   REQUIRE(child.isValid());
   REQUIRE(reliableBaseA.isValid());
   REQUIRE(reliableBaseB.isValid());
@@ -362,23 +363,23 @@ TEST_CASE(
       federationName));
 
   auto const objectClass = formerOwner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+      umbra::test::hla::wide::fom::regional_ownership_fanout);
   auto const formerOwnerAttribute = formerOwner->getAttributeHandle(
       objectClass,
-      L"ProviderBValue");
+      umbra::test::hla::wide::fixture::provider_b_value);
   auto const interimOwnerClass = interimOwner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+      umbra::test::hla::wide::fom::regional_ownership_fanout);
   auto const interimOwnerAttribute = interimOwner->getAttributeHandle(
       interimOwnerClass,
-      L"ProviderBValue");
+      umbra::test::hla::wide::fixture::provider_b_value);
   auto const receiverClass = receiver->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+      umbra::test::hla::wide::fom::regional_ownership_fanout);
   auto const receiverAttribute = receiver->getAttributeHandle(
       receiverClass,
-      L"ProviderBValue");
-  auto const dimension = formerOwner->getDimensionHandle(L"UmbraRegionX");
-  auto const interimOwnerDimension = interimOwner->getDimensionHandle(L"UmbraRegionX");
-  auto const receiverDimension = receiver->getDimensionHandle(L"UmbraRegionX");
+      umbra::test::hla::wide::fixture::provider_b_value);
+  auto const dimension = formerOwner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
+  auto const interimOwnerDimension = interimOwner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
+  auto const receiverDimension = receiver->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
   REQUIRE(objectClass.isValid());
   REQUIRE(formerOwnerAttribute.isValid());
   REQUIRE(interimOwnerClass.isValid());
@@ -464,8 +465,8 @@ TEST_CASE(
   evokeCallbacks();
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.attributeReflectionReports.back().sentRegionsSupplied);
-  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegions ==
-          RegionHandleSet{ownerRegion});
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegions.size() == 1U);
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegions.begin()->isValid());
   receiverReports.attributeReflectionReports.clear();
 
   REQUIRE_NOTHROW(interimOwner->attributeOwnershipAcquisitionIfAvailable(

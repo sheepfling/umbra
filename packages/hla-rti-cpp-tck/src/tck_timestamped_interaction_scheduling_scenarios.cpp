@@ -2488,6 +2488,10 @@ void scenarioTimestampedInteractionCrossProducerOrder(
               encodeTime(*receiverPeerSeven),
       "Timestamped interaction cross-producer returned the wrong final grants");
 
+  // Advance both regulators to eight first, so their lookahead places GALT
+  // strictly beyond the receiver's requested grant at eight.
+  early.rtiAmbassador().timeAdvanceRequest(*timeEight);
+  late.rtiAmbassador().timeAdvanceRequest(*lateEight);
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverEight);
   waitFor(
       receiver,
@@ -2519,8 +2523,6 @@ void scenarioTimestampedInteractionCrossProducerOrder(
           receiver.recorder().timeAdvanceGrants().back().encoded == encodeTime(*receiverEight),
       "Timestamped cross-service attribute reflection was not delivered before its grant");
 
-  early.rtiAmbassador().timeAdvanceRequest(*timeEight);
-  late.rtiAmbassador().timeAdvanceRequest(*lateEight);
   waitFor(
       early,
       [&] { return early.recorder().timeAdvanceGrants().size() == 2U; },
@@ -2538,6 +2540,23 @@ void scenarioTimestampedInteractionCrossProducerOrder(
       late.recorder().timeAdvanceGrants().back().encoded == encodeTime(*lateEight),
       "Timestamped cross-service second sender advanced to the wrong frontier");
 
+  // The time-nine removal needs the same strict-boundary setup: the senders'
+  // next-safe times must be greater than the receiver's target.
+  auto const lateNine = timeAfter(
+      *lateTime.factory,
+      *lateTime.initial,
+      *lateTime.epsilon,
+      9U);
+  early.rtiAmbassador().timeAdvanceRequest(*timeNine);
+  late.rtiAmbassador().timeAdvanceRequest(*lateNine);
+  waitForSessions(
+      {&early, &late},
+      [&] {
+        return early.recorder().timeAdvanceGrants().size() == 3U &&
+            late.recorder().timeAdvanceGrants().size() == 3U;
+      },
+      options,
+      "Timestamped cross-service sender frontier at time nine");
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverNine);
   waitFor(
       receiver,

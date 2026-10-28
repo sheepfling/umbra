@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -76,9 +77,9 @@ TEST_CASE(
   auto const publisherHandle = publisher->joinFederationExecution(
       L"package-filter-publisher", L"publisher", federationName);
   auto const publisherClass = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
-  auto const publisherFirst = publisher->getAttributeHandle(publisherClass, L"ReliableBaseA");
-  auto const publisherSecond = publisher->getAttributeHandle(publisherClass, L"ReliableBaseB");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
+  auto const publisherFirst = publisher->getAttributeHandle(publisherClass, umbra::test::hla::wide::fixture::reliable_base_a);
+  auto const publisherSecond = publisher->getAttributeHandle(publisherClass, umbra::test::hla::wide::fixture::reliable_base_b);
   REQUIRE(publisherClass.isValid());
   REQUIRE(publisherFirst.isValid());
   REQUIRE(publisherSecond.isValid());
@@ -100,9 +101,9 @@ TEST_CASE(
   subscriber->joinFederationExecution(
       L"package-filter-subscriber", L"subscriber", federationName);
   auto const subscriberClass = subscriber->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
-  auto const subscriberFirst = subscriber->getAttributeHandle(subscriberClass, L"ReliableBaseA");
-  auto const subscriberSecond = subscriber->getAttributeHandle(subscriberClass, L"ReliableBaseB");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
+  auto const subscriberFirst = subscriber->getAttributeHandle(subscriberClass, umbra::test::hla::wide::fixture::reliable_base_a);
+  auto const subscriberSecond = subscriber->getAttributeHandle(subscriberClass, umbra::test::hla::wide::fixture::reliable_base_b);
   REQUIRE(subscriberClass.isValid());
   REQUIRE(subscriberFirst.isValid());
   REQUIRE(subscriberSecond.isValid());

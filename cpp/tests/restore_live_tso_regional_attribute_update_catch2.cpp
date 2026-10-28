@@ -331,7 +331,8 @@ TEST_CASE(
   REQUIRE(reflection.sentOrderType == TIMESTAMP);
   REQUIRE(reflection.receivedOrderType == TIMESTAMP);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(reflection.sentRegions.begin()->isValid());
   REQUIRE(reflection.retractionSupplied);
   REQUIRE(reflection.retractionValid);
   REQUIRE(receiverReports.flushGrants.front().value == L"5");

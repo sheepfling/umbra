@@ -161,15 +161,15 @@ TEST_CASE(
       L"ddm-reflect-snapshot-subscriber", L"subscriber", federationName));
 
   auto const publisherSoda = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.Food.Drink.Soda");
+      umbra::test::hla::wide::fom::food_drink_soda);
   auto const subscriberSoda = subscriber->getObjectClassHandle(
-      L"HLAobjectRoot.Food.Drink.Soda");
+      umbra::test::hla::wide::fom::food_drink_soda);
   auto const publisherFlavor = publisher->getAttributeHandle(
-      publisherSoda, L"Flavor");
+      publisherSoda, umbra::test::hla::wide::fixture::flavor);
   auto const subscriberFlavor = subscriber->getAttributeHandle(
-      subscriberSoda, L"Flavor");
-  auto const publisherDimension = publisher->getDimensionHandle(L"SodaFlavor");
-  auto const subscriberDimension = subscriber->getDimensionHandle(L"SodaFlavor");
+      subscriberSoda, umbra::test::hla::wide::fixture::flavor);
+  auto const publisherDimension = publisher->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
+  auto const subscriberDimension = subscriber->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
   REQUIRE(publisherSoda.isValid());
   REQUIRE(subscriberSoda.isValid());
   REQUIRE(publisherFlavor.isValid());

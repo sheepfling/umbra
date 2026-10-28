@@ -90,8 +90,12 @@ class BuildQualityHistoryTests(unittest.TestCase):
         self.assertIn("status=failed", output.getvalue())
         self.assertIn("Note: ambassador lookup declarations", output.getvalue())
         self.assertIn("Roadmap/test mapping gate: FAILED, 20 errors", output.getvalue())
-        self.assertIn("mapping error: roadmap/test plan mapping error", output.getvalue())
-        self.assertIn("missing source location: unmapped-source-case", output.getvalue())
+        self.assertIn(
+            "mapping error: roadmap/test plan mapping error", output.getvalue()
+        )
+        self.assertIn(
+            "missing source location: unmapped-source-case", output.getvalue()
+        )
 
     def test_history_can_filter_failed_builds(self) -> None:
         entries = [

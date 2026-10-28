@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Mapping
+from typing import ClassVar
 
 import pytest
-
 from umbra_rti_observer import (
     OBSERVER_CONTRACT_VERSION,
     CallbackEventSource,
+    JsonObject,
     ObserverStore,
     build_contract_document,
     build_event_schema,
@@ -85,7 +87,7 @@ def test_provider_adapter_lifecycle_is_kept_out_of_the_store() -> None:
 
 def test_wait_for_events_unblocks_on_publish() -> None:
     store = ObserverStore()
-    received: list[dict[str, object]] = []
+    received: list[JsonObject] = []
 
     def wait() -> None:
         received.extend(store.wait_for_events(timeout=2.0))
@@ -118,13 +120,29 @@ def test_contract_is_language_neutral_and_declares_stream_messages() -> None:
     assert contract["capabilities"]["logical_time"]["state"] == "available"
 
 
-@pytest.mark.parametrize("feature", ["declarations", "relationships", "synchronization", "persistence_inspection", "time_inspection", "interaction_flow", "ownership_inspection", "regions_inspection", "mom_inspection", "fom_inspection"])
-def test_optional_inspector_support_does_not_upgrade_unsupported_reporters(feature: str) -> None:
+@pytest.mark.parametrize(
+    "feature",
+    [
+        "declarations",
+        "relationships",
+        "synchronization",
+        "persistence_inspection",
+        "time_inspection",
+        "interaction_flow",
+        "ownership_inspection",
+        "regions_inspection",
+        "mom_inspection",
+        "fom_inspection",
+    ],
+)
+def test_optional_inspector_support_does_not_upgrade_unsupported_reporters(
+    feature: str,
+) -> None:
     from umbra_rti_observer.capabilities import merge_capabilities
 
     class Adapter:
         name = "unsupported-reporter"
-        capabilities = {feature: "unsupported"}
+        capabilities: ClassVar[JsonObject] = {feature: "unsupported"}
 
         def start(self, sink: object) -> None:
             pass
@@ -140,8 +158,18 @@ def test_optional_inspector_support_does_not_upgrade_unsupported_reporters(featu
     store.set_capabilities({feature: "disabled"})
     assert store.capabilities()[feature]["state"] == "disabled"
     store.close()
-    assert merge_capabilities({feature: "unsupported"}, {feature: "disabled"})[feature].state == "disabled"
-    assert merge_capabilities({feature: "available"}, {feature: "unsupported"})[feature].state == "partial"
+    assert (
+        merge_capabilities({feature: "unsupported"}, {feature: "disabled"})[
+            feature
+        ].state
+        == "disabled"
+    )
+    assert (
+        merge_capabilities({feature: "available"}, {feature: "unsupported"})[
+            feature
+        ].state
+        == "partial"
+    )
 
 
 def test_capabilities_distinguish_provider_features_from_observer_features() -> None:
@@ -164,7 +192,7 @@ def test_capabilities_distinguish_provider_features_from_observer_features() -> 
 
 def test_application_capability_state_can_disable_adapter_surface() -> None:
     class FakeAdapter:
-        capabilities = {"mom": "available"}
+        capabilities: ClassVar[JsonObject] = {"mom": "available"}
 
         def start(self, sink) -> None:
             pass
@@ -189,7 +217,9 @@ def test_bounded_history_reports_cursor_gaps_and_filters() -> None:
     assert page["dropped_events"] == 1
     assert [event["sequence"] for event in page["events"]] == [3]
     assert page["next_after"] == 3
-    assert store.state(include_events=False)["retention"]["first_retained_sequence"] == 2
+    assert (
+        store.state(include_events=False)["retention"]["first_retained_sequence"] == 2
+    )
 
 
 def test_live_inspectors_survive_event_history_eviction() -> None:
@@ -225,22 +255,30 @@ def test_publish_many_is_atomic_when_a_row_is_invalid() -> None:
 
 def test_callback_source_isolates_sink_failures() -> None:
     source = CallbackEventSource()
-    received: list[dict[str, object]] = []
+    received: list[str] = []
 
-    def broken_sink(_event) -> None:
+    def capture_event_type(event: object) -> None:
+        if not isinstance(event, Mapping):
+            raise TypeError("callback source did not forward a mapping")
+        event_type = event.get("event_type")
+        if not isinstance(event_type, str):
+            raise TypeError("callback event has no string event_type")
+        received.append(event_type)
+
+    def broken_sink(_event: object) -> None:
         raise RuntimeError("diagnostic sink failed")
 
     source.subscribe(broken_sink)
-    source.subscribe(received.append)
+    source.subscribe(capture_event_type)
     source.emit({"event_type": "callback.invoked"})
 
-    assert received == [{"event_type": "callback.invoked"}]
+    assert received == ["callback.invoked"]
 
 
 def test_adapter_attachment_is_idempotent_and_close_stops_it() -> None:
     class FakeAdapter:
         name = "fake"
-        capabilities = {"logical_time": "available"}
+        capabilities: ClassVar[JsonObject] = {"logical_time": "available"}
 
         def __init__(self) -> None:
             self.starts = 0
@@ -268,7 +306,7 @@ def test_adapter_attachment_is_idempotent_and_close_stops_it() -> None:
 def test_adapter_capabilities_follow_adapter_lifecycle() -> None:
     class FakeAdapter:
         name = "capability-fake"
-        capabilities = {
+        capabilities: ClassVar[JsonObject] = {
             "logical_time": "available",
             "mom": {"state": "partial", "reason": "limited test surface"},
         }

@@ -28,18 +28,26 @@ The route matrix is:
 | 2010 | C++ headers, encoder/time shell, exact integer/float time marshal round-trips, reference federation/declaration/object/interaction/ownership/synchronization proof slices, and focused CTest checks | 2010 Java TCK | 2010 null JNI build and Java smoke, including the exact Java/JNI/C++ carrier matrix | 2010 surface contracts, factory bindings, adapter unit checks, optional native-boundary tests, surface audit, catalog parity, and all capability-profile declarations |
 | 2025 | C++ headers, binding shell, and lifecycle smoke | Java mock-fixture smoke by default; full TCK with caller-supplied API/provider JARs | JNI build and Java smoke against the checked-in mock fixture | 2025 contract and adapter unit checks |
 
-Hosted GitHub Actions currently runs tooling plus the four 2025 routes. Its
-tooling command uses `lint --scope ci --skip-2010-checks`, which omits the
+Hosted GitHub Actions runs tooling and the C++ 2025 smoke route on pull
+requests and pushes to `master`. It avoids a second push run for feature
+branches that already have a pull request. Java, JNI, and Python 2025 routes
+are available through manual dispatch: check `run_bindings` in the Run
+workflow dialog to run all three. They are skipped by default so routine
+changes do not wait on or pay for every binding lane.
+
+The tooling command uses `lint --scope ci --skip-2010-checks`, which omits the
 2010-only generated C++ shell check and dedicated 2010 surface, catalog, and
 profile audits from hosted CI. Shared integrity checks—including the
 two-edition Python surface report and provider-boundary verification—remain
-active to guard edition separation. The explicit 2010 route commands above
+active to guard edition separation. The `ci` lint scope also skips the
+repository-wide source-size survey; run `python tools/check_source_file_sizes.py`
+locally when reviewing source growth. The explicit 2010 route commands above
 remain available for local use and are not merged into the 2025 routes.
 
 `--route all` expands the four routes for the selected standard. `--standard
 all --route all` runs the complete matrix sequentially on a local machine. The
-hosted workflow currently fans out only the 2025 routes plus tooling; the 2010
-routes remain available as explicit local runs.
+hosted workflow keeps the core routes automatic; the 2010 routes remain
+available as explicit local runs.
 
 ## Java API and provider inputs
 
@@ -117,6 +125,104 @@ installed; it is optional until the repository adopts a committed C++
 formatting configuration. `clean` only removes known children of `out/`; it
 does not invoke `git clean` or touch source, compliance, or vendor trees.
 Use `--strict` on `lint` when missing optional formatters should fail the lane.
+
+## Routine MinGW C++ test builds and disk retention
+
+Use the shared-library preset for broad Catch2 and installed-package C++ TCK
+runs. It includes the embedded FOM-services profile needed by those suites.
+The RTI and its debug information live in shared libraries once;
+Catch2 still registers individual cases with CTest from grouped runners.
+One-case Catch2 executables are available with `--target <name>` but are
+excluded from a default all-target build.
+The test preset exports private DLL symbols needed by white-box Catch2 cases;
+the normal production shared-library option leaves those exports disabled.
+
+```text
+cmake --preset mingw-shared
+cmake --build --preset mingw-shared-debug --parallel 4
+ctest --preset mingw-shared-debug --output-on-failure --parallel 4 --timeout 120
+```
+
+For the installed-package C++ TCK, install this same shared build into a
+disposable `out/` prefix, configure the current-package adapter against that
+prefix, and build its one reusable TCK runner:
+
+```powershell
+$sharedPrefix = Join-Path (Get-Location) 'out/mgw/shared-package'
+cmake --install out/mgw/shared --prefix $sharedPrefix
+cmake -S packages/hla-rti-cpp-tck/adapters/current-package -B out/mgw/shared-tck -G Ninja "-DCMAKE_PREFIX_PATH=$sharedPrefix"
+cmake --build out/mgw/shared-tck --target hla_rti_cpp_tck
+ctest --test-dir out/mgw/shared-tck --output-on-failure
+```
+
+The adapter registers scenarios separately in CTest while linking the portable
+TCK once; its executable receives the same 128 MiB/16 MiB budget.
+
+## Parallel builds and language checks
+
+Use four jobs for the routine MinGW build and CTest run. The Windows junior
+guide uses the same setting. On a machine that runs short on memory, lower
+`--parallel 4` to `--parallel 2`; do not run two builds in the same build
+directory at the same time. A first JNI build has its own CMake tree and must
+compile the RTI core for the bridge, so it takes longer than an incremental
+build of an already configured tree.
+
+The 2010 and 2025 Python routes can run side by side when they use separate
+output roots. This shortens wall time without making either test run share
+generated files:
+
+```powershell
+python -m tools.ci test --standard 2010 --route python --build-root out/ci/python-2010
+python -m tools.ci test --standard 2025 --route python --build-root out/ci/python-2025
+```
+
+Run each command in its own terminal. For a complete local sequence, finish
+the shared C++ build once, run CTest with `--parallel 4`, then run the Java/JNI
+and Python routes. The Java mock-fixture route verifies the wiring; the full
+Java TCK additionally requires caller-supplied official API and provider JARs.
+
+All routine MinGW test executables, including the current-package portable
+C++ TCK, link without embedded DWARF. The post-link gate fails above 128 MiB
+total image or 16 MiB of `.debug_*` sections. For source-level investigation
+of one statically linked case, use `mingw-focused-full-debug-static` and build
+only the named target; that preset deliberately bypasses the routine image
+budget and excludes Catch2 executables from `all`.
+
+Generated `out/mgw/cpp-tck-named-*` build directories are disposable after
+their test run. The local retention policy is 24 hours after the last write;
+then preview and prune them with:
+
+```powershell
+./tools/prune_named_test_builds.ps1
+./tools/prune_named_test_builds.ps1 -Apply
+```
+
+The script only targets direct named-test children of `out/mgw`, refuses
+reparse points and active builds, and is a dry run without `-Apply`. Save any
+desired JSON results or diagnostics outside a named build directory before
+pruning. The generated binaries are rebuildable; pruning does not touch
+source, compliance, or vendor directories.
+
+Standalone CMake/Ninja scenario builds under `out/mgw` use the same 24-hour
+retention window. Preview and clean stale generated outputs with:
+
+```powershell
+./tools/clean_stale_mingw_build_outputs.ps1
+./tools/clean_stale_mingw_build_outputs.ps1 -Apply
+```
+
+This keeps the reusable `out/mgw/shared` build and skips trees configured from
+other projects. Age is based on the newest file inside each tree, not just the
+top-level directory timestamp. It runs Ninja's `clean`, removes only compiled
+artifact extensions left orphaned in eligible CMake trees, and prunes stale
+Umbra install/provider prefixes plus standalone TCK executables over 500 MiB.
+It leaves CMake caches, dependency sources, test sources, and JSON evidence in
+place. Export any desired diagnostics before cleanup; dry-run is the default.
+For worktree closeout, archive Codex-managed trees through the app and preserve
+detached commits before removing manually created trees; see
+[worktree hygiene](../../quality_gates/docs/WORKTREE-HYGIENE.md). If the app blocks an archive because
+the owning task or workspace is pinned, leave that checkout in place and record
+the blocker; do not bypass it by deleting the managed directory from a shell.
 
 ## Compile-time observations
 

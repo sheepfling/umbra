@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded embedded IEEE 1516.1-2025 federation synchronization-point slice to source-derived clause 4 records. It covers one-shot label tracking, global and explicit-set registration, callback-model-correct registration confirmation, announcement tags, late-join expansion, achievement success/failure, and completion after the synchronization set is satisfied. The focused filesystem lanes treat the C++ registration-result callbacks as the one §4.15 HLA service, and prove the §4.16 announcement and §4.18 Federation Synchronized records are durable at their individual recipients before HLA_EVOKED callbacks. A fresh-registry filesystem regression now also rehydrates one tagged synchronization point and verifies it survives a subsequent save. The bounded direct-delivery regression verifies the registration, announcement, and completion boundaries under HLA_IMMEDIATE; the original HLA_EVOKED regression retains the late-join and duplicate-registration paths. It remains source/test traceability only: distributed transport, protected review, catalog promotion, broader save/restore interaction, and conformance are outside this slice.",
+  "notes": "This contract pins Umbra's bounded embedded IEEE 1516.1-2025 federation synchronization-point slice to source-derived clause 4 records. It covers one-shot label tracking, global and explicit-set registration, callback-model-correct registration confirmation, announcement tags, late-join expansion, achievement success/failure, and completion after the synchronization set is satisfied. The focused filesystem lanes treat the C++ registration-result callbacks as the one \u00a74.15 HLA service, and prove the \u00a74.16 announcement and \u00a74.18 Federation Synchronized records are durable at their individual recipients before HLA_EVOKED callbacks. A fresh-registry filesystem regression now also rehydrates one tagged synchronization point and verifies it survives a subsequent save. The bounded direct-delivery regression verifies the registration, announcement, and completion boundaries under HLA_IMMEDIATE; the original HLA_EVOKED regression retains the late-join and duplicate-registration paths. It remains source/test traceability only: distributed transport, protected review, catalog promotion, broader save/restore interaction, and conformance are outside this slice. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-synchronization-point-tracked-separately",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l108-35",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.3",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
       "tests": [
@@ -106,5 +106,18 @@
         "cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "synchronization-point-requirements-contract.json",
+        "owned_id": "umbra-synchronization-point-tracked-separately",
+        "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l108-35",
+        "previous_clause_id": "clause-4",
+        "reviewed_clause_id": "clause-4.1.3"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

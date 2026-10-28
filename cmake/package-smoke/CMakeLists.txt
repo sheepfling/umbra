@@ -89,6 +89,7 @@ if(UMBRA_PACKAGE_SUBSCRIPTION_DISCOVERY_SMOKE AND
   )
   target_link_libraries(umbra_rti_package_subscribe_discovery_catch2 PRIVATE
     umbra::rti
+    umbra::fedtime
     Catch2::Catch2WithMain
   )
   add_executable(umbra_rti_package_attribute_filter_catch2
@@ -100,6 +101,7 @@ if(UMBRA_PACKAGE_SUBSCRIPTION_DISCOVERY_SMOKE AND
   )
   target_link_libraries(umbra_rti_package_attribute_filter_catch2 PRIVATE
     umbra::rti
+    umbra::fedtime
     Catch2::Catch2WithMain
   )
   add_executable(umbra_rti_package_subscription_validity_catch2
@@ -111,6 +113,7 @@ if(UMBRA_PACKAGE_SUBSCRIPTION_DISCOVERY_SMOKE AND
   )
   target_link_libraries(umbra_rti_package_subscription_validity_catch2 PRIVATE
     umbra::rti
+    umbra::fedtime
     Catch2::Catch2WithMain
   )
 endif()
@@ -250,3 +253,15 @@ endif()
 if(UMBRA_PACKAGE_SUBSCRIPTION_DISCOVERY_SMOKE)
   include("${CMAKE_CURRENT_LIST_DIR}/delayed_regional_attribute_immediate.cmake")
 endif()
+
+# Package consumers are a separate CMake project, so the root directory's
+# test-target scan does not see them. Apply the same routine MinGW budget here.
+include("${CMAKE_CURRENT_LIST_DIR}/../test_executable_budget.cmake")
+get_property(_umbra_package_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_umbra_package_target IN LISTS _umbra_package_targets)
+  get_target_property(_umbra_package_target_type
+    "${_umbra_package_target}" TYPE)
+  if(_umbra_package_target_type STREQUAL "EXECUTABLE")
+    umbra_guard_test_executable("${_umbra_package_target}")
+  endif()
+endforeach()

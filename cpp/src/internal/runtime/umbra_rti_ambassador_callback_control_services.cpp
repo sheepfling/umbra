@@ -57,12 +57,33 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
     pumpProcessReceiveOrder();
   }
 #endif
-  auto result = callbacks_->evokeOne(callbackWaitDuration(approximateMinimumTimeInSeconds));
-  if (!result) {
-    // A deadline may have elapsed while the dispatcher was waiting. Claim
-    // and submit it now, then give this Evoke call one normal callback slot.
+  bool callbackInvoked = false;
+  auto result = callbacks_->evokeOne(
+      callbackWaitDuration(approximateMinimumTimeInSeconds),
+      &callbackInvoked);
+  if (!result && !callbackInvoked) {
+    // A process stream reader may have buffered an unsolicited event while
+    // the dispatcher was waiting. Drain those events before returning from
+    // this Evoke so a callback that arrived during the requested wait is not
+    // stranded until the next service call or Evoke invocation.
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     pumpPeriodicMomUpdates();
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      if (lifecycle_.state() == umbra::detail::FederateLifecycleState::joined) {
+        processClient = processFederationClient_.get();
+      }
+    }
+    if (processClient != nullptr) {
+      try {
+        processClient->dispatchPendingPushedEvents();
+      } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+        throw RTIinternalError(wideAscii(error.what()));
+      } catch (umbra::detail::ProcessFederationClientError const& error) {
+        throw RTIinternalError(wideAscii(error.what()));
+      }
+    }
 #endif
     if (callbacks_->pendingCount() != 0U) {
       result = callbacks_->evokeOne(std::chrono::milliseconds::zero());

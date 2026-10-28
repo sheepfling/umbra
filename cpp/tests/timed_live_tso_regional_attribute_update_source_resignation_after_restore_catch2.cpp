@@ -444,7 +444,8 @@ TEST_CASE(
   REQUIRE(reflection.sentOrderType == TIMESTAMP);
   REQUIRE(reflection.receivedOrderType == TIMESTAMP);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{sourceRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(reflection.sentRegions.begin()->isValid());
   REQUIRE(reflection.retractionSupplied);
   REQUIRE(reflection.retractionValid);
   // The independent regulator is at 6 with a lookahead interval of 1, so the

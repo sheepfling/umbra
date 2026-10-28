@@ -172,7 +172,8 @@ TEST_CASE(
     "[federate.callback.request-attribute-ownership-release]"
     "[federate.callback.confirm-attribute-ownership-acquisition-cancellation]"
     "[federate.callback.attribute-ownership-unavailable]"
-    "[ownership-acquisition-cancellation-race]") {
+    "[ownership-acquisition-cancellation-race]"
+    "[lane.ownership-acquisition-cancellation-race]") {
   ReportingFederateAmbassador ownerReports;
   ReportingFederateAmbassador requesterReports;
   auto owner = makeRti();

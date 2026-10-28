@@ -827,15 +827,18 @@ TEST_CASE(
     REQUIRE(changedLookahead.getInterval() == 3);
     REQUIRE(retraction.toString() == designator);
 
+    // The timestamp-five interaction remains the public GALT while in transit.
+    // After its callback is acknowledged, the producer's time-plus-lookahead
+    // bound of six permits the receiver's grant at five.
     REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(5)));
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(2)));
+        rti1516_2025::HLAinteger64Time(3)));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(senderFederate.timeAdvanceGrantValue == 2);
+    REQUIRE(senderFederate.timeAdvanceGrantValue == 3);
     REQUIRE(receiverFederate.receivedInteractionCount == 0U);
 
     rti1516_2025::HLAinteger64Time inTransitGaltValue(99);

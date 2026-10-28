@@ -15,11 +15,9 @@ import tempfile
 import time
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "tools"))
-import run_java_tck  # noqa: E402
-
+import run_java_tck
 
 SCENARIOS = (
     "java-tck.connection-loss-cleanup",
@@ -50,8 +48,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--callback-model", choices=("both", "evoked", "immediate"), default="both"
     )
-    parser.add_argument("--classes-directory", type=Path,
-                        default=ROOT / "out" / "java-tck" / "classes")
+    parser.add_argument(
+        "--classes-directory", type=Path, default=ROOT / "out" / "java-tck" / "classes"
+    )
     parser.add_argument("--results-directory", type=Path, required=True)
     parser.add_argument("--java", default="java")
     parser.add_argument("--javac", default="javac")
@@ -108,15 +107,19 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
     try:
         port = wait_for_port(markers, arguments.startup_timeout_s)
         jvm_arguments = [
-            value.replace("{port}", str(port)) for value in arguments.provider_jvm_argument
+            value.replace("{port}", str(port))
+            for value in arguments.provider_jvm_argument
         ]
-        jvm_arguments.extend([
-            "-Dhla.rti.tck.callbackModel="
-            + ("HLA_EVOKED" if model == "evoked" else "HLA_IMMEDIATE"),
-            "-Dhla.rti.tck.connectionLossReadyMarker=" + str(ready),
-            "-Dhla.rti.tck.connectionLossCompletionMarker=" + str(complete),
-            "-Dhla.rti.tck.connectionLossTimeoutMillis=" + str(arguments.timeout_ms),
-        ])
+        jvm_arguments.extend(
+            [
+                "-Dhla.rti.tck.callbackModel="
+                + ("HLA_EVOKED" if model == "evoked" else "HLA_IMMEDIATE"),
+                "-Dhla.rti.tck.connectionLossReadyMarker=" + str(ready),
+                "-Dhla.rti.tck.connectionLossCompletionMarker=" + str(complete),
+                "-Dhla.rti.tck.connectionLossTimeoutMillis="
+                + str(arguments.timeout_ms),
+            ]
+        )
         if arguments.interaction_class:
             jvm_arguments.append(
                 "-Dhla.rti.tck.interactionClass=" + arguments.interaction_class
@@ -144,15 +147,22 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
         if result != 0:
             fixture_error = markers / "public-server-loss.error"
             if fixture_error.is_file():
-                print("connection-loss fixture: "
-                      + fixture_error.read_text(encoding="utf-8").strip(), file=sys.stderr)
+                print(
+                    "connection-loss fixture: "
+                    + fixture_error.read_text(encoding="utf-8").strip(),
+                    file=sys.stderr,
+                )
             return int(result)
         if not complete.is_file():
-            raise RuntimeError("Java TCK did not write its connection-loss completion marker")
+            raise RuntimeError(
+                "Java TCK did not write its connection-loss completion marker"
+            )
         fixture_status = wait_for_fixture(fixture, arguments.fixture_timeout_s)
         fixture = None
         if fixture_status != 0:
-            raise RuntimeError(f"connection-loss fixture exited with status {fixture_status}")
+            raise RuntimeError(
+                f"connection-loss fixture exited with status {fixture_status}"
+            )
         return 0
     finally:
         if fixture is not None and fixture.poll() is None:
@@ -191,7 +201,9 @@ def run(arguments: argparse.Namespace) -> int:
                 "--mim-path is required and must name the adapter-supplied MIM module"
             )
     elif not arguments.interaction_class:
-        raise ValueError("--interaction-class is required for this connection-loss scenario")
+        raise ValueError(
+            "--interaction-class is required for this connection-loss scenario"
+        )
     if arguments.timeout_ms <= 0:
         raise ValueError("--timeout-ms must be positive")
     if not any("{port}" in value for value in arguments.provider_jvm_argument):
@@ -210,8 +222,10 @@ def run(arguments: argparse.Namespace) -> int:
         if result != 0:
             return int(result)
 
-    models = ("evoked", "immediate") if arguments.callback_model == "both" else (
-        arguments.callback_model,
+    models = (
+        ("evoked", "immediate")
+        if arguments.callback_model == "both"
+        else (arguments.callback_model,)
     )
     with tempfile.TemporaryDirectory(prefix="java-tck-connection-loss-") as temporary:
         root = Path(temporary)

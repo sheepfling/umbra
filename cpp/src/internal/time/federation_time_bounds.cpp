@@ -3,7 +3,7 @@
 #include "internal/fom/fom_catalog.hpp"
 
 #include <RTI/Exception.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -22,7 +22,7 @@ std::shared_ptr<rti1516_2025::LogicalTime const> cloneAndAdvance(
   }
   *candidate += lookahead;
   if (minimumTimestampIsExclusive) {
-    auto epsilon = factory.makeEpsilon();
+    auto const epsilon = factory.makeEpsilon();
     if (!epsilon || epsilon->implementationName() != factory.getName()) {
       return nullptr;
     }
@@ -54,7 +54,7 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
     return result;
   }
 
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       execution.definition.logicalTimeImplementationName);
   if (!factory || factory->getName() != execution.definition.logicalTimeImplementationName) {
     result.status = FederationTimeBoundStatus::factory_unavailable;

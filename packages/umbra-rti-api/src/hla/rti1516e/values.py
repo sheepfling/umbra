@@ -33,7 +33,7 @@ class OrderType(Enum):
         buffer[offset] = 1 if self is OrderType.RECEIVE else 2
 
     @staticmethod
-    def decode(buffer: BytesLike, offset: int = 0) -> "OrderType":
+    def decode(buffer: BytesLike, offset: int = 0) -> OrderType:
         if offset < 0 or offset >= len(buffer):
             raise ValueError("buffer does not contain an OrderType")
         value = copy_bytes(buffer)[offset]
@@ -88,7 +88,9 @@ class SaveFailureReason(Enum):
 
 class RestoreFailureReason(Enum):
     RTI_UNABLE_TO_RESTORE = "RTI_UNABLE_TO_RESTORE"
-    FEDERATE_REPORTED_FAILURE_DURING_RESTORE = "FEDERATE_REPORTED_FAILURE_DURING_RESTORE"
+    FEDERATE_REPORTED_FAILURE_DURING_RESTORE = (
+        "FEDERATE_REPORTED_FAILURE_DURING_RESTORE"
+    )
     FEDERATE_RESIGNED_DURING_RESTORE = "FEDERATE_RESIGNED_DURING_RESTORE"
     RTI_DETECTED_FAILURE_DURING_RESTORE = "RTI_DETECTED_FAILURE_DURING_RESTORE"
     RESTORE_ABORTED = "RESTORE_ABORTED"
@@ -100,7 +102,9 @@ class RestoreStatus(Enum):
     FEDERATE_WAITING_FOR_RESTORE_TO_BEGIN = "FEDERATE_WAITING_FOR_RESTORE_TO_BEGIN"
     FEDERATE_PREPARED_TO_RESTORE = "FEDERATE_PREPARED_TO_RESTORE"
     FEDERATE_RESTORING = "FEDERATE_RESTORING"
-    FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE = "FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE"
+    FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE = (
+        "FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +114,9 @@ class EncodedHandle:
     encodedValue: BytesLike
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def encodedLength(self) -> int:
         return len(self.encodedValue)
@@ -200,7 +206,9 @@ class _MutableHandleSet(MutableSet[_HandleT], Generic[_HandleT]):
 
     def add(self, value: _HandleT) -> None:
         if not isinstance(value, self._handle_type):
-            raise TypeError(f"{type(self).__name__} values must be {self._handle_type.__name__}")
+            raise TypeError(
+                f"{type(self).__name__} values must be {self._handle_type.__name__}"
+            )
         self._values.add(value)
 
     def discard(self, value: object) -> None:
@@ -227,7 +235,11 @@ class _MutableHandleValueMap(MutableMapping[_HandleT, bytes], Generic[_HandleT])
     __slots__ = ("_values",)
     _handle_type: type[EncodedHandle] = EncodedHandle
 
-    def __init__(self, values: Mapping[_HandleT, BytesLike] | Iterable[tuple[_HandleT, BytesLike]] = ()) -> None:
+    def __init__(
+        self,
+        values: Mapping[_HandleT, BytesLike]
+        | Iterable[tuple[_HandleT, BytesLike]] = (),
+    ) -> None:
         self._values: dict[_HandleT, bytes] = {}
         for handle, value in dict(values).items():
             self[handle] = value
@@ -237,7 +249,9 @@ class _MutableHandleValueMap(MutableMapping[_HandleT, bytes], Generic[_HandleT])
 
     def __setitem__(self, handle: _HandleT, value: BytesLike) -> None:
         if not isinstance(handle, self._handle_type):
-            raise TypeError(f"{type(self).__name__} keys must be {self._handle_type.__name__}")
+            raise TypeError(
+                f"{type(self).__name__} keys must be {self._handle_type.__name__}"
+            )
         self._values[handle] = copy_bytes(value)
 
     def __delitem__(self, handle: _HandleT) -> None:
@@ -249,7 +263,9 @@ class _MutableHandleValueMap(MutableMapping[_HandleT, bytes], Generic[_HandleT])
     def __len__(self) -> int:
         return len(self._values)
 
-    def getValueReference(self, key: _HandleT, byteWrapper: object | None = None) -> object | None:
+    def getValueReference(
+        self, key: _HandleT, byteWrapper: object | None = None
+    ) -> object | None:
         value = self._values.get(key)
         if value is None:
             return None
@@ -270,7 +286,7 @@ class MutableParameterHandleValueMap(_MutableHandleValueMap[ParameterHandle]):
 
 
 class AttributeHandleSet(frozenset[AttributeHandle]):
-    def clone(self) -> "AttributeHandleSet":
+    def clone(self) -> AttributeHandleSet:
         return type(self)(self)
 
 
@@ -293,7 +309,11 @@ class ObjectInstanceNameSet(frozenset[str]):
 class AttributeHandleValueMap(Mapping[AttributeHandle, bytes]):
     __slots__ = ("_values",)
 
-    def __init__(self, values: Mapping[AttributeHandle, BytesLike] | Iterable[tuple[AttributeHandle, BytesLike]] = ()) -> None:
+    def __init__(
+        self,
+        values: Mapping[AttributeHandle, BytesLike]
+        | Iterable[tuple[AttributeHandle, BytesLike]] = (),
+    ) -> None:
         copied: dict[AttributeHandle, bytes] = {}
         for handle, value in dict(values).items():
             if not isinstance(handle, AttributeHandle):
@@ -310,7 +330,9 @@ class AttributeHandleValueMap(Mapping[AttributeHandle, bytes]):
     def __len__(self) -> int:
         return len(self._values)
 
-    def getValueReference(self, key: AttributeHandle, byteWrapper: object | None = None) -> object | None:
+    def getValueReference(
+        self, key: AttributeHandle, byteWrapper: object | None = None
+    ) -> object | None:
         value = self._values.get(key)
         if value is None:
             return None
@@ -325,7 +347,11 @@ class AttributeHandleValueMap(Mapping[AttributeHandle, bytes]):
 class ParameterHandleValueMap(Mapping[ParameterHandle, bytes]):
     __slots__ = ("_values",)
 
-    def __init__(self, values: Mapping[ParameterHandle, BytesLike] | Iterable[tuple[ParameterHandle, BytesLike]] = ()) -> None:
+    def __init__(
+        self,
+        values: Mapping[ParameterHandle, BytesLike]
+        | Iterable[tuple[ParameterHandle, BytesLike]] = (),
+    ) -> None:
         copied: dict[ParameterHandle, bytes] = {}
         for handle, value in dict(values).items():
             if not isinstance(handle, ParameterHandle):
@@ -342,7 +368,9 @@ class ParameterHandleValueMap(Mapping[ParameterHandle, bytes]):
     def __len__(self) -> int:
         return len(self._values)
 
-    def getValueReference(self, key: ParameterHandle, byteWrapper: object | None = None) -> object | None:
+    def getValueReference(
+        self, key: ParameterHandle, byteWrapper: object | None = None
+    ) -> object | None:
         """Return or populate the Java-shaped value reference overload."""
 
         value = self._values.get(key)
@@ -479,7 +507,7 @@ class MessageRetractionReturn:
 @dataclass(frozen=True, slots=True, eq=False)
 class TimeQueryReturn:
     timeIsValid: bool
-    time: "LogicalTime | None"
+    time: LogicalTime | None
 
     def toString(self) -> str:
         return f"{str(self.timeIsValid).lower()} {'null' if self.time is None else self.time}"
@@ -535,7 +563,9 @@ class LogicalTime:
     implementationNameValue: str = ""
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def isInitial(self) -> bool:
         return self.initial
@@ -543,16 +573,16 @@ class LogicalTime:
     def isFinal(self) -> bool:
         return self.final
 
-    def add(self, val: "LogicalTimeInterval") -> "LogicalTime":
+    def add(self, val: LogicalTimeInterval) -> LogicalTime:
         raise NotImplementedError
 
-    def subtract(self, val: "LogicalTimeInterval") -> "LogicalTime":
+    def subtract(self, val: LogicalTimeInterval) -> LogicalTime:
         raise NotImplementedError
 
-    def distance(self, val: "LogicalTime") -> "LogicalTimeInterval":
+    def distance(self, val: LogicalTime) -> LogicalTimeInterval:
         raise NotImplementedError
 
-    def compareTo(self, other: "LogicalTime") -> int:
+    def compareTo(self, other: LogicalTime) -> int:
         """Compare two provider-owned logical times using the 2010 shape."""
 
         raise NotImplementedError
@@ -594,7 +624,9 @@ class LogicalTimeInterval:
     implementationNameValue: str = ""
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def isZero(self) -> bool:
         return self.zero
@@ -602,13 +634,13 @@ class LogicalTimeInterval:
     def isEpsilon(self) -> bool:
         return self.epsilon
 
-    def add(self, addend: "LogicalTimeInterval") -> "LogicalTimeInterval":
+    def add(self, addend: LogicalTimeInterval) -> LogicalTimeInterval:
         raise NotImplementedError
 
-    def subtract(self, subtrahend: "LogicalTimeInterval") -> "LogicalTimeInterval":
+    def subtract(self, subtrahend: LogicalTimeInterval) -> LogicalTimeInterval:
         raise NotImplementedError
 
-    def compareTo(self, other: "LogicalTimeInterval") -> int:
+    def compareTo(self, other: LogicalTimeInterval) -> int:
         """Compare two provider-owned logical intervals using the 2010 shape."""
 
         raise NotImplementedError
@@ -628,7 +660,9 @@ class LogicalTimeInterval:
         return self.text or repr(self.value)
 
     def implementationName(self) -> str:
-        return self.implementationNameValue or type(self).__name__.removesuffix("Interval")
+        return self.implementationNameValue or type(self).__name__.removesuffix(
+            "Interval"
+        )
 
     def equals(self, other: object) -> bool:
         return self == other
@@ -657,20 +691,55 @@ class HLAfloat64Interval(LogicalTimeInterval):
 
 
 __all__ = [
-    "CallbackModel", "OrderType", "ServiceGroup", "ResignAction",
-    "SynchronizationPointFailureReason", "SaveStatus", "SaveFailureReason",
-    "RestoreFailureReason", "RestoreStatus", "EncodedHandle", "FederateHandle",
-    "ObjectClassHandle", "ObjectInstanceHandle", "AttributeHandle",
-    "InteractionClassHandle", "ParameterHandle", "TransportationTypeHandle",
-    "DimensionHandle", "RegionHandle", "MessageRetractionHandle",
-    "MutableAttributeHandleSet", "MutableDimensionHandleSet", "MutableFederateHandleSet",
-    "MutableRegionHandleSet", "MutableAttributeHandleValueMap", "MutableParameterHandleValueMap",
-    "AttributeHandleSet", "DimensionHandleSet", "FederateHandleSet", "RegionHandleSet",
-    "ObjectInstanceNameSet", "AttributeHandleValueMap", "ParameterHandleValueMap",
-    "AttributeRegionAssociation", "AttributeSetRegionSetPairList",
-    "FederationExecutionInformation", "FederationExecutionInformationSet",
-    "SupplementalReflectInfo", "SupplementalReceiveInfo", "SupplementalRemoveInfo",
-    "FederateHandleSaveStatusPair", "FederateRestoreStatus", "MessageRetractionReturn",
-    "TimeQueryReturn", "RangeBounds", "LogicalTime", "LogicalTimeInterval",
-    "HLAinteger64Time", "HLAfloat64Time", "HLAinteger64Interval", "HLAfloat64Interval",
+    "AttributeHandle",
+    "AttributeHandleSet",
+    "AttributeHandleValueMap",
+    "AttributeRegionAssociation",
+    "AttributeSetRegionSetPairList",
+    "CallbackModel",
+    "DimensionHandle",
+    "DimensionHandleSet",
+    "EncodedHandle",
+    "FederateHandle",
+    "FederateHandleSaveStatusPair",
+    "FederateHandleSet",
+    "FederateRestoreStatus",
+    "FederationExecutionInformation",
+    "FederationExecutionInformationSet",
+    "HLAfloat64Interval",
+    "HLAfloat64Time",
+    "HLAinteger64Interval",
+    "HLAinteger64Time",
+    "InteractionClassHandle",
+    "LogicalTime",
+    "LogicalTimeInterval",
+    "MessageRetractionHandle",
+    "MessageRetractionReturn",
+    "MutableAttributeHandleSet",
+    "MutableAttributeHandleValueMap",
+    "MutableDimensionHandleSet",
+    "MutableFederateHandleSet",
+    "MutableParameterHandleValueMap",
+    "MutableRegionHandleSet",
+    "ObjectClassHandle",
+    "ObjectInstanceHandle",
+    "ObjectInstanceNameSet",
+    "OrderType",
+    "ParameterHandle",
+    "ParameterHandleValueMap",
+    "RangeBounds",
+    "RegionHandle",
+    "RegionHandleSet",
+    "ResignAction",
+    "RestoreFailureReason",
+    "RestoreStatus",
+    "SaveFailureReason",
+    "SaveStatus",
+    "ServiceGroup",
+    "SupplementalReceiveInfo",
+    "SupplementalReflectInfo",
+    "SupplementalRemoveInfo",
+    "SynchronizationPointFailureReason",
+    "TimeQueryReturn",
+    "TransportationTypeHandle",
 ]

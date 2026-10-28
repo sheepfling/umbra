@@ -1,4 +1,4 @@
-#include <RTI/VariableLengthData.h>
+#include <RTI/VariableLengthData.h>  // Directly used by this implementation.
 #include <RTI/encoding/EncodingExceptions.h>
 #include <RTI/encoding/HLAfixedRecord.h>
 
@@ -25,7 +25,7 @@ namespace {
       input, L"The encoded HLAfixedRecord buffer is invalid.");
 }
 
-[[nodiscard]] std::size_t checkedAdd(std::size_t left, std::size_t right) {
+[[nodiscard]] std::size_t checkedAdd(const std::size_t left, const std::size_t right) {
   std::size_t result = 0U;
   if (!umbra::detail::composite2010::tryCheckedAdd(left, right, result)) {
     invalidEncoding(L"The HLAfixedRecord encoded length overflows size_t.");

@@ -15,8 +15,12 @@ that native and Java-backed providers expose the shared Python value types.
 This is intentionally a binding conformance suite, not an assertion that any
 provider implements the full IEEE standard.
 
+For the overall edit, test, lint, and report cadence, see the
+[Python development workflow](PYTHON-DEVELOPMENT-WORKFLOW.md). This guide
+continues with provider-specific conformance coverage and test setup.
+
 The shared `iter_callback_provenance_matrix()` adds a five-case parity vector
-for discovery, untimed value delivery, and timestamped value delivery.  The
+for discovery, untimed value delivery, and timestamped value delivery. The
 2010 proxy test verifies producer and region data through supplemental-info
 records; the 2025 proxy test verifies the direct producer/region positions.
 The 2010 JNI type-roundtrip test and the 2025 JNI carrier test additionally
@@ -26,20 +30,20 @@ retraction semantics, making the callback check transplantable to another
 Java, JNI, or native adapter without prescribing its scheduler.
 
 `CallbackDeliveryObservation` adds the differential layer for multi-federate
-streams.  The 2010 and 2025 fixture lanes feed two independently proxied
+streams. The 2010 and 2025 fixture lanes feed two independently proxied
 recipients, preserve sequence numbers within each recipient, and compare the
-normalized semantic payload/provenance tuple.  Cross-recipient interleaving is
+normalized semantic payload/provenance tuple. Cross-recipient interleaving is
 deliberately ignored because it is provider-defined; missing or duplicate
-per-recipient sequence numbers still fail.  Provider-owned handle encodings
+per-recipient sequence numbers still fail. Provider-owned handle encodings
 are decoded before comparison, so the same check can be transplanted to a
 different RTI or native route.
 
 The JNI callback-overload gates close the carrier-level gap beneath those
-semantic vectors.  The 2010 lane invokes all 60 reflected Java callback
+semantic vectors. The 2010 lane invokes all 60 reflected Java callback
 overloads for both logical-time families, and the 2025 lane invokes all 62.
 Standard Java handles, typed sets/maps, enums, status arrays, information
 sets, byte arrays, and logical times are converted into the corresponding
-Python values and checked for payload preservation.  These tests deliberately
+Python values and checked for payload preservation. These tests deliberately
 do not prescribe callback scheduling or federation policy, so the same matrix
 can be transplanted to another Java, JNI, or native adapter.
 

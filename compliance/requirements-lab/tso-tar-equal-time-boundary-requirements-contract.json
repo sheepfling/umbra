@@ -3,12 +3,12 @@
   "kind": "requirements-contract",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This portable C++ TCK contract covers a timestamped interaction whose time equals a receiving federate's Time Advance Request target. It is a distinct clause 8.8.3 TAR case and must not inherit the strict pre-grant boundary used by Time Advance Request Available. The case asserts interaction delivery before Time Advance Grant. It makes no claim about TARA, NMR, NMRA, FQR, or conformance.",
+  "notes": "This portable C++ TCK contract covers a timestamped interaction whose time equals a receiving federate's Time Advance Request target. It is a distinct clause 8.8.3 TAR case and must not inherit the strict pre-grant boundary used by Time Advance Request Available. The case asserts interaction delivery before Time Advance Grant. It makes no claim about TARA, NMR, NMRA, FQR, or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-tso-tar-equal-time-boundary-delivered-before-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp",
       "source_symbol": "runTimestampedInteractionMixedAdvancesScenario",
       "tests": [
@@ -17,5 +17,18 @@
       ],
       "notes": "The TSO and TAR target are both logical time 5. The publisher's TAR(4) with lookahead one establishes GALT 5, then the receiving federate observes receiveInteraction before timeAdvanceGrant. This remains portable TCK development evidence, not validation or conformance."
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "tso-tar-equal-time-boundary-requirements-contract.json",
+        "owned_id": "umbra-tso-tar-equal-time-boundary-delivered-before-grant",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

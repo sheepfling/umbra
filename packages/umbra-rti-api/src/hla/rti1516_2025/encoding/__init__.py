@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from .public import *
-from .public import __all__
 from . import contracts as _contracts
+from .public import *
+from .public import __all__ as __all__
 
 
 def __getattr__(name: str) -> object:

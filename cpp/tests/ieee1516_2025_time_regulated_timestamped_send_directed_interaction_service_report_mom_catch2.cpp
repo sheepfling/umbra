@@ -67,6 +67,7 @@ TEST_CASE(
       L"timestamped-directed-mom-receiver", L"subscriber", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"timestamped-directed-mom-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   // Isolate the accepted timestamped directed send from setup traffic.
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
@@ -239,17 +240,18 @@ TEST_CASE(
   REQUIRE(decodedSerial.get() == 0);
 
   // The public MOM report is visible before the constrained recipient's TSO
-  // callback.  Advancing the receiver to six then the publisher to one makes
-  // GALT reach the timestamp while preserving the callback-before-grant rule.
+  // callback. Advancing the receiver to six then the publisher to two puts
+  // GALT above the timestamp while preserving the callback-before-grant rule.
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE(receiverReports.directedInteractionReports.empty());
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(1)));
+      rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(observerReports.interactionReports.size() == 1U);
   REQUIRE(receiverReports.directedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);

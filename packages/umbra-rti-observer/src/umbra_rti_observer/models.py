@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias, TypedDict
 
 if TYPE_CHECKING:
     from .attribution import ParticipantPerspective
@@ -19,6 +19,311 @@ if TYPE_CHECKING:
 JsonScalar: TypeAlias = None | bool | int | float | str
 JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
+
+
+class EventObservationScope(Protocol):
+    def key(self, source: str) -> tuple[str, str, str, str]: ...
+
+
+class FomObservationContext(Protocol):
+    @property
+    def scope(self) -> EventObservationScope: ...
+
+    @property
+    def model_id(self) -> str: ...
+
+    @property
+    def revision(self) -> str: ...
+
+    @property
+    def element_id(self) -> str: ...
+
+
+class MomObservationContext(Protocol):
+    @property
+    def scope(self) -> EventObservationScope: ...
+
+    @property
+    def report_id(self) -> str: ...
+
+
+class FomObservation(Protocol):
+    @property
+    def context(self) -> FomObservationContext: ...
+
+    def kind(self) -> str: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class MomObservation(Protocol):
+    @property
+    def context(self) -> MomObservationContext: ...
+
+    def kind(self) -> str: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class DeclarationProjection(Protocol):
+    @property
+    def kind(self) -> Literal["object", "interaction"]: ...
+
+    @property
+    def direction(self) -> Literal["publication", "subscription"]: ...
+
+    @property
+    def class_key(self) -> str: ...
+
+    @property
+    def session_id(self) -> str | None: ...
+
+    @property
+    def class_name(self) -> str | None: ...
+
+    @property
+    def status(self) -> Literal["declared", "withdrawn", "unknown"]: ...
+
+    @property
+    def attribute_scope(
+        self,
+    ) -> Literal["selected", "all", "unknown", "not-applicable"]: ...
+
+    @property
+    def attributes(self) -> tuple[str, ...] | None: ...
+
+    @property
+    def reason(self) -> str | None: ...
+
+
+class RelationshipProjection(Protocol):
+    @property
+    def relationship_id(self) -> str: ...
+
+    @property
+    def session_id(self) -> str: ...
+
+    @property
+    def identity_namespace(self) -> str: ...
+
+    @property
+    def federation_id(self) -> str: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class ParticipantIdentityProjection(Protocol):
+    @property
+    def participant_id(self) -> str: ...
+
+    @property
+    def membership_id(self) -> str: ...
+
+
+class OwnershipScopeProjection(Protocol):
+    def key(self, source: str) -> tuple[str, str, str, str, str, str]: ...
+
+
+class OwnershipStateProjection(Protocol):
+    @property
+    def kind(self) -> Literal["state"]: ...
+
+    @property
+    def scope(self) -> OwnershipScopeProjection: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class OwnershipRequestProjection(Protocol):
+    @property
+    def kind(self) -> Literal["request"]: ...
+
+    @property
+    def scope(self) -> OwnershipScopeProjection: ...
+
+    @property
+    def request_id(self) -> str: ...
+
+    @property
+    def action(self) -> Literal["acquire", "divest"]: ...
+
+    @property
+    def requester(self) -> ParticipantIdentityProjection: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class OwnershipOutcomeProjection(Protocol):
+    @property
+    def kind(self) -> Literal["outcome"]: ...
+
+    @property
+    def scope(self) -> OwnershipScopeProjection: ...
+
+    @property
+    def request_id(self) -> str: ...
+
+    @property
+    def action(self) -> Literal["acquire", "divest"]: ...
+
+    @property
+    def requester(self) -> ParticipantIdentityProjection: ...
+
+    @property
+    def outcome(self) -> Literal["completed", "failed", "cancelled"]: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+OwnershipObservationProjection: TypeAlias = (
+    OwnershipStateProjection | OwnershipRequestProjection | OwnershipOutcomeProjection
+)
+
+
+class RegionObservationContextProjection(Protocol):
+    @property
+    def scope(self) -> EventObservationScope: ...
+
+
+class RegionObservationProjection(Protocol):
+    @property
+    def context(self) -> RegionObservationContextProjection: ...
+
+    def record_key(self) -> tuple[str, str]: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class CoordinationProjection(Protocol):
+    @property
+    def kind(self) -> Literal["synchronization", "save", "restore"]: ...
+
+    @property
+    def operation_id(self) -> str: ...
+
+    @property
+    def session_id(self) -> str: ...
+
+    @property
+    def identity_namespace(self) -> str: ...
+
+    @property
+    def federation_id(self) -> str: ...
+
+    @property
+    def scope(self) -> Literal["local", "federation"]: ...
+
+    @property
+    def subject(self) -> ParticipantIdentityProjection | None: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+class InteractionFlowProjection(Protocol):
+    @property
+    def kind(self) -> Literal["send", "receive"]: ...
+
+    @property
+    def correlation_key(
+        self,
+    ) -> tuple[str, str, str, tuple[str, str], tuple[str, str]] | None: ...
+
+    def to_json(self) -> JsonObject: ...
+
+
+ReportedParticipant: TypeAlias = str | Mapping[str, JsonValue] | None
+RawReportedParticipant: TypeAlias = str | Mapping[str, object] | None
+ReportedParticipantCandidate: TypeAlias = RawReportedParticipant | int | float
+
+
+class RawReportedParticipantMetadata(TypedDict, total=False):
+    """Recognized labels inside a provider's legacy participant record."""
+
+    name: object
+    id: object
+    handle: object
+
+
+class RawObservationSession(TypedDict, total=False):
+    """Session field read from a raw time or declaration observation."""
+
+    session_id: object
+
+
+class RawParticipantIdentity(TypedDict, total=False):
+    """Candidate identity values before their identifiers are validated."""
+
+    participant_id: object
+    membership_id: object
+    display_name: object
+    handle: object
+
+
+class RawInteractionFlowObservation(TypedDict, total=False):
+    """Provider-owned interaction-flow fields before runtime validation."""
+
+    kind: object
+    order: object
+    message_id: object
+    identity_namespace: object
+    federation_id: object
+    session_id: object
+    producer: RawParticipantIdentity
+    recipient: RawParticipantIdentity
+    class_key: object
+    logical_time: object
+
+
+class RawRelationshipObservation(TypedDict, total=False):
+    """Provider-owned relationship fields before runtime validation."""
+
+    relationship_id: object
+    session_id: object
+    identity_namespace: object
+    federation_id: object
+    producer: RawParticipantIdentity
+    recipient: RawParticipantIdentity
+    kind: object
+    evidence: object
+    status: object
+    viewpoint: object
+    class_key: object
+    class_name: object
+    reason: object
+
+
+class RawParticipantAttribution(TypedDict, total=False):
+    """Candidate attribution fields before nested identity validation."""
+
+    session_id: object
+    identity_namespace: object
+    federation_id: object
+    participant: RawParticipantIdentity
+
+
+class ObserverEventMetadata(TypedDict, total=False):
+    """Common event keys; family payloads and provider extensions are separate."""
+
+    event_type: str
+    kind: str
+    family: str
+    source: str
+    connection: str
+    federation: str
+    federate: RawReportedParticipant
+    participant: RawReportedParticipant
+    federate_name: str
+    participant_name: str
+    object_key: str
+    session_id: str
+    participant_attribution: RawParticipantAttribution
+
+
+# Raw provider objects are permitted only at ingress; they are validated and
+# converted before storage as EventRecord.extensions.
+RawObserverEvent: TypeAlias = Mapping[str, object]
+
+
 CapabilityState: TypeAlias = Literal[
     "available",
     "partial",
@@ -55,7 +360,7 @@ def to_json_object(value: object) -> JsonObject:
 
 @dataclass(frozen=True, slots=True)
 class EventRecord(Mapping[str, JsonValue]):
-    """Normalized event envelope plus provider-specific extension fields."""
+    """Normalized event envelope, typed projections, and provider extensions."""
 
     sequence: int
     event_type: str
@@ -63,6 +368,14 @@ class EventRecord(Mapping[str, JsonValue]):
     source: str
     observed_at: float
     extensions: JsonObject = field(default_factory=dict)
+    fom_observation: FomObservation | None = None
+    mom_observation: MomObservation | None = None
+    declaration_observation: DeclarationProjection | None = None
+    relationship_observation: RelationshipProjection | None = None
+    coordination_observation: CoordinationProjection | None = None
+    interaction_flow_observation: InteractionFlowProjection | None = None
+    ownership_observation: OwnershipObservationProjection | None = None
+    region_observation: RegionObservationProjection | None = None
 
     def to_json(self) -> JsonObject:
         result = dict(self.extensions)
@@ -159,7 +472,11 @@ class ObjectInspection:
     @property
     def cache_key(self) -> tuple[str | None, str | None, str]:
         context = self.object_context
-        return context.identity_namespace if context else None, context.federation_id if context else None, self.object_key
+        return (
+            context.identity_namespace if context else None,
+            context.federation_id if context else None,
+            self.object_key,
+        )
 
     def to_json(self) -> JsonObject:
         return {
@@ -175,7 +492,14 @@ class ObjectInspection:
             "sources": list(self.sources),
             "status": self.status,
             "last_seen": self.last_seen,
-            **({"object_context": self.object_context.to_json(), "observation_key": self.object_context.key(self.object_key)} if self.object_context else {}),
+            **(
+                {
+                    "object_context": self.object_context.to_json(),
+                    "observation_key": self.object_context.key(self.object_key),
+                }
+                if self.object_context
+                else {}
+            ),
         }
 
 

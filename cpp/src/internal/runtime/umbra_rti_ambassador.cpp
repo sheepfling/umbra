@@ -44,7 +44,7 @@
 #include <RTI/encoding/BasicDataElements.h>
 #include <RTI/encoding/HLAfixedRecord.h>
 #include <RTI/encoding/HLAvariableArray.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 #endif
 
 #include <algorithm>
@@ -551,7 +551,7 @@ std::unique_ptr<LogicalTimeFactory> makeDefinitionTimeFactory(
         L"The embedded federation's selected logical-time implementation is no longer valid.");
   }
 
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       definition.logicalTimeImplementationName);
   if (!factory || factory->getName() != definition.logicalTimeImplementationName) {
     throw RTIinternalError(
@@ -586,7 +586,7 @@ std::shared_ptr<LogicalTime> cloneReferenceLogicalTime(
         L"The requested logical time does not use the joined federation's selected implementation.");
   }
 
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(implementationName);
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw RTIinternalError(
         L"Umbra could not recreate the joined federation's logical-time factory.");
@@ -642,7 +642,7 @@ void validateTsoTimestamp(
         !timeSnapshot.timeAdvancePending && timeSnapshot.lookahead->isZero();
     if (timeSnapshot.minimumTimestampIsExclusive &&
         !completedZeroLookaheadGrant) {
-      auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      auto factory = umbra::detail::makeFederationLogicalTimeFactory(
           timeSnapshot.implementationName);
       if (!factory || factory->getName() != timeSnapshot.implementationName) {
         throw InvalidLogicalTime(
@@ -745,7 +745,7 @@ std::shared_ptr<LogicalTimeInterval> cloneReferenceLogicalTimeInterval(
         L"The requested lookahead does not use the joined federation's selected implementation.");
   }
 
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(implementationName);
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw RTIinternalError(
         L"Umbra could not recreate the joined federation's logical-time factory.");
@@ -810,7 +810,7 @@ std::unique_ptr<LogicalTime> decodeProcessLogicalTimeValue(
     throw RTIinternalError(
         L"The process endpoint returned a logical-time value without an implementation name.");
   }
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       value.implementationName);
   if (!factory || factory->getName() != value.implementationName) {
     throw RTIinternalError(
@@ -840,7 +840,7 @@ std::unique_ptr<LogicalTimeInterval> decodeProcessLogicalTimeIntervalValue(
     throw RTIinternalError(
         L"The process endpoint returned a logical-time interval without an implementation name.");
   }
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       value.implementationName);
   if (!factory || factory->getName() != value.implementationName) {
     throw RTIinternalError(
@@ -2686,6 +2686,9 @@ void UmbraRtiAmbassador::listFederationExecutions() {
   auto instrumentationScope = beginRtiCall("listFederationExecutions");
   std::shared_ptr<CallbackSession> callbackSession;
   FederationExecutionInformationVector report;
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  umbra::detail::ProcessFederationClient* processClient = nullptr;
+#endif
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -2693,9 +2696,38 @@ void UmbraRtiAmbassador::listFederationExecutions() {
     if (!callbackSession) {
       throw RTIinternalError(L"The embedded connection has no federate ambassador callback recipient.");
     }
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+    if (processEndpointActive_) {
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+    } else
+#endif
+    {
     report = federationExecutionReport(
         embeddedFederationManagement().registry().federationExecutions());
+    }
   }
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processClient != nullptr) {
+    umbra::detail::ProcessFederationExecutionsResult processFederations;
+    try {
+      processFederations = processClient->listFederationExecutions();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    report.reserve(processFederations.federations.size());
+    for (auto const& federation : processFederations.federations) {
+      report.emplace_back(
+          federation.name, federation.logicalTimeImplementationName);
+    }
+  }
+#endif
 
   // The dispatcher may invoke an immediate callback synchronously. Submit only
   // after releasing both runtime locks so federate code can safely make an RTI
@@ -2712,6 +2744,9 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
   auto instrumentationScope = beginRtiCall("listFederationExecutionMembers");
   std::shared_ptr<CallbackSession> callbackSession;
   std::optional<std::vector<umbra::detail::FederateMembership>> members;
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  umbra::detail::ProcessFederationClient* processClient = nullptr;
+#endif
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -2719,8 +2754,61 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
     if (!callbackSession) {
       throw RTIinternalError(L"The embedded connection has no federate ambassador callback recipient.");
     }
-    members = embeddedFederationManagement().registry().membersFor(federationName);
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+    if (processEndpointActive_) {
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+    } else
+#endif
+    {
+      members =
+          embeddedFederationManagement().registry().membersFor(federationName);
+    }
   }
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processClient != nullptr) {
+    umbra::detail::ProcessFederationExecutionMembersResult processMembers;
+    try {
+      processMembers =
+          processClient->listFederationExecutionMembers(federationName);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (!processMembers.federationExists) {
+      callbacks_->submit(
+          [callbackSession = std::move(callbackSession), federationName] {
+            callbackSession->invoke(
+                [&federationName](FederateAmbassador& recipient) {
+                  recipient.reportFederationExecutionDoesNotExist(
+                      federationName);
+                });
+          });
+      return;
+    }
+    FederationExecutionMemberInformationVector report;
+    report.reserve(processMembers.members.size());
+    for (auto const& member : processMembers.members) {
+      report.emplace_back(member.name, member.type);
+    }
+    callbacks_->submit(
+        [callbackSession = std::move(callbackSession),
+         federationName,
+         report = std::move(report)] {
+          callbackSession->invoke(
+              [&federationName, &report](FederateAmbassador& recipient) {
+                recipient.reportFederationExecutionMembers(
+                    federationName, report);
+              });
+        });
+    return;
+  }
+#endif
 
   if (!members) {
     callbacks_->submit([callbackSession = std::move(callbackSession), federationName] {

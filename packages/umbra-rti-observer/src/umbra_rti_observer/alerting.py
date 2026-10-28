@@ -17,26 +17,46 @@ from time import monotonic
 from typing import Literal
 from uuid import uuid4
 
-from .attribution import ParticipantPerspective, event_perspective, perspective_ended
+from .attribution import (
+    ParticipantEventMetadata,
+    ParticipantPerspective,
+    participant_event_ended,
+    participant_event_perspective,
+)
 from .models import JsonObject, to_json_object
 
-RuleKind = Literal["stale-observations", "errors", "dropped-history", "pending-commands"]
+RuleKind = Literal[
+    "stale-observations", "errors", "dropped-history", "pending-commands"
+]
 AlertState = Literal["disabled", "unknown", "clear", "firing", "ended"]
 AlertCoverage = Literal["complete", "partial", "unavailable", "not-observed"]
 Severity = Literal["info", "warning", "critical"]
 AlertReason = Literal[
-    "disabled", "not-observed", "observations-current", "observations-idle",
-    "explicit-disconnect", "explicit-resignation", "errors-below-threshold",
-    "errors-threshold", "error-window-incomplete", "history-below-threshold",
-    "history-loss-threshold", "pending-below-threshold", "pending-threshold",
-    "commands-unavailable", "target-unavailable", "clock-unusable",
+    "disabled",
+    "not-observed",
+    "observations-current",
+    "observations-idle",
+    "explicit-disconnect",
+    "explicit-resignation",
+    "errors-below-threshold",
+    "errors-threshold",
+    "error-window-incomplete",
+    "history-below-threshold",
+    "history-loss-threshold",
+    "pending-below-threshold",
+    "pending-threshold",
+    "commands-unavailable",
+    "target-unavailable",
+    "clock-unusable",
 ]
 CONFIG_VERSION = "umbra-observer-alerts-v1"
 MAX_RULES, MAX_CONFIG_BYTES, ERROR_MARK_LIMIT, EVIDENCE_LIMIT = 64, 65536, 512, 500
 
 
 def _text(value: object, limit: int = 512) -> None:
-    if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > limit):
+    if value is not None and (
+        not isinstance(value, str) or not value.strip() or len(value) > limit
+    ):
         raise ValueError("alert text must be nonblank and bounded")
     if value is not None:
         value.encode("utf-8")
@@ -57,30 +77,63 @@ class AlertScope:
         if perspective is None:
             return
         if type(perspective) is not ParticipantPerspective:
-            raise TypeError("alert perspective filters require a named participant perspective")
+            raise TypeError(
+                "alert perspective filters require a named participant perspective"
+            )
         if perspective.attribution is None:
-            raise ValueError("exact alert perspective filters require explicit join IDs; use legacy text filters otherwise")
-        if any(value is not None for value in (self.source, self.federation, self.federate, self.session_id)):
-            raise ValueError("choose an exact perspective or legacy text filters, not both")
-        for value in (perspective.source, perspective.federation, perspective.reported_name):
+            raise ValueError(
+                "exact alert perspective filters require explicit join IDs; use legacy text filters otherwise"
+            )
+        if any(
+            value is not None
+            for value in (self.source, self.federation, self.federate, self.session_id)
+        ):
+            raise ValueError(
+                "choose an exact perspective or legacy text filters, not both"
+            )
+        for value in (
+            perspective.source,
+            perspective.federation,
+            perspective.reported_name,
+        ):
             _text(value)
-        normalized = event_perspective({"source": perspective.source, "session_id": perspective.session_id,
-            "federation": perspective.federation, "federate": perspective.reported_name,
-            "participant_attribution": perspective.attribution.to_json() if perspective.attribution else None})
+        normalized = participant_event_perspective(
+            ParticipantEventMetadata(
+                source=perspective.source,
+                session_id=perspective.session_id,
+                federation=perspective.federation,
+                federate=perspective.reported_name,
+                attribution=perspective.attribution,
+            )
+        )
         if normalized is None or normalized.key != perspective.key:
-            raise ValueError("alert perspective must have canonical reporting provenance")
+            raise ValueError(
+                "alert perspective must have canonical reporting provenance"
+            )
 
     def to_json(self) -> JsonObject:
-        result: JsonObject = {"source": self.source, "federation": self.federation,
-            "federate": self.federate, "session_id": self.session_id}
+        result: JsonObject = {
+            "source": self.source,
+            "federation": self.federation,
+            "federate": self.federate,
+            "session_id": self.session_id,
+        }
         if self.perspective is not None:
             result["perspective"] = self.perspective.to_json()
         return result
 
     def matches(self, other: AlertScope, *, session_end: bool = False) -> bool:
-        return (self.perspective is None or self.perspective == other.perspective) and all(expected is None or expected == actual for expected, actual in (
-            (self.source, other.source), (self.federation, other.federation),
-            (None if session_end else self.federate, other.federate), (self.session_id, other.session_id)))
+        return (
+            self.perspective is None or self.perspective == other.perspective
+        ) and all(
+            expected is None or expected == actual
+            for expected, actual in (
+                (self.source, other.source),
+                (self.federation, other.federation),
+                (None if session_end else self.federate, other.federate),
+                (self.session_id, other.session_id),
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,31 +150,74 @@ class AlertRuleSpec:
     target_id: str | None = None
 
     def __post_init__(self) -> None:
-        if type(self.rule_id) is not str or type(self.name) is not str or type(self.scope) is not AlertScope:
-            raise TypeError("alert rules require named IDs and an explicit filter model")
+        if (
+            type(self.rule_id) is not str
+            or type(self.name) is not str
+            or type(self.scope) is not AlertScope
+        ):
+            raise TypeError(
+                "alert rules require named IDs and an explicit filter model"
+            )
         _text(self.rule_id, 128)
         _text(self.name, 128)
         _text(self.target_id, 128)
         self.scope.validate_filter()
-        if self.kind not in {"stale-observations", "errors", "dropped-history", "pending-commands"} or self.severity not in {"info", "warning", "critical"} or type(self.enabled) is not bool:
+        if (
+            self.kind
+            not in {
+                "stale-observations",
+                "errors",
+                "dropped-history",
+                "pending-commands",
+            }
+            or self.severity not in {"info", "warning", "critical"}
+            or type(self.enabled) is not bool
+        ):
             raise ValueError("invalid alert kind, severity or enabled flag")
         if self.kind in {"stale-observations", "pending-commands"}:
-            if isinstance(self.threshold_seconds, bool) or not isinstance(self.threshold_seconds, (int, float)) or not math.isfinite(self.threshold_seconds) or not .1 <= self.threshold_seconds <= 86400:
+            if (
+                isinstance(self.threshold_seconds, bool)
+                or not isinstance(self.threshold_seconds, (int, float))
+                or not math.isfinite(self.threshold_seconds)
+                or not 0.1 <= self.threshold_seconds <= 86400
+            ):
                 raise ValueError("age threshold must be 0.1..86400 seconds")
-        elif type(self.threshold_count) is not int or not 1 <= self.threshold_count <= 1000000000:
+        elif (
+            type(self.threshold_count) is not int
+            or not 1 <= self.threshold_count <= 1000000000
+        ):
             raise ValueError("count threshold must be 1..1000000000")
-        if self.kind == "errors" and (isinstance(self.window_seconds, bool) or not isinstance(self.window_seconds, (int, float)) or not math.isfinite(self.window_seconds) or not 1 <= self.window_seconds <= 3600):
+        if self.kind == "errors" and (
+            isinstance(self.window_seconds, bool)
+            or not isinstance(self.window_seconds, (int, float))
+            or not math.isfinite(self.window_seconds)
+            or not 1 <= self.window_seconds <= 3600
+        ):
             raise ValueError("error window must be 1..3600 seconds")
-        if (self.kind not in {"stale-observations", "pending-commands"} and self.threshold_seconds is not None
-                or self.kind not in {"errors", "dropped-history"} and self.threshold_count is not None
-                or self.kind != "errors" and self.window_seconds is not None
-                or self.kind != "pending-commands" and self.target_id is not None
-                or self.kind not in {"stale-observations", "errors"} and self.scope != AlertScope()):
+        if (
+            self.kind not in {"stale-observations", "pending-commands"}
+            and self.threshold_seconds is not None
+            or self.kind not in {"errors", "dropped-history"}
+            and self.threshold_count is not None
+            or self.kind != "errors"
+            and self.window_seconds is not None
+            or self.kind != "pending-commands"
+            and self.target_id is not None
+            or self.kind not in {"stale-observations", "errors"}
+            and self.scope != AlertScope()
+        ):
             raise ValueError("alert parameters must apply to their rule kind")
 
     def to_json(self) -> JsonObject:
-        result = to_json_object({"rule_id": self.rule_id, "name": self.name, "kind": self.kind,
-                                "severity": self.severity, "enabled": self.enabled})
+        result = to_json_object(
+            {
+                "rule_id": self.rule_id,
+                "name": self.name,
+                "kind": self.kind,
+                "severity": self.severity,
+                "enabled": self.enabled,
+            }
+        )
         if self.kind in {"stale-observations", "errors"}:
             result["scope"] = self.scope.to_json()
         if self.threshold_seconds is not None:
@@ -185,8 +281,14 @@ class AlertEvidence:
     acknowledged: bool = False
 
     def to_json(self) -> JsonObject:
-        return to_json_object({"evidence_id": self.evidence_id, "rule": self.rule.to_json(),
-                               "result": asdict(self.result), "acknowledged": self.acknowledged})
+        return to_json_object(
+            {
+                "evidence_id": self.evidence_id,
+                "rule": self.rule.to_json(),
+                "result": asdict(self.result),
+                "acknowledged": self.acknowledged,
+            }
+        )
 
 
 @dataclass(slots=True)
@@ -219,7 +321,12 @@ class AlertConflict(ValueError):
 
 
 class AlertEngine:
-    def __init__(self, *, clock: Callable[[], float] | None = None, wall: Callable[[], float] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        clock: Callable[[], float] | None = None,
+        wall: Callable[[], float] | None = None,
+    ) -> None:
         self.clock = clock if clock is not None else monotonic
         self.wall = wall if wall is not None else time.time
         self.instance_id = str(uuid4())
@@ -229,14 +336,34 @@ class AlertEngine:
         self.evicted_evidence = 0
         self._next_evidence = 1
 
-    def configure(self, specs: Sequence[AlertRuleSpec], expected_revision: int, dropped: int, *, reset_id: str | None = None) -> None:
+    def configure(
+        self,
+        specs: Sequence[AlertRuleSpec],
+        expected_revision: int,
+        dropped: int,
+        *,
+        reset_id: str | None = None,
+    ) -> None:
         if type(expected_revision) is not int or expected_revision < 0:
             raise ValueError("expected alert revision must be a nonnegative integer")
         if expected_revision != self.revision:
-            raise AlertConflict("Alert configuration changed. Refresh before applying changes.")
+            raise AlertConflict(
+                "Alert configuration changed. Refresh before applying changes."
+            )
         if len(specs) > MAX_RULES or len({row.rule_id for row in specs}) != len(specs):
             raise ValueError("alert configuration needs at most 64 unique rule IDs")
-        if len(json.dumps({"configuration_version": CONFIG_VERSION, "rules": [row.to_json() for row in specs]}, ensure_ascii=False).encode()) > MAX_CONFIG_BYTES:
+        if (
+            len(
+                json.dumps(
+                    {
+                        "configuration_version": CONFIG_VERSION,
+                        "rules": [row.to_json() for row in specs],
+                    },
+                    ensure_ascii=False,
+                ).encode()
+            )
+            > MAX_CONFIG_BYTES
+        ):
             raise ValueError("alert configuration exceeds 64 KiB")
         if reset_id is not None and reset_id not in self.runs:
             raise KeyError(reset_id)
@@ -244,16 +371,28 @@ class AlertEngine:
         updated: dict[str, RuleRun] = {}
         for spec in specs:
             previous = self.runs.get(spec.rule_id)
-            if previous is not None and previous.spec == spec and spec.rule_id != reset_id:
+            if (
+                previous is not None
+                and previous.spec == spec
+                and spec.rule_id != reset_id
+            ):
                 updated[spec.rule_id] = previous
                 continue
             run = RuleRun(spec, revision, now, dropped)
-            if previous is not None and spec.kind == previous.spec.kind == "stale-observations" and spec.scope == previous.spec.scope:
+            if (
+                previous is not None
+                and spec.kind == previous.spec.kind == "stale-observations"
+                and spec.scope == previous.spec.scope
+            ):
                 # A threshold/name/reset edit cannot unsee an explicit end or
                 # restore name-only lifecycle certainty after identified joins.
                 run.identified_observations = previous.identified_observations
                 if previous.ended:
-                    run.ended, run.last_at, run.last_sequence = previous.ended, previous.last_at, previous.last_sequence
+                    run.ended, run.last_at, run.last_sequence = (
+                        previous.ended,
+                        previous.last_at,
+                        previous.last_sequence,
+                    )
             updated[spec.rule_id] = run
         self.runs = updated
         self.revision = revision
@@ -273,20 +412,57 @@ class AlertEngine:
             spec = run.spec
             if not spec.enabled or spec.kind not in {"stale-observations", "errors"}:
                 continue
-            exact_session = spec.scope.source is not None and spec.scope.session_id is not None
+            exact_session = (
+                spec.scope.source is not None and spec.scope.session_id is not None
+            )
             # A legacy name filter can aggregate several identified joins. An
             # individual lifecycle report cannot end that aggregate monitor.
-            if spec.scope.matches(scope) and scope.perspective is not None and scope.perspective.attribution is not None:
+            if (
+                spec.scope.matches(scope)
+                and scope.perspective is not None
+                and scope.perspective.attribution is not None
+            ):
                 run.identified_observations = True
-            if spec.scope.perspective is not None:
-                ended = perspective_ended(spec.scope.perspective, {"event_type": event_type, "source": scope.source,
-                    "session_id": scope.session_id, "federation": scope.federation, "federate": scope.federate,
-                    "participant_attribution": scope.perspective.attribution.to_json() if scope.perspective and scope.perspective.attribution else None})
+            exact_perspective = spec.scope.perspective
+            if exact_perspective is not None:
+                observed_perspective = scope.perspective
+                ended = participant_event_ended(
+                    exact_perspective,
+                    ParticipantEventMetadata(
+                        source=scope.source,
+                        event_type=event_type,
+                        session_id=scope.session_id,
+                        federation=scope.federation,
+                        federate=scope.federate,
+                        attribution=(
+                            observed_perspective.attribution
+                            if observed_perspective is not None
+                            else None
+                        ),
+                    ),
+                )
             else:
-                ended = not run.identified_observations and exact_session and ((event_type == "session.disconnected" and spec.scope.matches(scope, session_end=True))
-                    or (event_type == "federate.resigned" and spec.scope.federate is not None and spec.scope.matches(scope)))
+                ended = (
+                    not run.identified_observations
+                    and exact_session
+                    and (
+                        (
+                            event_type == "session.disconnected"
+                            and spec.scope.matches(scope, session_end=True)
+                        )
+                        or (
+                            event_type == "federate.resigned"
+                            and spec.scope.federate is not None
+                            and spec.scope.matches(scope)
+                        )
+                    )
+                )
             if spec.kind == "stale-observations" and ended:
-                run.ended = "explicit-disconnect" if event_type == "session.disconnected" else "explicit-resignation"
+                run.ended = (
+                    "explicit-disconnect"
+                    if event_type == "session.disconnected"
+                    else "explicit-resignation"
+                )
                 run.last_sequence, run.last_at = sequence, now
             elif spec.scope.matches(scope) and not run.ended:
                 if spec.kind == "stale-observations":
@@ -303,9 +479,12 @@ class AlertEngine:
                     if len(run.marks) > ERROR_MARK_LIMIT:
                         old = run.marks.popleft()
                         run.retained_error_count -= old.count
-                        run.overflow_first = old.at if run.overflow_first is None else run.overflow_first
+                        run.overflow_first = (
+                            old.at if run.overflow_first is None else run.overflow_first
+                        )
                         run.overflow_last = old.at
                         run.overflow_count += old.count
+
     def commit(self, dropped: int) -> None:
         self._evaluate(dropped, None)
 
@@ -317,10 +496,18 @@ class AlertEngine:
             run.overflow_first = run.overflow_last = None
             run.overflow_count = 0
 
-    def _result(self, run: RuleRun, dropped: int, commands: CommandWatch | None) -> AlertResult:
+    def _result(
+        self, run: RuleRun, dropped: int, commands: CommandWatch | None
+    ) -> AlertResult:
         spec, now = run.spec, self.clock()
-        threshold = spec.threshold_seconds if spec.threshold_seconds is not None else spec.threshold_count or 1
-        unit: Literal["seconds", "observations"] = "seconds" if spec.threshold_seconds is not None else "observations"
+        threshold = (
+            spec.threshold_seconds
+            if spec.threshold_seconds is not None
+            else spec.threshold_count or 1
+        )
+        unit: Literal["seconds", "observations"] = (
+            "seconds" if spec.threshold_seconds is not None else "observations"
+        )
         state: AlertState = "unknown"
         reason: AlertReason = "not-observed"
         coverage: AlertCoverage = "not-observed"
@@ -331,19 +518,32 @@ class AlertEngine:
         history_loss: HistoryLossFact | None = None
         if not spec.enabled:
             state, reason, coverage = "disabled", "disabled", "unavailable"
-        elif now < run.activated or not math.isfinite(now) or run.last_at is not None and now < run.last_at or run.marks and now < run.marks[-1].at:
+        elif (
+            now < run.activated
+            or not math.isfinite(now)
+            or run.last_at is not None
+            and now < run.last_at
+            or run.marks
+            and now < run.marks[-1].at
+        ):
             reason, coverage = "clock-unusable", "unavailable"
         elif spec.kind == "stale-observations":
             if run.ended in {"explicit-disconnect", "explicit-resignation"}:
                 state, reason, coverage = "ended", run.ended, "complete"
             elif run.last_at is not None:
-                lower = upper = max(0., now - run.last_at)
-                state, reason, coverage = ("firing", "observations-idle", "complete") if lower >= threshold else ("clear", "observations-current", "complete")
+                lower = upper = max(0.0, now - run.last_at)
+                state, reason, coverage = (
+                    ("firing", "observations-idle", "complete")
+                    if lower >= threshold
+                    else ("clear", "observations-current", "complete")
+                )
         elif spec.kind == "errors":
             self._trim(run, now)
             lower = run.retained_error_count
             upper = lower + run.overflow_count
-            if run.overflow_first is not None and run.overflow_first >= now - (spec.window_seconds or 0):
+            if run.overflow_first is not None and run.overflow_first >= now - (
+                spec.window_seconds or 0
+            ):
                 lower = upper
             coverage = "complete" if lower == upper else "partial"
             if lower >= threshold:
@@ -356,20 +556,48 @@ class AlertEngine:
             history_loss = HistoryLossFact(run.dropped_baseline, dropped)
             lower = upper = max(0, dropped - run.dropped_baseline)
             coverage = "complete"
-            state, reason = ("firing", "history-loss-threshold") if lower >= threshold else ("clear", "history-below-threshold")
+            state, reason = (
+                ("firing", "history-loss-threshold")
+                if lower >= threshold
+                else ("clear", "history-below-threshold")
+            )
         elif commands is None or not commands.available:
             reason, coverage = "commands-unavailable", "unavailable"
         elif spec.target_id is not None and spec.target_id not in commands.target_ids:
             reason, coverage = "target-unavailable", "unavailable"
         else:
-            pending = [row for row in commands.pending if spec.target_id is None or row.target_id == spec.target_id]
+            pending = [
+                row
+                for row in commands.pending
+                if spec.target_id is None or row.target_id == spec.target_id
+            ]
             pending_count = len(pending)
             command = max(pending, key=lambda row: row.age_seconds) if pending else None
-            lower = upper = max((row.age_seconds for row in pending), default=0.)
-            coverage = "partial" if any(row.effect_unknown for row in pending) else "complete"
-            state, reason = ("firing", "pending-threshold") if lower >= threshold else ("clear", "pending-below-threshold")
-        return AlertResult(spec.rule_id, run.generation, state, reason, coverage, lower, upper, threshold, unit,
-                           run.last_sequence, self.wall(), command, pending_count, history_loss)
+            lower = upper = max((row.age_seconds for row in pending), default=0.0)
+            coverage = (
+                "partial" if any(row.effect_unknown for row in pending) else "complete"
+            )
+            state, reason = (
+                ("firing", "pending-threshold")
+                if lower >= threshold
+                else ("clear", "pending-below-threshold")
+            )
+        return AlertResult(
+            spec.rule_id,
+            run.generation,
+            state,
+            reason,
+            coverage,
+            lower,
+            upper,
+            threshold,
+            unit,
+            run.last_sequence,
+            self.wall(),
+            command,
+            pending_count,
+            history_loss,
+        )
 
     def _evaluate(self, dropped: int, commands: CommandWatch | None) -> None:
         for run in self.runs.values():
@@ -377,23 +605,46 @@ class AlertEngine:
                 continue
             result = self._result(run, dropped, commands)
             signature = (result.state, result.reason, result.coverage)
-            if run.result is None or signature != (run.result.state, run.result.reason, run.result.coverage):
+            if run.result is None or signature != (
+                run.result.state,
+                run.result.reason,
+                run.result.coverage,
+            ):
                 if len(self.evidence) == EVIDENCE_LIMIT:
                     self.evidence.popleft()
                     self.evicted_evidence += 1
-                self.evidence.append(AlertEvidence(self._next_evidence, run.spec, result))
+                self.evidence.append(
+                    AlertEvidence(self._next_evidence, run.spec, result)
+                )
                 self._next_evidence += 1
             run.result = result
 
     def evaluate(self, dropped: int, commands: CommandWatch = NO_COMMAND_WATCH) -> None:
         self._evaluate(dropped, commands)
 
-    def report(self, dropped: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+    def report(
+        self, dropped: int, commands: CommandWatch = NO_COMMAND_WATCH
+    ) -> JsonObject:
         self.evaluate(dropped, commands)
-        return to_json_object({"configuration_version": CONFIG_VERSION, "instance_id": self.instance_id, "revision": self.revision,
-            "rules": [run.spec.to_json() for run in self.runs.values()],
-            "results": [asdict(run.result) for run in self.runs.values() if run.result is not None],
-            "history": [row.to_json() for row in reversed(self.evidence)], "evicted_evidence": self.evicted_evidence,
-            "persistence": "server-process", "evaluation_basis": "observer-ingress-monotonic",
-            "error_basis": "since-rule-activation-window", "max_rules": MAX_RULES, "max_configuration_bytes": MAX_CONFIG_BYTES,
-            "evidence_capacity": EVIDENCE_LIMIT, "error_marks_per_rule": ERROR_MARK_LIMIT})
+        return to_json_object(
+            {
+                "configuration_version": CONFIG_VERSION,
+                "instance_id": self.instance_id,
+                "revision": self.revision,
+                "rules": [run.spec.to_json() for run in self.runs.values()],
+                "results": [
+                    asdict(run.result)
+                    for run in self.runs.values()
+                    if run.result is not None
+                ],
+                "history": [row.to_json() for row in reversed(self.evidence)],
+                "evicted_evidence": self.evicted_evidence,
+                "persistence": "server-process",
+                "evaluation_basis": "observer-ingress-monotonic",
+                "error_basis": "since-rule-activation-window",
+                "max_rules": MAX_RULES,
+                "max_configuration_bytes": MAX_CONFIG_BYTES,
+                "evidence_capacity": EVIDENCE_LIMIT,
+                "error_marks_per_rule": ERROR_MARK_LIMIT,
+            }
+        )

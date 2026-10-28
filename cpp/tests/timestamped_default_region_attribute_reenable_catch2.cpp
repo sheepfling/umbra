@@ -99,6 +99,25 @@ class ReportingFederateAmbassador final
       VariableLengthData const& userSuppliedTag,
       TransportationTypeHandle const& transportationType,
       FederateHandle const& producingFederate,
+      RegionHandleSet const* optionalSentRegions) override {
+    attributeReflectionReports.push_back({
+        objectInstance,
+        attributeValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        optionalSentRegions != nullptr,
+        optionalSentRegions == nullptr ? RegionHandleSet{} : *optionalSentRegions,
+    });
+    callbackOrder.push_back("receive-order-reflect");
+  }
+
+  void reflectAttributeValues(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleValueMap const& attributeValues,
+      VariableLengthData const& userSuppliedTag,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate,
       RegionHandleSet const* optionalSentRegions,
       rti1516_2025::LogicalTime const& time,
       OrderType sentOrderType,
@@ -150,6 +169,7 @@ TEST_CASE(
     "[integration][development-profile][object-management][ddm][time-management]"
     "[timestamped-default-region-attribute-update][default-region][tso][re-enable]"
     "[timestamped-default-region-attribute-reenable]"
+    "[lane.timestamped-default-region-attribute-reenable]"
     "[rti.service.register-object-instance]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[rti.service.update-attribute-values]"
@@ -238,35 +258,57 @@ TEST_CASE(
 
   AttributeHandleValueMap values;
   values.emplace(flavor, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  auto const receiveOrderRetraction = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(receiveOrderRetraction.isValid());
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+
+  // Disable Time Constrained converts an already queued TSO to receive order.
+  // Re-enabling the role must not retimestamp that delivery or duplicate it.
+  REQUIRE_NOTHROW(receiver->disableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  auto const& convertedReport = receiverReports.attributeReflectionReports.front();
+  REQUIRE(convertedReport.objectInstance == objectInstance);
+  REQUIRE(convertedReport.attributeValues.size() == 1U);
+  REQUIRE(convertedReport.attributeValues.contains(flavor));
+  REQUIRE(convertedReport.timeValue.empty());
+  REQUIRE_FALSE(convertedReport.retractionSupplied);
+  REQUIRE(convertedReport.receivedOrderType == RECEIVE);
+  REQUIRE(convertedReport.sentRegionsSupplied);
+  REQUIRE(convertedReport.sentRegions.empty());
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"receive-order-reflect"});
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeConstrainedEnabledCount == 2U);
+
+  // A new update sent after re-enabling remains TSO and is delivered before
+  // the receiver's grant at the inclusive timestamp boundary.
   auto const retraction = publisher->updateAttributeValues(
       objectInstance,
       values,
       tag,
       rti1516_2025::HLAinteger64Time(6));
   REQUIRE(retraction.isValid());
-  REQUIRE(receiverReports.attributeReflectionReports.empty());
-
-  // The pending default-region TSO passel must survive the role transition;
-  // disabling and callback-gated re-enabling must not discard or duplicate it.
-  REQUIRE_NOTHROW(receiver->disableTimeConstrained());
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.attributeReflectionReports.empty());
-  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timeConstrainedEnabledCount == 2U);
 
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(6)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 2U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"reflect", "grant"});
+          std::vector<std::string>{
+              "receive-order-reflect", "reflect", "grant"});
 
-  auto const& report = receiverReports.attributeReflectionReports.front();
+  auto const& report = receiverReports.attributeReflectionReports.back();
   REQUIRE(report.objectInstance == objectInstance);
   REQUIRE(report.attributeValues.size() == 1U);
   REQUIRE(report.attributeValues.contains(flavor));

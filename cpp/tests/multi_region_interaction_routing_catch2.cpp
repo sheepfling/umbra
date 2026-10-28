@@ -447,10 +447,10 @@ TEST_CASE(
   auto const interactionName = L"HLAinteractionRoot.UmbraTwoDimensionalRegionInteraction";
   auto const publisherInteraction = publisher->getInteractionClassHandle(interactionName);
   auto const subscriberInteraction = subscriber->getInteractionClassHandle(interactionName);
-  auto const publisherX = publisher->getDimensionHandle(L"UmbraRegionX");
-  auto const publisherY = publisher->getDimensionHandle(L"UmbraRegionY");
-  auto const subscriberX = subscriber->getDimensionHandle(L"UmbraRegionX");
-  auto const subscriberY = subscriber->getDimensionHandle(L"UmbraRegionY");
+  auto const publisherX = publisher->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
+  auto const publisherY = publisher->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_y);
+  auto const subscriberX = subscriber->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
+  auto const subscriberY = subscriber->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_y);
   REQUIRE(publisherInteraction.isValid());
   REQUIRE(subscriberInteraction.isValid());
   REQUIRE(publisherX.isValid());

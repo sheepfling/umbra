@@ -35,14 +35,14 @@ from hla.rti1516_2025 import (
     HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
-    LogicalTime,
-    LogicalTimeFactory,
-    LogicalTimeInterval,
     HLAopaqueData,
     HLAvariableArray,
     HLAvariantRecord,
     InteractionClassHandle,
     InteractionClassHandleSet,
+    LogicalTime,
+    LogicalTimeFactory,
+    LogicalTimeInterval,
     MessageRetractionHandle,
     MutableAttributeHandleSet,
     MutableAttributeHandleValueMap,
@@ -90,15 +90,15 @@ from umbra._java.rti1516_2025._runtime import (
 from umbra._java.rti1516_2025.encoding import _JavaDataElement
 from umbra._java.rti1516_2025.provider import JavaRTIambassador
 from umbra_rti_test_support import (
-    CallbackDeliveryObservation,
     HLA_FIXTURES,
     HLA_FOM,
     HLA_MOM,
     HLA_TYPES,
-    assert_callback_delivery_parity,
-    iter_callback_provenance_matrix,
+    CallbackDeliveryObservation,
     SurfaceEventTrace,
+    assert_callback_delivery_parity,
     assert_event_order,
+    iter_callback_provenance_matrix,
     iter_data_element_value_matrix,
     iter_logical_time_arithmetic_matrix,
     iter_logical_time_wire_matrix,
@@ -677,7 +677,9 @@ class _FakeJavaFloatTimeFactory:
 class _FakeJavaVendorTime:
     """Opaque 2025 carrier used to prove custom arithmetic is not coerced."""
 
-    def __init__(self, value: float, *, initial: bool = False, final: bool = False) -> None:
+    def __init__(
+        self, value: float, *, initial: bool = False, final: bool = False
+    ) -> None:
         self.value = float(value)
         self.initial = initial
         self.final = final
@@ -702,12 +704,16 @@ class _FakeJavaVendorTime:
 
     def add(self, addend: object) -> _FakeJavaVendorTime:
         if not isinstance(addend, _FakeJavaVendorInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time/interval mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "vendor time/interval mismatch"
+            )
         return _FakeJavaVendorTime(self.value + addend.value + 100.0)
 
     def subtract(self, subtrahend: object) -> _FakeJavaVendorTime:
         if not isinstance(subtrahend, _FakeJavaVendorInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time/interval mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "vendor time/interval mismatch"
+            )
         return _FakeJavaVendorTime(self.value - subtrahend.value - 100.0)
 
     def distance(self, other: object) -> _FakeJavaVendorInterval:
@@ -725,7 +731,9 @@ class _FakeJavaVendorTime:
 
 
 class _FakeJavaVendorInterval:
-    def __init__(self, value: float, *, zero: bool = False, epsilon: bool = False) -> None:
+    def __init__(
+        self, value: float, *, zero: bool = False, epsilon: bool = False
+    ) -> None:
         self.value = float(value)
         self.zero = zero
         self.epsilon = epsilon
@@ -792,10 +800,14 @@ class _FakeJavaVendorTimeFactory:
         return _FakeJavaVendorInterval(float(value))
 
     def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaVendorTime:
-        return _FakeJavaVendorTime(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+        return _FakeJavaVendorTime(
+            struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0]
+        )
 
     def decodeInterval(self, encoded: bytes, offset: int) -> _FakeJavaVendorInterval:
-        return _FakeJavaVendorInterval(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+        return _FakeJavaVendorInterval(
+            struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0]
+        )
 
 
 class _FakeJavaWideVendorTime(_FakeJavaVendorTime):
@@ -822,10 +834,14 @@ class _FakeJavaWideVendorTimeFactory(_FakeJavaVendorTimeFactory):
     def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaWideVendorTime:
         payload = bytes(encoded)[offset:]
         if len(payload) != 12 or payload[:4] != b"CHRN":
-            raise _FakeJavaError("IllegalArgumentException", "invalid VendorChrononWide time")
+            raise _FakeJavaError(
+                "IllegalArgumentException", "invalid VendorChrononWide time"
+            )
         return _FakeJavaWideVendorTime(struct.unpack(">d", payload[4:])[0])
 
-    def decodeInterval(self, encoded: bytes, offset: int) -> _FakeJavaWideVendorInterval:
+    def decodeInterval(
+        self, encoded: bytes, offset: int
+    ) -> _FakeJavaWideVendorInterval:
         payload = bytes(encoded)[offset:]
         if len(payload) != 12 or payload[:4] != b"INTV":
             raise _FakeJavaError(
@@ -893,7 +909,9 @@ class _FakeJavaOpaqueVendorTimeFactory(_FakeJavaWideVendorTimeFactory):
     def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaOpaqueVendorTime:
         payload = bytes(encoded)[offset:]
         if len(payload) != 8 or payload[:4] != b"OPAQ":
-            raise _FakeJavaError("IllegalArgumentException", "invalid opaque vendor time")
+            raise _FakeJavaError(
+                "IllegalArgumentException", "invalid opaque vendor time"
+            )
         return _FakeJavaOpaqueVendorTime(payload)
 
     def decodeInterval(
@@ -3208,29 +3226,6 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     ) -> None:
         self.sync_completions.append((label, failedToSyncSet))
 
-    def receiveDirectedInteraction(
-        self,
-        interactionClass,
-        objectInstance,
-        parameterValues,
-        userSuppliedTag,
-        transportationType,
-        producingFederate,
-        *timed,
-    ) -> None:
-        entry = (
-            interactionClass,
-            objectInstance,
-            parameterValues,
-            bytes(userSuppliedTag),
-            transportationType,
-            producingFederate,
-        )
-        if timed:
-            self.timestamped_directed_interactions.append(entry + tuple(timed))
-        else:
-            self.directed_interactions.append(entry)
-
     def reflectAttributeValues(self, *arguments: object) -> None:
         self.timed_reflections.append(arguments)
 
@@ -3885,7 +3880,7 @@ class JavaProviderTest(unittest.TestCase):
                 return (self._entry,)
 
         class _RawTime:
-            def __init__(self, value: int | float, implementation: str) -> None:
+            def __init__(self, value: float, implementation: str) -> None:
                 self.value = value
                 self.implementation = implementation
 
@@ -3952,9 +3947,7 @@ class JavaProviderTest(unittest.TestCase):
                     self.assertEqual(result[0].encodedValue, vector.object_instance)
                     self.assertEqual(result[1].encodedValue, vector.object_class)
                     self.assertEqual(result[2], vector.instance_name)
-                    self.assertEqual(
-                        result[3].encodedValue, vector.producing_federate
-                    )
+                    self.assertEqual(result[3].encodedValue, vector.producing_federate)
                     continue
 
                 raw_map = _RawMap(
@@ -4050,7 +4043,7 @@ class JavaProviderTest(unittest.TestCase):
                 return (self._entry,)
 
         class _RawTime:
-            def __init__(self, value: int | float, implementation: str) -> None:
+            def __init__(self, value: float, implementation: str) -> None:
                 self.value = value
                 self.implementation = implementation
 
@@ -4197,7 +4190,11 @@ class JavaProviderTest(unittest.TestCase):
                             ),
                             time_value=(result[6].getTime() if vector.timed else None),
                             sent_order=(result[7].name if vector.timed else None),
-                            received_order=(result[8].name if vector.timed else vector.received_order),
+                            received_order=(
+                                result[8].name
+                                if vector.timed
+                                else vector.received_order
+                            ),
                             retraction=(
                                 bytes(result[9].encodedValue)
                                 if vector.timed and result[9] is not None
@@ -4695,9 +4692,7 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIsInstance(base, LogicalTime)
         self.assertIsInstance(interval, LogicalTimeInterval)
         self.assertNotIsInstance(base, (HLAinteger64Time, HLAfloat64Time))
-        self.assertNotIsInstance(
-            interval, (HLAinteger64Interval, HLAfloat64Interval)
-        )
+        self.assertNotIsInstance(interval, (HLAinteger64Interval, HLAfloat64Interval))
         self.assertEqual(base.implementationName(), "VendorChronon")
         self.assertEqual(interval.implementationName(), "VendorChronon")
         self.assertEqual(base.getTime(), 200.0)
@@ -4717,9 +4712,7 @@ class JavaProviderTest(unittest.TestCase):
                 self.assertEqual(result.getTime(), expected)
                 self.assertEqual(result.implementationName(), "VendorChronon")
         self.assertEqual(base.distance(other).getInterval(), 100.5)
-        self.assertEqual(
-            time_factory.difference(base, other).getInterval(), 100.5
-        )
+        self.assertEqual(time_factory.difference(base, other).getInterval(), 100.5)
         self.assertEqual(base.compareTo(other), 7)
         self.assertEqual(interval.add(other_interval).getInterval(), 10.75)
         self.assertEqual(interval.subtract(other_interval).getInterval(), -9.75)
@@ -4837,13 +4830,17 @@ class JavaProviderTest(unittest.TestCase):
             interval_wire + b"\x00",
         )
         for encoded in malformed_time:
-            with self.subTest(carrier="time", length=len(encoded)):
-                with self.assertRaises(CouldNotDecode):
-                    time_factory.decodeLogicalTime(encoded)
+            with (
+                self.subTest(carrier="time", length=len(encoded)),
+                self.assertRaises(CouldNotDecode),
+            ):
+                time_factory.decodeLogicalTime(encoded)
         for encoded in malformed_interval:
-            with self.subTest(carrier="interval", length=len(encoded)):
-                with self.assertRaises(CouldNotDecode):
-                    time_factory.decodeLogicalTimeInterval(encoded)
+            with (
+                self.subTest(carrier="interval", length=len(encoded)),
+                self.assertRaises(CouldNotDecode),
+            ):
+                time_factory.decodeLogicalTimeInterval(encoded)
 
         # A custom implementation need not expose getValue/getTime at all.
         # The generic wrapper still has to preserve its bytes and Java class
@@ -4893,7 +4890,9 @@ class JavaProviderTest(unittest.TestCase):
 
         runtime = _FakeJavaRuntime()
         runtime.ambassador.time_factory = FailingVendorTimeFactory()
-        ambassador = JavaRtiFactory(self.configuration, runtime=runtime).getRtiAmbassador()
+        ambassador = JavaRtiFactory(
+            self.configuration, runtime=runtime
+        ).getRtiAmbassador()
         time_factory = ambassador.getTimeFactory()
         time = time_factory.makeLogicalTime(1.0)
         interval = time_factory.makeLogicalTimeInterval(0.25)
@@ -4902,7 +4901,9 @@ class JavaProviderTest(unittest.TestCase):
             time.add(interval)
         self.assertEqual(str(raised.exception), "vendor arithmetic overflow")
 
-    def test_java_callback_does_not_guess_vendor_time_from_class_substrings(self) -> None:
+    def test_java_callback_does_not_guess_vendor_time_from_class_substrings(
+        self,
+    ) -> None:
         """A vendor class name containing HLA text remains provider-owned."""
 
         class MisleadingVendorTime(_FakeJavaVendorTime):
@@ -4910,7 +4911,9 @@ class JavaProviderTest(unittest.TestCase):
                 return _FakeJavaClass("VendorHLAfloat64Time")
 
         callbacks = _RecordingFederateAmbassador()
-        callback = _FederateAmbassadorCallback(callbacks, _FakeJavaRuntime().handle_bytes)
+        callback = _FederateAmbassadorCallback(
+            callbacks, _FakeJavaRuntime().handle_bytes
+        )
         callback.timeAdvanceGrant(MisleadingVendorTime(3.5))
         delivered = callbacks.time_grants[-1]
         self.assertIsInstance(delivered, LogicalTime)
@@ -4940,7 +4943,10 @@ class JavaProviderTest(unittest.TestCase):
         ):
             with self.subTest(element=type(element).__name__):
                 value = element.getValue()
-                self.assertIsInstance(value, LogicalTime if element is time_element else LogicalTimeInterval)
+                self.assertIsInstance(
+                    value,
+                    LogicalTime if element is time_element else LogicalTimeInterval,
+                )
                 self.assertNotIsInstance(
                     value,
                     (
@@ -5301,7 +5307,7 @@ class JavaProviderTest(unittest.TestCase):
         object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
         attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
         interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
-        directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
+        ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
         parameter = ambassador.getParameterHandle(
             interaction, HLA_FIXTURES.TEMPERATURE_OK
         )

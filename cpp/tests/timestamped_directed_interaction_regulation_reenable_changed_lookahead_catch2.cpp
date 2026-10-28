@@ -153,6 +153,7 @@ TEST_CASE(
     "[integration][development-profile][interaction-management][directed][time-management]"
     "[timestamped-directed-interaction][tso][re-enable][regulation-disable][changed-lookahead]"
     "[timestamped-directed-interaction-regulation-reenable-changed-lookahead]"
+    "[lane.timestamped-directed-interaction-regulation-reenable-changed-lookahead]"
     "[rti.service.publish-object-class-directed-interactions]"
     "[rti.service.subscribe-object-class-directed-interactions]"
     "[rti.service.send-directed-interaction][rti.service.enable-time-regulation]"
@@ -261,14 +262,14 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->queryLookahead(changedLookahead));
   REQUIRE(changedLookahead.getInterval() == 3);
 
-  // The producer's advance to two raises GALT to the queued interaction's
-  // timestamp five under the changed lookahead. The constrained receiver is
-  // released only after its directed callback is delivered.
+  // With lookahead three, advancing the producer to three raises GALT to six,
+  // strictly beyond the receiver's requested grant at five. The constrained
+  // receiver is released only after its directed callback is delivered.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.directedInteractionReports.empty());
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(2)));
+      rti1516_2025::HLAinteger64Time(3)));
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.directedInteractionReports.size() == 1U);

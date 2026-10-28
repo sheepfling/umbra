@@ -51,6 +51,7 @@
 #include "internal/handles/parameter_handle.hpp"
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
+#include <catch2/internal/catch_test_failure_exception.hpp>
 namespace {
 
 using rti1516_2025::CallbackModel;
@@ -616,15 +617,56 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!umbra::test::servePrimaryProcessRequest(
-                  session, handler,
-                  [&](TransportServiceMessage const& request) {
-                    if (request.operation != operation) {
-                      throw std::runtime_error(description);
-                    }
-                    return handler(request);
-                  })) {
-            throw std::runtime_error(description);
+          for (;;) {
+            bool expectedOperationServed = false;
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session, handler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation == TransportServiceOperation::
+                                                   acknowledge_push_attribute_update) {
+                        auto response = handler(request);
+                        if (response.status != TransportServiceStatus::ok) {
+                          throw std::runtime_error(
+                              "The public process Provide server rejected a pushed attribute acknowledgement.");
+                        }
+                        expectedOperationServed =
+                            operation == TransportServiceOperation::
+                                             acknowledge_push_attribute_update;
+                        return response;
+                      }
+                      // HLA_IMMEDIATE's periodic process pump may issue an
+                      // empty receive-order poll between scripted services.
+                      // Serve that sideband without consuming the next expected
+                      // public operation; a returned callback is still routed
+                      // through the real client and FederateAmbassador.
+                      if (callbackModel == HLA_IMMEDIATE &&
+                          operation !=
+                              TransportServiceOperation::receive_interaction &&
+                          request.operation ==
+                              TransportServiceOperation::receive_interaction) {
+                        auto response = handler(request);
+                        if (response.status != TransportServiceStatus::ok) {
+                          throw std::runtime_error(
+                              "The public process Provide server rejected an immediate callback poll.");
+                        }
+                        return response;
+                      }
+                      if (request.operation != operation) {
+                        throw std::runtime_error(
+                            std::string(description) +
+                            " Received process operation " +
+                            std::to_string(static_cast<unsigned int>(
+                                request.operation)) +
+                            ".");
+                      }
+                      expectedOperationServed = true;
+                      return handler(request);
+                    })) {
+              throw std::runtime_error(description);
+            }
+            if (expectedOperationServed) {
+              return;
+            }
           }
         };
 
@@ -801,14 +843,22 @@ TEST_CASE(
               TransportServiceOperation::receive_interaction,
               "The public process Provide server lost reflection Receive.");
         }
+        if (callbackModel == HLA_IMMEDIATE) {
+          // Immediate callback completion acknowledges the pushed update on
+          // the receiver's session. Service that completion before advancing
+          // the scripted server to the provider's resignation.
+          serveExpected(
+              requester,
+              requesterHandler,
+              TransportServiceOperation::acknowledge_push_attribute_update,
+              "The public process Provide server lost the reflection acknowledgement.");
+        }
         serveExpected(
-            provider,
-            providerHandler,
+            provider, providerHandler,
             TransportServiceOperation::resign_federation_execution,
             "The public process Provide server lost provider Resign.");
         serveExpected(
-            requester,
-            requesterHandler,
+            requester, requesterHandler,
             TransportServiceOperation::resign_federation_execution,
             "The public process Provide server lost requester Resign.");
         service.detach(provider);
@@ -828,21 +878,28 @@ TEST_CASE(
                              .withRtiAddress(
                                  L"tcp://127.0.0.1:" + std::to_wstring(port));
     std::exception_ptr clientError;
+    std::string clientStage = "connect and request lifecycle";
     bool providerJoined = false;
     bool requesterJoined = false;
     try {
-      REQUIRE(providerRti->connect(providerFederate, callbackModel, configuration)
-                  .addressUsed);
+      auto const providerConnectionResult =
+          providerRti->connect(providerFederate, callbackModel, configuration);
+      REQUIRE(providerConnectionResult.addressUsed);
+      clientStage = "provider Create";
       providerRti->createFederationExecution(
           federationNameWide, L"server-owned-fom.xml");
+      clientStage = "provider Join";
       providerRti->joinFederationExecution(
           L"public-process-attribute-provide-provider",
           L"public-process-attribute-provide-type",
           federationNameWide);
       providerJoined = true;
 
-      REQUIRE(requesterRti->connect(requesterFederate, callbackModel, configuration)
-                  .addressUsed);
+      clientStage = "requester Connect";
+      auto const requesterConnectionResult =
+          requesterRti->connect(requesterFederate, callbackModel, configuration);
+      REQUIRE(requesterConnectionResult.addressUsed);
+      clientStage = "requester Join";
       requesterRti->joinFederationExecution(
           L"public-process-attribute-provide-requester",
           L"public-process-attribute-provide-type",
@@ -936,15 +993,39 @@ TEST_CASE(
       REQUIRE(requesterFederate.reflectedAttributeCount == 1U);
       REQUIRE(requesterFederate.reflectedValue ==
               std::vector<std::uint8_t>{0x52U, 0x45U, 0x53U});
+      auto const expectedReflectedTag =
+          std::vector<std::uint8_t>{0x52U, 0x53U, 0x50U};
+      if (requesterFederate.reflectedTag != expectedReflectedTag) {
+        auto describeBytes = [](std::vector<std::uint8_t> const& bytes) {
+          std::string description;
+          for (std::size_t index = 0U; index < bytes.size(); ++index) {
+            if (index != 0U) {
+              description += ' ';
+            }
+            description += std::to_string(
+                static_cast<unsigned int>(bytes[index]));
+          }
+          return description.empty() ? std::string("<empty>") : description;
+        };
+        throw std::runtime_error(
+            "The process Provide reflection tag was [" +
+            describeBytes(requesterFederate.reflectedTag) +
+            "] instead of [" + describeBytes(expectedReflectedTag) + "].");
+      }
       REQUIRE(requesterFederate.reflectedTag ==
-              std::vector<std::uint8_t>{0x52U, 0x53U, 0x50U});
+              expectedReflectedTag);
 
+      clientStage = "provider resignation";
       providerRti->resignFederationExecution(DELETE_OBJECTS);
       providerJoined = false;
+      clientStage = "requester resignation";
       requesterRti->resignFederationExecution(NO_ACTION);
       requesterJoined = false;
+      clientStage = "client disconnect";
       providerRti->disconnect();
       requesterRti->disconnect();
+    } catch (Catch::TestFailureException const&) {
+      clientError = std::current_exception();
     } catch (...) {
       clientError = std::current_exception();
     }
@@ -958,9 +1039,43 @@ TEST_CASE(
       server.join();
     }
     if (clientError) {
-      std::rethrow_exception(clientError);
+      try {
+        std::rethrow_exception(clientError);
+      } catch (Catch::TestFailureException const&) {
+        throw std::runtime_error(
+            "A Catch assertion failed during " + clientStage + ".");
+      } catch (rti1516_2025::Exception const& error) {
+        auto describeException = [](std::wstring const& value) {
+          std::string description;
+          for (auto const character : value) {
+            description.push_back(
+                character < 128 ? static_cast<char>(character) : '?');
+          }
+          return description;
+        };
+        throw std::runtime_error(
+            "The process Provide client threw " +
+            describeException(error.name()) + " during " + clientStage +
+            ": " + describeException(error.what()));
+      } catch (std::exception const& error) {
+        throw std::runtime_error(
+            "The process Provide client failed during " + clientStage +
+            ": " + error.what());
+      } catch (...) {
+        throw std::runtime_error(
+            "The process Provide client failed with a non-standard exception during " +
+            clientStage + ".");
+      }
     }
-    REQUIRE_FALSE(serverError);
+    if (serverError) {
+      try {
+        std::rethrow_exception(serverError);
+      } catch (std::exception const& error) {
+        FAIL_CHECK("The public process Provide server failed: " << error.what());
+      } catch (...) {
+        FAIL_CHECK("The public process Provide server failed with a non-standard exception.");
+      }
+    }
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
     REQUIRE(updateRecipientCount.load(std::memory_order_acquire) == 1U);
     REQUIRE(expectedObjectInstance.load(std::memory_order_acquire) != 0U);

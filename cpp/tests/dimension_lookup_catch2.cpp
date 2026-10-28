@@ -56,7 +56,7 @@ TEST_CASE(
     "[dimension-lookup][rti.service.get-available-dimensions-for-object-class]"
     "[rti.service.get-available-dimensions-for-interaction-class]"
     "[rti.service.get-dimension-handle][rti.service.get-dimension-name]"
-    "[rti.service.get-dimension-upper-bound][2025]") {
+    "[rti.service.get-dimension-upper-bound][dimension-interval-definition][2025]") {
   TestFederateAmbassador unjoinedFederate;
   TestFederateAmbassador ownerFederate;
   TestFederateAmbassador extensionFederate;
@@ -107,6 +107,23 @@ TEST_CASE(
   REQUIRE(owner->getDimensionUpperBound(sodaFlavor) == 4UL);
   REQUIRE(owner->getDimensionUpperBound(sweetener) == 3UL);
   REQUIRE(owner->getDimensionUpperBound(serverId) == 20UL);
+
+  auto const intervalRegion = owner->createRegion(
+      DimensionHandleSet{barQuantity, sodaFlavor});
+  REQUIRE(intervalRegion.isValid());
+  REQUIRE_NOTHROW(owner->setRangeBounds(
+      intervalRegion, barQuantity, rti1516_2025::RangeBounds(0UL, 25UL)));
+  REQUIRE_NOTHROW(owner->setRangeBounds(
+      intervalRegion, sodaFlavor, rti1516_2025::RangeBounds(0UL, 4UL)));
+  auto const barQuantityBounds = owner->getRangeBounds(intervalRegion, barQuantity);
+  auto const sodaFlavorBounds = owner->getRangeBounds(intervalRegion, sodaFlavor);
+  REQUIRE(barQuantityBounds.getLowerBound() == 0UL);
+  REQUIRE(barQuantityBounds.getUpperBound() == owner->getDimensionUpperBound(barQuantity));
+  REQUIRE(sodaFlavorBounds.getLowerBound() == 0UL);
+  REQUIRE(sodaFlavorBounds.getUpperBound() == owner->getDimensionUpperBound(sodaFlavor));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(
+      rti1516_2025::RegionHandleSet{intervalRegion}));
+  REQUIRE_NOTHROW(owner->deleteRegion(intervalRegion));
 
   auto const drink = owner->getObjectClassHandle(fixture_hla::fom::food_drink);
   auto const soda = owner->getObjectClassHandle(fixture_hla::fom::food_drink_soda);

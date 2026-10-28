@@ -10,11 +10,11 @@ are provider adapters around that implementation.
 - [Resume RTI work](docs/planning/ROADMAP-QUICKSTART.md) — the current task, or
   a bounded family choice if no task is queued, with requirement mappings,
   source location, and focused tests.
+- [Repository guide](docs/development/REPOSITORY-GUIDE.md) — where code,
+  packages, compliance inputs, tools, and vendored material live.
 - [First build on Windows with MinGW](docs/development/FIRST-BUILD-WINDOWS-MINGW.md) —
   one guide with clearly marked PowerShell and Git Bash routes for the C++ RTI,
   JNI, and Python providers.
-- [Repository guide](docs/development/REPOSITORY-GUIDE.md) — where code,
-  packages, compliance inputs, tools, and vendored material live.
 - [Architecture](docs/architecture/ARCHITECTURE.md) — public API boundary and
   runtime layers.
 - [Roadmap](docs/planning/ROADMAP.md) — current gates and future capability
@@ -46,9 +46,14 @@ stage, and other build profiles.
 Umbra is a standards-first C++20 foundation for building an HLA Run-Time
 Infrastructure (RTI). Its current state is an official IEEE 1516.1-2025 API
 baseline plus small embedded connection, callback-control, federate, object-class,
-interaction-class, inherited-attribute, inherited-parameter, dimension/upper-bound, region/range-state, transportation-type lookup, and
+interaction-class, inherited-attribute, inherited-parameter, dimension/upper-bound, region/range-state,
+transportation-type lookup, and
 the mandatory Receive/TimeStamp order-type lookup,
-interaction declaration, bounded directed-interaction delivery, object-class attribute declaration, limited object-instance registration/discovery/deletion, limited receive-order and bounded timestamped interaction, attribute-update/reflection, object-deletion, directed-interaction, and region-context delivery, limited object-instance and object-class request/provide attribute-value delivery, federation-listing, and temporal-control slices, with an opt-in
+interaction declaration, bounded directed-interaction delivery, object-class attribute declaration, limited
+object-instance registration/discovery/deletion, limited receive-order and bounded timestamped interaction,
+attribute-update/reflection, object-deletion, directed-interaction, and region-context delivery, limited object-instance
+and object-class request/provide attribute-value delivery, federation-listing, and temporal-control slices, with an
+opt-in
 federation-management development profile—not a complete RTI. Python
 and Java are adapters around the native C++ implementation. Python can use
 the direct pybind11 provider or the exact Java 1516.1-2025 surface through
@@ -61,7 +66,10 @@ factories; the standard `libfedtime` forwarding entry point is packaged as the
 separate static `umbra::fedtime` target. The reference `HLAauthorizer` and its
 factory reside in `umbra::rti`, while its library-level forwarding entry point
 is packaged as separate static `umbra::authorizer` target. The default packaged profile keeps
-public `getTimeFactory`, federate, object-class, interaction-class, attribute, parameter, transportation-type, and order-type lookup, interaction declaration, object-class attribute declaration, receive-order interaction and attribute-update/reflection, object-instance and object-class request/provide attribute-value update, federation creation,
+public `getTimeFactory`, federate, object-class, interaction-class, attribute, parameter, transportation-type, and
+order-type lookup, interaction declaration, object-class attribute declaration, receive-order interaction and
+attribute-update/reflection, object-instance and object-class request/provide attribute-value update, federation
+creation,
 object-instance registration/discovery/deletion, and time-management services unavailable.
 `RTIambassador::connect` (all four official C++ overloads), `disconnect`,
 `evokeCallback`, `evokeMultipleCallbacks`, `enableCallbacks`, and

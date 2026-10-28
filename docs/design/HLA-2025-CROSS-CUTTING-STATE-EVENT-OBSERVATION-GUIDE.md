@@ -821,7 +821,9 @@ This is a relationship map, not one service's universal timeline or a
 normative state machine. The 2025 object guide supplies the separate service
 preconditions, callback boundaries, and implementation/profile limits; see
 its object-existence and receiver-knowledge source/test map in the [2025
-object/interaction guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#evidence-map-implementation-versus-exercised-scenarios). Its
+object/interaction
+guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#evidence-map-implementation-versus-exercised-scenarios).
+Its
 focused [process discovery case](../../cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp#L457),
 [embedded local-delete/rediscovery case](../../cpp/tests/local_delete_object_instance_catch2.cpp#L110),
 [process local-delete case](../../cpp/tests/ieee1516_2025_connection_local_delete_catch2.cpp#L457),

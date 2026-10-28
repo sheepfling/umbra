@@ -300,7 +300,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Filesystem service-report log records use adjacent JSON objects and the shared argument format",
-    "[development-profile][mom][service-reporting][service-report-store]"
+    "[unit][development-profile][mom][service-reporting][service-report-store]"
     "[service-report-file][filesystem][service-report-log-format][2025]") {
   using umbra::detail::MomArgumentType;
   using umbra::detail::MomServiceArgument;

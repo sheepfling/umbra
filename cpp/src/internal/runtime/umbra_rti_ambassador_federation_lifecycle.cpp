@@ -10,7 +10,7 @@
 #include "internal/runtime/umbra_rti_ambassador_service_failure_translation.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -1422,7 +1422,7 @@ std::unique_ptr<LogicalTimeFactory> UmbraRtiAmbassador::getTimeFactory() const {
         throw RTIinternalError(
             L"The process service did not return the selected logical-time implementation.");
       }
-      auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      auto factory = umbra::detail::makeFederationLogicalTimeFactory(
           *processImplementationName);
       if (!factory || factory->getName() != *processImplementationName) {
         throw CouldNotCreateLogicalTimeFactory(

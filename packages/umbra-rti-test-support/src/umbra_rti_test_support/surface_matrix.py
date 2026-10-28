@@ -143,7 +143,9 @@ class CallbackProvenanceVector:
                 or self.transportation is None
                 or self.producing_federate is None
             ):
-                raise ValueError("value callbacks need payload, tag, transport, and producer")
+                raise ValueError(
+                    "value callbacks need payload, tag, transport, and producer"
+                )
 
     @property
     def case_id(self) -> str:
@@ -189,7 +191,7 @@ class CallbackDeliveryObservation:
         if not self.recipient:
             raise ValueError("callback delivery recipients must be non-empty")
         if isinstance(self.sequence, bool) or not isinstance(self.sequence, int):
-            raise ValueError("callback delivery sequence must be an integer")
+            raise TypeError("callback delivery sequence must be an integer")
         if self.sequence < 0:
             raise ValueError("callback delivery sequence must be non-negative")
         if not self.vector_id:
@@ -226,7 +228,7 @@ class CallbackDeliveryObservation:
         *,
         recipient: str,
         sequence: int,
-    ) -> "CallbackDeliveryObservation":
+    ) -> CallbackDeliveryObservation:
         """Create the expected normalized observation for a shared vector."""
 
         return cls(
@@ -501,19 +503,19 @@ def assert_event_order(events: Sequence[str], *required: str) -> None:
 
 
 __all__ = [
+    "CALLBACK_OVERLOAD_COUNTS",
     "DEFAULT_ADVANCE_SERVICES",
     "DEFAULT_CALLBACK_MODELS",
     "DEFAULT_MEMBER_COUNTS",
     "DEFAULT_SAVE_KINDS",
     "DEFAULT_TIME_IMPLEMENTATIONS",
-    "CALLBACK_OVERLOAD_COUNTS",
     "CallbackDeliveryObservation",
     "CallbackProvenanceVector",
     "SurfaceEventTrace",
     "SurfaceMatrixCase",
     "assert_callback_delivery_parity",
     "assert_event_order",
-    "normalize_callback_delivery",
     "iter_callback_provenance_matrix",
     "iter_surface_matrix",
+    "normalize_callback_delivery",
 ]

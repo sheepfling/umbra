@@ -11,7 +11,7 @@ namespace detail {
 // 2010 and 2025 implementations can share it without sharing their API code.
 [[nodiscard]] inline std::uint64_t fnv1aHash(
     void const *data,
-    std::size_t size) noexcept {
+    const std::size_t size) noexcept {
   auto const *bytes = static_cast<std::uint8_t const *>(data);
   std::uint64_t hash = 14695981039346656037ULL;
   for (std::size_t index = 0U; index < size; ++index) {

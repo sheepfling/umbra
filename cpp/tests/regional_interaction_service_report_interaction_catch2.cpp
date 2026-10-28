@@ -341,7 +341,8 @@ TEST_CASE(
           receiver->getTransportationTypeHandle(standard_hla::mom::reliable));
   REQUIRE(interaction.producingFederate == publisherHandle);
   REQUIRE(interaction.sentRegionsSupplied);
-  REQUIRE(interaction.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(interaction.sentRegions.size() == 1U);
+  REQUIRE(interaction.sentRegions.begin()->isValid());
 
   REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
       interactionClass,

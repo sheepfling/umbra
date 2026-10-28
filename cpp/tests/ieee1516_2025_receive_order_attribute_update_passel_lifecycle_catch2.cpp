@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 
@@ -62,12 +63,12 @@ TEST_CASE(
       L"attribute-immediate", L"subscriber", federationName));
 
   auto const base = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
   auto const child = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const reliableBaseA = publisher->getAttributeHandle(child, L"ReliableBaseA");
   auto const reliableBaseB = publisher->getAttributeHandle(child, L"ReliableBaseB");
-  auto const bestEffortBase = publisher->getAttributeHandle(child, L"BestEffortBase");
+  auto const bestEffortBase = publisher->getAttributeHandle(child, umbra::test::hla::wide::fixture::best_effort_base);
   auto const reliableChild = publisher->getAttributeHandle(child, L"ReliableChild");
   auto const unownedChild = publisher->getAttributeHandle(child, L"UnownedChild");
   REQUIRE(base.isValid());
@@ -175,8 +176,8 @@ TEST_CASE(
   REQUIRE_FALSE(promoted->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE_FALSE(cancelled->evokeMultipleCallbacks(0.0, 0.0));
 
-  auto const reliableTransportation = publisher->getTransportationTypeHandle(L"HLAreliable");
-  auto const bestEffortTransportation = publisher->getTransportationTypeHandle(L"HLAbestEffort");
+  auto const reliableTransportation = publisher->getTransportationTypeHandle(umbra::test::hla::wide::standard::reliable_transportation);
+  auto const bestEffortTransportation = publisher->getTransportationTypeHandle(umbra::test::hla::wide::standard::best_effort_transportation);
   auto reflectionFor = [](
                            std::vector<ReportingFederateAmbassador::AttributeReflectionReport> const& reports,
                            TransportationTypeHandle const& transportationType) {
@@ -291,7 +292,7 @@ TEST_CASE(
       L"partial-unpublish-subscriber", L"subscriber", federationName));
 
   auto const child = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const first = publisher->getAttributeHandle(child, L"ReliableBaseA");
   auto const second = publisher->getAttributeHandle(child, L"ReliableBaseB");
   REQUIRE(child.isValid());
@@ -389,7 +390,7 @@ TEST_CASE(
       L"attribute-filter-second", L"subscriber", federationName));
 
   auto const child = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const first = publisher->getAttributeHandle(child, L"ReliableBaseA");
   auto const second = publisher->getAttributeHandle(child, L"ReliableBaseB");
   REQUIRE(child.isValid());

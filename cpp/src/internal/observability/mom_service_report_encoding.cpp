@@ -258,7 +258,7 @@ std::wstring formatMomFederateRestoreStatusVector(
   // matching collection row misnames the collection and its element, but its
   // preceding singular row gives the usable record field names and values.
   // Preserve public vector order rather than adding an RTI-local reporting
-  // sort. See RL-083.
+  // sort. See RL-369.
   std::wstring result = L"[";
   for (std::size_t index = 0; index < values.size(); ++index) {
     if (index != 0U) {

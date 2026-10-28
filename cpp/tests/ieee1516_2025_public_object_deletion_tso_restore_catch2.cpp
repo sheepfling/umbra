@@ -361,12 +361,15 @@ TEST_CASE(
 
     receiverAReports.callbackOrder.clear();
     receiverBReports.callbackOrder.clear();
-    REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(8)));
+    // TAR(9) requires GALT to be strictly greater than the pending deletion's
+    // timestamp 9; TAR(8) only established GALT 9 with lookahead 1.
+    REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
     REQUIRE_FALSE(owner->evokeCallback(0.0));
     REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1U);
     REQUIRE_NOTHROW(receiverA->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
     REQUIRE_NOTHROW(receiverB->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
     drainAll(*owner, *receiverA, *receiverB);
+    REQUIRE(ownerReports.timeAdvanceGrantReports.front().value == L"9");
     REQUIRE(receiverAReports.objectRemovalReports.size() == 1U);
     REQUIRE(receiverBReports.objectRemovalReports.size() == 1U);
     REQUIRE(receiverAReports.callbackOrder == std::vector<std::string>{"remove", "grant"});

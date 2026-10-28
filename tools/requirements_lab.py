@@ -17,18 +17,23 @@ import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
-
+from typing import TypeAlias, cast
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BUNDLE = REPOSITORY_ROOT / ".compliance" / "corpus-bundle.json"
-DEFAULT_CONTRACT = REPOSITORY_ROOT / "compliance" / "requirements-lab" / "api-baseline.json"
+DEFAULT_CONTRACT = (
+    REPOSITORY_ROOT / "compliance" / "requirements-lab" / "api-baseline.json"
+)
 DEFAULT_CATCH2_PLAN = (
     REPOSITORY_ROOT / "compliance" / "requirements-lab" / "catch2-test-plan.json"
 )
-DEFAULT_LOCK = REPOSITORY_ROOT / "compliance" / "requirements-lab" / "requirements-lab.lock.json"
+DEFAULT_LOCK = (
+    REPOSITORY_ROOT / "compliance" / "requirements-lab" / "requirements-lab.lock.json"
+)
 DEFAULT_LAB_ROOT = REPOSITORY_ROOT.parent / "Document-Recreation"
-DEFAULT_OBSERVATIONS = REPOSITORY_ROOT / "docs" / "testing" / "REQUIREMENTS-LAB-OBSERVATIONS.md"
+DEFAULT_OBSERVATIONS = (
+    REPOSITORY_ROOT / "docs" / "testing" / "REQUIREMENTS-LAB-OBSERVATIONS.md"
+)
 DEFAULT_OBSERVATION_BASELINE = (
     REPOSITORY_ROOT
     / "compliance"
@@ -82,6 +87,11 @@ OBSERVATION_RECURRENCE_MARKER = re.compile(
 )
 POST_RL_157_CUTOFF = 157
 
+JsonValue: TypeAlias = (
+    None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
+)
+JsonObject: TypeAlias = dict[str, JsonValue]
+
 
 def _next_post_cutoff_identifier(text: str) -> str:
     """Return the next local observation ID after the immutable cutoff.
@@ -90,10 +100,7 @@ def _next_post_cutoff_identifier(text: str) -> str:
     with a Requirements-Lab requirement/API ID, and callers still run the
     ledger checker to reject gaps, duplicates, or historical edits.
     """
-    numbers = [
-        int(identifier[3:])
-        for identifier in OBSERVATION_HEADING.findall(text)
-    ]
+    numbers = [int(identifier[3:]) for identifier in OBSERVATION_HEADING.findall(text)]
     return f"RL-{max(numbers, default=POST_RL_157_CUTOFF) + 1:03d}"
 
 
@@ -125,8 +132,7 @@ def _check_historical_observation_baseline(
         return ("historical observations baseline has unsupported schema_version",)
     if baseline.get("historical_cutoff") != POST_RL_157_CUTOFF:
         return (
-            "historical observations baseline cutoff must match "
-            f"RL-{POST_RL_157_CUTOFF:03d}",
+            f"historical observations baseline cutoff must match RL-{POST_RL_157_CUTOFF:03d}",
         )
     observed_order, observed_digest = _historical_observation_digest(text)
     required_order = tuple(
@@ -189,14 +195,16 @@ def export_bundle(
     subprocess.run(command, cwd=lab_root, check=True)
 
 
-def _json_object(path: Path) -> dict[str, Any]:
+def _json_object(path: Path) -> JsonObject:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ValueError(f"cannot read JSON from {path}: {error}") from error
     if not isinstance(data, dict):
-        raise ValueError(f"{path} must contain a JSON object")
-    return data
+        raise TypeError(f"{path} must contain a JSON object")
+    if not all(isinstance(key, str) for key in data):
+        raise ValueError(f"{path} contains a non-string JSON object key")
+    return cast(JsonObject, data)
 
 
 def _locked_revision(lock_path: Path) -> str:
@@ -209,17 +217,21 @@ def _locked_revision(lock_path: Path) -> str:
     return revision
 
 
-def _document(bundle: dict[str, Any], document_id: str) -> dict[str, Any]:
+def _document(bundle: JsonObject, document_id: str) -> JsonObject:
     documents = bundle.get("documents")
     if not isinstance(documents, list):
-        raise ValueError("bundle has no documents array")
-    matches = [item for item in documents if item.get("document_id") == document_id]
+        raise TypeError("bundle has no documents array")
+    matches = [
+        item
+        for item in documents
+        if isinstance(item, dict) and item.get("document_id") == document_id
+    ]
     if len(matches) != 1:
         raise ValueError(f"bundle must contain exactly one {document_id!r} document")
-    return matches[0]
+    return cast(JsonObject, matches[0])
 
 
-def _requirement_ordinal_integrity(document: dict[str, Any]) -> tuple[str, ...]:
+def _requirement_ordinal_integrity(document: JsonObject) -> tuple[str, ...]:
     """Validate the presentation ordinals in one exported document.
 
     The Lab's opaque requirement IDs are the durable reference key, while the
@@ -263,7 +275,9 @@ def _requirement_ordinal_integrity(document: dict[str, Any]) -> tuple[str, ...]:
             ordinals.append(None)
             continue
         record_id = record.get("id")
-        label = record_id if isinstance(record_id, str) and record_id else f"index {index}"
+        label = (
+            record_id if isinstance(record_id, str) and record_id else f"index {index}"
+        )
         seen_ordinals[ordinal].append(label)
         ordinals.append(ordinal)
 
@@ -294,7 +308,7 @@ def _requirement_ordinal_integrity(document: dict[str, Any]) -> tuple[str, ...]:
 
 
 def check_bundle_ordinal_integrity(
-    bundle: dict[str, Any], *, edition: str = "all"
+    bundle: JsonObject, *, edition: str = "all"
 ) -> tuple[str, ...]:
     """Return findings for malformed requirement ordinal sequences.
 
@@ -339,7 +353,7 @@ _RESYNC_COLLECTIONS = (
 )
 
 
-def _resync_normalize(value: Any, *, key: str | None = None) -> Any:
+def _resync_normalize(value: JsonValue, *, key: str | None = None) -> JsonValue:
     """Normalize one Lab record for an edition-content comparison.
 
     Requirements-Lab record IDs are useful immutable references, but they can
@@ -350,7 +364,7 @@ def _resync_normalize(value: Any, *, key: str | None = None) -> Any:
     """
 
     if isinstance(value, dict):
-        normalized: dict[str, Any] = {}
+        normalized: JsonObject = {}
         for child_key, child_value in value.items():
             if child_key in {"id", "ordinal", "title"}:
                 continue
@@ -371,23 +385,29 @@ def _resync_normalize(value: Any, *, key: str | None = None) -> Any:
     return value
 
 
-def _resync_digest(document: dict[str, Any]) -> str:
+def _resync_digest(document: JsonObject) -> str:
     canonical = _resync_normalize(document)
-    encoded = json.dumps(canonical, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    encoded = json.dumps(
+        canonical, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+    )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def _resync_record_fingerprint(record: object) -> str:
+def _resync_record_fingerprint(record: JsonValue) -> str:
     canonical = _resync_normalize(record)
-    encoded = json.dumps(canonical, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    encoded = json.dumps(
+        canonical, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+    )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
 def _resync_collection_delta(
     baseline_records: object,
     candidate_records: object,
-) -> dict[str, Any]:
-    if not isinstance(baseline_records, list) or not isinstance(candidate_records, list):
+) -> JsonObject:
+    if not isinstance(baseline_records, list) or not isinstance(
+        candidate_records, list
+    ):
         return {
             "baseline_count": None,
             "candidate_count": None,
@@ -397,27 +417,39 @@ def _resync_collection_delta(
             "ordinal_drift": [],
         }
 
-    baseline_by_fingerprint: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    candidate_by_fingerprint: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    baseline_by_fingerprint: dict[str, list[JsonObject]] = defaultdict(list)
+    candidate_by_fingerprint: dict[str, list[JsonObject]] = defaultdict(list)
     for record in baseline_records:
         if isinstance(record, dict):
-            baseline_by_fingerprint[_resync_record_fingerprint(record)].append(record)
+            json_record = cast(JsonObject, record)
+            baseline_by_fingerprint[_resync_record_fingerprint(json_record)].append(
+                json_record
+            )
     for record in candidate_records:
         if isinstance(record, dict):
-            candidate_by_fingerprint[_resync_record_fingerprint(record)].append(record)
+            json_record = cast(JsonObject, record)
+            candidate_by_fingerprint[_resync_record_fingerprint(json_record)].append(
+                json_record
+            )
 
     missing_content: list[str] = []
     added_content: list[str] = []
-    renumbered: list[dict[str, Any]] = []
-    ordinal_drift: list[dict[str, Any]] = []
+    renumbered: list[JsonObject] = []
+    ordinal_drift: list[JsonObject] = []
     recorded_ordinal_pairs: list[tuple[object, object, object, object]] = []
-    for fingerprint in sorted(set(baseline_by_fingerprint) | set(candidate_by_fingerprint)):
+    for fingerprint in sorted(
+        set(baseline_by_fingerprint) | set(candidate_by_fingerprint)
+    ):
         baseline_group = baseline_by_fingerprint.get(fingerprint, [])
         candidate_group = candidate_by_fingerprint.get(fingerprint, [])
         if len(baseline_group) > len(candidate_group):
-            missing_content.extend([fingerprint] * (len(baseline_group) - len(candidate_group)))
+            missing_content.extend(
+                [fingerprint] * (len(baseline_group) - len(candidate_group))
+            )
         if len(candidate_group) > len(baseline_group):
-            added_content.extend([fingerprint] * (len(candidate_group) - len(baseline_group)))
+            added_content.extend(
+                [fingerprint] * (len(candidate_group) - len(baseline_group))
+            )
         for baseline_record, candidate_record in zip(baseline_group, candidate_group):
             baseline_id = baseline_record.get("id")
             candidate_id = candidate_record.get("id")
@@ -440,9 +472,8 @@ def _resync_collection_delta(
             baseline_ordinal = baseline_record.get("ordinal")
             candidate_ordinal = candidate_record.get("ordinal")
             if (
-                (baseline_has_ordinal or candidate_has_ordinal)
-                and baseline_ordinal != candidate_ordinal
-            ):
+                baseline_has_ordinal or candidate_has_ordinal
+            ) and baseline_ordinal != candidate_ordinal:
                 if isinstance(baseline_id, str) and isinstance(candidate_id, str):
                     recorded_ordinal_pairs.append(
                         (baseline_id, candidate_id, baseline_ordinal, candidate_ordinal)
@@ -462,16 +493,18 @@ def _resync_collection_delta(
     # its ordinal so a combined text-and-numbering edit cannot hide the
     # numbering movement.  Only unambiguous IDs are paired here; regenerated
     # or duplicate IDs remain represented by the content/ID deltas above.
-    baseline_by_id: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    candidate_by_id: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    baseline_by_id: dict[str, list[JsonObject]] = defaultdict(list)
+    candidate_by_id: dict[str, list[JsonObject]] = defaultdict(list)
     for record in baseline_records:
-        record_id = record.get("id") if isinstance(record, dict) else None
-        if isinstance(record_id, str):
-            baseline_by_id[record_id].append(record)
+        json_record = cast(JsonObject, record) if isinstance(record, dict) else None
+        record_id = json_record.get("id") if json_record is not None else None
+        if json_record is not None and isinstance(record_id, str):
+            baseline_by_id[record_id].append(json_record)
     for record in candidate_records:
-        record_id = record.get("id") if isinstance(record, dict) else None
-        if isinstance(record_id, str):
-            candidate_by_id[record_id].append(record)
+        json_record = cast(JsonObject, record) if isinstance(record, dict) else None
+        record_id = json_record.get("id") if json_record is not None else None
+        if json_record is not None and isinstance(record_id, str):
+            candidate_by_id[record_id].append(json_record)
     for record_id in sorted(set(baseline_by_id) & set(candidate_by_id), key=str):
         baseline_group = baseline_by_id[record_id]
         candidate_group = candidate_by_id[record_id]
@@ -482,9 +515,8 @@ def _resync_collection_delta(
         baseline_ordinal = baseline_record.get("ordinal")
         candidate_ordinal = candidate_record.get("ordinal")
         if (
-            ("ordinal" in baseline_record or "ordinal" in candidate_record)
-            and baseline_ordinal != candidate_ordinal
-        ):
+            "ordinal" in baseline_record or "ordinal" in candidate_record
+        ) and baseline_ordinal != candidate_ordinal:
             pair = (record_id, record_id, baseline_ordinal, candidate_ordinal)
             if pair in recorded_ordinal_pairs:
                 continue
@@ -498,14 +530,17 @@ def _resync_collection_delta(
                 }
             )
 
-    return {
-        "baseline_count": len(baseline_records),
-        "candidate_count": len(candidate_records),
-        "missing_content": missing_content,
-        "added_content": added_content,
-        "renumbered": renumbered,
-        "ordinal_drift": ordinal_drift,
-    }
+    return cast(
+        JsonObject,
+        {
+            "baseline_count": len(baseline_records),
+            "candidate_count": len(candidate_records),
+            "missing_content": missing_content,
+            "added_content": added_content,
+            "renumbered": renumbered,
+            "ordinal_drift": ordinal_drift,
+        },
+    )
 
 
 def resync_bundles(
@@ -513,15 +548,17 @@ def resync_bundles(
     candidate_path: Path,
     *,
     edition: str,
-) -> dict[str, Any]:
+) -> JsonObject:
     """Build a deterministic edition-scoped content/ID/ordinal delta report."""
 
     baseline = _json_object(baseline_path)
     candidate = _json_object(candidate_path)
     baseline_documents = baseline.get("documents")
     candidate_documents = candidate.get("documents")
-    if not isinstance(baseline_documents, list) or not isinstance(candidate_documents, list):
-        raise ValueError("both bundles must contain a documents array")
+    if not isinstance(baseline_documents, list) or not isinstance(
+        candidate_documents, list
+    ):
+        raise TypeError("both bundles must contain a documents array")
 
     baseline_integrity = check_bundle_ordinal_integrity(baseline, edition=edition)
     candidate_integrity = check_bundle_ordinal_integrity(candidate, edition=edition)
@@ -531,33 +568,36 @@ def resync_bundles(
         "2025": {"hla-1516-2025", "hla-1516.1-2025", "hla-1516.2-2025"},
         "all": None,
     }[edition]
-    baseline_by_id = {
-        item.get("document_id"): item
-        for item in baseline_documents
-        if isinstance(item, dict)
-    }
-    candidate_by_id = {
-        item.get("document_id"): item
-        for item in candidate_documents
-        if isinstance(item, dict)
-    }
+    baseline_by_id: dict[str, JsonObject] = {}
+    candidate_by_id: dict[str, JsonObject] = {}
+    for item in baseline_documents:
+        document_id = item.get("document_id") if isinstance(item, dict) else None
+        if isinstance(document_id, str):
+            baseline_by_id[document_id] = cast(JsonObject, item)
+    for item in candidate_documents:
+        document_id = item.get("document_id") if isinstance(item, dict) else None
+        if isinstance(document_id, str):
+            candidate_by_id[document_id] = cast(JsonObject, item)
     document_ids = sorted(
         (set(baseline_by_id) | set(candidate_by_id))
         if requested_ids is None
         else (requested_ids & (set(baseline_by_id) | set(candidate_by_id)))
     )
-    report_documents: list[dict[str, Any]] = []
+    report_documents: list[JsonObject] = []
     for document_id in document_ids:
         baseline_document = baseline_by_id.get(document_id)
         candidate_document = candidate_by_id.get(document_id)
         if baseline_document is None or candidate_document is None:
             report_documents.append(
-                {
-                    "document_id": document_id,
-                    "status": "missing-document",
-                    "baseline_present": baseline_document is not None,
-                    "candidate_present": candidate_document is not None,
-                }
+                cast(
+                    JsonObject,
+                    {
+                        "document_id": document_id,
+                        "status": "missing-document",
+                        "baseline_present": baseline_document is not None,
+                        "candidate_present": candidate_document is not None,
+                    },
+                )
             )
             continue
         collections = {
@@ -579,42 +619,52 @@ def resync_bundles(
             )
         }
         status = "unchanged"
-        if changed_collections or baseline_ordinal_integrity or candidate_ordinal_integrity:
+        if (
+            changed_collections
+            or baseline_ordinal_integrity
+            or candidate_ordinal_integrity
+        ):
             status = "content-or-id-drift"
         report_documents.append(
-            {
-                "document_id": document_id,
-                "status": status,
-                "baseline_content_sha256": _resync_digest(baseline_document),
-                "candidate_content_sha256": _resync_digest(candidate_document),
-                "collections": collections,
-                "ordinal_integrity": {
-                    "baseline": list(baseline_ordinal_integrity),
-                    "candidate": list(candidate_ordinal_integrity),
+            cast(
+                JsonObject,
+                {
+                    "document_id": document_id,
+                    "status": status,
+                    "baseline_content_sha256": _resync_digest(baseline_document),
+                    "candidate_content_sha256": _resync_digest(candidate_document),
+                    "collections": collections,
+                    "ordinal_integrity": {
+                        "baseline": list(baseline_ordinal_integrity),
+                        "candidate": list(candidate_ordinal_integrity),
+                    },
                 },
-            }
+            )
         )
 
-    return {
-        "edition": edition,
-        "baseline": str(baseline_path.resolve()),
-        "candidate": str(candidate_path.resolve()),
-        "baseline_bundle_id": baseline.get("bundle_id"),
-        "candidate_bundle_id": candidate.get("bundle_id"),
-        "baseline_revision": baseline.get("corpus_revision"),
-        "candidate_revision": candidate.get("corpus_revision"),
-        "bundle_integrity": {
-            "baseline": list(baseline_integrity),
-            "candidate": list(candidate_integrity),
+    return cast(
+        JsonObject,
+        {
+            "edition": edition,
+            "baseline": str(baseline_path.resolve()),
+            "candidate": str(candidate_path.resolve()),
+            "baseline_bundle_id": baseline.get("bundle_id"),
+            "candidate_bundle_id": candidate.get("bundle_id"),
+            "baseline_revision": baseline.get("corpus_revision"),
+            "candidate_revision": candidate.get("corpus_revision"),
+            "bundle_integrity": {
+                "baseline": list(baseline_integrity),
+                "candidate": list(candidate_integrity),
+            },
+            "documents": report_documents,
+            "changed_documents": sum(
+                document.get("status") != "unchanged" for document in report_documents
+            ),
         },
-        "documents": report_documents,
-        "changed_documents": sum(
-            document.get("status") != "unchanged" for document in report_documents
-        ),
-    }
+    )
 
 
-def resync_has_numbering_drift(report: dict[str, Any]) -> bool:
+def resync_has_numbering_drift(report: JsonObject) -> bool:
     """Return whether a re-sync report contains an ID or ordinal move.
 
     Semantic additions/removals can be an intentional corpus update.  This
@@ -643,19 +693,19 @@ def resync_has_numbering_drift(report: dict[str, Any]) -> bool:
         ):
             return True
     bundle_integrity = report.get("bundle_integrity")
-    if isinstance(bundle_integrity, dict) and any(
+    return isinstance(bundle_integrity, dict) and any(
         isinstance(findings, list) and findings
         for findings in bundle_integrity.values()
-    ):
-        return True
-    return False
+    )
 
 
-def _ids(record: dict[str, Any], name: str) -> tuple[str, ...]:
+def _ids(record: JsonObject, name: str) -> tuple[str, ...]:
     values = record.get(name, [])
-    if not isinstance(values, list) or not all(isinstance(item, str) for item in values):
+    if not isinstance(values, list) or not all(
+        isinstance(item, str) for item in values
+    ):
         raise ValueError(f"record {record.get('id', '<unknown>')} has invalid {name}")
-    return tuple(values)
+    return tuple(cast(list[str], values))
 
 
 def _header_path(value: object) -> Path | None:
@@ -693,8 +743,7 @@ def _check_observations(
         and not OBSERVATION_HEADING.match(line)
     ]
     findings.extend(
-        "observations log has a malformed RL heading (use an em dash): "
-        f"{heading}"
+        f"observations log has a malformed RL heading (use an em dash): {heading}"
         for heading in malformed_headings
     )
     identifiers = OBSERVATION_HEADING.findall(text)
@@ -729,7 +778,9 @@ def _check_observations(
         identifier = match.group(1)
         number = int(identifier[3:])
         body = match.group("body")
-        if number <= POST_RL_157_CUTOFF or not OBSERVATION_RECURRENCE_MARKER.search(body):
+        if number <= POST_RL_157_CUTOFF or not OBSERVATION_RECURRENCE_MARKER.search(
+            body
+        ):
             continue
         cited_ids = set(re.findall(r"\bRL-\d{3}\b", body))
         cited_prior = [
@@ -745,8 +796,7 @@ def _check_observations(
         if unknown_prior:
             findings.append(
                 f"post-RL-{POST_RL_157_CUTOFF} recurrence {identifier} cites "
-                "missing earlier observation(s): "
-                + ", ".join(unknown_prior)
+                "missing earlier observation(s): " + ", ".join(unknown_prior)
             )
         if not cited_prior:
             findings.append(
@@ -755,7 +805,7 @@ def _check_observations(
     return tuple(findings)
 
 
-def _check_source_and_tests(owned_id: object, owned: dict[str, Any]) -> list[str]:
+def _check_source_and_tests(owned_id: object, owned: JsonObject) -> list[str]:
     findings: list[str] = []
     source = owned.get("source")
     source_path = REPOSITORY_ROOT / source if isinstance(source, str) else None
@@ -763,10 +813,12 @@ def _check_source_and_tests(owned_id: object, owned: dict[str, Any]) -> list[str
         findings.append(f"{owned_id}: source path {source!r} is absent")
     else:
         source_symbol = owned.get("source_symbol")
-        if not isinstance(source_symbol, str) or source_symbol not in source_path.read_text(
-            encoding="utf-8"
-        ):
-            findings.append(f"{owned_id}: source symbol {source_symbol!r} is absent from {source}")
+        if not isinstance(
+            source_symbol, str
+        ) or source_symbol not in source_path.read_text(encoding="utf-8"):
+            findings.append(
+                f"{owned_id}: source symbol {source_symbol!r} is absent from {source}"
+            )
     tests = owned.get("tests")
     if not isinstance(tests, list) or not tests:
         findings.append(f"{owned_id}: at least one test reference is required")
@@ -780,30 +832,109 @@ def _check_source_and_tests(owned_id: object, owned: dict[str, Any]) -> list[str
             elif separator and (
                 not test_name or test_name not in test_path.read_text(encoding="utf-8")
             ):
-                findings.append(f"{owned_id}: test selector {test_reference!r} is absent")
+                findings.append(
+                    f"{owned_id}: test selector {test_reference!r} is absent"
+                )
     return findings
 
 
 def _check_requirements_reference_contract(
-    contract: dict[str, Any], document: dict[str, Any]
+    contract: JsonObject, document: JsonObject
 ) -> tuple[str, ...]:
     requirements = document.get("requirements")
     if not isinstance(requirements, list):
-        return (f"bundle document {document.get('document_id')} has no requirements array",)
-    lab_requirements = {item.get("id"): item for item in requirements if isinstance(item, dict)}
+        return (
+            f"bundle document {document.get('document_id')} has no requirements array",
+        )
+    lab_requirements = {
+        item.get("id"): item for item in requirements if isinstance(item, dict)
+    }
     owned_requirements = contract.get("requirements")
     if not isinstance(owned_requirements, list) or not owned_requirements:
-        return ("requirements-reference contract must contain at least one requirement",)
+        return (
+            "requirements-reference contract must contain at least one requirement",
+        )
 
     findings: list[str] = []
+    owned_by_lab_id = {
+        owned.get("requirements_lab_requirement_id"): owned
+        for owned in owned_requirements
+        if isinstance(owned, dict)
+        and isinstance(owned.get("requirements_lab_requirement_id"), str)
+    }
+    overrides = contract.get("canonical_standard_section_overrides", [])
+    if not isinstance(overrides, list):
+        findings.append("canonical_standard_section_overrides must be an array")
+        overrides = []
+    valid_overrides: set[str] = set()
+    seen_overrides: set[str] = set()
+    for override in overrides:
+        if not isinstance(override, dict):
+            findings.append("canonical standard section override must be an object")
+            continue
+        lab_id = override.get("requirements_lab_requirement_id")
+        if not isinstance(lab_id, str):
+            findings.append(
+                "canonical standard section override requirement ID must be a string"
+            )
+            continue
+        if lab_id in seen_overrides:
+            findings.append(f"{lab_id}: duplicate canonical standard section override")
+            continue
+        seen_overrides.add(lab_id)
+        lab_requirement = lab_requirements.get(lab_id)
+        owned_requirement = owned_by_lab_id.get(lab_id)
+        if lab_requirement is None:
+            findings.append(
+                f"{lab_id}: canonical standard section override has no matching Lab requirement"
+            )
+            continue
+        if override.get("document_id") != document.get("document_id"):
+            findings.append(
+                f"{lab_id}: canonical standard section override document drifted"
+            )
+            continue
+        if override.get("exported_clause_id") != lab_requirement.get("clause_id"):
+            findings.append(
+                f"{lab_id}: canonical standard section override export drifted"
+            )
+            continue
+        canonical_clause_id = override.get("canonical_clause_id")
+        if owned_requirement is not None:
+            if canonical_clause_id != owned_requirement.get("clause_id"):
+                findings.append(
+                    f"{lab_id}: canonical standard section override target drifted"
+                )
+                continue
+        else:
+            source_heading = override.get("source_heading")
+            heading_clause = (
+                re.match(r"^(?P<clause>\d+(?:\.\d+)*)(?:\s|$)", source_heading)
+                if isinstance(source_heading, str)
+                else None
+            )
+            if (
+                not heading_clause
+                or canonical_clause_id != f"clause-{heading_clause.group('clause')}"
+            ):
+                findings.append(
+                    f"{lab_id}: canonical standard section override target drifted"
+                )
+                continue
+        valid_overrides.add(lab_id)
+
     for owned in owned_requirements:
         if not isinstance(owned, dict):
-            findings.append("requirements-reference contract contains a non-object requirement")
+            findings.append(
+                "requirements-reference contract contains a non-object requirement"
+            )
             continue
         owned_id = owned.get("id", "<unknown>")
         lab_id = owned.get("requirements_lab_requirement_id")
         if not isinstance(lab_id, str):
-            findings.append(f"{owned_id}: requirements_lab_requirement_id must be a string")
+            findings.append(
+                f"{owned_id}: requirements_lab_requirement_id must be a string"
+            )
             continue
         lab_requirement = lab_requirements.get(lab_id)
         if lab_requirement is None:
@@ -812,7 +943,10 @@ def _check_requirements_reference_contract(
         expected_clause = owned.get("clause_id")
         if not isinstance(expected_clause, str):
             findings.append(f"{owned_id}: clause_id must be a string")
-        elif lab_requirement.get("clause_id") != expected_clause:
+        elif (
+            lab_requirement.get("clause_id") != expected_clause
+            and lab_id not in valid_overrides
+        ):
             findings.append(
                 f"{owned_id}: clause ID drifted; expected {expected_clause!r}, "
                 f"Lab has {lab_requirement.get('clause_id')!r}"
@@ -822,12 +956,16 @@ def _check_requirements_reference_contract(
 
 
 def _check_api_reference_contract(
-    contract: dict[str, Any], document: dict[str, Any]
+    contract: JsonObject, document: JsonObject
 ) -> tuple[str, ...]:
     api_surfaces = document.get("api_surfaces")
     if not isinstance(api_surfaces, list):
-        return (f"bundle document {document.get('document_id')} has no api_surfaces array",)
-    lab_api_surfaces = {item.get("id"): item for item in api_surfaces if isinstance(item, dict)}
+        return (
+            f"bundle document {document.get('document_id')} has no api_surfaces array",
+        )
+    lab_api_surfaces = {
+        item.get("id"): item for item in api_surfaces if isinstance(item, dict)
+    }
     owned_api_surfaces = contract.get("api_surfaces")
     if not isinstance(owned_api_surfaces, list) or not owned_api_surfaces:
         return ("api-reference contract must contain at least one api surface",)
@@ -840,7 +978,9 @@ def _check_api_reference_contract(
         owned_id = owned.get("id", "<unknown>")
         lab_id = owned.get("requirements_lab_api_surface_id")
         if not isinstance(lab_id, str):
-            findings.append(f"{owned_id}: requirements_lab_api_surface_id must be a string")
+            findings.append(
+                f"{owned_id}: requirements_lab_api_surface_id must be a string"
+            )
             continue
         lab_api_surface = lab_api_surfaces.get(lab_id)
         if lab_api_surface is None:
@@ -897,10 +1037,13 @@ def check_contract(contract_path: Path, bundle_path: Path) -> tuple[str, ...]:
     if not isinstance(mappings, list):
         return (f"bundle document {document_id} has no mappings array",)
     lab_mappings = {item.get("id"): item for item in mappings if isinstance(item, dict)}
+    api_surfaces = document.get("api_surfaces", [])
+    if not isinstance(api_surfaces, list):
+        api_surfaces = []
     lab_api_surfaces = {
-        item.get("id"): item
-        for item in document.get("api_surfaces", [])
-        if isinstance(item, dict)
+        item.get("id"): cast(JsonObject, item)
+        for item in api_surfaces
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
     }
     findings: list[str] = []
     owned_mappings = contract.get("mappings")
@@ -944,7 +1087,9 @@ def check_contract(contract_path: Path, bundle_path: Path) -> tuple[str, ...]:
         # changing or pretending to repair the Lab's aggregate crosswalk.
         if "requirements_lab_api_surface_ids" in owned:
             try:
-                selected_api_surface_ids = _ids(owned, "requirements_lab_api_surface_ids")
+                selected_api_surface_ids = _ids(
+                    owned, "requirements_lab_api_surface_ids"
+                )
             except ValueError as error:
                 findings.append(str(error))
                 selected_api_surface_ids = ()
@@ -972,7 +1117,9 @@ def check_contract(contract_path: Path, bundle_path: Path) -> tuple[str, ...]:
                         f"{owned_id}: selected API surface {api_surface_id!r} is not a C++ surface"
                     )
                 signature = api_surface.get("signature")
-                if not isinstance(signature, str) or not re.search(r"\bconnect\s*\(", signature):
+                if not isinstance(signature, str) or not re.search(
+                    r"\bconnect\s*\(", signature
+                ):
                     findings.append(
                         f"{owned_id}: selected API surface {api_surface_id!r} is not a Connect declaration"
                     )
@@ -985,7 +1132,9 @@ def check_contract(contract_path: Path, bundle_path: Path) -> tuple[str, ...]:
             marker = owned.get("declaration_marker")
             minimum_matches = owned.get("minimum_matches")
             if not isinstance(marker, str) or not isinstance(minimum_matches, int):
-                findings.append(f"{owned_id}: API baseline needs marker and minimum_matches")
+                findings.append(
+                    f"{owned_id}: API baseline needs marker and minimum_matches"
+                )
                 continue
             actual_matches = header_path.read_text(encoding="utf-8").count(marker)
             if actual_matches < minimum_matches:
@@ -1056,7 +1205,7 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
     if plan.get("status") != "active":
         findings.append("Catch2 plan status must be 'active'")
     document_id = plan.get("document_id")
-    if document_id != "hla-1516.1-2025":
+    if not isinstance(document_id, str) or document_id != "hla-1516.1-2025":
         findings.append(
             "Catch2 plan document_id must be 'hla-1516.1-2025' for the 2025 C++ lane"
         )
@@ -1064,7 +1213,7 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
     try:
         document = _document(bundle, document_id)
     except ValueError as error:
-        return tuple([*findings, str(error)])
+        return (*findings, str(error))
 
     requirements = document.get("requirements")
     api_surfaces = document.get("api_surfaces")
@@ -1078,10 +1227,16 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
     # also cover 1516.2 FOM and encoding rules.  Requirements therefore resolve
     # across the complete 2025 edition while API surfaces remain Part 1.1
     # binding records.
-    lab_requirement_ids = {
-        item.get("id") for item in requirements if isinstance(item, dict)
-    }
-    for candidate_document in bundle.get("documents", []):
+    lab_requirement_ids: set[str] = set()
+    for item in requirements:
+        if isinstance(item, dict):
+            requirement_id = item.get("id")
+            if isinstance(requirement_id, str):
+                lab_requirement_ids.add(requirement_id)
+    candidate_documents = bundle.get("documents", [])
+    if not isinstance(candidate_documents, list):
+        candidate_documents = []
+    for candidate_document in candidate_documents:
         if not isinstance(candidate_document, dict):
             continue
         candidate_id = candidate_document.get("document_id")
@@ -1089,13 +1244,15 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
             continue
         candidate_requirements = candidate_document.get("requirements")
         if isinstance(candidate_requirements, list):
-            lab_requirement_ids.update(
-                item.get("id")
-                for item in candidate_requirements
-                if isinstance(item, dict)
-            )
+            for item in candidate_requirements:
+                if isinstance(item, dict):
+                    requirement_id = item.get("id")
+                    if isinstance(requirement_id, str):
+                        lab_requirement_ids.add(requirement_id)
     lab_api_surfaces = {
-        item.get("id"): item for item in api_surfaces if isinstance(item, dict)
+        item.get("id"): cast(JsonObject, item)
+        for item in api_surfaces
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
     }
 
     entries = plan.get("tests")
@@ -1139,14 +1296,18 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
             if entry.get("status") not in non_executable_statuses:
                 for selector in _catch2_selector_parts(test_case):
                     normalized_selector = " ".join(selector.split())
-                    if not any(normalized_selector in source for source in source_texts):
+                    if not any(
+                        normalized_selector in source for source in source_texts
+                    ):
                         findings.append(
                             f"{entry_id}: Catch2 selector {selector!r} is absent from cpp/tests"
                         )
 
         tags = entry.get("tags")
-        if not isinstance(tags, list) or not tags or not all(
-            isinstance(tag, str) and tag.strip() for tag in tags
+        if (
+            not isinstance(tags, list)
+            or not tags
+            or not all(isinstance(tag, str) and tag.strip() for tag in tags)
         ):
             findings.append(f"{entry_id}: tags must be a non-empty string array")
         status = entry.get("status")
@@ -1206,15 +1367,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    export = subparsers.add_parser("export", help="Export a Lab CorpusBundle into .compliance")
+    export = subparsers.add_parser(
+        "export", help="Export a Lab CorpusBundle into .compliance"
+    )
     export.add_argument("--lab-root", type=Path)
     export.add_argument("--output", type=Path, default=DEFAULT_BUNDLE)
     export.add_argument("--lock", type=Path, default=DEFAULT_LOCK)
-    export.add_argument("--revision", help="Override the reviewed Requirements Lab revision")
+    export.add_argument(
+        "--revision", help="Override the reviewed Requirements Lab revision"
+    )
     export.add_argument("--edition", choices=("2010", "2025", "all"), default="all")
-    export.add_argument("--python", default=sys.executable, help="Python environment for the Lab")
+    export.add_argument(
+        "--python", default=sys.executable, help="Python environment for the Lab"
+    )
 
-    check = subparsers.add_parser("check", help="Check an Umbra baseline or contract against a bundle")
+    check = subparsers.add_parser(
+        "check", help="Check an Umbra baseline or contract against a bundle"
+    )
     check.add_argument("--bundle", type=Path, default=DEFAULT_BUNDLE)
     check.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
 
@@ -1276,9 +1445,13 @@ def main() -> int:
                 edition=args.edition,
             )
             print(json.dumps(report, ensure_ascii=True, indent=2, sort_keys=True))
+            bundle_integrity = report.get("bundle_integrity")
             if args.fail_on_diff and (
                 report["changed_documents"]
-                or any(report.get("bundle_integrity", {}).values())
+                or (
+                    isinstance(bundle_integrity, dict)
+                    and any(bundle_integrity.values())
+                )
             ):
                 return 1
             if args.fail_on_numbering_drift and resync_has_numbering_drift(report):
@@ -1292,7 +1465,10 @@ def main() -> int:
                 )
             )
             if findings:
-                print("requirements-lab: observation ledger drift detected", file=sys.stderr)
+                print(
+                    "requirements-lab: observation ledger drift detected",
+                    file=sys.stderr,
+                )
                 for finding in findings:
                     print(f"- {finding}", file=sys.stderr)
                 return 1
@@ -1321,25 +1497,36 @@ def main() -> int:
                     print(f"- {finding}", file=sys.stderr)
                 return 1
             plan = _json_object(args.plan)
-            document = _document(_json_object(args.bundle), plan["document_id"])
-            entries = plan["tests"]
+            plan_document_id = plan.get("document_id")
+            if not isinstance(plan_document_id, str):
+                raise ValueError("Catch2 plan document_id must be a string")
+            document = _document(_json_object(args.bundle), plan_document_id)
+            plan_entries = plan.get("tests")
+            if not isinstance(plan_entries, list) or any(
+                not isinstance(entry, dict) for entry in plan_entries
+            ):
+                raise ValueError("Catch2 plan tests must be an array of objects")
+            entries = [cast(JsonObject, entry) for entry in plan_entries]
             requirement_ids = {
                 requirement_id
                 for entry in entries
-                for requirement_id in entry.get(
-                    "selected_requirements_lab_requirement_ids", []
+                for requirement_id in _ids(
+                    entry, "selected_requirements_lab_requirement_ids"
                 )
             }
             api_surface_ids = {
                 api_surface_id
                 for entry in entries
-                for api_surface_id in entry.get("selected_cpp_api_surface_ids", [])
+                for api_surface_id in _ids(entry, "selected_cpp_api_surface_ids")
             }
+            available_requirements = document.get("requirements", [])
+            if not isinstance(available_requirements, list):
+                available_requirements = []
             print(
                 "requirements-lab: Catch2 plan matches the supplied bundle "
                 f"({len(entries)} entries, {len(requirement_ids)} requirements, "
                 f"{len(api_surface_ids)} C++ API surfaces; "
-                f"{len(document.get('requirements', []))} Lab requirements available)"
+                f"{len(available_requirements)} Lab requirements available)"
             )
             return 0
         findings = list(check_contract(args.contract, args.bundle))

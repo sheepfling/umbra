@@ -144,7 +144,9 @@ TsoMessageRetractionResult TsoMessageQueue::retract(std::uint64_t messageId) {
   return {TsoMessageQueueStatus::message_not_found, 0};
 }
 
-TsoMessageRetractionResult TsoMessageQueue::retractPending(std::uint64_t messageId) {
+TsoMessageRetractionResult TsoMessageQueue::retractPending(
+    std::uint64_t messageId,
+    bool hasUnacknowledgedInTransitEntry) {
   if (messageId == 0) {
     return {TsoMessageQueueStatus::invalid_message_id, 0};
   }
@@ -164,11 +166,12 @@ TsoMessageRetractionResult TsoMessageQueue::retractPending(std::uint64_t message
   auto const removedCount = originalSize - pending_.size();
 
   // A message can already have left the pending queue for one recipient while
-  // another recipient is still queued (or while the callback is in transit).
-  // The caller owns the per-recipient delivery ledger and will issue Request
-  // Retraction where required; this queue must still suppress every remaining
-  // pending entry.
-  if (removedCount != 0 || contains(deliveredMessageIds_, messageId)) {
+  // another recipient is still queued or in transit before callback
+  // acknowledgement. The caller owns the per-recipient delivery ledger and
+  // will issue Request Retraction where required; this queue must still fence
+  // the identity against later fanout arrivals.
+  if (removedCount != 0 || hasUnacknowledgedInTransitEntry ||
+      contains(deliveredMessageIds_, messageId)) {
     retractedMessageIds_.push_back(messageId);
     return {TsoMessageQueueStatus::applied, removedCount};
   }

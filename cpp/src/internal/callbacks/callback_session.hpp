@@ -34,7 +34,7 @@ class CallbackSession final {
 
   void close();
   void waitUntilIdle();
-  void invoke(Invocation invocation);
+  void invoke(const Invocation &invocation);
 
  private:
   void finishInvocation() noexcept;

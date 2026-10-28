@@ -254,7 +254,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
 
@@ -405,7 +406,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded distinct FQR grant uses actual time for timestamped attribute update bound",
+    "Embedded distinct FQR grant enforces optimistic time plus lookahead for timestamped attribute updates",
     "[integration][development-profile][2025][object-management][time-management][tso]"
     "[fqr-distinct-actual-optimistic-attribute-bound]"
     "[rti.service.update-attribute-values][rti.service.flush-queue-request]"
@@ -493,11 +494,21 @@ TEST_CASE(
   AttributeHandleValueMap outgoingValues;
   outgoingValues.emplace(
       flavor, VariableLengthData(outgoingValueBytes, sizeof(outgoingValueBytes)));
+  // §8.13.4(b) sets the post-FQG floor from optimistic time plus the
+  // lookahead at that time: 7 + 1. Timestamp 7 is therefore below the floor;
+  // timestamp 8 is admitted while the actual logical time remains 5.
+  REQUIRE_THROWS_AS(
+      requester->updateAttributeValues(
+          requesterObject,
+          outgoingValues,
+          tag,
+          rti1516_2025::HLAinteger64Time(7)),
+      rti1516_2025::InvalidLogicalTime);
   auto const outgoingRetraction = requester->updateAttributeValues(
       requesterObject,
       outgoingValues,
       tag,
-      rti1516_2025::HLAinteger64Time(6));
+      rti1516_2025::HLAinteger64Time(8));
   REQUIRE(outgoingRetraction.isValid());
   REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
   REQUIRE(logicalTime.getTime() == 5);

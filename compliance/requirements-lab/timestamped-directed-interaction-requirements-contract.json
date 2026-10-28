@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped directed-interaction slice: one non-regional directed target, constrained and nonconstrained recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, official timestamp/order/retraction callback fields, lower-bound validation, pending-fanout suppression, a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient, and focused save/restore regressions. The live-record save/restore case saves one queued directed payload and its retraction ledger, terminalizes it after saving, restores it, delivers it through Flush Queue Request, and proves the original designator still drives Request Retraction; a separate designator case prevents discarded post-save handles from aliasing fresh post-restore directed traffic. A dedicated lifecycle regression now keeps one queued directed payload associated with the same joined federate across Time Constrained disable/re-enable and verifies one callback before the matching grant. Voluntary-source-resignation regressions now separate the target owner from the interaction producer: one single-survivor case and one two-survivor case accept a timestamped directed payload, resign the producer with NO_ACTION, drain one survivor before the other, and retain the target, departed producer, timestamp/order, tag, and retraction metadata for each callback. The private ledger distinguishes this voluntary departure from the narrower connection-loss cutoff rule and preserves recipient-local pending state. A target-departure regression queues the directed interaction at time 7 and a target deletion at time 6: the time-6 removal callback commits target departure, and the later time-7 callback boundary suppresses the stale directed payload before its grant. Connection-loss regressions retain an accepted time-6 directed payload through a regulating producer's forced resignation: one reaches a survivor already awaiting the matching grant, and a DELETE_OBJECTS target collision retains the target until a survivor later opens the time-6 boundary; in both cases the cutoff marker is required and the selector remains live at callback time. A late directed unsubscription suppresses the callback without leaving a false pending ledger state that would strand the distinct automatic removal. The dedicated selector regression covers an owner/default recipient, a known non-owner/default recipient, a known non-owner/universal recipient, a universal-to-by-ownership change before TSO grant, and an unsubscription before a later grant. The direct selector predicate remains source-traced through the generic §5.12 candidate because the Lab has no granular candidate (RL-028); the §5.13 postcondition candidate's exported clause-5.14.3 ownership is the cross-page error recorded in RL-080, the re-enable lifecycle relation gap is recorded in RL-134, and the save/restore cross-service relation gap is recorded in RL-135. A direct TAR/NMR companion now covers the inclusive queued-timestamp frontier for the two standard alternate advance forms; broader alternate combinations remain open. It does not claim directed DDM, complete save/restore semantics, remote transport, catalog evidence, or conformance.",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped directed-interaction slice: one non-regional directed target, constrained and nonconstrained recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, official timestamp/order/retraction callback fields, lower-bound validation, pending-fanout suppression, a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient, and focused save/restore regressions. The live-record save/restore case saves one queued directed payload and its retraction ledger, terminalizes it after saving, restores it, delivers it through Flush Queue Request, and proves the original designator still drives Request Retraction; a separate designator case prevents discarded post-save handles from aliasing fresh post-restore directed traffic. A dedicated lifecycle regression now keeps one queued directed payload associated with the same joined federate across Time Constrained disable/re-enable and verifies one callback before the matching grant. Voluntary-source-resignation regressions now separate the target owner from the interaction producer: one single-survivor case and one two-survivor case accept a timestamped directed payload, resign the producer with NO_ACTION, drain one survivor before the other, and retain the target, departed producer, timestamp/order, tag, and retraction metadata for each callback. The private ledger distinguishes this voluntary departure from the narrower connection-loss cutoff rule and preserves recipient-local pending state. A target-departure regression queues the directed interaction at time 7 and a target deletion at time 6: the time-6 removal callback commits target departure, and the later time-7 callback boundary suppresses the stale directed payload before its grant. Connection-loss regressions retain an accepted time-6 directed payload through a regulating producer's forced resignation: one reaches a survivor already awaiting the matching grant, and a DELETE_OBJECTS target collision retains the target until a survivor later opens the time-6 boundary; in both cases the cutoff marker is required and the selector remains live at callback time. A late directed unsubscription suppresses the callback without leaving a false pending ledger state that would strand the distinct automatic removal. The dedicated selector regression covers an owner/default recipient, a known non-owner/default recipient, a known non-owner/universal recipient, a universal-to-by-ownership change before TSO grant, and an unsubscription before a later grant. The direct selector predicate remains source-traced through the generic \u00a75.12 candidate because the Lab has no granular candidate (RL-028); the \u00a75.13 postcondition candidate's exported clause-5.14.3 ownership is the cross-page error recorded in RL-080, the re-enable lifecycle relation gap is recorded in RL-134, and the save/restore cross-service relation gap is recorded in RL-135. A direct TAR/NMR companion now covers the inclusive queued-timestamp frontier for the two standard alternate advance forms; broader alternate combinations remain open. It does not claim directed DDM, complete save/restore semantics, remote transport, catalog evidence, or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-timestamped-directed-interaction-lower-bound",
@@ -297,7 +297,7 @@
     {
       "id": "umbra-timestamped-directed-interaction-tar-nmr-frontier",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
@@ -319,7 +319,7 @@
     {
       "id": "umbra-timestamped-directed-interaction-fqr-tara-nmra-frontier",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
@@ -339,5 +339,25 @@
       ],
       "notes": "The restored callback is checked for target object, empty parameter map, user tag, reliable transportation, producing federate, integer64 timestamp 9, sent/received TIMESTAMP order, and a valid retraction designator before each alternate grant."
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "timestamped-directed-interaction-requirements-contract.json",
+        "owned_id": "umbra-timestamped-directed-interaction-tar-nmr-frontier",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      },
+      {
+        "contract": "timestamped-directed-interaction-requirements-contract.json",
+        "owned_id": "umbra-timestamped-directed-interaction-fqr-tara-nmra-frontier",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

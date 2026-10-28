@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records one bounded native C++ development-profile slice: a timestamped Send Interaction With Regions is accepted while the producer regulates with lookahead one, the live source region is moved out of overlap, Time Regulation is disabled and callback-gated re-enabled with lookahead three, and the queued source snapshot is delivered before the constrained recipient's matching grant. It proves the changed lookahead boundary, source-region preservation, callback ordering, and terminal retraction classification. It does not claim relaxed DDM, general time-role coordination, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, validation, or conformance.",
+  "notes": "This contract records one bounded native C++ development-profile slice: a timestamped Send Interaction With Regions is accepted while the producer regulates with lookahead one, the live source region is moved out of overlap, and Time Regulation is disabled and callback-gated re-enabled with lookahead three. Producer TAR(2) exercises the configured timestamp-five boundary: the queued source-region snapshot is delivered, but TAG(5) is withheld. Producer TAR(3) then permits TAG(5). This checks observed grant behavior around the \u00a78.1.6 GALT boundary without querying GALT or asserting a normative calculation formula. It also covers source-region preservation, callback ordering, and terminal retraction classification. It does not claim relaxed DDM, general time-role coordination, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, validation, or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "tck-timestamped-regional-interaction-overlap",
@@ -11,7 +11,9 @@
       "clause_id": "clause-9.10",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-send-context",
@@ -19,7 +21,9 @@
       "clause_id": "clause-9.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-table",
@@ -27,23 +31,29 @@
       "clause_id": "clause-8",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-required",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-bound",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-queue",
@@ -51,7 +61,9 @@
       "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-snapshot",
@@ -59,7 +71,9 @@
       "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-enable",
@@ -67,7 +81,9 @@
       "clause_id": "clause-8.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-enabled",
@@ -75,15 +91,19 @@
       "clause_id": "clause-8.3.1",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "tck-timestamped-regional-interaction-query",
@@ -91,7 +111,36 @@
       "clause_id": "clause-8.20.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"
+      ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "timestamped-regional-interaction-regulation-reenable-changed-lookahead-requirements-contract.json",
+        "owned_id": "tck-timestamped-regional-interaction-time-required",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "timestamped-regional-interaction-regulation-reenable-changed-lookahead-requirements-contract.json",
+        "owned_id": "tck-timestamped-regional-interaction-time-bound",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "timestamped-regional-interaction-regulation-reenable-changed-lookahead-requirements-contract.json",
+        "owned_id": "tck-timestamped-regional-interaction-grant",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

@@ -1312,6 +1312,212 @@ void scenarioTimestampedInteractionTarStrictTimestampCutoffContract(
   scenarioTimestampedInteractionTarStrictTimestampCutoff(options, model);
 }
 
+void scenarioTimestampedInteractionTarInclusiveTargetDelivery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Inclusive TAR target delivery requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "tar-inclusive-publisher");
+  Session receiver(options, model, "tar-inclusive-receiver");
+  auto const federation = federationName(
+      options,
+      "timestamped-interaction-tar-inclusive-target-delivery");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid(),
+      "Inclusive TAR target interaction lookup returned an invalid handle");
+  require(
+      publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "Inclusive TAR target members selected different interaction handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Inclusive TAR target members selected different logical-time factories");
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "Inclusive TAR target receiver constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Inclusive TAR target publisher regulation callback");
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+
+  auto const earlierTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const targetTime = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      6U);
+  auto const publisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const earlierPayload{0x54U, 0x41U, 0x52U, 0x35U};
+  std::vector<std::uint8_t> const targetPayload{0x54U, 0x41U, 0x52U, 0x36U};
+  std::vector<std::uint8_t> const earlierTag{'t', 'a', 'r', '-', '5'};
+  std::vector<std::uint8_t> const targetTag{'t', 'a', 'r', '-', '6'};
+  rti::ParameterHandleValueMap earlierParameters;
+  earlierParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(earlierPayload.data(), earlierPayload.size()));
+  rti::ParameterHandleValueMap targetParameters;
+  targetParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(targetPayload.data(), targetPayload.size()));
+  rti::VariableLengthData earlierTagData(
+      earlierTag.data(), earlierTag.size());
+  rti::VariableLengthData targetTagData(targetTag.data(), targetTag.size());
+  auto const earlierRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      earlierParameters,
+      earlierTagData,
+      *earlierTime);
+  auto const targetRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      targetParameters,
+      targetTagData,
+      *targetTime);
+  require(
+      earlierRetraction.isValid() && targetRetraction.isValid(),
+      "Inclusive TAR target sends returned an invalid retraction handle");
+  require(
+      receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "Inclusive TAR target delivered messages before its advance request");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*targetTime);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timedInteractions().size() == 2U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "Inclusive TAR target ordered TSO delivery and grant");
+
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.size() == 2U &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "interaction", "grant"},
+      "TAR did not deliver both at-or-before-target TSO messages before its grant");
+  auto assertInteraction = [&](TimedInteractionRecord const& interaction,
+                               rti::LogicalTime const& expectedTime,
+                               std::vector<std::uint8_t> const& expectedPayload,
+                               std::vector<std::uint8_t> const& expectedTag,
+                               rti::MessageRetractionHandle const& expectedRetraction) {
+    auto const parameter = interaction.parameters.find(receiverParameter);
+    require(
+        interaction.interaction == receiverInteraction &&
+            parameter != interaction.parameters.end() &&
+            interaction.parameters.size() == 1U,
+        "Inclusive TAR target returned the wrong interaction or parameter set");
+    require(
+        copyBytes(parameter->second) == expectedPayload &&
+            interaction.tag == expectedTag &&
+            interaction.time == encodeTime(expectedTime),
+        "Inclusive TAR target changed the TSO payload, tag, or timestamp");
+    require(
+        interaction.producer == publisher.federateHandle() &&
+            interaction.sentOrder == rti::TIMESTAMP &&
+            interaction.receivedOrder == rti::TIMESTAMP &&
+            interaction.transportation.isValid(),
+        "Inclusive TAR target returned incorrect TSO metadata");
+    require(
+        interaction.retractionPresent &&
+            interaction.retraction == copyBytes(expectedRetraction.encode()),
+        "Inclusive TAR target returned an incorrect retraction handle");
+  };
+  assertInteraction(
+      interactions.at(0U),
+      *earlierTime,
+      earlierPayload,
+      earlierTag,
+      earlierRetraction);
+  assertInteraction(
+      interactions.at(1U),
+      *targetTime,
+      targetPayload,
+      targetTag,
+      targetRetraction);
+  require(
+      receiver.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*targetTime),
+      "Inclusive TAR target granted at the wrong logical time");
+  auto queriedTime = receiverTime.factory->makeInitial();
+  require(queriedTime != nullptr,
+          "Inclusive TAR target could not allocate a logical-time query value");
+  receiver.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(
+      *queriedTime,
+      *targetTime,
+      "Inclusive TAR target logical-time query");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTarInclusiveTargetDelivery(options, model);
+}
+
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTarInclusiveTargetDelivery(options, model);
+}
+
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTarInclusiveTargetDeliveryContract(options, model);
+}
+
 void scenarioTimestampedInteractionTarEqualBoundary(
     Options const& options,
     rti::CallbackModel model) {

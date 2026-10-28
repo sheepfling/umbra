@@ -16,6 +16,10 @@ inline constexpr wchar_t food_drink_soda[] = L"HLAobjectRoot.Food.Drink.Soda";
 inline constexpr wchar_t food_drink_soda_light[] =
     L"HLAobjectRoot.Food.Drink.Soda.Light";
 inline constexpr wchar_t regional_thing[] = L"HLAobjectRoot.RegionalThing";
+inline constexpr wchar_t regional_ownership_fanout[] =
+    L"HLAobjectRoot.UmbraRegionalOwnershipFanout";
+inline constexpr wchar_t tck_attribute_merge_object[] =
+    L"HLAobjectRoot.TckAttributeMergeObject";
 inline constexpr wchar_t two_dimensional_regional_object[] =
     L"HLAobjectRoot.UmbraTwoDimensionalRegionObject";
 
@@ -35,6 +39,12 @@ inline constexpr wchar_t directed_receipt_target_child[] =
     L"HLAobjectRoot.UmbraDirectedReceiptTargetBase.UmbraDirectedReceiptTargetChild";
 inline constexpr wchar_t parameter_fixture_base[] =
     L"HLAinteractionRoot.UmbraParameterFixtureBase";
+inline constexpr wchar_t tck_parameter_merge_interaction[] =
+    L"HLAinteractionRoot.TckParameterMergeInteraction";
+inline constexpr wchar_t fdd_preferred_receive_interaction[] =
+    L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction";
+inline constexpr wchar_t fdd_preferred_timestamped_interaction[] =
+    L"HLAinteractionRoot.UmbraFddPreferredTimestampedInteraction";
 inline constexpr wchar_t parameter_fixture_child[] =
     L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild";
 inline constexpr wchar_t reference_fixture_class[] =
@@ -91,9 +101,28 @@ inline constexpr wchar_t missing_interaction_base[] =
 
 }  // namespace fom
 
+namespace standard {
+
+inline constexpr wchar_t automatic_resign_action[] = L"HLAautomaticResignAction";
+inline constexpr wchar_t best_effort_transportation[] = L"HLAbestEffort";
+inline constexpr wchar_t federate[] = L"HLAfederate";
+inline constexpr wchar_t federate_name[] = L"HLAfederateName";
+inline constexpr wchar_t privilege_to_delete_object[] =
+    L"HLAprivilegeToDeleteObject";
+inline constexpr wchar_t reliable_transportation[] = L"HLAreliable";
+inline constexpr wchar_t report_service_file[] = L"HLAreportServiceFile";
+inline constexpr wchar_t service_group[] = L"HLAserviceGroup";
+inline constexpr wchar_t service_invocation[] =
+    L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
+inline constexpr wchar_t manager_federate_object[] =
+    L"HLAobjectRoot.HLAmanager.HLAfederate";
+
+}  // namespace standard
+
 namespace fixture {
 
 inline constexpr wchar_t added_after_registration[] = L"AddedAfterRegistration";
+inline constexpr wchar_t first_value[] = L"FirstValue";
 inline constexpr wchar_t bar_quantity[] = L"BarQuantity";
 inline constexpr wchar_t base_parameter[] = L"BaseParameter";
 inline constexpr wchar_t best_effort_base[] = L"BestEffortBase";
@@ -102,6 +131,7 @@ inline constexpr wchar_t child_parameter[] = L"ChildParameter";
 inline constexpr wchar_t directed_target_marker[] = L"DirectedTargetMarker";
 inline constexpr wchar_t efficiency[] = L"Efficiency";
 inline constexpr wchar_t flavor[] = L"Flavor";
+inline constexpr wchar_t second_value[] = L"SecondValue";
 inline constexpr wchar_t identifier[] = L"Identifier";
 inline constexpr wchar_t missing[] = L"Missing";
 inline constexpr wchar_t missing_dimension[] = L"MissingDimension";
@@ -109,6 +139,8 @@ inline constexpr wchar_t missing_parameter[] = L"MissingParameter";
 inline constexpr wchar_t name[] = L"Name";
 inline constexpr wchar_t organic[] = L"Organic";
 inline constexpr wchar_t pay_rate[] = L"PayRate";
+inline constexpr wchar_t provider_a_value[] = L"ProviderAValue";
+inline constexpr wchar_t provider_b_value[] = L"ProviderBValue";
 inline constexpr wchar_t regional_value[] = L"RegionalValue";
 inline constexpr wchar_t reliable_base_a[] = L"ReliableBaseA";
 inline constexpr wchar_t reliable_base_b[] = L"ReliableBaseB";
@@ -127,6 +159,8 @@ inline constexpr wchar_t umbra_extended_set_switches[] =
     L"UmbraExtendedSetSwitches";
 inline constexpr wchar_t umbra_extended_switch_payload[] =
     L"UmbraExtendedSwitchPayload";
+inline constexpr wchar_t umbra_extension_report_payload[] =
+    L"UmbraExtensionReportPayload";
 inline constexpr wchar_t umbra_extension_switch_payload[] =
     L"UmbraExtensionSwitchPayload";
 inline constexpr wchar_t umbra_region_x[] = L"UmbraRegionX";

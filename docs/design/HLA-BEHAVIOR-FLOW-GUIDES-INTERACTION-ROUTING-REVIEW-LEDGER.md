@@ -2047,48 +2047,122 @@ separate and do not edit the Requirements Lab or run builds/tests/CI.
 
 ### 2025 Join during save/restore and synchronization-point late join — 2026-10-11
 
-The save/restore guide already frames the Join question as unresolved: both pinned Join overloads list `SaveInProgress` and `RestoreInProgress`, while the API annotations alone do not define triggering conditions, order, or save/restore participant effects. The reviewed embedded membership path has no explicit active-save/restore predicate in the inspected sections; the process path is distinct, and the focused interlock test does not Join during either protocol.
+The save/restore guide already frames the Join question as unresolved: both pinned Join overloads list `SaveInProgress`
+and `RestoreInProgress`, while the API annotations alone do not define triggering conditions, order, or save/restore
+participant effects. The reviewed embedded membership path has no explicit active-save/restore predicate in the
+inspected sections; the process path is distinct, and the focused interlock test does not Join during either protocol.
 
-A cross-guide comparison found the synchronization guide's late-join flow answers a different question: an omitted-set synchronization point may expand its own participant set, preserving prior achievement results in a source-derived trace. That does not establish save/restore participation or whether Join is admitted during active save/restore. Added an explicit cross-link/caution in the save/restore guide; no new diagram or normative conclusion was justified.
+A cross-guide comparison found the synchronization guide's late-join flow answers a different question: an omitted-set
+synchronization point may expand its own participant set, preserving prior achievement results in a source-derived
+trace. That does not establish save/restore participation or whether Join is admitted during active save/restore. Added
+an explicit cross-link/caution in the save/restore guide; no new diagram or normative conclusion was justified.
 
-The official IEEE product page offers subscription/purchase access and a public machine-readable downloads bundle, but the checkout and bundle do not provide the normative §4.11 text. Keep the exact Join contract open pending an authorized standard copy. No C++ source, build, test rerun, CI, 2010 stream, or Requirements Lab work.
+The official IEEE product page offers subscription/purchase access and a public machine-readable downloads bundle, but
+the checkout and bundle do not provide the normative §4.11 text. Keep the exact Join contract open pending an authorized
+standard copy. No C++ source, build, test rerun, CI, 2010 stream, or Requirements Lab work.
 
-Next handoff: make a bounded HLA-first cross-guide audit of object registration/discovery, receiver knowledge, attribute ownership, and update relevance across the 2025 Object/Interaction Information Flow, Object Management, Object-Attribute Subscription State, and Attribute Ownership guides. Add only a cross-link or synthesis if there is a genuine learner gap; do not imply one universal pipeline. Keep 2010 and 2025 separate and distinguish embedded/process evidence. Do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded HLA-first cross-guide audit of object registration/discovery, receiver knowledge, attribute
+ownership, and update relevance across the 2025 Object/Interaction Information Flow, Object Management, Object-Attribute
+Subscription State, and Attribute Ownership guides. Add only a cross-link or synthesis if there is a genuine learner
+gap; do not imply one universal pipeline. Keep 2010 and 2025 separate and distinguish embedded/process evidence. Do not
+build, rerun tests, start CI, or edit the Requirements Lab.
+
 ### 2025 object knowledge and discovery commit boundaries — 2026-10-11
 
-Cross-audited the Object/Interaction Information Flow, Joined-Federate MOM, Object-Attribute Subscription State, Attribute Ownership, and DDM guides. They already separate federation membership, publication, per-attribute ownership, receiver selection, per-receiver object knowledge, DDM relevance, and application observation; no additional universal delivery diagram was warranted.
+Cross-audited the Object/Interaction Information Flow, Joined-Federate MOM, Object-Attribute Subscription State,
+Attribute Ownership, and DDM guides. They already separate federation membership, publication, per-attribute ownership,
+receiver selection, per-receiver object knowledge, DDM relevance, and application observation; no additional universal
+delivery diagram was warranted.
 
-The object guide's discovery note used a general 'current source' phrase for a profile-specific state commit. In the embedded 2025 path, `beginObjectInstanceDiscovery` runs inside the callback route before calling `discoverObjectInstance`. In the process service, the shared registry transition happens before the discovery event is exposed to transport, and the client callback bridge is later. The public process discovery case covers eventual handle/class/name/producer callback delivery under both callback models; it does not assert use of the handle before callback delivery. The guide now labels this as source-derived, not a portable HLA ordering rule or parity claim.
+The object guide's discovery note used a general 'current source' phrase for a profile-specific state commit. In the
+embedded 2025 path, `beginObjectInstanceDiscovery` runs inside the callback route before calling
+`discoverObjectInstance`. In the process service, the shared registry transition happens before the discovery event is
+exposed to transport, and the client callback bridge is later. The public process discovery case covers eventual
+handle/class/name/producer callback delivery under both callback models; it does not assert use of the handle before
+callback delivery. The guide now labels this as source-derived, not a portable HLA ordering rule or parity claim.
 
-Next handoff: make a bounded evidence audit of the open ordinary-object process late-subscription initial-value path already identified in the 2025 object-attribute subscription guide. Compare its process handler, discovery/initial-reflection route, callback bridge, and cited public tests; state exactly which scenario is and is not covered. Add documentation only if that narrows a real reader gap. Keep RTI-owned MOM evidence separate, preserve the 2010 boundary, and do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded evidence audit of the open ordinary-object process late-subscription initial-value path
+already identified in the 2025 object-attribute subscription guide. Compare its process handler,
+discovery/initial-reflection route, callback bridge, and cited public tests; state exactly which scenario is and is not
+covered. Add documentation only if that narrows a real reader gap. Keep RTI-owned MOM evidence separate, preserve the
+2010 boundary, and do not build, rerun tests, start CI, or edit the Requirements Lab.
+
 ### 2025 ordinary process late-subscription initial-value evidence audit — 2026-10-11
 
-Compared the process ordinary-subscription handler, discovery enqueue path, embedded initial-reflection planner, public process discovery test, regional-advisory test, process MOM test, and the existing subscription-state guide. The process subscribe path replans discovery for registered objects; its discovery enqueue code plans ordinary owner advisories but creates an initial-value update event only for RTI-owned MOM objects. The public ordinary process discovery case subscribes before registration; the regional advisory case also subscribes before registration; the process MOM case is a distinct positive late-subscription/initial-value path for RTI-owned objects. The private advisory case checks an already-known receiver's owner advisory, not initial values.
+Compared the process ordinary-subscription handler, discovery enqueue path, embedded initial-reflection planner, public
+process discovery test, regional-advisory test, process MOM test, and the existing subscription-state guide. The process
+subscribe path replans discovery for registered objects; its discovery enqueue code plans ordinary owner advisories but
+creates an initial-value update event only for RTI-owned MOM objects. The public ordinary process discovery case
+subscribes before registration; the regional advisory case also subscribes before registration; the process MOM case is
+a distinct positive late-subscription/initial-value path for RTI-owned objects. The private advisory case checks an
+already-known receiver's owner advisory, not initial values.
 
-The guide already captures these boundaries and correctly leaves ordinary process late-subscription initial reflection unresolved. No behavior or conformance conclusion follows from the absence of an ordinary initial-value planner in the inspected path. No guide change was needed; exact normative §5.8 resolution still requires the licensed standard text and focused process observation.
+The guide already captures these boundaries and correctly leaves ordinary process late-subscription initial reflection
+unresolved. No behavior or conformance conclusion follows from the absence of an ordinary initial-value planner in the
+inspected path. No guide change was needed; exact normative §5.8 resolution still requires the licensed standard text
+and focused process observation.
 
-Next handoff: make a bounded HLA-first audit of 2025 interaction-class matching and per-parameter projection in the Object/Interaction Information Flow guide. Compare ordinary and directed interaction paths, their class-ancestry selection, recipient eligibility, and parameter projection; check whether the current cross-links prevent readers from treating them as one subscription rule. Revise only for a concrete learner gap. Keep 2010 separate and distinguish embedded/process evidence; do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded HLA-first audit of 2025 interaction-class matching and per-parameter projection in the
+Object/Interaction Information Flow guide. Compare ordinary and directed interaction paths, their class-ancestry
+selection, recipient eligibility, and parameter projection; check whether the current cross-links prevent readers from
+treating them as one subscription rule. Revise only for a concrete learner gap. Keep 2010 separate and distinguish
+embedded/process evidence; do not build, rerun tests, start CI, or edit the Requirements Lab.
+
 ### 2025 interaction matching, projection, and profile-boundary survey — 2026-10-11
 
-Reviewed the class-ancestry map, ordinary receive-order interaction matching, active relevance versus recipient-specific subscription, superclass promotion and parameter projection, directed target-class/selector lookup, and the separate process ordinary interaction sequence. The current guide already explains why object/interaction ancestry is not one reusable nearest-ancestor rule and why directed target lookup does not replace the sent interaction class as the parameter namespace.
+Reviewed the class-ancestry map, ordinary receive-order interaction matching, active relevance versus recipient-specific
+subscription, superclass promotion and parameter projection, directed target-class/selector lookup, and the separate
+process ordinary interaction sequence. The current guide already explains why object/interaction ancestry is not one
+reusable nearest-ancestor rule and why directed target lookup does not replace the sent interaction class as the
+parameter namespace.
 
-The source evidence remains profile-scoped: embedded ordinary callbacks recheck receiver eligibility/projection at callback time; the process ordinary event stores its selected class and projected parameter handles before receive. The guide explicitly keeps the process and embedded paths separate. Exact normative inheritance and a direct declaration-change test are not established, so no extra synthesis or parity claim was added.
+The source evidence remains profile-scoped: embedded ordinary callbacks recheck receiver eligibility/projection at
+callback time; the process ordinary event stores its selected class and projected parameter handles before receive. The
+guide explicitly keeps the process and embedded paths separate. Exact normative inheritance and a direct
+declaration-change test are not established, so no extra synthesis or parity claim was added.
 
-Next handoff: make a bounded source/test audit of declaration changes after an accepted ordinary interaction send in the 2025 embedded and process profiles. Verify the source-observed embedded callback-time receiver recheck versus the process event's stored projection, identify focused coverage or its gap, and keep this distinct from the directed-send sender-publication fence. Document only as source/test evidence, not as a general HLA rule. Keep 2010 separate; do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded source/test audit of declaration changes after an accepted ordinary interaction send in the
+2025 embedded and process profiles. Verify the source-observed embedded callback-time receiver recheck versus the
+process event's stored projection, identify focused coverage or its gap, and keep this distinct from the directed-send
+sender-publication fence. Document only as source/test evidence, not as a general HLA rule. Keep 2010 separate; do not
+build, rerun tests, start CI, or edit the Requirements Lab.
+
 ### 2025 ordinary interaction send and declaration-change evidence audit — 2026-10-11
 
-Compared the embedded accepted-send route, the process interaction event snapshot, and a bounded set of focused test candidates containing `unpublishInteractionClass`. The public process Send Interaction case sends and then immediately pulls the event; it does not change a declaration between those steps. The inspected ordinary regional cases drain or assert callback outcomes before sender unpublication. Declaration-advisory and service tests that contain `unpublishInteractionClass` do not assert an already-accepted ordinary receive route after withdrawal.
+Compared the embedded accepted-send route, the process interaction event snapshot, and a bounded set of focused test
+candidates containing `unpublishInteractionClass`. The public process Send Interaction case sends and then immediately
+pulls the event; it does not change a declaration between those steps. The inspected ordinary regional cases drain or
+assert callback outcomes before sender unpublication. Declaration-advisory and service tests that contain
+`unpublishInteractionClass` do not assert an already-accepted ordinary receive route after withdrawal.
 
-No focused ordinary send → unpublish → evoke/receive assertion was identified in this bounded review. The current guide's distinction remains source-only: the embedded callback route rechecks receiver eligibility/projection, while the process event uses its stored projection. This is not an HLA-wide cancellation or ordering rule. No diagram or source edit was warranted; no tests were run.
+No focused ordinary send → unpublish → evoke/receive assertion was identified in this bounded review. The current
+guide's distinction remains source-only: the embedded callback route rechecks receiver eligibility/projection, while the
+process event uses its stored projection. This is not an HLA-wide cancellation or ordering rule. No diagram or source
+edit was warranted; no tests were run.
 
-Next handoff: make a bounded HLA-first audit of the 2025 Directed Interaction guide's target validity, publication-pair checks, recipient selection, and queued callback invalidation. Compare embedded and process paths and the focused cases; ensure the process exact-class evidence is not generalized to ancestor lookup or embedded callback fences. Add or revise a diagram only for a distinct learner gap. Keep 2010 separate; do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded HLA-first audit of the 2025 Directed Interaction guide's target validity, publication-pair
+checks, recipient selection, and queued callback invalidation. Compare embedded and process paths and the focused cases;
+ensure the process exact-class evidence is not generalized to ancestor lookup or embedded callback fences. Add or revise
+a diagram only for a distinct learner gap. Keep 2010 separate; do not build, rerun tests, start CI, or edit the
+Requirements Lab.
+
 ### 2025 directed-interaction target, selector, and callback-boundary audit — 2026-10-11
 
-Compared the guide's producer/target/receiver identities, target-class ancestor lookup, declaration-pair rules, universal/by-ownership selector, embedded queued-callback invalidation, process event snapshot, and timestamped boundary with the focused evidence. The embedded known-target test explicitly covers subscription withdrawal, producer-pair unpublication, republishing for fresh work, and target deletion before callback dispatch. The process multi-recipient case checks two receivers, payload context, sender exclusion, and callback models using exact-class declarations.
+Compared the guide's producer/target/receiver identities, target-class ancestor lookup, declaration-pair rules,
+universal/by-ownership selector, embedded queued-callback invalidation, process event snapshot, and timestamped boundary
+with the focused evidence. The embedded known-target test explicitly covers subscription withdrawal, producer-pair
+unpublication, republishing for fresh work, and target deletion before callback dispatch. The process multi-recipient
+case checks two receivers, payload context, sender exclusion, and callback models using exact-class declarations.
 
-The current guide already keeps the process result bounded: no ancestor-declaration process test and no process stale-delivery mutation test are claimed. It also does not apply the embedded callback recheck or tested deletion suppression to process events. No new diagram or text change was warranted.
+The current guide already keeps the process result bounded: no ancestor-declaration process test and no process
+stale-delivery mutation test are claimed. It also does not apply the embedded callback recheck or tested deletion
+suppression to process events. No new diagram or text change was warranted.
 
-Next handoff: make a bounded HLA-first audit of the 2025 FOM module admission/composition guide. Compare the reader's model of module inputs, merge/override, completed-model validation, and reference resolution with its existing diagrams and evidence; identify whether a real composition-versus-validation boundary is missing or already clearly linked to the object/interaction hierarchy guides. Revise only for a concrete learner gap. Keep 2010 separate and do not build, rerun tests, start CI, or edit the Requirements Lab.
+Next handoff: make a bounded HLA-first audit of the 2025 FOM module admission/composition guide. Compare the reader's
+model of module inputs, merge/override, completed-model validation, and reference resolution with its existing diagrams
+and evidence; identify whether a real composition-versus-validation boundary is missing or already clearly linked to the
+object/interaction hierarchy guides. Revise only for a concrete learner gap. Keep 2010 separate and do not build, rerun
+tests, start CI, or edit the Requirements Lab.
 
 ### 2025 FOM module boundaries and HLA reader-path recheck — 2026-10-11
 
@@ -3414,15 +3488,41 @@ add no diagram unless the current map leaves a genuine learner gap.
 
 ### 2025 participant-set comparison source/test recheck — 2026-10-11
 
-Rechecked the existing [cross-cutting participant-set map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#participant-set-changes-are-protocol-specific), its linked [synchronization guide](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md#late-joiners-change-only-an-expandable-barrier), the [save/restore admission boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#join-crosses-a-separate-membership-admission-boundary), and the current 2025 source paths. The map remains useful and does not need a duplicate chart.
+Rechecked the existing
+[cross-cutting participant-set map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#participant-set-changes-are-protocol-specific),
+its linked
+[synchronization guide](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md#late-joiners-change-only-an-expandable-barrier),
+the
+[save/restore admission boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#join-crosses-a-separate-membership-admission-boundary),
+and the current 2025 source paths. The map remains useful and does not need a duplicate chart.
 
-The registry records whether the synchronization set was supplied separately from its initial membership expansion ([registration](../../cpp/src/internal/federation/federation_registry.cpp#L188)); its late-Join hook expands only eligible pending points ([Join hook](../../cpp/src/internal/federation/federation_registry.cpp#L246)). The focused [late-Join case](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16) joins before achievement, so partial-achievement-before-Join remains source-derived. Save creates its participant-status map at operation start ([save control](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L40)); restore checks saved/current participant identities before creating its operation ([restore admission](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L335)).
+The registry records whether the synchronization set was supplied separately from its initial membership expansion
+([registration](../../cpp/src/internal/federation/federation_registry.cpp#L188)); its late-Join hook expands only
+eligible pending points ([Join hook](../../cpp/src/internal/federation/federation_registry.cpp#L246)). The focused
+[late-Join case](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16)
+joins before achievement, so partial-achievement-before-Join remains source-derived. Save creates its participant-status
+map at operation start ([save control](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L40));
+restore checks saved/current participant identities before creating its operation
+([restore admission](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L335)).
 
-The Join adapter, shared membership transaction, and process handler still show no matching active-save/restore predicate in the inspected paths; they do not update the already-created operation status maps ([embedded adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364), [registry transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238), [process handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L193)). The focused [representative interlock case](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34) joins both participants before Save. Related test searches did not find a focused Join attempted during an active protocol. Both pinned 2025 Join overloads list `SaveInProgress` and `RestoreInProgress`, but the exact §4.11 triggering conditions and participant effects are not established by these annotations or source inspection. Keep acceptance, rejection, and cohort effects open; do not turn this apparent API/source gap into a conformance claim. The synchronization evidence remains an embedded-registry slice and does not imply 2010 or process/embedded parity.
+The Join adapter, shared membership transaction, and process handler still show no matching active-save/restore
+predicate in the inspected paths; they do not update the already-created operation status maps
+([embedded adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364),
+[registry transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238),
+[process handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L193)). The focused
+[representative interlock case](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34)
+joins both participants before Save. Related test searches did not find a focused Join attempted during an active
+protocol. Both pinned 2025 Join overloads list `SaveInProgress` and `RestoreInProgress`, but the exact §4.11 triggering
+conditions and participant effects are not established by these annotations or source inspection. Keep acceptance,
+rejection, and cohort effects open; do not turn this apparent API/source gap into a conformance claim. The
+synchronization evidence remains an embedded-registry slice and does not imply 2010 or process/embedded parity.
 
-No source or Mermaid block changed; no tests, build, CI, or Requirements Lab work was performed. The existing diagram inventory remains 239 fenced blocks by the last static count; this audit did not render or visually review the full set.
+No source or Mermaid block changed; no tests, build, CI, or Requirements Lab work was performed. The existing diagram
+inventory remains 239 fenced blocks by the last static count; this audit did not render or visually review the full set.
 
-Next handoff: survey the 2025 DDM/region guide for a learner gap in the relationship among region extents, subscriptions, region updates, and delivery eligibility. Keep portable HLA behavior primary and source/test evidence bounded; add a diagram only if it materially clarifies that relationship. Preserve the separate 2010 stream.
+Next handoff: survey the 2025 DDM/region guide for a learner gap in the relationship among region extents,
+subscriptions, region updates, and delivery eligibility. Keep portable HLA behavior primary and source/test evidence
+bounded; add a diagram only if it materially clarifies that relationship. Preserve the separate 2010 stream.
 
 ### 2025 DDM concepts and clause navigation — 2026-10-11
 
@@ -4083,4 +4183,3 @@ Next handoff: audit the 2025 data-element encoding guide against the pinned
 encoding API, scalar/composite/array codec paths, and existing tests. Keep
 value encoding separate from private process framing, document byte-order and
 string contracts, and preserve the separate 2010 guide and evidence boundary.
-

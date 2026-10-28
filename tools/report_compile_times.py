@@ -9,22 +9,75 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import TypedDict
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+
+class CompileRecord(TypedDict):
+    source: str
+    output: str
+    target: str
+    elapsed_ms: int
+    source_lines: int
+    dependency_count: int
+    first_party_header_count: int
+    bundled_header_count: int
+    external_dependency_count: int
+
+
+class HeaderFanout(TypedDict):
+    path: str
+    translation_units: int
+
+
+class TargetTotal(TypedDict):
+    target: str
+    elapsed_ms: int
+    translation_units: int
+
+
+class LinkRecord(TypedDict):
+    output: str
+    elapsed_ms: int
+
+
+class _CompileBaselineOptional(TypedDict, total=False):
+    header_fanout: dict[str, int]
+    target_totals: dict[str, int]
+
+
+class _CompileBaselineRecord(TypedDict):
+    source: str
+    elapsed_ms: int
+
+
+class CompileBaseline(_CompileBaselineOptional):
+    records: dict[str, _CompileBaselineRecord]
+
+
+class CompileTimeSnapshot(TypedDict):
+    schema: int
+    build_dir: str
+    records: list[CompileRecord]
+    header_fanout: list[HeaderFanout]
+    bundled_header_fanout: list[HeaderFanout]
+    target_totals: list[TargetTotal]
+    link_actions: list[LinkRecord]
 
 
 def _path_key(path: str | Path, base: Path | None = None) -> str:
     candidate = Path(path)
     if not candidate.is_absolute() and base is not None:
         candidate = base / candidate
-    return os.path.normcase(os.path.abspath(candidate)).replace("\\", "/")
+    absolute = candidate.absolute().as_posix()
+    return absolute.lower() if sys.platform == "win32" else absolute
 
 
 def _compile_outputs(database_path: Path) -> dict[str, str]:
@@ -107,11 +160,11 @@ def _source_lines(path: str) -> int:
 def collect(
     build_dir: Path, ninja: str = "ninja"
 ) -> tuple[
-    list[dict[str, Any]],
-    list[dict[str, Any]],
-    list[dict[str, Any]],
-    list[dict[str, Any]],
-    list[dict[str, Any]],
+    list[CompileRecord],
+    list[HeaderFanout],
+    list[HeaderFanout],
+    list[TargetTotal],
+    list[LinkRecord],
     int,
 ]:
     database_path = build_dir / "compile_commands.json"
@@ -132,7 +185,7 @@ def collect(
     if dep_result.returncode:
         raise RuntimeError(f"ninja -t deps failed: {dep_result.stderr.strip()}")
     dependencies = _ninja_dependencies(dep_result.stdout, build_dir)
-    records = [
+    records: list[CompileRecord] = [
         {
             "source": source,
             "output": output,
@@ -152,7 +205,7 @@ def collect(
     for item in records:
         source_key = _path_key(item["source"])
         first_party_headers: set[str] = set()
-        bundled_headers: set[str] = set()
+        bundled_header_paths: set[str] = set()
         external_count = 0
         for dependency in dependencies.get(item["output"], []):
             if dependency == source_key:
@@ -161,22 +214,22 @@ def collect(
             if relative is None:
                 external_count += 1
             elif _is_bundled_or_generated_header(relative):
-                bundled_headers.add(dependency)
+                bundled_header_paths.add(dependency)
             else:
                 first_party_headers.add(dependency)
         item["first_party_header_count"] = len(first_party_headers)
-        item["bundled_header_count"] = len(bundled_headers)
+        item["bundled_header_count"] = len(bundled_header_paths)
         item["external_dependency_count"] = external_count
         header_consumers.update(first_party_headers)
-        bundled_header_consumers.update(bundled_headers)
+        bundled_header_consumers.update(bundled_header_paths)
 
     records.sort(key=lambda item: (-item["elapsed_ms"], item["source"].casefold()))
-    headers = [
+    headers: list[HeaderFanout] = [
         {"path": _project_relative(path) or path, "translation_units": count}
         for path, count in header_consumers.items()
     ]
     headers.sort(key=lambda item: (-item["translation_units"], item["path"].casefold()))
-    bundled_headers = [
+    bundled_headers: list[HeaderFanout] = [
         {"path": _project_relative(path) or path, "translation_units": count}
         for path, count in bundled_header_consumers.items()
     ]
@@ -189,14 +242,14 @@ def collect(
     for item in records:
         target_totals[item["target"]] += item["elapsed_ms"]
         target_units[item["target"]] += 1
-    targets = [
+    targets: list[TargetTotal] = [
         {"target": name, "elapsed_ms": elapsed, "translation_units": target_units[name]}
         for name, elapsed in target_totals.items()
     ]
     targets.sort(key=lambda item: -item["elapsed_ms"])
 
     compile_outputs = set(outputs)
-    link_records = [
+    link_records: list[LinkRecord] = [
         {"output": output, "elapsed_ms": elapsed_ms}
         for output, elapsed_ms in durations.items()
         if output not in compile_outputs
@@ -213,39 +266,72 @@ def collect(
     )
 
 
-def _load_baseline(path: Path) -> dict[str, Any]:
+def _load_baseline(path: Path) -> CompileBaseline:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") not in {1, 2} or not isinstance(
-        payload.get("records"), list
-    ):
-        raise ValueError(f"unsupported compile-time baseline format: {path}")
+    if not isinstance(payload, dict) or payload.get("schema") not in {1, 2}:
+        raise TypeError(f"unsupported compile-time baseline format: {path}")
+    raw_records = payload.get("records")
+    if not isinstance(raw_records, list):
+        raise TypeError(f"unsupported compile-time baseline format: {path}")
+    records: dict[str, _CompileBaselineRecord] = {}
+    for item in raw_records:
+        if (
+            not isinstance(item, dict)
+            or "source" not in item
+            or "elapsed_ms" not in item
+        ):
+            continue
+        source = str(item["source"])
+        try:
+            elapsed_ms = int(item["elapsed_ms"])
+        except (TypeError, ValueError):
+            continue
+        records[source] = {"source": source, "elapsed_ms": elapsed_ms}
+
+    header_fanout: dict[str, int] = {}
+    raw_headers = payload.get("header_fanout", [])
+    if isinstance(raw_headers, list):
+        for item in raw_headers:
+            if (
+                not isinstance(item, dict)
+                or "path" not in item
+                or "translation_units" not in item
+            ):
+                continue
+            try:
+                header_fanout[str(item["path"])] = int(item["translation_units"])
+            except (TypeError, ValueError):
+                continue
+
+    target_totals: dict[str, int] = {}
+    raw_targets = payload.get("target_totals", [])
+    if isinstance(raw_targets, list):
+        for item in raw_targets:
+            if (
+                not isinstance(item, dict)
+                or "target" not in item
+                or "elapsed_ms" not in item
+            ):
+                continue
+            try:
+                target_totals[str(item["target"])] = int(item["elapsed_ms"])
+            except (TypeError, ValueError):
+                continue
     return {
-        "records": {
-            str(item["source"]): item
-            for item in payload["records"]
-            if "source" in item and "elapsed_ms" in item
-        },
-        "header_fanout": {
-            str(item["path"]): int(item["translation_units"])
-            for item in payload.get("header_fanout", [])
-            if "path" in item and "translation_units" in item
-        },
-        "target_totals": {
-            str(item["target"]): int(item["elapsed_ms"])
-            for item in payload.get("target_totals", [])
-            if "target" in item and "elapsed_ms" in item
-        },
+        "records": records,
+        "header_fanout": header_fanout,
+        "target_totals": target_totals,
     }
 
 
 def _snapshot(
     build_dir: Path,
-    records: list[dict[str, Any]],
-    headers: list[dict[str, Any]],
-    bundled_headers: list[dict[str, Any]],
-    targets: list[dict[str, Any]],
-    link_records: list[dict[str, Any]],
-) -> dict[str, Any]:
+    records: Sequence[CompileRecord],
+    headers: Sequence[HeaderFanout],
+    bundled_headers: Sequence[HeaderFanout],
+    targets: Sequence[TargetTotal],
+    link_records: Sequence[LinkRecord],
+) -> CompileTimeSnapshot:
     return {
         "schema": 2,
         "build_dir": str(build_dir.resolve(strict=False)),
@@ -284,7 +370,7 @@ def main() -> int:
             link_records,
             unmatched,
         ) = collect(build_dir, arguments.ninja)
-        baseline = _load_baseline(arguments.baseline) if arguments.baseline else {}
+        baseline = _load_baseline(arguments.baseline) if arguments.baseline else None
         snapshot = _snapshot(
             build_dir, records, headers, bundled_headers, targets, link_records
         )
@@ -302,6 +388,9 @@ def main() -> int:
         return 0
 
     total_ms = sum(item["elapsed_ms"] for item in records)
+    baseline_records = baseline["records"] if baseline else {}
+    baseline_fanout = baseline.get("header_fanout", {}) if baseline else {}
+    baseline_targets = baseline.get("target_totals", {}) if baseline else {}
     print(f"C++ translation units recorded: {len(records)}")
     print(f"Summed compiler time: {total_ms / 1000:.1f} s (CPU time; not wall time)")
     print(
@@ -320,9 +409,9 @@ def main() -> int:
         source = item["source"]
         elapsed_ms = item["elapsed_ms"]
         change = ""
-        baseline_record = baseline.get("records", {}).get(source)
+        baseline_record = baseline_records.get(source)
         if baseline_record:
-            delta = elapsed_ms - int(baseline_record["elapsed_ms"])
+            delta = elapsed_ms - baseline_record["elapsed_ms"]
             change = f"{delta / 1000:+.1f}s"
         fanout = (
             f"{item['first_party_header_count']}/"
@@ -334,7 +423,6 @@ def main() -> int:
         )
     print("\nHighest-fanout project headers:")
     print("  units  delta  header")
-    baseline_fanout = baseline.get("header_fanout", {})
     for item in headers[: max(0, arguments.top)]:
         path = item["path"]
         old_count = baseline_fanout.get(path)
@@ -349,7 +437,6 @@ def main() -> int:
     for item in bundled_headers[: max(0, arguments.top)]:
         print(f"  {item['translation_units']:17}  {item['path']}")
     print("\nBuild-target compile totals:")
-    baseline_targets = baseline.get("target_totals", {})
     for item in targets[: max(0, min(arguments.top, 10))]:
         old_total = baseline_targets.get(item["target"])
         delta = (

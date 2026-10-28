@@ -2,30 +2,55 @@ name: CI fan-out
 
 on:
   push:
+    branches: [master]
   pull_request:
   workflow_dispatch:
+    inputs:
+      run_bindings:
+        description: Also run the Java, JNI, and Python 2025 routes
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  route:
+  tooling:
+    name: route (tooling)
     runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # IEEE 1516.1-2010 CI routes are paused; local test routes remain available.
-          - name: tooling
-            command: lint --scope ci --skip-2010-checks
-          - name: cpp-2025
-            command: test --standard 2025 --route cpp
-          - name: java-2025
-            command: test --standard 2025 --route java
-          - name: jni-2025
-            command: test --standard 2025 --route jni
-          - name: python-2025
-            command: test --standard 2025 --route python
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CI tools
+        run: python -m pip install --disable-pip-version-check pytest ruff
+      - name: Tooling and integrity checks
+        run: python -m tools.ci lint --scope ci --skip-2010-checks
+
+  cpp-2025:
+    name: route (cpp-2025)
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: C++ 2025 smoke route
+        run: python -m tools.ci test --standard 2025 --route cpp
+
+  java-2025:
+    name: route (java-2025)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_bindings
+    runs-on: windows-2022
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,7 +60,37 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install CI tools
-        run: python -m pip install --disable-pip-version-check pytest ruff
-      - name: ${{ matrix.name }}
-        run: python -m tools.ci ${{ matrix.command }}
+      - name: Java 2025 smoke route
+        run: python -m tools.ci test --standard 2025 --route java
+
+  jni-2025:
+    name: route (jni-2025)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_bindings
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: JNI 2025 smoke route
+        run: python -m tools.ci test --standard 2025 --route jni
+
+  python-2025:
+    name: route (python-2025)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_bindings
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Python 2025 smoke route
+        run: python -m tools.ci test --standard 2025 --route python

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from dataclasses import dataclass
 from typing import cast
 from urllib.parse import urlencode
@@ -22,7 +22,7 @@ from .models import JsonObject, JsonValue
 PayloadFetcher = Callable[[str], tuple[int, JsonValue]]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ProbeCheck:
     """One observable compatibility assertion."""
 
@@ -34,7 +34,7 @@ class ProbeCheck:
         return {"name": self.name, "passed": self.passed, "detail": self.detail}
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ProbeResult:
     """Serializable result returned by :class:`ObserverContractProbe`."""
 
@@ -86,7 +86,9 @@ class ObserverContractProbe:
                 continue
             self._check_version(name, payload, expected_version, checks)
             if name == "health":
-                self._check_fields(name, payload, ("status", "event_count", "capabilities"), checks)
+                self._check_fields(
+                    name, payload, ("status", "event_count", "capabilities"), checks
+                )
             elif name == "state":
                 self._check_fields(
                     name,
@@ -107,7 +109,18 @@ class ObserverContractProbe:
                 )
                 self._check_capabilities(name, payload.get("capabilities"), checks)
             elif name == "metrics":
-                self._check_fields(name, payload, ("schema_version", "status", "live_metrics", "retention", "adapters"), checks)
+                self._check_fields(
+                    name,
+                    payload,
+                    (
+                        "schema_version",
+                        "status",
+                        "live_metrics",
+                        "retention",
+                        "adapters",
+                    ),
+                    checks,
+                )
             elif name == "events":
                 self._check_event_page(payload, checks)
 
@@ -119,23 +132,31 @@ class ObserverContractProbe:
             body = response.read().decode("utf-8")
             return int(response.status), cast(JsonValue, json.loads(body))
 
-    def _get_json(self, name: str, path: str, checks: list[ProbeCheck]) -> Mapping[str, JsonValue] | None:
+    def _get_json(
+        self, name: str, path: str, checks: MutableSequence[ProbeCheck]
+    ) -> Mapping[str, JsonValue] | None:
         try:
             status, payload = self._fetcher(path)
         except Exception as error:  # noqa: BLE001 - transport failures become failed checks
             checks.append(ProbeCheck(name, False, f"request failed: {error}"))
             return None
         if status != 200:
-            checks.append(ProbeCheck(name, False, f"expected HTTP 200, received {status}"))
+            checks.append(
+                ProbeCheck(name, False, f"expected HTTP 200, received {status}")
+            )
             return None
         if not isinstance(payload, Mapping):
-            checks.append(ProbeCheck(name, False, "response body must be a JSON object"))
+            checks.append(
+                ProbeCheck(name, False, "response body must be a JSON object")
+            )
             return None
         checks.append(ProbeCheck(name, True, "HTTP 200 JSON object"))
         return payload
 
     @staticmethod
-    def _check_contract(contract: Mapping[str, JsonValue], checks: list[ProbeCheck]) -> None:
+    def _check_contract(
+        contract: Mapping[str, JsonValue], checks: MutableSequence[ProbeCheck]
+    ) -> None:
         version = contract.get("contract_version")
         checks.append(
             ProbeCheck(
@@ -166,27 +187,55 @@ class ObserverContractProbe:
         )
 
     @staticmethod
-    def _check_version(name: str, payload: Mapping[str, JsonValue], expected: JsonValue, checks: list[ProbeCheck]) -> None:
+    def _check_version(
+        name: str,
+        payload: Mapping[str, JsonValue],
+        expected: JsonValue,
+        checks: MutableSequence[ProbeCheck],
+    ) -> None:
         if expected is None:
             return
         actual = payload.get("contract_version")
-        checks.append(ProbeCheck(f"{name}_version", actual == expected, f"advertised {actual!r}"))
+        checks.append(
+            ProbeCheck(f"{name}_version", actual == expected, f"advertised {actual!r}")
+        )
 
     @staticmethod
-    def _check_fields(name: str, payload: Mapping[str, JsonValue], fields: tuple[str, ...], checks: list[ProbeCheck]) -> None:
+    def _check_fields(
+        name: str,
+        payload: Mapping[str, JsonValue],
+        fields: Sequence[str],
+        checks: MutableSequence[ProbeCheck],
+    ) -> None:
         missing = [field for field in fields if field not in payload]
-        checks.append(ProbeCheck(f"{name}_fields", not missing, "missing: " + ", ".join(missing) if missing else "all required fields present"))
+        checks.append(
+            ProbeCheck(
+                f"{name}_fields",
+                not missing,
+                "missing: " + ", ".join(missing)
+                if missing
+                else "all required fields present",
+            )
+        )
 
     @staticmethod
-    def _check_capabilities(name: str, capabilities: JsonValue, checks: list[ProbeCheck]) -> None:
+    def _check_capabilities(
+        name: str, capabilities: JsonValue, checks: MutableSequence[ProbeCheck]
+    ) -> None:
         valid = isinstance(capabilities, Mapping) and all(
             isinstance(value, Mapping) and value.get("state") in CAPABILITY_STATES
             for value in capabilities.values()
         )
-        checks.append(ProbeCheck(f"{name}_capabilities", valid, "capability entries use declared states"))
+        checks.append(
+            ProbeCheck(
+                f"{name}_capabilities", valid, "capability entries use declared states"
+            )
+        )
 
     @staticmethod
-    def _check_event_page(payload: Mapping[str, JsonValue], checks: list[ProbeCheck]) -> None:
+    def _check_event_page(
+        payload: Mapping[str, JsonValue], checks: MutableSequence[ProbeCheck]
+    ) -> None:
         fields = (
             "contract_version",
             "events",
@@ -199,7 +248,15 @@ class ObserverContractProbe:
             "dropped_events",
         )
         missing = [field for field in fields if field not in payload]
-        checks.append(ProbeCheck("events_fields", not missing, "missing: " + ", ".join(missing) if missing else "all required fields present"))
+        checks.append(
+            ProbeCheck(
+                "events_fields",
+                not missing,
+                "missing: " + ", ".join(missing)
+                if missing
+                else "all required fields present",
+            )
+        )
         events = payload.get("events")
         envelope_fields = ("sequence", "event_type", "family", "source", "observed_at")
         valid_envelopes = isinstance(events, list) and all(
@@ -208,20 +265,43 @@ class ObserverContractProbe:
             and isinstance(event.get("sequence"), int)
             for event in events
         )
-        event_rows = [event for event in events if isinstance(event, Mapping)] if isinstance(events, list) else []
-        sequences = cast(list[int], [event["sequence"] for event in event_rows]) if valid_envelopes else []
+        event_rows = (
+            [event for event in events if isinstance(event, Mapping)]
+            if isinstance(events, list)
+            else []
+        )
+        sequences = (
+            cast(list[int], [event["sequence"] for event in event_rows])
+            if valid_envelopes
+            else []
+        )
         ordered = valid_envelopes and sequences == sorted(sequences)
-        checks.append(ProbeCheck("event_envelopes", ordered, f"{len(sequences)} ordered event envelope(s)"))
+        checks.append(
+            ProbeCheck(
+                "event_envelopes",
+                ordered,
+                f"{len(sequences)} ordered event envelope(s)",
+            )
+        )
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Check an observer backend against the language-neutral HTTP contract.")
-    parser.add_argument("base_url", help="observer backend URL, for example http://127.0.0.1:8765")
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Check an observer backend against the language-neutral HTTP contract."
+    )
+    parser.add_argument(
+        "base_url", help="observer backend URL, for example http://127.0.0.1:8765"
+    )
     parser.add_argument("--timeout", type=float, default=5.0)
-    parser.add_argument("--strict", action="store_true", help="run model-validated HTTP conformance (requires the conformance extra)")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="run model-validated HTTP conformance (requires the conformance extra)",
+    )
     args = parser.parse_args(argv)
     if args.strict:
         try:
+            # Keep the optional conformance dependency out of base installations.
             from .conformance import main as strict_main
         except ImportError:
             parser.error("Strict checks require umbra-rti-observer[conformance].")

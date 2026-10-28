@@ -13,27 +13,27 @@ allowing provider-specific advisory callbacks around it.
 
 `iter_callback_provenance_matrix()` supplies the shared five-case callback
 payload vector: discovery, untimed reflection/interaction, timestamped
-regional reflection, and timestamped no-region interaction.  The fake Java
+regional reflection, and timestamped no-region interaction. The fake Java
 2010 and 2025 callback-proxy tests consume the same vector and normalize their
 edition-specific carrier layouts to producer, tag, region, time, order, and
-retraction assertions.  The 2010 and 2025 JNI lanes also consume the vector
+retraction assertions. The 2010 and 2025 JNI lanes also consume the vector
 with C++-backed Java carrier factories. It proves transport parity only;
 callback scheduling and federation policy remain provider-owned.
 
 `CallbackDeliveryObservation` and `normalize_callback_delivery()` provide the
-next comparison layer for multi-federate tests.  Each adapter records a
+next comparison layer for multi-federate tests. Each adapter records a
 per-recipient sequence plus normalized semantic handles, payload, producer,
-region, time, order, and retraction values.  Normalization ignores only
+region, time, order, and retraction values. Normalization ignores only
 cross-recipient interleaving (which is provider-defined); it rejects duplicate
 or missing sequence numbers and `assert_callback_delivery_parity()` reports
-the first semantic mismatch.  The 2010 and 2025 Java-shaped fixtures consume
+the first semantic mismatch. The 2010 and 2025 Java-shaped fixtures consume
 the same two-recipient stream, so a transplanted provider can reuse the
 ordering check without depending on its private handle bytes.
 
-The callback-overload carrier gate complements those semantic vectors.  The
+The callback-overload carrier gate complements those semantic vectors. The
 2010 JNI route invokes all 60 reflected ``FederateAmbassador`` overloads for
 both integer and floating logical-time carriers; the 2025 JNI route invokes
-all 62 overloads the same way.  Each invocation starts with standard Java
+all 62 overloads the same way. Each invocation starts with standard Java
 handles, typed sets/maps, enums, status arrays, information sets, byte arrays,
 or logical times and verifies the corresponding Python value type and payload.
 This is a carrier/dispatch check only: callback scheduling, federation policy,

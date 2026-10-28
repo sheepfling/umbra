@@ -47,6 +47,7 @@ API_PATHS = {
 }
 
 
+# opaque-boundary: Accept cross-language capability records before JSON normalization.
 def build_contract_document(
     event_types: Iterable[str],
     *,
@@ -92,98 +93,106 @@ def build_contract_document(
     if commands is None or commands.state not in {"available", "partial"}:
         paths.pop("commands", None)
         paths.pop("command_catalog", None)
-    return to_json_object({
-        "contract_version": OBSERVER_CONTRACT_VERSION,
-        "media_type": OBSERVER_JSON_MEDIA_TYPE,
-        "event_schema_version": event_schema_version,
-        "api_paths": paths,
-        "capability_schema": {
-            "states": list(CAPABILITY_STATES),
-            "fields": [
-                "state",
-                "label",
-                "description",
-                "owner",
-                "source",
-                "owners",
-                "sources",
-                "observations",
-                "reason",
-                "reasons",
-                "event_types",
-            ],
-            "known": sorted(CAPABILITY_DEFINITIONS),
-            "state_meanings": {
-                "available": "The feature is supported and enabled for observation.",
-                "partial": "Only some of the feature surface is available.",
-                "disabled": "The feature is supported or configured but turned off.",
-                "unsupported": "The connected provider or backend cannot provide it.",
-                "unknown": "The provider or backend did not advertise its support.",
+    return to_json_object(
+        {
+            "contract_version": OBSERVER_CONTRACT_VERSION,
+            "media_type": OBSERVER_JSON_MEDIA_TYPE,
+            "event_schema_version": event_schema_version,
+            "api_paths": paths,
+            "capability_schema": {
+                "states": list(CAPABILITY_STATES),
+                "fields": [
+                    "state",
+                    "label",
+                    "description",
+                    "owner",
+                    "source",
+                    "owners",
+                    "sources",
+                    "observations",
+                    "reason",
+                    "reasons",
+                    "event_types",
+                ],
+                "known": sorted(CAPABILITY_DEFINITIONS),
+                "state_meanings": {
+                    "available": "The feature is supported and enabled for observation.",
+                    "partial": "Only some of the feature surface is available.",
+                    "disabled": "The feature is supported or configured but turned off.",
+                    "unsupported": "The connected provider or backend cannot provide it.",
+                    "unknown": "The provider or backend did not advertise its support.",
+                },
             },
-        },
-        "capabilities": {
-            name: capability.to_json()
-            for name, capability in normalized_capabilities.items()
-        },
-        "snapshot": {
-            "method": "GET",
-            "path": API_PATHS["state"],
-            "query": {"include_events": "boolean; optional; default true"},
-            "required_fields": [
-                "contract_version",
-                "schema_version",
-                "status",
-                "context",
-                "live_metrics",
-                "retention",
-                "adapters",
-                "capabilities",
-                "federate_roster",
-                "inspectors",
-            ],
-        },
-        "events": {
-            "method": "GET",
-            "path": API_PATHS["events"],
-            "query": {
-                "after": "non-negative sequence cursor",
-                "instance_id": "optional observer lifetime; foreign/future cursors reset with explicit reset=true",
-                "limit": "1..2000",
-                "event_type": "optional comma-separated filter",
-                "family": "optional comma-separated filter",
-                "source": "optional comma-separated filter",
+            "capabilities": {
+                name: capability.to_json()
+                for name, capability in normalized_capabilities.items()
             },
-            "required_fields": [
-                "contract_version",
-                "events",
-                "next_after",
-                "has_more",
-                "gap",
-                "first_retained_sequence",
-                "last_sequence",
-                "retained_events",
-                "dropped_events",
-            ],
-        },
-        "event_envelope": {
-            "required_fields": ["sequence", "event_type", "family", "source", "observed_at"],
-            "extension_rule": "Unknown fields are retained and must remain JSON-compatible.",
-        },
-        "stream": {
-            "websocket_path": API_PATHS["websocket"],
-            "sse_path": API_PATHS["event_stream"],
-            "message_types": list(STREAM_MESSAGE_TYPES),
-            "messages": {
-                "snapshot": "{type, state, cursor?, resume?}",
-                "events": "{type, events, state, cursor?}",
-                "heartbeat": "{type, cursor?}",
-                "gap": "{type, retention, observer_lifetime?}",
-                "error": "{type, message}",
+            "snapshot": {
+                "method": "GET",
+                "path": API_PATHS["state"],
+                "query": {"include_events": "boolean; optional; default true"},
+                "required_fields": [
+                    "contract_version",
+                    "schema_version",
+                    "status",
+                    "context",
+                    "live_metrics",
+                    "retention",
+                    "adapters",
+                    "capabilities",
+                    "federate_roster",
+                    "inspectors",
+                ],
             },
-        },
-        "event_types": list(event_types),
-        "backend_rule": "Provider and language-specific code ends at normalized events; the frontend consumes only this contract.",
-    })
+            "events": {
+                "method": "GET",
+                "path": API_PATHS["events"],
+                "query": {
+                    "after": "non-negative sequence cursor",
+                    "instance_id": "optional observer lifetime; foreign/future cursors reset with explicit reset=true",
+                    "limit": "1..2000",
+                    "event_type": "optional comma-separated filter",
+                    "family": "optional comma-separated filter",
+                    "source": "optional comma-separated filter",
+                },
+                "required_fields": [
+                    "contract_version",
+                    "events",
+                    "next_after",
+                    "has_more",
+                    "gap",
+                    "first_retained_sequence",
+                    "last_sequence",
+                    "retained_events",
+                    "dropped_events",
+                ],
+            },
+            "event_envelope": {
+                "required_fields": [
+                    "sequence",
+                    "event_type",
+                    "family",
+                    "source",
+                    "observed_at",
+                ],
+                "extension_rule": "Unknown fields are retained and must remain JSON-compatible.",
+            },
+            "stream": {
+                "websocket_path": API_PATHS["websocket"],
+                "sse_path": API_PATHS["event_stream"],
+                "message_types": list(STREAM_MESSAGE_TYPES),
+                "messages": {
+                    "snapshot": "{type, state, cursor?, resume?}",
+                    "events": "{type, events, state, cursor?}",
+                    "heartbeat": "{type, cursor?}",
+                    "gap": "{type, retention, observer_lifetime?}",
+                    "error": "{type, message}",
+                },
+            },
+            "event_types": list(event_types),
+            "backend_rule": "Provider and language-specific code ends at normalized events; the frontend consumes only this contract.",
+        }
+    )
 
 
 __all__ = [

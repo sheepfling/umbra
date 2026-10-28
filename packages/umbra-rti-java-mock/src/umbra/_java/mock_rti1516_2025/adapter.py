@@ -30,7 +30,11 @@ class MockJavaRtiFactory(JavaRtiFactory):
         jvm_options: tuple[str, ...] = (),
         runtime: JavaRuntime | None = None,
     ) -> None:
-        selected_jar = str(jar_path) if jar_path is not None else os.getenv(self.JAR_ENVIRONMENT_VARIABLE)
+        selected_jar = (
+            str(jar_path)
+            if jar_path is not None
+            else os.getenv(self.JAR_ENVIRONMENT_VARIABLE)
+        )
         self._jar_path = selected_jar
         super().__init__(
             JavaProviderConfiguration(

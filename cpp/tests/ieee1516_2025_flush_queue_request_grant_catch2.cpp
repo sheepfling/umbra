@@ -11,15 +11,16 @@ TEST_CASE(
   ReportingFederateAmbassador reports;
   auto rti = makeRti();
   auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto const fomModule = nrgEnabledRestaurantModule();
   rti1516_2025::HLAinteger64Time logicalTime;
 
   REQUIRE_NOTHROW(rti->connect(reports, rti1516_2025::HLA_IMMEDIATE));
   REQUIRE_NOTHROW(rti->createFederationExecution(
       federationName,
-      fomModule,
+      fomModule.path().wstring(),
       standard_hla::mom::integer64_time));
   REQUIRE_NOTHROW(rti->joinFederationExecution(L"immediate-flush-queue-client", federationName));
+  REQUIRE(rti->getNonRegulatedGrantSwitch());
   REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
   REQUIRE(logicalTime.isInitial());
 
@@ -50,15 +51,16 @@ TEST_CASE(
   ReportingFederateAmbassador reports;
   auto rti = makeRti();
   auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto const fomModule = nrgEnabledRestaurantModule();
   rti1516_2025::HLAinteger64Time logicalTime;
 
   REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
   REQUIRE_NOTHROW(rti->createFederationExecution(
       federationName,
-      fomModule,
+      fomModule.path().wstring(),
       standard_hla::mom::integer64_time));
   REQUIRE_NOTHROW(rti->joinFederationExecution(L"flush-queue-time-client", federationName));
+  REQUIRE(rti->getNonRegulatedGrantSwitch());
   REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
   REQUIRE(logicalTime.isInitial());
 

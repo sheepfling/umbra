@@ -10,6 +10,7 @@ import struct
 import unittest
 from importlib.metadata import EntryPoint
 from pathlib import Path
+from typing import TypeAlias, cast
 from unittest.mock import patch
 
 from hla.rti1516e import (
@@ -74,6 +75,17 @@ except ImportError as error:  # pragma: no cover - exercised only in source chec
     _IMPORT_ERROR = error
 else:
     _IMPORT_ERROR = None
+
+_DecodedHandle: TypeAlias = (
+    AttributeHandle
+    | DimensionHandle
+    | FederateHandle
+    | InteractionClassHandle
+    | ObjectClassHandle
+    | ObjectInstanceHandle
+    | ParameterHandle
+    | TransportationTypeHandle
+)
 
 
 @unittest.skipIf(
@@ -243,10 +255,13 @@ class Native2010ProviderTest(unittest.TestCase):
                 b"transport",
             ),
         )
-        decoded: dict[type[object], object] = {}
+        decoded: dict[type[_DecodedHandle], _DecodedHandle] = {}
         for method_name, handle_type, encoded in handle_specs:
             with self.subTest(factory=method_name):
-                value = getattr(ambassador, method_name)().decode(b"\x55" + encoded, 1)
+                value = cast(
+                    _DecodedHandle,
+                    getattr(ambassador, method_name)().decode(b"\x55" + encoded, 1),
+                )
                 self.assertIsInstance(value, handle_type)
                 self.assertEqual(value.encodedValue, encoded)
                 decoded[handle_type] = value
@@ -261,9 +276,9 @@ class Native2010ProviderTest(unittest.TestCase):
             TransportationTypeHandle(b"transport:HLAdefaultBestEffort"),
         )
 
-        attribute = decoded[AttributeHandle]
-        dimension = decoded[DimensionHandle]
-        federate = decoded[FederateHandle]
+        attribute = cast(AttributeHandle, decoded[AttributeHandle])
+        dimension = cast(DimensionHandle, decoded[DimensionHandle])
+        federate = cast(FederateHandle, decoded[FederateHandle])
         attribute_set = ambassador.getAttributeHandleSetFactory().create()
         attribute_set.add(attribute)
         dimension_set = ambassador.getDimensionHandleSetFactory().create()
@@ -280,7 +295,7 @@ class Native2010ProviderTest(unittest.TestCase):
 
         attribute_map = ambassador.getAttributeHandleValueMapFactory().create(1)
         attribute_map[attribute] = b"attribute-value"
-        parameter = decoded[ParameterHandle]
+        parameter = cast(ParameterHandle, decoded[ParameterHandle])
         parameter_map = ambassador.getParameterHandleValueMapFactory().create(1)
         parameter_map[parameter] = b"parameter-value"
         self.assertEqual(attribute_map[attribute], b"attribute-value")

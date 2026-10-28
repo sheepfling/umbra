@@ -77,7 +77,8 @@ TEST_CASE(
     REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
     if (!immediate) {
       static_cast<void>(publisher->evokeCallback(0.0));
-      static_cast<void>(receiver->evokeCallback(0.0));
+      while (receiver->evokeCallback(0.0)) {
+      }
     }
     REQUIRE(receiverReports.timestampedInteractionReports.size() ==
             (delaySubscriptionEvaluationEnabled ? 1U : 0U));
@@ -104,7 +105,8 @@ TEST_CASE(
     REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
     if (!immediate) {
       static_cast<void>(publisher->evokeCallback(0.0));
-      static_cast<void>(receiver->evokeCallback(0.0));
+      while (receiver->evokeCallback(0.0)) {
+      }
     }
     REQUIRE(receiverReports.timestampedInteractionReports.size() ==
             (delaySubscriptionEvaluationEnabled ? 1U : 0U));

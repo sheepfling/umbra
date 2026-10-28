@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records deliberately bounded native C++ stress slices harvested from the adjacent Python/JPype scenarios. It uses only official IEEE 1516.1-2025 timestamped Update Attribute Values and ownership services: an accepted TSO passel remains in the federation-owned recipient ledger while the producing federate unconditionally divests the source attribute, a new federate completes Attribute Ownership Acquisition If Available, and the constrained recipient later receives the original producer, payload, timestamp/order, tag, and retraction designator. A companion case performs that ownership disposition through voluntary Resign Federation Execution with Unconditionally Divest Attributes, retains an independent surviving time regulator, and proves the queued passel still reflects after the source owner has left. A two-recipient companion drains separate TAR/NMR recipient-local ledgers after the same source departure and proves the first reflection does not consume the second copy. These are not timestamped ownership-transition services and do not claim complete ownership arbitration, other divestiture or resignation actions, save/restore, DDM, remote transport, package support, protected review, validation, or conformance.",
+  "notes": "This contract records deliberately bounded native C++ stress slices harvested from the adjacent Python/JPype scenarios. It uses only official IEEE 1516.1-2025 timestamped Update Attribute Values and ownership services: an accepted TSO passel remains in the federation-owned recipient ledger while the producing federate unconditionally divests the source attribute, a new federate completes Attribute Ownership Acquisition If Available, and the constrained recipient later receives the original producer, payload, timestamp/order, tag, and retraction designator. A companion case performs that ownership disposition through voluntary Resign Federation Execution with Unconditionally Divest Attributes, retains an independent surviving time regulator, and proves the queued passel still reflects after the source owner has left. A two-recipient companion drains separate TAR/NMR recipient-local ledgers after the same source departure and proves the first reflection does not consume the second copy. These are not timestamped ownership-transition services and do not claim complete ownership arbitration, other divestiture or resignation actions, save/restore, DDM, remote transport, package support, protected review, validation, or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-tso-ownership-transfer-update-invocation",
@@ -28,7 +28,7 @@
     {
       "id": "umbra-tso-ownership-transfer-reflection-values",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
@@ -88,7 +88,7 @@
     {
       "id": "umbra-tso-ownership-transfer-grant-order",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
-      "clause_id": "clause-8.1.4",
+      "clause_id": "clause-8.1.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -122,7 +122,7 @@
     {
       "id": "umbra-tso-resignation-reflects-original-producer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
@@ -134,7 +134,7 @@
     {
       "id": "umbra-tso-resignation-reflection-precedes-survivor-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
-      "clause_id": "clause-8.1.4",
+      "clause_id": "clause-8.1.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -142,5 +142,39 @@
         "cpp/tests/timestamped_attribute_source_resignation_fanout_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "timestamped-attribute-ownership-transfer-requirements-contract.json",
+        "owned_id": "umbra-tso-ownership-transfer-reflection-values",
+        "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "previous_clause_id": "clause-6.11.1",
+        "reviewed_clause_id": "clause-6.11"
+      },
+      {
+        "contract": "timestamped-attribute-ownership-transfer-requirements-contract.json",
+        "owned_id": "umbra-tso-ownership-transfer-grant-order",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+        "previous_clause_id": "clause-8.1.4",
+        "reviewed_clause_id": "clause-8.1.3"
+      },
+      {
+        "contract": "timestamped-attribute-ownership-transfer-requirements-contract.json",
+        "owned_id": "umbra-tso-resignation-reflects-original-producer",
+        "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "previous_clause_id": "clause-6.11.1",
+        "reviewed_clause_id": "clause-6.11"
+      },
+      {
+        "contract": "timestamped-attribute-ownership-transfer-requirements-contract.json",
+        "owned_id": "umbra-tso-resignation-reflection-precedes-survivor-grant",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+        "previous_clause_id": "clause-8.1.4",
+        "reviewed_clause_id": "clause-8.1.3"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

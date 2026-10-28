@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_translate_exception.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -32,6 +33,18 @@
 #include <RTI/encoding/BasicDataElements.h>
 
 #include <umbra/embedded_profile_configuration.hpp>
+
+CATCH_TRANSLATE_EXCEPTION(rti1516_2025::Exception const& error) {
+  auto narrow = [](std::wstring const& value) {
+    std::string result;
+    result.reserve(value.size());
+    for (auto const character : value) {
+      result.push_back(character < 128 ? static_cast<char>(character) : '?');
+    }
+    return result;
+  };
+  return narrow(error.name()) + ": " + narrow(error.what());
+}
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "ieee1516_2025_connection_process_test_support.hpp"

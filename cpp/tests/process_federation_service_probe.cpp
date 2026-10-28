@@ -478,6 +478,7 @@ class AuthoritativeTsoAttributeArrivalAmbassador final
       rti1516_2025::FederateHandle const&) override {
     ++discoveries;
     discoveredInstance = instance;
+    discoveredInstances.push_back(instance);
     discoveredClass = objectClass;
     callbackOrder.push_back('D');
   }
@@ -535,6 +536,7 @@ class AuthoritativeTsoAttributeArrivalAmbassador final
   std::size_t reflections = 0U;
   std::size_t grants = 0U;
   rti1516_2025::ObjectInstanceHandle discoveredInstance;
+  std::vector<rti1516_2025::ObjectInstanceHandle> discoveredInstances;
   rti1516_2025::ObjectClassHandle discoveredClass;
   rti1516_2025::ObjectInstanceHandle reflectedInstance;
   rti1516_2025::AttributeHandle reflectedAttribute;
@@ -547,6 +549,45 @@ class AuthoritativeTsoAttributeArrivalAmbassador final
   std::int64_t reflectedTime = -1;
   std::int64_t grantTime = -1;
   std::vector<char> callbackOrder;
+};
+
+class ClassAttributeResponseProviderAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  void timeRegulationEnabled(rti1516_2025::LogicalTime const&) override {
+    regulationEnabled = true;
+  }
+
+  void provideAttributeValueUpdate(
+      rti1516_2025::ObjectInstanceHandle const& instance,
+      rti1516_2025::AttributeHandleSet const& attributes,
+      rti1516_2025::VariableLengthData const& userSuppliedTag) override {
+    providedInstances.push_back(instance);
+    providedAttributeCounts.push_back(attributes.size());
+    providedAttributes.push_back(
+        attributes.empty() ? rti1516_2025::AttributeHandle{} : *attributes.begin());
+    providedTags.emplace_back();
+    auto const* tag = static_cast<std::uint8_t const*>(userSuppliedTag.data());
+    if (tag != nullptr) {
+      providedTags.back().assign(tag, tag + userSuppliedTag.size());
+    }
+  }
+
+  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+    ++grants;
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      grantTime = integerTime->getTime();
+    }
+  }
+
+  bool regulationEnabled = false;
+  std::size_t grants = 0U;
+  std::int64_t grantTime = -1;
+  std::vector<rti1516_2025::ObjectInstanceHandle> providedInstances;
+  std::vector<std::size_t> providedAttributeCounts;
+  std::vector<rti1516_2025::AttributeHandle> providedAttributes;
+  std::vector<std::vector<std::uint8_t>> providedTags;
 };
 
 template <typename Ready>
@@ -1551,6 +1592,233 @@ int runAuthoritativeAttributeTsoReceiver(
       useTara ? "attribute-before-tara-grant-at-6"
               : useNmr ? "attribute-before-nmr-grant-at-5"
                        : "attribute-before-grant-at-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runClassAttributeResponseProvider(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  constexpr std::string_view processPrefix = "class-attribute-response";
+  constexpr wchar_t const* federationName =
+      L"process-class-attribute-response-authoritative-coordinator";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Food.Drink.Soda";
+  constexpr wchar_t const* attributeName = L"NumberCups";
+  auto const port = readPort(directory / (std::string(processPrefix) + "-authority.port"));
+
+  ClassAttributeResponseProviderAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"class-attribute-response-provider"))
+           .addressUsed) {
+    throw std::runtime_error("The class-response provider did not select the coordinator endpoint.");
+  }
+  rti->createFederationExecution(
+      federationName, L"server-owned-process-class-attribute-response-fom.xml");
+  auto const providerHandle = rti->joinFederationExecution(
+      L"process-class-attribute-response-provider",
+      L"process-class-attribute-response-type",
+      federationName);
+  if (!providerHandle.isValid()) {
+    throw std::runtime_error("The class-response provider Join returned an invalid handle.");
+  }
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const attribute = rti->getAttributeHandle(objectClass, attributeName);
+  rti1516_2025::AttributeHandleSet attributes;
+  attributes.insert(attribute);
+  rti->publishObjectClassAttributes(objectClass, attributes);
+  rti->changeDefaultAttributeOrderType(
+      objectClass, attributes, rti1516_2025::TIMESTAMP);
+  rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.regulationEnabled; },
+      "The class-response provider did not receive Time Regulation Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  writeText(directory / (role + ".ready"), "time-regulation-enabled");
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      std::string(processPrefix) + "-requester.joined",
+      std::string(processPrefix) + "-requester"));
+
+  std::vector<rti1516_2025::ObjectInstanceHandle> instances;
+  for (std::size_t index = 0U; index < 2U; ++index) {
+    auto const instance = rti->registerObjectInstance(objectClass);
+    if (!instance.isValid()) {
+      throw std::runtime_error("The class-response provider registered an invalid object instance.");
+    }
+    instances.push_back(instance);
+  }
+  writeText(directory / (role + ".registered"), "two-instances");
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      std::string(processPrefix) + "-requester.requested",
+      std::string(processPrefix) + "-requester"));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.providedInstances.size() == instances.size(); },
+      "The object-class Request Attribute Value Update did not reach both instances.");
+  std::vector<std::uint8_t> const expectedRequestTag{0x43U, 0x4CU, 0x53U};
+  if (ambassador.providedInstances != instances ||
+      ambassador.providedAttributeCounts != std::vector<std::size_t>{1U, 1U} ||
+      ambassador.providedAttributes != std::vector<rti1516_2025::AttributeHandle>{attribute, attribute} ||
+      ambassador.providedTags !=
+          std::vector<std::vector<std::uint8_t>>{expectedRequestTag, expectedRequestTag}) {
+    throw std::runtime_error(
+        "The class-response provider callbacks did not preserve both instances, requested attributes, and tags.");
+  }
+
+  std::array<std::uint8_t, 3U> valueBytes{0x6AU, 0x25U, 0x02U};
+  std::array<std::uint8_t, 5U> responseTagBytes{
+      0x43U, 0x4CU, 0x53U, 0x2DU, 0x52U};
+  rti1516_2025::AttributeHandleValueMap values;
+  values.emplace(
+      attribute,
+      rti1516_2025::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  auto const retraction = rti->updateAttributeValues(
+      instances.front(),
+      values,
+      rti1516_2025::VariableLengthData(
+          responseTagBytes.data(), responseTagBytes.size()),
+      rti1516_2025::HLAinteger64Time(2));
+  if (!retraction.isValid()) {
+    throw std::runtime_error("The timestamped class-provider response was rejected.");
+  }
+  rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2));
+  writeText(directory / (role + ".sent"), "sent-class-response-at-2");
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      "The class-response provider did not receive its TAR(2) grant.");
+  if (ambassador.grantTime != 2) {
+    throw std::runtime_error("The class-response provider did not advance to time 2.");
+  }
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      std::string(processPrefix) + "-requester.completed",
+      std::string(processPrefix) + "-requester"));
+  bool retractionRejected = false;
+  try {
+    rti->retract(retraction);
+  } catch (rti1516_2025::MessageCanNoLongerBeRetracted const&) {
+    retractionRejected = true;
+  }
+  if (!retractionRejected) {
+    throw std::runtime_error(
+        "Retract did not reject the class response after its reflected callback.");
+  }
+
+  writeText(directory / (role + ".completed"), "two-provider-callbacks-response-before-grant-retract-rejected");
+  rti->resignFederationExecution(rti1516_2025::DELETE_OBJECTS);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runClassAttributeResponseRequester(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  constexpr std::string_view processPrefix = "class-attribute-response";
+  constexpr wchar_t const* federationName =
+      L"process-class-attribute-response-authoritative-coordinator";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Food.Drink.Soda";
+  constexpr wchar_t const* attributeName = L"NumberCups";
+  auto const port = readPort(directory / (std::string(processPrefix) + "-authority.port"));
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      std::string(processPrefix) + "-provider.ready",
+      std::string(processPrefix) + "-provider"));
+  AuthoritativeTsoAttributeArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"class-attribute-response-requester"))
+           .addressUsed) {
+    throw std::runtime_error("The class-response requester did not select the coordinator endpoint.");
+  }
+  auto const requesterHandle = rti->joinFederationExecution(
+      L"process-class-attribute-response-requester",
+      L"process-class-attribute-response-type",
+      federationName);
+  if (!requesterHandle.isValid()) {
+    throw std::runtime_error("The class-response requester Join returned an invalid handle.");
+  }
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const attribute = rti->getAttributeHandle(objectClass, attributeName);
+  rti1516_2025::AttributeHandleSet attributes;
+  attributes.insert(attribute);
+  // NumberCups is declared by Drink and inherited by Soda. The requester is a
+  // separate OS process and sets a conflicting class default to prove that it
+  // cannot replace the provider's timestamp order through the coordinator.
+  rti->publishObjectClassAttributes(objectClass, attributes);
+  rti->changeDefaultAttributeOrderType(
+      objectClass, attributes, rti1516_2025::RECEIVE);
+  rti->subscribeObjectClassAttributes(objectClass, attributes, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The class-response requester did not receive Time Constrained Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  writeText(directory / (role + ".joined"), "time-constrained-enabled");
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.discoveries == 2U; },
+      "The class-response requester did not discover both registered instances.");
+
+  std::array<std::uint8_t, 3U> requestTagBytes{0x43U, 0x4CU, 0x53U};
+  rti->requestAttributeValueUpdate(
+      objectClass,
+      attributes,
+      rti1516_2025::VariableLengthData(
+          requestTagBytes.data(), requestTagBytes.size()));
+  rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2));
+  writeText(directory / (role + ".requested"), "class-request-and-tar-2-pending");
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.reflections == 1U && ambassador.grants == 1U; },
+      "The timestamped class-provider response did not arrive before TAR(2) grant.");
+
+  std::array<std::uint8_t, 3U> expectedValue{0x6AU, 0x25U, 0x02U};
+  std::array<std::uint8_t, 5U> expectedTag{0x43U, 0x4CU, 0x53U, 0x2DU, 0x52U};
+  bool reflectedInstanceWasDiscovered = false;
+  for (auto const& instance : ambassador.discoveredInstances) {
+    reflectedInstanceWasDiscovered =
+        reflectedInstanceWasDiscovered || instance == ambassador.reflectedInstance;
+  }
+  if (ambassador.discoveries != 2U ||
+      ambassador.callbackOrder != std::vector<char>{'D', 'D', 'R', 'G'} ||
+      ambassador.discoveredClass != objectClass ||
+      !reflectedInstanceWasDiscovered ||
+      ambassador.reflectedAttribute != attribute ||
+      !ambassador.reflectedProducer.isValid() ||
+      ambassador.reflectedValue !=
+          std::vector<std::uint8_t>{expectedValue.begin(), expectedValue.end()} ||
+      ambassador.reflectedTag !=
+          std::vector<std::uint8_t>{expectedTag.begin(), expectedTag.end()} ||
+      ambassador.reflectedSentOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.reflectedReceivedOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.reflectedTime != 2 || ambassador.grantTime != 2 ||
+      !ambassador.reflectedRetractionIsValid) {
+    throw std::runtime_error(
+        "The process class-provider response lost callback order or timestamped reflection metadata.");
+  }
+
+  writeText(directory / (role + ".completed"), "class-response-reflected-before-tar-grant-2");
   rti->resignFederationExecution(rti1516_2025::NO_ACTION);
   rti->disconnect();
   static_cast<void>(awaitProcessMarker(
@@ -2712,9 +2980,17 @@ int runPublicServer(
       return 0;
     }
     // The surviving public sender remains usable after the peer disappears:
-    // resolve the class, send a no-recipient interaction, then resign normally.
-    if (!serveExpectedSender(TransportServiceOperation::get_interaction_class_handle) ||
-        !serveExpectedSender(TransportServiceOperation::send_interaction) ||
+    // inspect the membership cleanup, resolve the class, send a no-recipient
+    // interaction, then resign normally.
+    if (!serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::list_federation_execution_members)) {
+      throw std::runtime_error(
+          "The installable process profile loss server lost the survivor membership query.");
+    }
+    if (!serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::get_interaction_class_handle) ||
+        !serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::send_interaction) ||
         !serveExpectedSenderServiceReport()) {
       throw std::runtime_error(
           "The installable process profile loss server lost lookup, Send Interaction, or its successful-service report.");
@@ -3232,6 +3508,15 @@ int main(int argc, char** argv) {
     if (std::string(argv[1]) == "attribute-tso-tara-receiver") {
       return runAuthoritativeAttributeTsoReceiver(
           directory, argv[1], false, true);
+    }
+    if (std::string(argv[1]) == "class-attribute-response-authority") {
+      return runAuthoritativeAttributeTsoAuthority(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "class-attribute-response-provider") {
+      return runClassAttributeResponseProvider(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "class-attribute-response-requester") {
+      return runClassAttributeResponseRequester(directory, argv[1]);
     }
   } catch (std::exception const& error) {
     try {

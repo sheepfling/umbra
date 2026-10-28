@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 alternate time-advance surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies Flush Queue Request, Time Advance Request Available, and Next Message Request Available delivery paths, backward-time rejection boundaries, timestamped reflection, and grant servicing without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 alternate time-advance surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies Flush Queue Request, Time Advance Request Available, and Next Message Request Available delivery paths, backward-time rejection boundaries, timestamped reflection, grant servicing, and the Time Regulation Enabled callback's current-logical-time value without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-alternate-time-advances",

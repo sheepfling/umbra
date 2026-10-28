@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from tools.inspect_cpp_tck_link import inspect_link_response
-from tools.run_cpp_tck import verify_configured_package
+from tools.run_cpp_tck import direct_run_environment, verify_configured_package
 
 
 class ConfiguredPackageTests(unittest.TestCase):
@@ -52,6 +54,31 @@ class ConfiguredPackageTests(unittest.TestCase):
     def test_missing_configuration_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "cache was not found"):
             verify_configured_package(self.inputs)
+
+
+class DirectRunEnvironmentTests(unittest.TestCase):
+    def test_selected_package_runtime_directory_precedes_existing_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            prefix = Path(temporary_directory)
+            inputs = {"package_prefix": prefix}
+            variable = (
+                "PATH"
+                if os.name == "nt"
+                else (
+                    "DYLD_LIBRARY_PATH"
+                    if sys.platform == "darwin"
+                    else "LD_LIBRARY_PATH"
+                )
+            )
+            environment = direct_run_environment(
+                inputs,
+                base_environment={variable: "existing-runtime"},
+            )
+            runtime_directory = prefix / ("bin" if os.name == "nt" else "lib")
+            self.assertEqual(
+                environment[variable],
+                os.pathsep.join((str(runtime_directory), "existing-runtime")),
+            )
 
 
 class IsolatedLinkProvenanceTests(unittest.TestCase):

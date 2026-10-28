@@ -126,7 +126,9 @@ TEST_CASE(
   REQUIRE(report.transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));
   REQUIRE_FALSE(report.producingFederate.isValid());
-  REQUIRE_FALSE(report.sentRegionsSupplied);
+  // The support-switch FOM enables ConveyRegionDesignatorSets, and the RTI
+  // routes this MOM report through its HLAfederate/HLAserviceGroup endpoint.
+  REQUIRE(report.sentRegionsSupplied);
 
   rti1516_2025::HLAunicodeString decodedService;
   REQUIRE_NOTHROW(decodedService.decode(report.parameterValues.at(reportParameters[0])));

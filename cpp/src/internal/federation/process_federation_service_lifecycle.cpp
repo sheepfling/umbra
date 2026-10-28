@@ -9,7 +9,7 @@
 #include "internal/time/federation_time_grant_policy.hpp"
 
 #include <RTI/Exception.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -204,7 +204,7 @@ std::wstring formatProcessServiceReportInitialRecord(
     throw ProcessFederationServiceProtocolError(
         "A process federation definition requires a logical-time implementation.");
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       definition.logicalTimeImplementationName);
   if (!factory ||
       factory->getName() != definition.logicalTimeImplementationName) {
@@ -437,7 +437,7 @@ TransportServiceMessage ProcessFederationService::handleJoin(
               "The process federation could not calculate the Flush Queue Grant times.");
         }
 
-        auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+        auto factory = umbra::detail::makeFederationLogicalTimeFactory(
             pendingSnapshot.implementationName);
         if (!factory || factory->getName() != pendingSnapshot.implementationName) {
           throw std::runtime_error(

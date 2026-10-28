@@ -15,8 +15,10 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Set as AbstractSet
+from os import PathLike
 from pathlib import Path
-
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MIM = (
@@ -27,10 +29,46 @@ DEFAULT_MIM = (
     / "mim"
     / "HLAstandardMIM-2025.xml"
 )
-DEFAULT_SOURCES = [
+DEFAULT_SOURCES = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "src" / "main.cpp",
     ROOT / "packages" / "hla-rti-cpp-tck" / "src" / "portable_tck.cpp",
-]
+)
+
+
+class PeriodicAttribute(TypedDict):
+    name: str
+    data_type: str
+    update_condition: str
+    semantics: str
+
+
+class SourceUse(TypedDict):
+    source: str
+    line: int
+
+
+class AttributeSourceReport(PeriodicAttribute):
+    source_use_count: int
+    source_uses: list[SourceUse]
+
+
+class LexicallyReferencedAttribute(TypedDict):
+    name: str
+    source_use_count: int
+
+
+class SurveyReport(TypedDict):
+    mim: str
+    sources: list[str]
+    periodic_hla_federate_attribute_count: int
+    lexically_referenced_count: int
+    unreferenced_attributes: list[str]
+    lexically_referenced_attributes: list[LexicallyReferencedAttribute]
+    interpretation: str
+
+
+class DetailedSurveyReport(SurveyReport):
+    attributes: list[AttributeSourceReport]
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,7 +99,7 @@ def direct_child_text(element: ET.Element, name: str) -> str:
     return ""
 
 
-def periodic_federate_attributes(mim_path: Path) -> list[dict[str, str]]:
+def periodic_federate_attributes(mim_path: Path) -> list[PeriodicAttribute]:
     root = ET.parse(mim_path).getroot()
     federate_classes = [
         element
@@ -75,7 +113,7 @@ def periodic_federate_attributes(mim_path: Path) -> list[dict[str, str]]:
             f"found {len(federate_classes)}"
         )
 
-    attributes = []
+    attributes: list[PeriodicAttribute] = []
     for element in federate_classes[0]:
         if local_name(element.tag) != "attribute":
             continue
@@ -88,23 +126,27 @@ def periodic_federate_attributes(mim_path: Path) -> list[dict[str, str]]:
                     "name": name,
                     "data_type": direct_child_text(element, "dataType"),
                     "update_condition": direct_child_text(element, "updateCondition"),
-                    "semantics": " ".join(direct_child_text(element, "semantics").split()),
+                    "semantics": " ".join(
+                        direct_child_text(element, "semantics").split()
+                    ),
                 }
             )
     return attributes
 
 
 def scan_source(
-    source_path: Path,
-    attributes: set[str],
-) -> dict[str, list[dict[str, object]]]:
-    uses: dict[str, list[dict[str, object]]] = {name: [] for name in attributes}
+    source_path: str | PathLike[str],
+    attributes: AbstractSet[str],
+) -> dict[str, list[SourceUse]]:
+    """Return every lexical hit grouped under each supplied MIM attribute name."""
+    path = Path(source_path)
+    uses: dict[str, list[SourceUse]] = {name: [] for name in attributes}
     try:
-        source_label = source_path.relative_to(ROOT).as_posix()
+        source_label = path.relative_to(ROOT).as_posix()
     except ValueError:
-        source_label = source_path.as_posix()
+        source_label = path.as_posix()
     for line_number, line in enumerate(
-        source_path.read_text(encoding="utf-8").splitlines(), 1
+        path.read_text(encoding="utf-8").splitlines(), 1
     ):
         for name in attributes:
             if re.search(rf"\b{re.escape(name)}\b", line):
@@ -122,7 +164,7 @@ def main() -> int:
     sources = args.source if args.source else DEFAULT_SOURCES
     attributes = periodic_federate_attributes(args.mim)
 
-    combined_uses: dict[str, list[dict[str, object]]] = {
+    combined_uses: dict[str, list[SourceUse]] = {
         attribute["name"]: [] for attribute in attributes
     }
     for source in sources:
@@ -131,7 +173,7 @@ def main() -> int:
         for name, uses in source_uses.items():
             combined_uses[name].extend(uses)
 
-    rows = []
+    rows: list[AttributeSourceReport] = []
     for attribute in attributes:
         name = attribute["name"]
         rows.append(
@@ -142,7 +184,7 @@ def main() -> int:
             }
         )
     unreferenced = [row["name"] for row in rows if not row["source_uses"]]
-    report = {
+    report: SurveyReport = {
         "mim": args.mim.as_posix(),
         "sources": [source.as_posix() for source in sources],
         "periodic_hla_federate_attribute_count": len(rows),
@@ -158,9 +200,10 @@ def main() -> int:
             "relevant scenario assertions before treating an attribute as covered."
         ),
     }
+    output: SurveyReport | DetailedSurveyReport = report
     if args.details:
-        report["attributes"] = rows
-    print(json.dumps(report, indent=2, sort_keys=True))
+        output = {**report, "attributes": rows}
+    print(json.dumps(output, indent=2, sort_keys=True))
     return 0
 
 

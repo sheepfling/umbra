@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 
 from .core import ObserverStore
 from .server import create_app
@@ -83,28 +84,74 @@ def _seed_demo(store: ObserverStore) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the Umbra provider-neutral runtime observer dashboard.")
+    parser = argparse.ArgumentParser(
+        description="Run the Umbra provider-neutral runtime observer dashboard."
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-events", type=int, default=2_000)
     parser.add_argument("--max-objects", type=int, default=5_000)
     parser.add_argument("--max-federates", type=int, default=2_000)
     parser.add_argument("--max-time-snapshots", type=int, default=2_000)
-    parser.add_argument("--max-evidence-bytes", type=int, default=6 * 1024 * 1024, help="shared encoded evidence budget, at most 6 MiB; not process RSS")
-    parser.add_argument("--max-evidence-record-bytes", type=int, help="whole-record bound within the shared budget (default: min(1 MiB, budget))")
-    parser.add_argument("--no-analytics", action="store_true", help="disable optional windowed analytics")
-    parser.add_argument("--no-alerts", action="store_true", help="disable optional alert configuration/evidence resources")
-    parser.add_argument("--no-workspace-validation", action="store_true", help="omit optional server normalization; browser workspaces remain usable")
-    parser.add_argument("--read-only-alerts", action="store_true", help="show alert evidence without editing/reset/acknowledgement endpoints")
-    parser.add_argument("--no-recording", action="store_true", help="disable optional capture/import/replay-analysis resources")
-    parser.add_argument("--enable-controls", action="store_true", help="enable synthetic session controls (requires --showcase)")
-    parser.add_argument("--showcase-control-fault-once", choices=("connect", "join"),
-                        help="synthetic recovery walkthrough: fail once after the chosen operation takes effect")
-    parser.add_argument("--showcase-control-inspection", choices=("complete", "partial", "disabled"), default="complete",
-                        help="synthetic control-inspection maturity; independent of the observation profile")
+    parser.add_argument(
+        "--max-evidence-bytes",
+        type=int,
+        default=6 * 1024 * 1024,
+        help="shared encoded evidence budget, at most 6 MiB; not process RSS",
+    )
+    parser.add_argument(
+        "--max-evidence-record-bytes",
+        type=int,
+        help="whole-record bound within the shared budget (default: min(1 MiB, budget))",
+    )
+    parser.add_argument(
+        "--no-analytics",
+        action="store_true",
+        help="disable optional windowed analytics",
+    )
+    parser.add_argument(
+        "--no-alerts",
+        action="store_true",
+        help="disable optional alert configuration/evidence resources",
+    )
+    parser.add_argument(
+        "--no-workspace-validation",
+        action="store_true",
+        help="omit optional server normalization; browser workspaces remain usable",
+    )
+    parser.add_argument(
+        "--read-only-alerts",
+        action="store_true",
+        help="show alert evidence without editing/reset/acknowledgement endpoints",
+    )
+    parser.add_argument(
+        "--no-recording",
+        action="store_true",
+        help="disable optional capture/import/replay-analysis resources",
+    )
+    parser.add_argument(
+        "--enable-controls",
+        action="store_true",
+        help="enable synthetic session controls (requires --showcase)",
+    )
+    parser.add_argument(
+        "--showcase-control-fault-once",
+        choices=("connect", "join"),
+        help="synthetic recovery walkthrough: fail once after the chosen operation takes effect",
+    )
+    parser.add_argument(
+        "--showcase-control-inspection",
+        choices=("complete", "partial", "disabled"),
+        default="complete",
+        help="synthetic control-inspection maturity; independent of the observation profile",
+    )
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--demo", action="store_true", help="seed generic events before serving")
-    mode.add_argument("--showcase", action="store_true", help="run the live observer showcase")
+    mode.add_argument(
+        "--demo", action="store_true", help="seed generic events before serving"
+    )
+    mode.add_argument(
+        "--showcase", action="store_true", help="run the live observer showcase"
+    )
     parser.add_argument(
         "--profile",
         choices=("umbra", "limited"),
@@ -120,24 +167,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.enable_controls and not args.showcase:
-        raise SystemExit("--enable-controls requires --showcase; real sessions must be explicitly registered by the application")
-    if args.showcase_control_fault_once and not (args.showcase and args.enable_controls):
-        raise SystemExit("--showcase-control-fault-once requires --showcase --enable-controls and never applies to a real RTI")
-    if args.showcase_control_inspection != "complete" and not (args.showcase and args.enable_controls):
-        raise SystemExit("--showcase-control-inspection requires --showcase --enable-controls")
+        raise SystemExit(
+            "--enable-controls requires --showcase; real sessions must be explicitly registered by the application"
+        )
+    if args.showcase_control_fault_once and not (
+        args.showcase and args.enable_controls
+    ):
+        raise SystemExit(
+            "--showcase-control-fault-once requires --showcase --enable-controls and never applies to a real RTI"
+        )
+    if args.showcase_control_inspection != "complete" and not (
+        args.showcase and args.enable_controls
+    ):
+        raise SystemExit(
+            "--showcase-control-inspection requires --showcase --enable-controls"
+        )
     try:
-        store = ObserverStore(max_events=args.max_events, max_objects=args.max_objects, max_federates=args.max_federates,
-                              max_time_snapshots=args.max_time_snapshots, max_evidence_bytes=args.max_evidence_bytes,
-                              max_evidence_record_bytes=args.max_evidence_record_bytes)
+        store = ObserverStore(
+            max_events=args.max_events,
+            max_objects=args.max_objects,
+            max_federates=args.max_federates,
+            max_time_snapshots=args.max_time_snapshots,
+            max_evidence_bytes=args.max_evidence_bytes,
+            max_evidence_record_bytes=args.max_evidence_record_bytes,
+        )
     except ValueError as error:
         raise SystemExit(str(error)) from error
     if args.demo:
         _seed_demo(store)
     if args.showcase:
-        store.attach_adapter(ShowcaseAdapter(profile=args.profile, interval=args.interval))
+        store.attach_adapter(
+            ShowcaseAdapter(profile=args.profile, interval=args.interval)
+        )
     commands = None
     try:
         if args.enable_controls:
@@ -147,17 +211,35 @@ def main(argv: list[str] | None = None) -> int:
             from .showcase_commands import ShowcaseSessionDriver
 
             commands = CommandDispatcher(sink=store.publish)
-            commands.register(SessionController(
-                target_id="showcase-session", label="Showcase control session", adapter="showcase",
-                driver_factory=lambda: ShowcaseSessionDriver(fault_once=args.showcase_control_fault_once,
-                    inspection_complete=args.showcase_control_inspection == "complete", sink=store.publish),
-                federations=("ShowcaseFederation",), sink=store.publish, synthetic=True,
-                inspection_supported=args.showcase_control_inspection != "disabled",
-                coordination_actions=COORDINATION_ACTIONS if args.profile == "umbra" else (),
-            ))
-        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands,
-                         enable_recording=not args.no_recording, enable_alerts=not args.no_alerts,
-                         enable_alert_controls=not args.read_only_alerts, enable_workspace_validation=not args.no_workspace_validation)
+            commands.register(
+                SessionController(
+                    target_id="showcase-session",
+                    label="Showcase control session",
+                    adapter="showcase",
+                    driver_factory=lambda: ShowcaseSessionDriver(
+                        fault_once=args.showcase_control_fault_once,
+                        inspection_complete=args.showcase_control_inspection
+                        == "complete",
+                        sink=store.publish,
+                    ),
+                    federations=("ShowcaseFederation",),
+                    sink=store.publish,
+                    synthetic=True,
+                    inspection_supported=args.showcase_control_inspection != "disabled",
+                    coordination_actions=COORDINATION_ACTIONS
+                    if args.profile == "umbra"
+                    else (),
+                )
+            )
+        app = create_app(
+            store,
+            enable_analytics=not args.no_analytics,
+            commands=commands,
+            enable_recording=not args.no_recording,
+            enable_alerts=not args.no_alerts,
+            enable_alert_controls=not args.read_only_alerts,
+            enable_workspace_validation=not args.no_workspace_validation,
+        )
         try:
             import uvicorn
         except ImportError as error:  # pragma: no cover - depends on optional extra

@@ -62,6 +62,9 @@ compile_commands.json
 *.bak
 *.swp
 
+# PDF documents and generated evidence are not tracked in this repository.
+*.pdf
+
 # vcpkg
 vcpkg_installed/
 
@@ -94,3 +97,19 @@ tmp/
 
 # Locally exported HLA Requirements Lab bundles and test evidence
 .compliance/
+
+# Generated Mermaid/Chromium preview state
+/docs/design/.tmp-mmdc-ownership-profile/
+
+# Root-level artifacts from interrupted test invocations and ad-hoc diffs
+/0'
+/1))
+/1U
+/HLAreportServiceInvocation
+/evokeMultipleCallbacks
+/joinFederationExecution
+/parameters
+/parameters.size
+/revert-aggregate-current.patch
+/revert-aggregate.patch
+/unsubscribeObjectClassAttributes

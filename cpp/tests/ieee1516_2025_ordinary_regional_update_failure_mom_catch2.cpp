@@ -40,6 +40,7 @@ TEST_CASE(
       L"regional-update-failure-mom-receiver", L"subscriber", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"regional-update-failure-mom-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   auto const reportClass = observer->getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");

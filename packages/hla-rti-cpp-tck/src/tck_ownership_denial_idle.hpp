@@ -9,5 +9,9 @@ void scenarioOwnershipDenialIdleContract(Options const&, rti::CallbackModel);
 void scenarioOwnershipAcquisitionCancellationDenialRace(Options const&, rti::CallbackModel);
 void scenarioOwnershipAcquisitionCancellationDenialRaceContract(
     Options const&, rti::CallbackModel);
+void scenarioOwnershipAcquisitionCancellationMixedReplies(
+    Options const&, rti::CallbackModel);
+void scenarioOwnershipAcquisitionCancellationMixedRepliesContract(
+    Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

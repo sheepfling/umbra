@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records one bounded native C++ development-profile slice: a default-source/default-region timestamped Update Attribute Values passel accepted while the producer regulates time, retained while that producer disables and callback-gated re-enables Time Regulation, and delivered to a time-constrained regional subscriber before its matching grant. The slice proves stable payload, tag, producer, time/order, supplied-empty region metadata, and terminal retraction classification. It does not claim general producer-role changes, changed lookahead, alternate advance modes, save/restore, remote transport, package/JUnit/protected-review evidence, or conformance. Requirements Lab numbering is synchronized to the locked 2025 export; no recurrence was observed, and any future reappearance of an RL-001..157 issue must be appended as a new post-RL-157 observation rather than changing the historical entry.",
+  "notes": "This contract records one bounded native C++ development-profile slice: a default-source/default-region timestamped Update Attribute Values passel accepted while the producer regulates time, retained while that producer disables and callback-gated re-enables Time Regulation, and delivered to a time-constrained regional subscriber before its matching grant. The slice proves stable payload, tag, producer, time/order, supplied-empty region metadata, and terminal retraction classification. It does not claim general producer-role changes, changed lookahead, alternate advance modes, save/restore, remote transport, package/JUnit/protected-review evidence, or conformance. Requirements Lab numbering is synchronized to the locked 2025 export; no recurrence was observed, and any future reappearance of an RL-001..157 issue must be appended as a new post-RL-157 observation rather than changing the historical entry. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-timestamped-attribute-update-regulation-disable-clears-role",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeRegulation",
       "tests": [
@@ -68,12 +68,32 @@
     {
       "id": "umbra-timestamped-attribute-update-grants-after-reflection",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "timestamped-attribute-update-regulation-reenable-requirements-contract.json",
+        "owned_id": "umbra-timestamped-attribute-update-regulation-disable-clears-role",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "timestamped-attribute-update-regulation-reenable-requirements-contract.json",
+        "owned_id": "umbra-timestamped-attribute-update-grants-after-reflection",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

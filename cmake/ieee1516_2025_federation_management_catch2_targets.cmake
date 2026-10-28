@@ -47,7 +47,8 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
       umbra::authorizer
       Catch2::Catch2WithMain
     )
-    umbra_guard_catch2_debug_image_size("${target_name}")
+    set_property(TARGET "${target_name}" PROPERTY EXCLUDE_FROM_ALL TRUE)
+    umbra_guard_test_executable("${target_name}")
   endfunction()
 
   umbra_add_embedded_2025_catch2_target(umbra_public_fresh_registry_transportation_restore_catch2
@@ -95,12 +96,37 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     SOURCES
     cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp
   )
+  # Keep the callback-model counterpart independently buildable as well.
+  umbra_add_embedded_2025_catch2_target(umbra_connection_lost_no_action_immediate_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_immediate_catch2.cpp
+  )
 
   umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_connection_catch2
     PROCESS_SERVICE_PROBE
     MSVC_BIGOBJ
     SOURCES
     ${UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES}
+  )
+  # Keep the process class-request/provider-response time slice independently
+  # buildable instead of recompiling the aggregate connection suite.
+  umbra_add_embedded_2025_catch2_target(umbra_process_class_request_tso_response_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp
+  )
+  # Keep the distinct-OS-process class-response companion independently
+  # buildable while reusing the process probe and ingress-proxy test helpers.
+  umbra_add_embedded_2025_catch2_target(umbra_process_class_request_tso_response_cross_process_catch2
+    PROCESS_SERVICE_PROBE
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp
+  )
+  target_compile_definitions(umbra_process_class_request_tso_response_cross_process_catch2 PRIVATE
+    UMBRA_PROCESS_TRANSPORT_PROXY_PROBE_PATH="$<TARGET_FILE:umbra_process_transport_proxy_probe>"
+  )
+  add_dependencies(umbra_process_class_request_tso_response_cross_process_catch2
+    umbra_process_federation_service_probe
+    umbra_process_transport_proxy_probe
   )
   # Build the delayed regional process-delivery boundary and its ordinary and
   # disjoint controls without recompiling the larger public-connection runner.
@@ -1448,11 +1474,13 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/resign_action_final_federate_catch2.cpp
   )
 
-  # Keep the 2025 final-federate lifetime cleanup sequence independently
-  # buildable: after resigning with no further join intent, disconnect.
+  # Keep the 2025 federate-lifetime disconnect cases independently
+  # buildable: cover ordinary, RTI-forced, and final resignation paths.
   umbra_add_embedded_2025_catch2_target(umbra_federate_lifetime_disconnect_catch2
     SOURCES
     cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp
+    cpp/tests/ieee1516_2025_embedded_ordinary_resign_disconnect_catch2.cpp
+    cpp/tests/ieee1516_2025_embedded_forced_resign_disconnect_catch2.cpp
   )
 
   # Keep the 2025 FDD update-rate metadata lookup independently

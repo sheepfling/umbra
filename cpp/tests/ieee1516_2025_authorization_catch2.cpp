@@ -512,7 +512,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Internal reference HLAauthorizer returns unauthorized for an unrecognized credential type",
-    "[baseline][authorization][authorizer][unit][internal][internal-only][no-normative-mapping][unknown-credential-type-unauthorized]") {
+    "[baseline][authorization][authorizer][unit][foundation][internal][internal-only][no-normative-mapping][unknown-credential-type-unauthorized]") {
   umbra::detail::ReferenceAuthorizerConfiguration configuration;
   configuration.globalPlainTextPassword = L"test-password";
   auto authorizer = umbra::detail::makeReferenceAuthorizer(std::move(configuration));

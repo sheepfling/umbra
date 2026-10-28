@@ -321,10 +321,12 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE(receiverReports.objectRemovalReports.empty());
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"remove", "grant"});
 

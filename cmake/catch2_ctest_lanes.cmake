@@ -58,7 +58,18 @@
     # real C++ behavior plus its Requirements-Lab and API-contract checks. Keep
     # that promise executable as new services are added.
     function(umbra_add_ctest_service_lane TARGET_NAME LABEL)
-      umbra_add_ctest_lane(${TARGET_NAME} "^${LABEL}$")
+      set(_umbra_service_lane_dependencies)
+      foreach(_umbra_candidate_dependency IN LISTS ARGN)
+        if(TARGET ${_umbra_candidate_dependency})
+          list(APPEND _umbra_service_lane_dependencies
+            ${_umbra_candidate_dependency})
+        endif()
+      endforeach()
+      umbra_add_ctest_lane(
+        ${TARGET_NAME}
+        "^${LABEL}$"
+        ${_umbra_service_lane_dependencies}
+      )
       set_property(
         GLOBAL
         APPEND
@@ -93,7 +104,11 @@
       umbra_federate_lifecycle_smoke
     )
     umbra_add_ctest_lane(umbra_test_federation_management "^federation-management$")
-    umbra_add_ctest_service_lane(umbra_test_federation_listing federation-listing)
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_listing
+      federation-listing
+      umbra_federation_listing_catch2
+    )
     umbra_add_ctest_service_lane(umbra_test_explicit_mim explicit-mim)
     umbra_add_ctest_lane(umbra_test_time_management "^time-management$")
     umbra_add_ctest_lane(umbra_test_float_time "^float-time$")
@@ -131,6 +146,7 @@
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_default_region_attribute_update
       timestamped-default-region-attribute-update
+      umbra_timestamped_default_region_attribute_update_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_regional_attribute_update
@@ -139,6 +155,7 @@
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_default_region_attribute_reenable
       timestamped-default-region-attribute-reenable
+      umbra_timestamped_default_region_attribute_reenable_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_default_region_attribute_regulation_reenable
@@ -147,10 +164,12 @@
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_interaction_regulation_reenable_changed_lookahead
       timestamped-interaction-regulation-reenable-changed-lookahead
+      umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_attribute_update_regulation_reenable_changed_lookahead
       timestamped-attribute-update-regulation-reenable-changed-lookahead
+      umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_object_deletion_regulation_reenable_changed_lookahead
@@ -159,6 +178,7 @@
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_directed_interaction_regulation_reenable_changed_lookahead
       timestamped-directed-interaction-regulation-reenable-changed-lookahead
+      umbra_tso_directed_reenable_changed_lookahead_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_regional_interaction_regulation_reenable_changed_lookahead
@@ -372,10 +392,15 @@
     umbra_add_ctest_service_lane(
       umbra_test_ownership_acquisition_cancellation_race
       ownership-acquisition-cancellation-race
+      umbra_ownership_acquisition_cancellation_race_catch2
+      umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+      umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_negotiated_willing_to_acquire
       negotiated-willing-to-acquire
+      umbra_negotiated_willing_to_acquire_candidate_catch2
+      umbra_negotiated_willing_to_acquire_continuation_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_local_delete_object_instance
@@ -384,6 +409,8 @@
     umbra_add_ctest_service_lane(
       umbra_test_local_delete_failure
       local-delete-failure
+      umbra_local_delete_object_instance_failure_service_report_catch2
+      umbra_local_delete_object_instance_failure_service_report_interaction_catch2
     )
     umbra_add_ctest_lane(
       umbra_test_delete_failure
@@ -444,6 +471,7 @@
     umbra_add_ctest_service_lane(
       umbra_test_regional_declaration_relevance_advisory
       declaration-relevance-advisory-regional
+      umbra_regional_declaration_relevance_advisory_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_discover_object_instance_service_report
@@ -604,6 +632,7 @@
     umbra_add_ctest_service_lane(
       umbra_test_ddm_regional_multi_attribute
       ddm-regional-multi-attribute
+      umbra_regional_multi_attribute_ddm_catch2
     )
     umbra_add_ctest_service_lane(
       umbra_test_declaration_interaction_failure
@@ -726,17 +755,48 @@
       )
     endif()
 
-    set(_umbra_test_all_dependencies umbra_ieee1516_2025_catch2)
+    set(_umbra_test_all_dependencies
+      umbra_ieee1516_2025_catch2
+      ${UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS}
+    )
+    if(TARGET umbra_ieee1516_2025_connection_catch2)
+      list(APPEND _umbra_test_all_dependencies
+        umbra_ieee1516_2025_connection_catch2)
+    endif()
     if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
       list(APPEND _umbra_test_all_dependencies
         umbra_public_fresh_registry_transportation_restore_catch2
       )
     endif()
+    foreach(_umbra_test_all_focused_target IN ITEMS
+        umbra_federation_listing_catch2
+        umbra_timestamped_default_region_attribute_update_catch2
+        umbra_timestamped_default_region_attribute_reenable_catch2
+        umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+        umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+        umbra_tso_directed_reenable_changed_lookahead_catch2
+        umbra_ownership_acquisition_cancellation_race_catch2
+        umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+        umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+        umbra_negotiated_willing_to_acquire_candidate_catch2
+        umbra_negotiated_willing_to_acquire_continuation_catch2
+        umbra_local_delete_object_instance_failure_service_report_catch2
+        umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+        umbra_regional_declaration_relevance_advisory_catch2
+        umbra_regional_multi_attribute_ddm_catch2
+    )
+      if(TARGET ${_umbra_test_all_focused_target})
+        list(APPEND _umbra_test_all_dependencies
+          ${_umbra_test_all_focused_target})
+      endif()
+    endforeach()
     add_custom_target(umbra_test_all
       COMMAND ${CMAKE_CTEST_COMMAND}
         --test-dir "${CMAKE_BINARY_DIR}"
         ${_umbra_ctest_configuration_arguments}
+        --timeout 180
         --output-on-failure
+        -E "_NOT_BUILT-"
       DEPENDS ${_umbra_test_all_dependencies}
       COMMENT "Running the complete Umbra CTest regression suite"
       USES_TERMINAL

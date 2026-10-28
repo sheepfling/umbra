@@ -47,6 +47,7 @@ TEST_CASE(
       L"timestamped-update-time-regulated-mom-receiver", L"receiver", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"timestamped-update-time-regulated-mom-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
@@ -219,7 +220,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(observerReports.interactionReports.size() == 1U);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);

@@ -9,8 +9,10 @@ returned elements.
 
 from __future__ import annotations
 
+import logging
 from abc import update_abstractmethods
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from hla.rti1516e.byte_types import BytesLike
 from hla.rti1516e.encoding import (
@@ -47,6 +49,8 @@ from hla.rti1516e.encoding import (
 )
 from hla.rti1516e.exceptions import RTIexception, RTIinternalError, exceptionForName
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _simple_name(value: str) -> str:
     return value.rsplit(".", 1)[-1].rsplit("$", 1)[-1]
@@ -63,20 +67,28 @@ def _call_java(
     except RTIexception:
         raise
     except Exception as error:
-        if encoding_error is not None and isinstance(error, (IndexError, ValueError, UnicodeError)):
+        if encoding_error is not None and isinstance(
+            error, (IndexError, ValueError, UnicodeError)
+        ):
             raise encoding_error(str(error)) from error
         name = runtime.exception_name(error)
         if name is None:
-            raise RTIinternalError(f"Java 1516e encoding call failed: {error}") from error
+            raise RTIinternalError(
+                f"Java 1516e encoding call failed: {error}"
+            ) from error
         name = _simple_name(name)
-        if name in {
-            "EncoderException",
-            "DecoderException",
-            "IllegalArgumentException",
-            "IndexOutOfBoundsException",
-            "ArrayIndexOutOfBoundsException",
-            "BufferUnderflowException",
-        } and encoding_error is not None:
+        if (
+            name
+            in {
+                "EncoderException",
+                "DecoderException",
+                "IllegalArgumentException",
+                "IndexOutOfBoundsException",
+                "ArrayIndexOutOfBoundsException",
+                "BufferUnderflowException",
+            }
+            and encoding_error is not None
+        ):
             raise encoding_error(str(error)) from error
         raise exceptionForName(name, str(error), error) from error
 
@@ -134,7 +146,11 @@ class _JavaDataElement(DataElement):
 
     def decode(self, value: ByteWrapper | BytesLike) -> object:
         is_wrapper = isinstance(value, ByteWrapper)
-        raw_value = self._runtime.java_byte_wrapper(value) if is_wrapper else self._runtime.byte_array(value)
+        raw_value = (
+            self._runtime.java_byte_wrapper(value)
+            if is_wrapper
+            else self._runtime.byte_array(value)
+        )
         _call_java(
             self._runtime,
             self._implementation.decode,
@@ -175,7 +191,7 @@ def _make_scalar_wrapper(
         def getValue(self) -> object:
             return cast(_call_java(self._runtime, self._implementation.getValue))
 
-        def setValue(self, value: object) -> "Scalar":
+        def setValue(self, value: object) -> Scalar:
             converted = cast(value)
             _call_java(
                 self._runtime,
@@ -191,22 +207,46 @@ def _make_scalar_wrapper(
 
 
 _SCALAR_WRAPPERS: dict[str, type[_JavaDataElement]] = {
-    "HLAinteger16BE": _make_scalar_wrapper(HLAinteger16BE, "short", lambda value: _signed(int(value), 16)),
-    "HLAinteger16LE": _make_scalar_wrapper(HLAinteger16LE, "short", lambda value: _signed(int(value), 16)),
-    "HLAinteger32BE": _make_scalar_wrapper(HLAinteger32BE, "int", lambda value: _signed(int(value), 32)),
-    "HLAinteger32LE": _make_scalar_wrapper(HLAinteger32LE, "int", lambda value: _signed(int(value), 32)),
-    "HLAinteger64BE": _make_scalar_wrapper(HLAinteger64BE, "long", lambda value: _signed(int(value), 64)),
-    "HLAinteger64LE": _make_scalar_wrapper(HLAinteger64LE, "long", lambda value: _signed(int(value), 64)),
+    "HLAinteger16BE": _make_scalar_wrapper(
+        HLAinteger16BE, "short", lambda value: _signed(int(value), 16)
+    ),
+    "HLAinteger16LE": _make_scalar_wrapper(
+        HLAinteger16LE, "short", lambda value: _signed(int(value), 16)
+    ),
+    "HLAinteger32BE": _make_scalar_wrapper(
+        HLAinteger32BE, "int", lambda value: _signed(int(value), 32)
+    ),
+    "HLAinteger32LE": _make_scalar_wrapper(
+        HLAinteger32LE, "int", lambda value: _signed(int(value), 32)
+    ),
+    "HLAinteger64BE": _make_scalar_wrapper(
+        HLAinteger64BE, "long", lambda value: _signed(int(value), 64)
+    ),
+    "HLAinteger64LE": _make_scalar_wrapper(
+        HLAinteger64LE, "long", lambda value: _signed(int(value), 64)
+    ),
     "HLAfloat32BE": _make_scalar_wrapper(HLAfloat32BE, "float", float),
     "HLAfloat32LE": _make_scalar_wrapper(HLAfloat32LE, "float", float),
     "HLAfloat64BE": _make_scalar_wrapper(HLAfloat64BE, "double", float),
     "HLAfloat64LE": _make_scalar_wrapper(HLAfloat64LE, "double", float),
-    "HLAbyte": _make_scalar_wrapper(HLAbyte, "byte", lambda value: _signed(int(value), 8)),
-    "HLAoctet": _make_scalar_wrapper(HLAoctet, "byte", lambda value: _signed(int(value), 8)),
-    "HLAASCIIchar": _make_scalar_wrapper(HLAASCIIchar, "byte", lambda value: _signed(int(value), 8)),
-    "HLAunicodeChar": _make_scalar_wrapper(HLAunicodeChar, "short", lambda value: _signed(int(value), 16)),
-    "HLAoctetPairBE": _make_scalar_wrapper(HLAoctetPairBE, "short", lambda value: _signed(int(value), 16)),
-    "HLAoctetPairLE": _make_scalar_wrapper(HLAoctetPairLE, "short", lambda value: _signed(int(value), 16)),
+    "HLAbyte": _make_scalar_wrapper(
+        HLAbyte, "byte", lambda value: _signed(int(value), 8)
+    ),
+    "HLAoctet": _make_scalar_wrapper(
+        HLAoctet, "byte", lambda value: _signed(int(value), 8)
+    ),
+    "HLAASCIIchar": _make_scalar_wrapper(
+        HLAASCIIchar, "byte", lambda value: _signed(int(value), 8)
+    ),
+    "HLAunicodeChar": _make_scalar_wrapper(
+        HLAunicodeChar, "short", lambda value: _signed(int(value), 16)
+    ),
+    "HLAoctetPairBE": _make_scalar_wrapper(
+        HLAoctetPairBE, "short", lambda value: _signed(int(value), 16)
+    ),
+    "HLAoctetPairLE": _make_scalar_wrapper(
+        HLAoctetPairLE, "short", lambda value: _signed(int(value), 16)
+    ),
 }
 
 
@@ -214,8 +254,13 @@ class _JavaHLAASCIIstring(_JavaDataElement, HLAASCIIstring):
     def getValue(self) -> str:
         return str(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: str) -> "_JavaHLAASCIIstring":
-        _call_java(self._runtime, self._implementation.setValue, str(value), encoding_error=EncoderException)
+    def setValue(self, value: str) -> _JavaHLAASCIIstring:
+        _call_java(
+            self._runtime,
+            self._implementation.setValue,
+            str(value),
+            encoding_error=EncoderException,
+        )
         return self
 
 
@@ -223,8 +268,13 @@ class _JavaHLAunicodeString(_JavaDataElement, HLAunicodeString):
     def getValue(self) -> str:
         return str(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: str) -> "_JavaHLAunicodeString":
-        _call_java(self._runtime, self._implementation.setValue, str(value), encoding_error=EncoderException)
+    def setValue(self, value: str) -> _JavaHLAunicodeString:
+        _call_java(
+            self._runtime,
+            self._implementation.setValue,
+            str(value),
+            encoding_error=EncoderException,
+        )
         return self
 
 
@@ -232,8 +282,13 @@ class _JavaHLAboolean(_JavaDataElement, HLAboolean):
     def getValue(self) -> bool:
         return bool(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: bool) -> "_JavaHLAboolean":
-        _call_java(self._runtime, self._implementation.setValue, bool(value), encoding_error=EncoderException)
+    def setValue(self, value: bool) -> _JavaHLAboolean:
+        _call_java(
+            self._runtime,
+            self._implementation.setValue,
+            bool(value),
+            encoding_error=EncoderException,
+        )
         return self
 
 
@@ -249,7 +304,12 @@ class _JavaHLAopaqueData(_JavaDataElement, HLAopaqueData):
         return bytes(int(item) & 0xFF for item in value)  # type: ignore[union-attr]
 
     def setValue(self, value: BytesLike) -> None:
-        _call_java(self._runtime, self._implementation.setValue, self._runtime.byte_array(value), encoding_error=EncoderException)
+        _call_java(
+            self._runtime,
+            self._implementation.setValue,
+            self._runtime.byte_array(value),
+            encoding_error=EncoderException,
+        )
 
     def __iter__(self):
         for index in range(self.size()):
@@ -281,17 +341,30 @@ def _raw_factory(value: object, runtime: Any) -> object:
 
 class _JavaHLAvariableArray(_JavaDataElement, HLAvariableArray):
     def addElement(self, dataElement: DataElement) -> None:
-        _call_java(self._runtime, self._implementation.addElement, _raw_element(dataElement), encoding_error=EncoderException)
+        _call_java(
+            self._runtime,
+            self._implementation.addElement,
+            _raw_element(dataElement),
+            encoding_error=EncoderException,
+        )
 
-    def resize(self, newSize: int) -> "_JavaHLAvariableArray":
-        _call_java(self._runtime, self._implementation.resize, int(newSize), encoding_error=EncoderException)
+    def resize(self, newSize: int) -> _JavaHLAvariableArray:
+        _call_java(
+            self._runtime,
+            self._implementation.resize,
+            int(newSize),
+            encoding_error=EncoderException,
+        )
         return self
 
     def size(self) -> int:
         return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
-        return _wrap_element(_call_java(self._runtime, self._implementation.get, int(index)), self._runtime)
+        return _wrap_element(
+            _call_java(self._runtime, self._implementation.get, int(index)),
+            self._runtime,
+        )
 
     def __iter__(self):
         for index in range(self.size()):
@@ -303,7 +376,10 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
         return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
-        return _wrap_element(_call_java(self._runtime, self._implementation.get, int(index)), self._runtime)
+        return _wrap_element(
+            _call_java(self._runtime, self._implementation.get, int(index)),
+            self._runtime,
+        )
 
     def __iter__(self):
         for index in range(self.size()):
@@ -312,13 +388,21 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
 
 class _JavaHLAfixedRecord(_JavaDataElement, HLAfixedRecord):
     def add(self, dataElement: DataElement) -> None:
-        _call_java(self._runtime, self._implementation.add, _raw_element(dataElement), encoding_error=EncoderException)
+        _call_java(
+            self._runtime,
+            self._implementation.add,
+            _raw_element(dataElement),
+            encoding_error=EncoderException,
+        )
 
     def size(self) -> int:
         return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
-        return _wrap_element(_call_java(self._runtime, self._implementation.get, int(index)), self._runtime)
+        return _wrap_element(
+            _call_java(self._runtime, self._implementation.get, int(index)),
+            self._runtime,
+        )
 
     def __iter__(self):
         for index in range(self.size()):
@@ -336,10 +420,18 @@ class _JavaHLAvariantRecord(_JavaDataElement, HLAvariantRecord):
         )
 
     def setDiscriminant(self, discriminant: DataElement) -> None:
-        _call_java(self._runtime, self._implementation.setDiscriminant, _raw_element(discriminant), encoding_error=EncoderException)
+        _call_java(
+            self._runtime,
+            self._implementation.setDiscriminant,
+            _raw_element(discriminant),
+            encoding_error=EncoderException,
+        )
 
     def getDiscriminant(self) -> DataElement:
-        return _wrap_element(_call_java(self._runtime, self._implementation.getDiscriminant), self._runtime)
+        return _wrap_element(
+            _call_java(self._runtime, self._implementation.getDiscriminant),
+            self._runtime,
+        )
 
     def getValue(self) -> DataElement | None:
         value = _call_java(self._runtime, self._implementation.getValue)
@@ -373,8 +465,17 @@ def _wrap_element(value: object, runtime: Any) -> DataElement:
                 # A provider may return a concrete object from a different
                 # class loader.  Class-name dispatch below remains the safe
                 # fallback for that case.
+                _LOGGER.debug(
+                    "Java type check failed for %s; trying class-name dispatch",
+                    interface_name,
+                    exc_info=True,
+                )
                 continue
-    name = str(getattr(getattr(value, "getClass", lambda: None)(), "getSimpleName", lambda: "")())
+    name = str(
+        getattr(
+            getattr(value, "getClass", lambda: None)(), "getSimpleName", lambda: ""
+        )()
+    )
     if not name:
         name = type(value).__name__
     for interface_name, wrapper in _SCALAR_WRAPPERS.items():
@@ -412,12 +513,19 @@ class JavaEncoderFactory(EncoderFactory):
         self._implementation = implementation
         self._runtime = runtime
 
-    def _create(self, method_name: str, value: object | None, converter: Callable[[object], object] | None = None) -> DataElement:
+    def _create(
+        self,
+        method_name: str,
+        value: object | None,
+        converter: Callable[[object], object] | None = None,
+    ) -> DataElement:
         method = getattr(self._implementation, method_name)
         if value is None:
             raw = _call_java(self._runtime, method)
         else:
-            raw = _call_java(self._runtime, method, converter(value) if converter else value)
+            raw = _call_java(
+                self._runtime, method, converter(value) if converter else value
+            )
         return _wrap_element(raw, self._runtime)
 
     def createHLAfixedArray(
@@ -436,23 +544,35 @@ class JavaEncoderFactory(EncoderFactory):
         else:
             elements = (
                 list(factory_or_element)
-                if isinstance(factory_or_element, (list, tuple)) and not elements_or_size
+                if isinstance(factory_or_element, (list, tuple))
+                and not elements_or_size
                 else [factory_or_element, *elements_or_size]
             )
             elements = [item for item in elements if item is not None]
-            raw = _call_java(self._runtime, method, *[_raw_element(item) for item in elements])
+            raw = _call_java(
+                self._runtime, method, *[_raw_element(item) for item in elements]
+            )
         return _JavaHLAfixedArray(raw, self._runtime)
 
     def createHLAfixedRecord(self) -> HLAfixedRecord:
-        return _JavaHLAfixedRecord(_call_java(self._runtime, self._implementation.createHLAfixedRecord), self._runtime)
-
-    def createHLAvariantRecord(self, discriminant: DataElement) -> HLAvariantRecord:
-        return _JavaHLAvariantRecord(
-            _call_java(self._runtime, self._implementation.createHLAvariantRecord, _raw_element(discriminant)),
+        return _JavaHLAfixedRecord(
+            _call_java(self._runtime, self._implementation.createHLAfixedRecord),
             self._runtime,
         )
 
-    def createHLAvariableArray(self, factory: DataElementFactory, *elements: DataElement) -> HLAvariableArray:
+    def createHLAvariantRecord(self, discriminant: DataElement) -> HLAvariantRecord:
+        return _JavaHLAvariantRecord(
+            _call_java(
+                self._runtime,
+                self._implementation.createHLAvariantRecord,
+                _raw_element(discriminant),
+            ),
+            self._runtime,
+        )
+
+    def createHLAvariableArray(
+        self, factory: DataElementFactory, *elements: DataElement
+    ) -> HLAvariableArray:
         raw = _call_java(
             self._runtime,
             self._implementation.createHLAvariableArray,
@@ -472,7 +592,9 @@ class JavaEncoderFactory(EncoderFactory):
         )
 
 
-def _install_scalar_factory(method_name: str, wrapper_name: str, converter: Callable[[object], object]) -> None:
+def _install_scalar_factory(
+    method_name: str, wrapper_name: str, converter: Callable[[object], object]
+) -> None:
     def create(self: JavaEncoderFactory, value: object | None = None) -> DataElement:
         return self._create(method_name, value, converter)
 

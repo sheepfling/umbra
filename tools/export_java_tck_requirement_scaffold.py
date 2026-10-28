@@ -7,47 +7,217 @@ import argparse
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any
-
+from typing import TypeAlias, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "java-tck-scenario-catalog.json"
 DEFAULT_OUTPUT = ROOT / "docs" / "testing" / "JAVA-TCK-REQUIREMENT-SCAFFOLD.md"
 
+JsonValue: TypeAlias = (
+    str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
+)
+JsonObject: TypeAlias = dict[str, JsonValue]
 
-def read_catalog(path: Path) -> dict[str, Any]:
-    catalog = json.loads(path.read_text(encoding="utf-8"))
-    scenarios = catalog.get("scenarios")
-    if catalog.get("kind") != "portable-java-tck-catalog" or not isinstance(scenarios, list):
+
+class RequirementMapping(TypedDict, total=False):
+    requirement_id: str
+    standard_section: str
+
+
+class CatalogExclusion(TypedDict, total=False):
+    id: str
+    status: str
+    scope: str
+    reason: str
+
+
+class _JavaTckScenarioOptional(TypedDict, total=False):
+    parity: str
+    adapter_inputs: list[str]
+    mapping_classification: str
+    requirement_mappings: list[RequirementMapping]
+    exclusion: str
+
+
+class JavaTckScenario(_JavaTckScenarioOptional):
+    id: str
+    category: str
+    title: str
+    java_test: str
+    default_status: str
+    api_methods: list[str]
+    requirement_ids: list[str]
+
+
+class _JavaTckCatalogOptional(TypedDict, total=False):
+    exclusions: list[CatalogExclusion]
+
+
+class JavaTckCatalog(_JavaTckCatalogOptional):
+    kind: str
+    scenarios: list[JavaTckScenario]
+
+
+def _json_object(value: JsonValue, *, context: str) -> JsonObject:
+    if not isinstance(value, dict):
+        raise TypeError(f"{context} must be an object")
+    return value
+
+
+def _required_text(value: JsonValue | None, *, field: str, context: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise TypeError(f"{context} must have a non-empty string {field}")
+    return value
+
+
+def _string_list(value: JsonValue | None, *, field: str, context: str) -> list[str]:
+    if not isinstance(value, list):
+        raise TypeError(f"{context} must have a string list {field}")
+    items: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            raise TypeError(f"{context} must have a string list {field}")
+        items.append(item)
+    return items
+
+
+def _read_mapping(value: JsonValue, *, context: str) -> RequirementMapping:
+    source = _json_object(value, context=context)
+    mapping: RequirementMapping = {}
+    if "requirement_id" in source:
+        mapping["requirement_id"] = _required_text(
+            source["requirement_id"], field="requirement_id", context=context
+        )
+    if "standard_section" in source:
+        mapping["standard_section"] = _required_text(
+            source["standard_section"], field="standard_section", context=context
+        )
+    return mapping
+
+
+def _read_exclusion(value: JsonValue, *, context: str) -> CatalogExclusion:
+    source = _json_object(value, context=context)
+    exclusion: CatalogExclusion = {}
+    for field in ("id", "status", "scope", "reason"):
+        if field not in source:
+            continue
+        text = _required_text(source[field], field=field, context=context)
+        if field == "id":
+            exclusion["id"] = text
+        elif field == "status":
+            exclusion["status"] = text
+        elif field == "scope":
+            exclusion["scope"] = text
+        else:
+            exclusion["reason"] = text
+    return exclusion
+
+
+def _read_scenario(value: JsonValue) -> JavaTckScenario:
+    source = _json_object(value, context="Java TCK scenario")
+    raw_id = source.get("id")
+    context = raw_id if isinstance(raw_id, str) and raw_id else "<unknown>"
+    scenario: JavaTckScenario = {
+        "id": _required_text(raw_id, field="id", context=context),
+        "category": _required_text(
+            source.get("category"), field="category", context=context
+        ),
+        "title": _required_text(source.get("title"), field="title", context=context),
+        "java_test": _required_text(
+            source.get("java_test"), field="java_test", context=context
+        ),
+        "default_status": _required_text(
+            source.get("default_status"), field="default_status", context=context
+        ),
+        "api_methods": _string_list(
+            source.get("api_methods"), field="api_methods", context=context
+        ),
+        "requirement_ids": _string_list(
+            source.get("requirement_ids"), field="requirement_ids", context=context
+        ),
+    }
+    if "parity" in source:
+        scenario["parity"] = _required_text(
+            source["parity"], field="parity", context=context
+        )
+    if "mapping_classification" in source:
+        scenario["mapping_classification"] = _required_text(
+            source["mapping_classification"],
+            field="mapping_classification",
+            context=context,
+        )
+    if "exclusion" in source:
+        scenario["exclusion"] = _required_text(
+            source["exclusion"], field="exclusion", context=context
+        )
+
+    if "adapter_inputs" in source:
+        scenario["adapter_inputs"] = _string_list(
+            source["adapter_inputs"], field="adapter_inputs", context=context
+        )
+    if "requirement_mappings" in source:
+        raw_mappings = source["requirement_mappings"]
+        if not isinstance(raw_mappings, list):
+            raise TypeError(f"{context} must have a mapping list requirement_mappings")
+        scenario["requirement_mappings"] = [
+            _read_mapping(mapping, context=f"{context} requirement mapping {index}")
+            for index, mapping in enumerate(raw_mappings)
+        ]
+
+    if not scenario["api_methods"]:
+        raise ValueError(f"{context} has no standard API method sketch")
+    if not scenario["requirement_ids"] and scenario.get("mapping_classification") != (
+        "api-contract-only-not-normative-conformance"
+    ):
+        raise ValueError(
+            f"{context} needs requirement IDs or an explicit classification"
+        )
+    return scenario
+
+
+def read_catalog(path: Path) -> JavaTckCatalog:
+    payload: object = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError(f"Java TCK catalog must be an object: {path}")
+    catalog_data = cast(JsonObject, payload)
+    scenarios_data = catalog_data.get("scenarios")
+    if catalog_data.get("kind") != "portable-java-tck-catalog" or not isinstance(
+        scenarios_data, list
+    ):
         raise ValueError(f"not a portable Java TCK scenario catalog: {path}")
-    ids = [scenario.get("id") for scenario in scenarios]
-    if any(not isinstance(item, str) or not item for item in ids) or len(ids) != len(set(ids)):
+
+    scenarios = [_read_scenario(scenario) for scenario in scenarios_data]
+    ids = [scenario["id"] for scenario in scenarios]
+    if len(ids) != len(set(ids)):
         raise ValueError("scenario IDs must be unique non-empty strings")
-    for scenario in scenarios:
-        for field in ("id", "category", "title", "java_test", "api_methods", "requirement_ids"):
-            if field not in scenario:
-                raise ValueError(f"{scenario.get('id', '<unknown>')} is missing {field}")
-        if not scenario["api_methods"]:
-            raise ValueError(f"{scenario['id']} has no standard API method sketch")
-        if not scenario["requirement_ids"] and scenario.get("mapping_classification") != (
-            "api-contract-only-not-normative-conformance"
-        ):
-            raise ValueError(f"{scenario['id']} needs requirement IDs or an explicit classification")
+
+    catalog: JavaTckCatalog = {
+        "kind": "portable-java-tck-catalog",
+        "scenarios": scenarios,
+    }
+    if "exclusions" in catalog_data:
+        exclusions_data = catalog_data["exclusions"]
+        if not isinstance(exclusions_data, list):
+            raise TypeError("Java TCK catalog exclusions must be a list")
+        catalog["exclusions"] = [
+            _read_exclusion(exclusion, context=f"catalog exclusion {index}")
+            for index, exclusion in enumerate(exclusions_data)
+        ]
     return catalog
 
 
-def cell(value: Any) -> str:
-    return str(value).replace("|", "\\|").replace("\n", " ")
+def cell(value: str) -> str:
+    return value.replace("|", "\\|").replace("\n", " ")
 
 
 def scenario_anchor(scenario_id: str) -> str:
     return f"scenario-{scenario_id}"
 
 
-def render(catalog: dict[str, Any], catalog_path: Path) -> str:
+def render(catalog: JavaTckCatalog, catalog_path: Path) -> str:
     scenarios = catalog["scenarios"]
-    by_requirement: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_requirement: dict[str, list[JavaTckScenario]] = defaultdict(list)
+    by_category: dict[str, list[JavaTckScenario]] = defaultdict(list)
     for scenario in scenarios:
         by_category[scenario["category"]].append(scenario)
         for requirement_id in scenario["requirement_ids"]:
@@ -55,12 +225,17 @@ def render(catalog: dict[str, Any], catalog_path: Path) -> str:
 
     statuses = Counter(scenario["default_status"] for scenario in scenarios)
     parity_count = sum(bool(scenario.get("parity")) for scenario in scenarios)
-    exact_mapping_scenarios = [scenario for scenario in scenarios if scenario.get("requirement_mappings")]
-    exact_mapping_count = sum(len(scenario["requirement_mappings"]) for scenario in exact_mapping_scenarios)
+    exact_mapping_scenarios = [
+        scenario for scenario in scenarios if scenario.get("requirement_mappings")
+    ]
+    exact_mapping_count = sum(
+        len(scenario["requirement_mappings"]) for scenario in exact_mapping_scenarios
+    )
     api_only = [
         scenario
         for scenario in scenarios
-        if scenario.get("mapping_classification") == "api-contract-only-not-normative-conformance"
+        if scenario.get("mapping_classification")
+        == "api-contract-only-not-normative-conformance"
     ]
     exclusions = catalog.get("exclusions", [])
 
@@ -134,12 +309,18 @@ def render(catalog: dict[str, Any], catalog_path: Path) -> str:
     ]
 
     for requirement_id in sorted(by_requirement):
-        linked = sorted(by_requirement[requirement_id], key=lambda scenario: scenario["id"])
+        linked = sorted(
+            by_requirement[requirement_id], key=lambda scenario: scenario["id"]
+        )
         lines.extend([f"### `{requirement_id}`", ""])
         for scenario in linked:
             title = cell(scenario["title"])
             parity = scenario.get("parity")
-            parity_note = f"; C++ pointer `{cell(parity)}`" if parity else "; C++ source pointer not declared"
+            parity_note = (
+                f"; C++ pointer `{cell(parity)}`"
+                if parity
+                else "; C++ source pointer not declared"
+            )
             lines.append(
                 f"- [`{scenario['id']}`](#{scenario_anchor(scenario['id'])}) — {title} "
                 f"(`{scenario['category']}`; default `{scenario['default_status']}`{parity_note})."
@@ -202,13 +383,32 @@ def render(catalog: dict[str, Any], catalog_path: Path) -> str:
         ]
     )
     for category in sorted(by_category):
-        lines.extend([f"### `{category}`", "", "| Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |", "| --- | --- | ---: | --- | --- | --- | --- |"])
+        lines.extend(
+            [
+                f"### `{category}`",
+                "",
+                "| Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |",
+                "| --- | --- | ---: | --- | --- | --- | --- |",
+            ]
+        )
         for scenario in sorted(by_category[category], key=lambda item: item["id"]):
             anchor = scenario_anchor(scenario["id"])
-            sketch = f'<a id="{anchor}"></a>`{scenario["id"]}` — {cell(scenario["title"])}'
-            parity = f"`{cell(scenario['parity'])}`" if scenario.get("parity") else "not declared"
-            req_ids = ", ".join(f"`{cell(item)}`" for item in scenario["requirement_ids"]) or "explicit API-only disposition"
-            inputs = "; ".join(cell(item) for item in scenario.get("adapter_inputs", [])) or "not scenario-declared"
+            sketch = (
+                f'<a id="{anchor}"></a>`{scenario["id"]}` — {cell(scenario["title"])}'
+            )
+            parity = (
+                f"`{cell(scenario['parity'])}`"
+                if scenario.get("parity")
+                else "not declared"
+            )
+            req_ids = (
+                ", ".join(f"`{cell(item)}`" for item in scenario["requirement_ids"])
+                or "explicit API-only disposition"
+            )
+            inputs = (
+                "; ".join(cell(item) for item in scenario.get("adapter_inputs", []))
+                or "not scenario-declared"
+            )
             lines.append(
                 f"| {sketch} | `{cell(scenario['java_test'])}` | {len(scenario['api_methods'])} | "
                 f"{req_ids} | {parity} | `{cell(scenario['default_status'])}` | {inputs} |"
@@ -238,7 +438,11 @@ def main() -> int:
     output = render(catalog, args.catalog.resolve())
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(output, encoding="utf-8")
-    distinct_requirements = {item for scenario in catalog["scenarios"] for item in scenario["requirement_ids"]}
+    distinct_requirements = {
+        item
+        for scenario in catalog["scenarios"]
+        for item in scenario["requirement_ids"]
+    }
     print(
         f"Wrote {args.output}: {len(catalog['scenarios'])} scenarios, "
         f"{len(distinct_requirements)} distinct requirement IDs"

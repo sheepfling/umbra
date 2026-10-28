@@ -3,27 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "This adapter-backed slice maps the timestamped-interaction delivery boundary in §8.1.5 and the TAR equal-time cutoff in §8.14.4(d); the adjacent embedded TARA strict-less-than cutoff maps to §8.14.4(e). A receive-order interaction is sent as callback-path liveness evidence while asynchronous delivery is enabled; the mapped §8.1.5 behavior is that TSO callbacks remain gated until the constrained receiver requests time advance and are delivered before the matching grant with timestamp/order metadata. The §8.14.4(d) boundary sends two TSO interactions at time 5 and one at time 6: TAR(5) delivers both time-5 interactions before its grant, callback servicing after that grant delivers no additional time-5 event, and time 6 remains pending until TAR(6). The §8.14.4(e) embedded TARA case queues timestamp 5 before TARA(6) and checks the receive callback precedes the grant. The adapter supplies interaction class/parameter names, FOM, provider package, endpoint, callback model, and logical-time implementation. This does not claim asynchronous TSO callback dispatch, DDM, directed-interaction, remote interoperability, or conformance.",
-  "canonical_standard_section_overrides": [
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l74-21",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.15.3",
-      "canonical_clause_id": "clause-8.14.4",
-      "source_heading": "8.14.4 Postconditions, item d)",
-      "source_path": "content/clauses/08-time-management-page-204.tex",
-      "known_issue_id": "RL-343"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l86-25",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.15.3",
-      "canonical_clause_id": "clause-8.14.4",
-      "source_heading": "8.14.4 Postconditions, item e)",
-      "source_path": "content/clauses/08-time-management-page-204.tex",
-      "known_issue_id": "RL-343"
-    }
-  ],
+  "notes": "This adapter-backed slice maps the timestamped-interaction delivery boundary in \u00a78.1.5 and the TAR equal-time cutoff in \u00a78.14.4(d); the adjacent embedded TARA strict-less-than cutoff maps to \u00a78.14.4(e). A receive-order interaction is sent as callback-path liveness evidence while asynchronous delivery is enabled; the mapped \u00a78.1.5 behavior is that TSO callbacks remain gated until the constrained receiver requests time advance and are delivered before the matching grant with timestamp/order metadata. The \u00a78.14.4(d) boundary sends two TSO interactions at time 5 and one at time 6: TAR(5) delivers both time-5 interactions before its grant, callback servicing after that grant delivers no additional time-5 event, and time 6 remains pending until TAR(6). The \u00a78.14.4(e) embedded TARA case queues timestamp 5 before TARA(6) and checks the receive callback precedes the grant. The adapter supplies interaction class/parameter names, FOM, provider package, endpoint, callback model, and logical-time implementation. This does not claim asynchronous TSO callback dispatch, DDM, directed-interaction, remote interoperability, or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "portable-tck-timestamped-interaction-time-gate",
@@ -63,5 +43,29 @@
         "cpp/tests/ieee1516_2025_tara_strict_timestamp_cutoff_catch2.cpp::Embedded TARA delivers a queued TSO strictly earlier than its supplied time before its grant"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [],
+    "retired_overrides": [
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l74-21",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.15.3",
+        "canonical_clause_id": "clause-8.14.4",
+        "source_heading": "8.14.4 Postconditions, item d)",
+        "source_path": "content/clauses/08-time-management-page-204.tex",
+        "known_issue_id": "RL-343"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l86-25",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.15.3",
+        "canonical_clause_id": "clause-8.14.4",
+        "source_heading": "8.14.4 Postconditions, item e)",
+        "source_path": "content/clauses/08-time-management-page-204.tex",
+        "known_issue_id": "RL-343"
+      }
+    ]
+  }
 }

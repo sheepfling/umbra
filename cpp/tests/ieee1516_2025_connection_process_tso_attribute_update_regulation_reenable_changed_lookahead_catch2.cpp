@@ -860,17 +860,18 @@ TEST_CASE(
     REQUIRE(retraction.toString() == designator);
 
     // The receiver is constrained to five while the re-enabled producer
-    // advances only to two.  Lookahead three therefore raises the public GALT
-    // to the queued timestamp, and the reflection must precede the grant.
+    // advances to three.  While timestamp five is in transit, it is the public
+    // GALT; after callback acknowledgement, the producer's time-plus-lookahead
+    // bound of six permits the receiver's grant at five.
     REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(5)));
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(2)));
+        rti1516_2025::HLAinteger64Time(3)));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(senderFederate.timeAdvanceGrantValue == 2);
+    REQUIRE(senderFederate.timeAdvanceGrantValue == 3);
     REQUIRE(receiverFederate.reflectedCount == 0U);
 
     rti1516_2025::HLAinteger64Time inTransitGaltValue(99);

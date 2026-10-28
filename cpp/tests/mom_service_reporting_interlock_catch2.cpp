@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include "internal/fom/hla_names.hpp"
 
@@ -109,7 +110,7 @@ TEST_CASE(
   // HLAreportServiceInvocation carries the HLAserviceGroup dimension.  A
   // committed one-dimensional region keeps the regional path on the same
   // valid FOM context as the ordinary subscription path.
-  auto const serviceGroup = rti->getDimensionHandle(L"HLAserviceGroup");
+  auto const serviceGroup = rti->getDimensionHandle(umbra::test::hla::wide::standard::service_group);
   REQUIRE(serviceGroup.isValid());
   RegionHandle region;
   REQUIRE_NOTHROW(region = rti->createRegion(DimensionHandleSet{serviceGroup}));
@@ -281,7 +282,7 @@ TEST_CASE(
     joined = true;
 
     auto const reportInvocation = rti->getInteractionClassHandle(
-        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+        umbra::test::hla::wide::standard::service_invocation);
     REQUIRE(reportInvocation.isValid());
     REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportInvocation));
     REQUIRE_FALSE(rti->getServiceReportingSwitch());

@@ -1,5 +1,5 @@
 # Include after the installed-package Catch2 dependency is available. This
-# downstream consumer intentionally links only the exported 2025 RTI target.
+# downstream consumer links the exported RTI and fedtime targets.
 if(TARGET Catch2::Catch2WithMain)
   get_filename_component(UMBRA_PACKAGE_DELAYED_REGIONAL_MIM_FOM
     "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml"
@@ -21,6 +21,7 @@ if(TARGET Catch2::Catch2WithMain)
   )
   target_link_libraries(umbra_rti_package_delayed_regional_attribute_catch2 PRIVATE
     umbra::rti
+    umbra::fedtime
     Catch2::Catch2WithMain
   )
 

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 
-from _mock_java_fixture import SMOKE_TEST_CLASS, build_mock_java_rti, java_toolchain_available
+from _mock_java_fixture import (
+    SMOKE_TEST_CLASS,
+    build_mock_java_rti,
+    java_toolchain_available,
+)
 
 
 @unittest.skipUnless(java_toolchain_available(), "requires java, javac, and jar")

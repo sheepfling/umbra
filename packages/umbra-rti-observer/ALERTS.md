@@ -26,8 +26,11 @@ from umbra_rti_observer.alerting import AlertRuleSpec
 
 store = ObserverStore()
 store.configure_alerts(
-    [AlertRuleSpec("errors", "Observed errors", "errors",
-                   threshold_count=2, window_seconds=30)],
+    [
+        AlertRuleSpec(
+            "errors", "Observed errors", "errors", threshold_count=2, window_seconds=30
+        )
+    ],
     expected_revision=0,
 )
 store.publish({"event_type": "runtime.error", "source": "synthetic-example"})

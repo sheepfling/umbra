@@ -3,72 +3,10 @@
 from __future__ import annotations
 
 import struct
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from hla.rti1516_2025.byte_types import BytesLike
-from hla.rti1516_2025.encoding import (
-    DecoderException,
-    DataElement,
-    DataElementFactory,
-    EncoderException,
-    EncoderFactory,
-    HLAfixedArray,
-    HLAfixedRecord,
-    HLAvariantRecord,
-    HLAboolean,
-    HLAASCIIchar,
-    HLAASCIIstring,
-    HLAbyte,
-    HLAfloat32BE,
-    HLAfloat32LE,
-    HLAfloat64BE,
-    HLAfloat64LE,
-    HLAinteger16BE,
-    HLAinteger16LE,
-    HLAinteger32BE,
-    HLAinteger32LE,
-    HLAinteger64BE,
-    HLAinteger64LE,
-    HLAunicodeString,
-    HLAunsignedInteger16BE,
-    HLAunsignedInteger16LE,
-    HLAunsignedInteger32BE,
-    HLAunsignedInteger32LE,
-    HLAunsignedInteger64BE,
-    HLAunsignedInteger64LE,
-    HLAoctet,
-    HLAoctetPairBE,
-    HLAoctetPairLE,
-    HLAopaqueData,
-    HLAvariableArray,
-    HLAunicodeChar,
-    _require_integer32,
-    _require_integer16,
-    _require_integer16_le,
-    _require_integer32_le,
-    _require_integer64,
-    _require_integer64_le,
-    _require_float64,
-    _require_float64_le,
-    _require_float32,
-    _require_float32_le,
-    _require_unsigned_integer32,
-    _require_unsigned_integer16,
-    _require_unsigned_integer16_le,
-    _require_unsigned_integer64,
-    _require_byte,
-    _require_octet,
-    _require_ascii_char,
-    _require_ascii_string,
-    _require_unicode_char,
-    _require_octet_pair,
-    _require_opaque_index,
-    _require_opaque_data,
-    _require_data_element_factory,
-    _require_data_element_index,
-    _require_data_element_size,
-)
-from hla.rti1516_2025.exceptions import RTIexception, RTIinternalError, exceptionForName
 from hla.rti1516_2025.core import (
     AttributeHandle,
     DimensionHandle,
@@ -87,9 +25,70 @@ from hla.rti1516_2025.core import (
     RegionHandle,
     TransportationTypeHandle,
 )
+from hla.rti1516_2025.encoding import (
+    DataElement,
+    DataElementFactory,
+    DecoderException,
+    EncoderException,
+    EncoderFactory,
+    HLAASCIIchar,
+    HLAASCIIstring,
+    HLAboolean,
+    HLAbyte,
+    HLAfixedArray,
+    HLAfixedRecord,
+    HLAfloat32BE,
+    HLAfloat32LE,
+    HLAfloat64BE,
+    HLAfloat64LE,
+    HLAinteger16BE,
+    HLAinteger16LE,
+    HLAinteger32BE,
+    HLAinteger32LE,
+    HLAinteger64BE,
+    HLAinteger64LE,
+    HLAoctet,
+    HLAoctetPairBE,
+    HLAoctetPairLE,
+    HLAopaqueData,
+    HLAunicodeChar,
+    HLAunicodeString,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
+    HLAunsignedInteger32BE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAvariableArray,
+    HLAvariantRecord,
+    _require_ascii_char,
+    _require_ascii_string,
+    _require_byte,
+    _require_data_element_factory,
+    _require_data_element_index,
+    _require_data_element_size,
+    _require_float32,
+    _require_float32_le,
+    _require_float64,
+    _require_float64_le,
+    _require_integer16,
+    _require_integer16_le,
+    _require_integer32,
+    _require_integer32_le,
+    _require_integer64,
+    _require_integer64_le,
+    _require_octet,
+    _require_octet_pair,
+    _require_opaque_data,
+    _require_opaque_index,
+    _require_unsigned_integer16,
+    _require_unsigned_integer16_le,
+    _require_unsigned_integer32,
+    _require_unsigned_integer64,
+)
+from hla.rti1516_2025.exceptions import RTIexception, RTIinternalError, exceptionForName
 
 from ._runtime import JavaRuntime
-
 
 _Result = TypeVar("_Result")
 
@@ -153,13 +152,17 @@ def _call_java(
             # checked-exception name.  Keep the mapping keyed to the standard
             # Java simple class name even when the runtime returns the latter.
             name = name.rsplit(".", 1)[-1].rsplit("$", 1)[-1]
-        if name in {
-            "EncoderException",
-            "DecoderException",
-            "IllegalArgumentException",
-            "IndexOutOfBoundsException",
-            "BufferUnderflowException",
-        } and encoding_error is not None:
+        if (
+            name
+            in {
+                "EncoderException",
+                "DecoderException",
+                "IllegalArgumentException",
+                "IndexOutOfBoundsException",
+                "BufferUnderflowException",
+            }
+            and encoding_error is not None
+        ):
             raise encoding_error(str(error)) from error
         if name is None:
             raise RTIinternalError(f"Java encoding call failed: {error}") from error
@@ -179,7 +182,7 @@ def _require_selected_logical_time_value(
     """
 
     factory = runtime.logical_time_factory(ambassador)
-    expected = str(_call_java(runtime, getattr(factory, "getName")))
+    expected = str(_call_java(runtime, factory.getName))
     actual = value.implementationName()
     if actual != expected:
         raise EncoderException(
@@ -195,13 +198,13 @@ class _JavaDataElement:
         self._runtime = runtime
 
     def getOctetBoundary(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getOctetBoundary")))
+        return int(_call_java(self._runtime, self._implementation.getOctetBoundary))
 
     def getEncodedLength(self) -> int:
         return int(
             _call_java(
                 self._runtime,
-                getattr(self._implementation, "getEncodedLength"),
+                self._implementation.getEncodedLength,
                 encoding_error=EncoderException,
             )
         )
@@ -209,7 +212,7 @@ class _JavaDataElement:
     def toByteArray(self) -> bytes:
         values = _call_java(
             self._runtime,
-            getattr(self._implementation, "toByteArray"),
+            self._implementation.toByteArray,
             encoding_error=EncoderException,
         )
         return bytes(int(value) & 0xFF for value in values)  # type: ignore[union-attr]
@@ -240,7 +243,7 @@ class _JavaDataElement:
                 )
         _call_java(
             self._runtime,
-            getattr(self._implementation, "encode"),
+            self._implementation.encode,
             byte_wrapper,
             encoding_error=EncoderException,
         )
@@ -253,7 +256,7 @@ class _JavaDataElement:
             bytes_ = self._runtime.byte_array(bytes(bytes_))
         _call_java(
             self._runtime,
-            getattr(self._implementation, "decode"),
+            self._implementation.decode,
             bytes_,
             encoding_error=DecoderException,
         )
@@ -284,7 +287,7 @@ class _JavaHandleDataElement(_JavaDataElement, DataElement):
         self._factory_method_name = factory_method_name
 
     def getValue(self) -> object:
-        raw_handle = _call_java(self._runtime, getattr(self._implementation, "getValue"))
+        raw_handle = _call_java(self._runtime, self._implementation.getValue)
         return self._handle_type(self._runtime.handle_bytes(raw_handle))
 
     def setValue(self, value: object) -> _JavaHandleDataElement:
@@ -295,7 +298,7 @@ class _JavaHandleDataElement(_JavaDataElement, DataElement):
             self._factory_method_name,
             value.encodedValue,
         )
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), raw_handle)
+        _call_java(self._runtime, self._implementation.setValue, raw_handle)
         return self
 
 
@@ -339,7 +342,9 @@ def _java_logical_time(
     implementation_name: str | None = None,
 ) -> LogicalTime:
     numeric = _java_time_value(value)
-    implementation = implementation_name or _java_time_implementation_name(value, numeric)
+    implementation = implementation_name or _java_time_implementation_name(
+        value, numeric
+    )
     value_type = (
         HLAinteger64Time
         if implementation == "HLAinteger64Time"
@@ -368,7 +373,9 @@ def _java_logical_interval(
     if getter is None:
         getter = getattr(value, "getValue", None)
     numeric = getter() if getter is not None else None
-    implementation = implementation_name or _java_time_implementation_name(value, numeric)
+    implementation = implementation_name or _java_time_implementation_name(
+        value, numeric
+    )
     value_type = (
         HLAinteger64Interval
         if implementation == "HLAinteger64Time"
@@ -389,7 +396,9 @@ def _java_logical_interval(
 class _JavaLogicalTimeDataElement(_JavaDataElement, DataElement):
     """Provider-scoped façade for the standard Java logical-time carrier."""
 
-    def __init__(self, implementation: object, runtime: JavaRuntime, ambassador: object) -> None:
+    def __init__(
+        self, implementation: object, runtime: JavaRuntime, ambassador: object
+    ) -> None:
         super().__init__(implementation, runtime)
         self._ambassador = ambassador
 
@@ -397,23 +406,27 @@ class _JavaLogicalTimeDataElement(_JavaDataElement, DataElement):
         factory = self._runtime.logical_time_factory(self._ambassador)
         return _java_logical_time(
             self._runtime,
-            _call_java(self._runtime, getattr(self._implementation, "getValue")),
-            str(_call_java(self._runtime, getattr(factory, "getName"))),
+            _call_java(self._runtime, self._implementation.getValue),
+            str(_call_java(self._runtime, factory.getName)),
         )
 
     def setValue(self, value: LogicalTime) -> _JavaLogicalTimeDataElement:
         if not isinstance(value, LogicalTime):
             raise TypeError("value must be LogicalTime")
         _require_selected_logical_time_value(self._runtime, self._ambassador, value)
-        raw_value = self._runtime.decode_logical_time(self._ambassador, value.encodedValue)
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), raw_value)
+        raw_value = self._runtime.decode_logical_time(
+            self._ambassador, value.encodedValue
+        )
+        _call_java(self._runtime, self._implementation.setValue, raw_value)
         return self
 
 
 class _JavaLogicalTimeIntervalDataElement(_JavaDataElement, DataElement):
     """Provider-scoped façade for the standard Java interval carrier."""
 
-    def __init__(self, implementation: object, runtime: JavaRuntime, ambassador: object) -> None:
+    def __init__(
+        self, implementation: object, runtime: JavaRuntime, ambassador: object
+    ) -> None:
         super().__init__(implementation, runtime)
         self._ambassador = ambassador
 
@@ -421,27 +434,31 @@ class _JavaLogicalTimeIntervalDataElement(_JavaDataElement, DataElement):
         factory = self._runtime.logical_time_factory(self._ambassador)
         return _java_logical_interval(
             self._runtime,
-            _call_java(self._runtime, getattr(self._implementation, "getValue")),
-            str(_call_java(self._runtime, getattr(factory, "getName"))),
+            _call_java(self._runtime, self._implementation.getValue),
+            str(_call_java(self._runtime, factory.getName)),
         )
 
-    def setValue(self, value: LogicalTimeInterval) -> _JavaLogicalTimeIntervalDataElement:
+    def setValue(
+        self, value: LogicalTimeInterval
+    ) -> _JavaLogicalTimeIntervalDataElement:
         if not isinstance(value, LogicalTimeInterval):
             raise TypeError("value must be LogicalTimeInterval")
         _require_selected_logical_time_value(self._runtime, self._ambassador, value)
-        raw_value = self._runtime.decode_logical_interval(self._ambassador, value.encodedValue)
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), raw_value)
+        raw_value = self._runtime.decode_logical_interval(
+            self._ambassador, value.encodedValue
+        )
+        _call_java(self._runtime, self._implementation.setValue, raw_value)
         return self
 
 
 class _JavaHLAinteger32BE(_JavaDataElement, HLAinteger32BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger32BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer32(value),
         )
         return self
@@ -449,12 +466,12 @@ class _JavaHLAinteger32BE(_JavaDataElement, HLAinteger32BE):
 
 class _JavaHLAinteger16BE(_JavaDataElement, HLAinteger16BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger16BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer16(value),
         )
         return self
@@ -462,12 +479,12 @@ class _JavaHLAinteger16BE(_JavaDataElement, HLAinteger16BE):
 
 class _JavaHLAinteger16LE(_JavaDataElement, HLAinteger16LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger16LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer16_le(value),
         )
         return self
@@ -475,12 +492,12 @@ class _JavaHLAinteger16LE(_JavaDataElement, HLAinteger16LE):
 
 class _JavaHLAinteger32LE(_JavaDataElement, HLAinteger32LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger32LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer32_le(value),
         )
         return self
@@ -488,12 +505,12 @@ class _JavaHLAinteger32LE(_JavaDataElement, HLAinteger32LE):
 
 class _JavaHLAinteger64BE(_JavaDataElement, HLAinteger64BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger64BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer64(value),
         )
         return self
@@ -501,12 +518,12 @@ class _JavaHLAinteger64BE(_JavaDataElement, HLAinteger64BE):
 
 class _JavaHLAinteger64LE(_JavaDataElement, HLAinteger64LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return int(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: int) -> _JavaHLAinteger64LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_integer64_le(value),
         )
         return self
@@ -514,12 +531,12 @@ class _JavaHLAinteger64LE(_JavaDataElement, HLAinteger64LE):
 
 class _JavaHLAfloat64BE(_JavaDataElement, HLAfloat64BE):
     def getValue(self) -> float:
-        return float(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return float(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: float | int) -> _JavaHLAfloat64BE:
+    def setValue(self, value: float) -> _JavaHLAfloat64BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_float64(value),
         )
         return self
@@ -527,12 +544,12 @@ class _JavaHLAfloat64BE(_JavaDataElement, HLAfloat64BE):
 
 class _JavaHLAfloat32BE(_JavaDataElement, HLAfloat32BE):
     def getValue(self) -> float:
-        return float(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return float(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: float | int) -> _JavaHLAfloat32BE:
+    def setValue(self, value: float) -> _JavaHLAfloat32BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_float32(value),
         )
         return self
@@ -540,12 +557,12 @@ class _JavaHLAfloat32BE(_JavaDataElement, HLAfloat32BE):
 
 class _JavaHLAfloat64LE(_JavaDataElement, HLAfloat64LE):
     def getValue(self) -> float:
-        return float(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return float(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: float | int) -> _JavaHLAfloat64LE:
+    def setValue(self, value: float) -> _JavaHLAfloat64LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_float64_le(value),
         )
         return self
@@ -553,12 +570,12 @@ class _JavaHLAfloat64LE(_JavaDataElement, HLAfloat64LE):
 
 class _JavaHLAfloat32LE(_JavaDataElement, HLAfloat32LE):
     def getValue(self) -> float:
-        return float(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return float(_call_java(self._runtime, self._implementation.getValue))
 
-    def setValue(self, value: float | int) -> _JavaHLAfloat32LE:
+    def setValue(self, value: float) -> _JavaHLAfloat32LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_float32_le(value),
         )
         return self
@@ -566,12 +583,12 @@ class _JavaHLAfloat32LE(_JavaDataElement, HLAfloat32LE):
 
 class _JavaHLAunsignedInteger16BE(_JavaDataElement, HLAunsignedInteger16BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFF
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger16BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_int16(value),
         )
         return self
@@ -579,12 +596,12 @@ class _JavaHLAunsignedInteger16BE(_JavaDataElement, HLAunsignedInteger16BE):
 
 class _JavaHLAunsignedInteger16LE(_JavaDataElement, HLAunsignedInteger16LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFF
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger16LE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_int16_le(value),
         )
         return self
@@ -592,30 +609,37 @@ class _JavaHLAunsignedInteger16LE(_JavaDataElement, HLAunsignedInteger16LE):
 
 class _JavaHLAunsignedInteger32LE(_JavaDataElement, HLAunsignedInteger32LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFFFFFF
+        return (
+            int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFFFFFF
+        )
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger32LE:
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), _java_int32(value))
+        _call_java(self._runtime, self._implementation.setValue, _java_int32(value))
         return self
 
 
 class _JavaHLAunsignedInteger32BE(_JavaDataElement, HLAunsignedInteger32BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFFFFFF
+        return (
+            int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFFFFFF
+        )
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger32BE:
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), _java_int32(value))
+        _call_java(self._runtime, self._implementation.setValue, _java_int32(value))
         return self
 
 
 class _JavaHLAunsignedInteger64BE(_JavaDataElement, HLAunsignedInteger64BE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFFFFFFFFFFFFFF
+        return (
+            int(_call_java(self._runtime, self._implementation.getValue))
+            & 0xFFFFFFFFFFFFFFFF
+        )
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger64BE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_int64(value),
         )
         return self
@@ -623,21 +647,24 @@ class _JavaHLAunsignedInteger64BE(_JavaDataElement, HLAunsignedInteger64BE):
 
 class _JavaHLAunsignedInteger64LE(_JavaDataElement, HLAunsignedInteger64LE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFFFFFFFFFFFFFF
+        return (
+            int(_call_java(self._runtime, self._implementation.getValue))
+            & 0xFFFFFFFFFFFFFFFF
+        )
 
     def setValue(self, value: int) -> _JavaHLAunsignedInteger64LE:
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), _java_int64(value))
+        _call_java(self._runtime, self._implementation.setValue, _java_int64(value))
         return self
 
 
 class _JavaHLAbyte(_JavaDataElement, HLAbyte):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFF
 
     def setValue(self, value: int) -> _JavaHLAbyte:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_byte(value, _require_byte),
         )
         return self
@@ -645,12 +672,12 @@ class _JavaHLAbyte(_JavaDataElement, HLAbyte):
 
 class _JavaHLAoctet(_JavaDataElement, HLAoctet):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFF
 
     def setValue(self, value: int) -> _JavaHLAoctet:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_byte(value, _require_octet),
         )
         return self
@@ -658,12 +685,12 @@ class _JavaHLAoctet(_JavaDataElement, HLAoctet):
 
 class _JavaHLAASCIIchar(_JavaDataElement, HLAASCIIchar):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFF
 
     def setValue(self, value: int) -> _JavaHLAASCIIchar:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_byte(value, _require_ascii_char),
         )
         return self
@@ -671,12 +698,12 @@ class _JavaHLAASCIIchar(_JavaDataElement, HLAASCIIchar):
 
 class _JavaHLAASCIIstring(_JavaDataElement, HLAASCIIstring):
     def getValue(self) -> str:
-        return str(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return str(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: str) -> _JavaHLAASCIIstring:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _require_ascii_string(value),
         )
         return self
@@ -684,12 +711,12 @@ class _JavaHLAASCIIstring(_JavaDataElement, HLAASCIIstring):
 
 class _JavaHLAunicodeChar(_JavaDataElement, HLAunicodeChar):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFF
 
     def setValue(self, value: int) -> _JavaHLAunicodeChar:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_int16(value),
         )
         return self
@@ -697,12 +724,12 @@ class _JavaHLAunicodeChar(_JavaDataElement, HLAunicodeChar):
 
 class _JavaHLAoctetPairBE(_JavaDataElement, HLAoctetPairBE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFF
 
     def setValue(self, value: int) -> _JavaHLAoctetPairBE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_octet_pair(value),
         )
         return self
@@ -710,12 +737,12 @@ class _JavaHLAoctetPairBE(_JavaDataElement, HLAoctetPairBE):
 
 class _JavaHLAoctetPairLE(_JavaDataElement, HLAoctetPairLE):
     def getValue(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "getValue"))) & 0xFFFF
+        return int(_call_java(self._runtime, self._implementation.getValue)) & 0xFFFF
 
     def setValue(self, value: int) -> _JavaHLAoctetPairLE:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             _java_octet_pair(value),
         )
         return self
@@ -723,25 +750,28 @@ class _JavaHLAoctetPairLE(_JavaDataElement, HLAoctetPairLE):
 
 class _JavaHLAopaqueData(_JavaDataElement, HLAopaqueData):
     def size(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "size")))
+        return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> int:
-        return int(
-            _call_java(
-                self._runtime,
-                getattr(self._implementation, "get"),
-                _require_opaque_index(index, self.size()),
+        return (
+            int(
+                _call_java(
+                    self._runtime,
+                    self._implementation.get,
+                    _require_opaque_index(index, self.size()),
+                )
             )
-        ) & 0xFF
+            & 0xFF
+        )
 
     def getValue(self) -> bytes:
-        values = _call_java(self._runtime, getattr(self._implementation, "getValue"))
+        values = _call_java(self._runtime, self._implementation.getValue)
         return bytes(int(value) & 0xFF for value in values)  # type: ignore[union-attr]
 
     def setValue(self, value: BytesLike) -> None:
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setValue"),
+            self._implementation.setValue,
             self._runtime.byte_array(_require_opaque_data(value)),
         )
 
@@ -765,8 +795,8 @@ class _JavaHLAvariableArray(_JavaDataElement, HLAvariableArray):
             raise TypeError("Java variable arrays require Java DataElements")
         _call_java(
             self._runtime,
-            getattr(self._implementation, "addElement"),
-            getattr(dataElement, "_implementation"),
+            self._implementation.addElement,
+            dataElement._implementation,
             encoding_error=EncoderException,
         )
 
@@ -775,23 +805,25 @@ class _JavaHLAvariableArray(_JavaDataElement, HLAvariableArray):
 
         _call_java(
             self._runtime,
-            getattr(self._implementation, "resize"),
+            self._implementation.resize,
             _require_data_element_size(size),
             encoding_error=EncoderException,
         )
         return self
 
     def size(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "size")))
+        return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
         index = _require_data_element_index(index, self.size())
         element = self._factory.createElement(index)
         if not isinstance(element, type(self._prototype)):
-            raise TypeError("factory returned an element that does not match the prototype")
+            raise TypeError(
+                "factory returned an element that does not match the prototype"
+            )
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "get"),
+            self._implementation.get,
             index,
         )
         if not isinstance(element, _JavaDataElement):
@@ -817,7 +849,7 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
         self._elements = list(elements) if elements is not None else None
 
     def size(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "size")))
+        return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
         index = _require_data_element_index(index, self.size())
@@ -825,7 +857,7 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
             element = self._elements[index]
             implementation = _call_java(
                 self._runtime,
-                getattr(self._implementation, "get"),
+                self._implementation.get,
                 index,
                 encoding_error=EncoderException,
             )
@@ -837,10 +869,12 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
             raise EncoderException("Java fixed array element factory is unavailable")
         element = self._factory.createElement(index)
         if not isinstance(element, type(self._prototype)):
-            raise TypeError("factory returned an element that does not match the prototype")
+            raise TypeError(
+                "factory returned an element that does not match the prototype"
+            )
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "get"),
+            self._implementation.get,
             index,
         )
         if not isinstance(element, _JavaDataElement):
@@ -858,7 +892,7 @@ class _JavaHLAfixedArray(_JavaDataElement, HLAfixedArray):
                 self._runtime,
                 native_set,
                 index,
-                getattr(dataElement, "_implementation"),
+                dataElement._implementation,
                 encoding_error=EncoderException,
             )
             if self._elements is not None:
@@ -881,14 +915,14 @@ class _JavaHLAfixedRecord(_JavaDataElement, HLAfixedRecord):
             raise TypeError("Java fixed records require Java DataElements")
         _call_java(
             self._runtime,
-            getattr(self._implementation, "add"),
-            getattr(dataElement, "_implementation"),
+            self._implementation.add,
+            dataElement._implementation,
             encoding_error=EncoderException,
         )
         self._elements.append(dataElement)
 
     def size(self) -> int:
-        return int(_call_java(self._runtime, getattr(self._implementation, "size")))
+        return int(_call_java(self._runtime, self._implementation.size))
 
     def get(self, index: int) -> DataElement:
         index = _require_data_element_index(index, self.size())
@@ -897,7 +931,7 @@ class _JavaHLAfixedRecord(_JavaDataElement, HLAfixedRecord):
         element = self._elements[index]
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "get"),
+            self._implementation.get,
             index,
             encoding_error=EncoderException,
         )
@@ -915,12 +949,14 @@ class _JavaHLAfixedRecord(_JavaDataElement, HLAfixedRecord):
         native_set = getattr(self._implementation, "set", None)
         if native_set is not None:
             if not isinstance(dataElement, _JavaDataElement):
-                raise TypeError("Java fixed records require Java DataElement components")
+                raise TypeError(
+                    "Java fixed records require Java DataElement components"
+                )
             _call_java(
                 self._runtime,
                 native_set,
                 index,
-                getattr(dataElement, "_implementation"),
+                dataElement._implementation,
                 encoding_error=EncoderException,
             )
             self._elements[index] = dataElement
@@ -950,9 +986,9 @@ class _JavaHLAvariantRecord(_JavaDataElement, HLAvariantRecord):
             raise TypeError("Java variant records require Java DataElements")
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setVariant"),
-            getattr(discriminant, "_implementation"),
-            getattr(dataElement, "_implementation"),
+            self._implementation.setVariant,
+            discriminant._implementation,
+            dataElement._implementation,
             encoding_error=EncoderException,
         )
         self._variants[key] = dataElement
@@ -961,15 +997,15 @@ class _JavaHLAvariantRecord(_JavaDataElement, HLAvariantRecord):
         self._require_discriminant(discriminant)
         _call_java(
             self._runtime,
-            getattr(self._implementation, "setDiscriminant"),
-            getattr(discriminant, "_implementation"),
+            self._implementation.setDiscriminant,
+            discriminant._implementation,
             encoding_error=EncoderException,
         )
 
     def getDiscriminant(self) -> DataElement:
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "getDiscriminant"),
+            self._implementation.getDiscriminant,
             encoding_error=EncoderException,
         )
         self._discriminant._implementation = implementation  # type: ignore[attr-defined]
@@ -978,7 +1014,7 @@ class _JavaHLAvariantRecord(_JavaDataElement, HLAvariantRecord):
     def getValue(self) -> DataElement | None:
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "getValue"),
+            self._implementation.getValue,
             encoding_error=EncoderException,
         )
         if implementation is None:
@@ -986,7 +1022,9 @@ class _JavaHLAvariantRecord(_JavaDataElement, HLAvariantRecord):
         key = bytes(self.getDiscriminant().toByteArray())
         element = self._variants.get(key)
         if element is None or not isinstance(element, _JavaDataElement):
-            raise EncoderException("Java variant record returned an unmapped alternative")
+            raise EncoderException(
+                "Java variant record returned an unmapped alternative"
+            )
         element._implementation = implementation
         return element
 
@@ -997,19 +1035,19 @@ class _JavaHLAextendableVariantRecord(_JavaHLAvariantRecord):
 
 class _JavaHLAboolean(_JavaDataElement, HLAboolean):
     def getValue(self) -> bool:
-        return bool(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return bool(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: bool) -> _JavaHLAboolean:
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), bool(value))
+        _call_java(self._runtime, self._implementation.setValue, bool(value))
         return self
 
 
 class _JavaHLAunicodeString(_JavaDataElement, HLAunicodeString):
     def getValue(self) -> str:
-        return str(_call_java(self._runtime, getattr(self._implementation, "getValue")))
+        return str(_call_java(self._runtime, self._implementation.getValue))
 
     def setValue(self, value: str) -> _JavaHLAunicodeString:
-        _call_java(self._runtime, getattr(self._implementation, "setValue"), str(value))
+        _call_java(self._runtime, self._implementation.setValue, str(value))
         return self
 
 
@@ -1027,11 +1065,16 @@ class JavaEncoderFactory(EncoderFactory):
         return _call_java(self._runtime, method, value)
 
     def createHLAinteger32BE(self, value: int | None = None) -> HLAinteger32BE:
-        return _JavaHLAinteger32BE(self._create("createHLAinteger32BE", value), self._runtime)
+        return _JavaHLAinteger32BE(
+            self._create("createHLAinteger32BE", value), self._runtime
+        )
 
     def createHLAinteger16BE(self, value: int | None = None) -> HLAinteger16BE:
         return _JavaHLAinteger16BE(
-            self._create("createHLAinteger16BE", None if value is None else _require_integer16(value)),
+            self._create(
+                "createHLAinteger16BE",
+                None if value is None else _require_integer16(value),
+            ),
             self._runtime,
         )
 
@@ -1071,13 +1114,15 @@ class JavaEncoderFactory(EncoderFactory):
             self._runtime,
         )
 
-    def createHLAfloat64BE(self, value: float | int | None = None) -> HLAfloat64BE:
+    def createHLAfloat64BE(self, value: float | None = None) -> HLAfloat64BE:
         return _JavaHLAfloat64BE(
-            self._create("createHLAfloat64BE", None if value is None else _require_float64(value)),
+            self._create(
+                "createHLAfloat64BE", None if value is None else _require_float64(value)
+            ),
             self._runtime,
         )
 
-    def createHLAfloat32BE(self, value: float | int | None = None) -> HLAfloat32BE:
+    def createHLAfloat32BE(self, value: float | None = None) -> HLAfloat32BE:
         return _JavaHLAfloat32BE(
             self._create(
                 "createHLAfloat32BE",
@@ -1086,7 +1131,7 @@ class JavaEncoderFactory(EncoderFactory):
             self._runtime,
         )
 
-    def createHLAfloat64LE(self, value: float | int | None = None) -> HLAfloat64LE:
+    def createHLAfloat64LE(self, value: float | None = None) -> HLAfloat64LE:
         return _JavaHLAfloat64LE(
             self._create(
                 "createHLAfloat64LE",
@@ -1095,7 +1140,7 @@ class JavaEncoderFactory(EncoderFactory):
             self._runtime,
         )
 
-    def createHLAfloat32LE(self, value: float | int | None = None) -> HLAfloat32LE:
+    def createHLAfloat32LE(self, value: float | None = None) -> HLAfloat32LE:
         return _JavaHLAfloat32LE(
             self._create(
                 "createHLAfloat32LE",
@@ -1137,7 +1182,9 @@ class JavaEncoderFactory(EncoderFactory):
             self._runtime,
         )
 
-    def createHLAunsignedInteger32BE(self, value: int | None = None) -> HLAunsignedInteger32BE:
+    def createHLAunsignedInteger32BE(
+        self, value: int | None = None
+    ) -> HLAunsignedInteger32BE:
         return _JavaHLAunsignedInteger32BE(
             self._create(
                 "createHLAunsignedInteger32BE",
@@ -1231,9 +1278,7 @@ class JavaEncoderFactory(EncoderFactory):
             self._runtime,
         )
 
-    def createHLAopaqueData(
-        self, value: BytesLike | None = None
-    ) -> HLAopaqueData:
+    def createHLAopaqueData(self, value: BytesLike | None = None) -> HLAopaqueData:
         return _JavaHLAopaqueData(
             self._create(
                 "createHLAopaqueData",
@@ -1255,10 +1300,10 @@ class JavaEncoderFactory(EncoderFactory):
         factory_proxy = self._runtime.data_element_factory(factory)
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "createHLAvariableArray"),
+            self._implementation.createHLAvariableArray,
             factory_proxy,
             self._runtime.data_element_array(
-                tuple(getattr(element, "_implementation") for element in elements)
+                tuple(element._implementation for element in elements)
             ),
         )
         return _JavaHLAvariableArray(
@@ -1284,10 +1329,14 @@ class JavaEncoderFactory(EncoderFactory):
         """
 
         if isinstance(factory_or_element, DataElementFactory):
-            if not isinstance(size_or_element, int) or isinstance(size_or_element, bool):
+            if not isinstance(size_or_element, int) or isinstance(
+                size_or_element, bool
+            ):
                 raise TypeError("Java fixed arrays require a factory and integer size")
             if elements:
-                raise TypeError("Java fixed-array factory overload does not accept elements")
+                raise TypeError(
+                    "Java fixed-array factory overload does not accept elements"
+                )
             factory = _require_data_element_factory(factory_or_element)
             size = _require_data_element_size(size_or_element)
             prototype = factory.createElement(0)
@@ -1296,7 +1345,7 @@ class JavaEncoderFactory(EncoderFactory):
             factory_proxy = self._runtime.data_element_factory(factory)
             implementation = _call_java(
                 self._runtime,
-                getattr(self._implementation, "createHLAfixedArray"),
+                self._implementation.createHLAfixedArray,
                 factory_proxy,
                 size,
             )
@@ -1313,13 +1362,15 @@ class JavaEncoderFactory(EncoderFactory):
             + (() if size_or_element is None else (size_or_element,))
             + elements
         )
-        if not values or any(not isinstance(element, _JavaDataElement) for element in values):
+        if not values or any(
+            not isinstance(element, _JavaDataElement) for element in values
+        ):
             raise TypeError("Java fixed-array varargs require Java DataElements")
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "createHLAfixedArray"),
+            self._implementation.createHLAfixedArray,
             self._runtime.data_element_array(
-                tuple(getattr(element, "_implementation") for element in values)
+                tuple(element._implementation for element in values)
             ),
         )
         return _JavaHLAfixedArray(
@@ -1335,19 +1386,23 @@ class JavaEncoderFactory(EncoderFactory):
         return _JavaHLAfixedRecord(
             _call_java(
                 self._runtime,
-                getattr(self._implementation, "createHLAfixedRecord"),
+                self._implementation.createHLAfixedRecord,
             ),
             self._runtime,
         )
 
-    def createHLAvariantRecord(self, discriminantPrototype: DataElement) -> HLAvariantRecord:
+    def createHLAvariantRecord(
+        self, discriminantPrototype: DataElement
+    ) -> HLAvariantRecord:
         if not isinstance(discriminantPrototype, _JavaDataElement):
-            raise TypeError("Java variant records require a Java discriminant prototype")
+            raise TypeError(
+                "Java variant records require a Java discriminant prototype"
+            )
         return _JavaHLAvariantRecord(
             _call_java(
                 self._runtime,
-                getattr(self._implementation, "createHLAvariantRecord"),
-                getattr(discriminantPrototype, "_implementation"),
+                self._implementation.createHLAvariantRecord,
+                discriminantPrototype._implementation,
             ),
             self._runtime,
             discriminantPrototype,
@@ -1363,8 +1418,8 @@ class JavaEncoderFactory(EncoderFactory):
         return _JavaHLAextendableVariantRecord(
             _call_java(
                 self._runtime,
-                getattr(self._implementation, "createHLAextendableVariantRecord"),
-                getattr(discriminantPrototype, "_implementation"),
+                self._implementation.createHLAextendableVariantRecord,
+                discriminantPrototype._implementation,
             ),
             self._runtime,
             discriminantPrototype,
@@ -1374,7 +1429,9 @@ class JavaEncoderFactory(EncoderFactory):
         return _JavaHLAboolean(self._create("createHLAboolean", value), self._runtime)
 
     def createHLAunicodeString(self, value: str | None = None) -> HLAunicodeString:
-        return _JavaHLAunicodeString(self._create("createHLAunicodeString", value), self._runtime)
+        return _JavaHLAunicodeString(
+            self._create("createHLAunicodeString", value), self._runtime
+        )
 
     @staticmethod
     def _raw_ambassador(ambassador: object) -> object:
@@ -1533,13 +1590,17 @@ class JavaEncoderFactory(EncoderFactory):
             if not isinstance(value, LogicalTime):
                 raise TypeError("value must be LogicalTime")
             _require_selected_logical_time_value(self._runtime, raw_ambassador, value)
-            arguments.append(self._runtime.decode_logical_time(raw_ambassador, value.encodedValue))
+            arguments.append(
+                self._runtime.decode_logical_time(raw_ambassador, value.encodedValue)
+            )
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "createHLAlogicalTime"),
+            self._implementation.createHLAlogicalTime,
             *arguments,
         )
-        return _JavaLogicalTimeDataElement(implementation, self._runtime, raw_ambassador)
+        return _JavaLogicalTimeDataElement(
+            implementation, self._runtime, raw_ambassador
+        )
 
     def createHLAlogicalTimeInterval(
         self, ambassador: object, value: LogicalTimeInterval | None = None
@@ -1551,11 +1612,13 @@ class JavaEncoderFactory(EncoderFactory):
                 raise TypeError("value must be LogicalTimeInterval")
             _require_selected_logical_time_value(self._runtime, raw_ambassador, value)
             arguments.append(
-                self._runtime.decode_logical_interval(raw_ambassador, value.encodedValue)
+                self._runtime.decode_logical_interval(
+                    raw_ambassador, value.encodedValue
+                )
             )
         implementation = _call_java(
             self._runtime,
-            getattr(self._implementation, "createHLAlogicalTimeInterval"),
+            self._implementation.createHLAlogicalTimeInterval,
             *arguments,
         )
         return _JavaLogicalTimeIntervalDataElement(

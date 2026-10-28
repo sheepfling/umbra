@@ -360,6 +360,12 @@ enum class TransportServiceOperation : std::uint16_t {
   // enters user code so a successful acquisition cancellation can suppress
   // that stale release request.
   claim_attribute_ownership_release = 145U,
+  // Support Services member listing reads the authoritative federation roster
+  // and returns its results as a separate report from the request itself.
+  list_federation_execution_members = 147U,
+  // Federation execution listing returns the authoritative execution catalog
+  // and each execution's logical-time implementation name.
+  list_federation_executions = 148U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {

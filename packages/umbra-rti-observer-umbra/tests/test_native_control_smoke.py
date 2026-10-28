@@ -43,7 +43,9 @@ class _TracedNativeLifecycle:
     """Trace Python entry threads while every operation reaches the real RTI."""
 
     def __init__(
-        self, native: LifecycleAmbassador, calls: list[tuple[str, int]],
+        self,
+        native: LifecycleAmbassador,
+        calls: list[tuple[str, int]],
     ) -> None:
         self._native = native
         self._calls = calls
@@ -52,22 +54,32 @@ class _TracedNativeLifecycle:
         self._calls.append((name, threading.get_ident()))
 
     def connect(
-        self, federateAmbassador: FederateAmbassador, callbackModel: CallbackModel,
-        configuration: object | None = None, credentials: object | None = None,
+        self,
+        federateAmbassador: FederateAmbassador,
+        callbackModel: CallbackModel,
+        configuration: object | None = None,
+        credentials: object | None = None,
     ) -> object:
         self._record("connect")
         return self._native.connect(
-            federateAmbassador, callbackModel,
-            configuration=configuration, credentials=credentials,
+            federateAmbassador,
+            callbackModel,
+            configuration=configuration,
+            credentials=credentials,
         )
 
     def joinFederationExecution(
-        self, federateType: str, federationExecutionName: str, *,
+        self,
+        federateType: str,
+        federationExecutionName: str,
+        *,
         federateName: str | None = None,
     ) -> object:
         self._record("join")
         return self._native.joinFederationExecution(
-            federateType, federationExecutionName, federateName=federateName,
+            federateType,
+            federationExecutionName,
+            federateName=federateName,
         )
 
     def resignFederationExecution(self, resignAction: ResignAction) -> None:
@@ -79,12 +91,14 @@ class _TracedNativeLifecycle:
         self._native.disconnect()
 
     def evokeMultipleCallbacks(
-        self, approximateMinimumTimeInSeconds: float,
+        self,
+        approximateMinimumTimeInSeconds: float,
         approximateMaximumTimeInSeconds: float,
     ) -> bool:
         self._record("poll")
         return self._native.evokeMultipleCallbacks(
-            approximateMinimumTimeInSeconds, approximateMaximumTimeInSeconds,
+            approximateMinimumTimeInSeconds,
+            approximateMaximumTimeInSeconds,
         )
 
 
@@ -106,11 +120,15 @@ def test_native_controlled_session_connect_join_resign_disconnect() -> None:
         calls.append(("factory", threading.get_ident()))
         return _TracedNativeLifecycle(factory.getRtiAmbassador(), calls)
 
-    def submit(request: CommandRequest, status: CommandStatus = "succeeded") -> CommandRecord:
-        current = type(request).model_validate({
-            **request.model_dump(mode="python"),
-            "expected_version": commands.catalog().targets[0].version,
-        })
+    def submit(
+        request: CommandRequest, status: CommandStatus = "succeeded"
+    ) -> CommandRecord:
+        current = type(request).model_validate(
+            {
+                **request.model_dump(mode="python"),
+                "expected_version": commands.catalog().targets[0].version,
+            }
+        )
         result = commands.submit(current)
         deadline = time.monotonic() + 6
         while result.status in {"accepted", "running"} and time.monotonic() < deadline:
@@ -133,7 +151,10 @@ def test_native_controlled_session_connect_join_resign_disconnect() -> None:
         initial = commands.catalog().targets[0]
         assert initial.state == "disconnected" and initial.version is not None
         assert {row.action for row in initial.commands} == {
-            "session.connect", "federate.join", "federate.resign", "session.disconnect",
+            "session.connect",
+            "federate.join",
+            "federate.resign",
+            "session.disconnect",
         }
         requests = (
             ConnectCommand(
@@ -166,7 +187,9 @@ def test_native_controlled_session_connect_join_resign_disconnect() -> None:
             ),
         )
         for request, state in zip(
-            requests, ("connected", "joined", "connected", "disconnected"), strict=True,
+            requests,
+            ("connected", "joined", "connected", "disconnected"),
+            strict=True,
         ):
             result = submit(request)
             current = commands.catalog().targets[0]
@@ -176,32 +199,53 @@ def test_native_controlled_session_connect_join_resign_disconnect() -> None:
             assert current.version.revision > initial.version.revision
             if request.action == "federate.join":
                 assert result.outcome is not None and result.outcome.federate_handle
-                assert current.federation == name and current.federate == "ManagedObserver"
+                assert (
+                    current.federation == name and current.federate == "ManagedObserver"
+                )
             if request.action == "session.connect":
                 # Wait while connected, when an idle evoked pump is meaningful.
                 deadline = time.monotonic() + 1
-                while not any(action == "poll" for action, _ in calls) and time.monotonic() < deadline:
+                while (
+                    not any(action == "poll" for action, _ in calls)
+                    and time.monotonic() < deadline
+                ):
                     threading.Event().wait(0.01)
                 assert any(action == "poll" for action, _ in calls)
                 # The federation is allowlisted but does not exist in this real RTI.
                 # Its typed rejection must not poison the connected owned session.
-                rejected = submit(JoinCommand(
-                    action="federate.join", request_id="missing", target_id="native",
-                    parameters=JoinParameters(
-                        federation=name + "-missing", federate_name="ManagedObserver",
+                rejected = submit(
+                    JoinCommand(
+                        action="federate.join",
+                        request_id="missing",
+                        target_id="native",
+                        parameters=JoinParameters(
+                            federation=name + "-missing",
+                            federate_name="ManagedObserver",
+                        ),
                     ),
-                ), "unavailable")
+                    "unavailable",
+                )
                 assert rejected.error is not None and rejected.error.effect == "none"
                 assert "FederationExecutionDoesNotExist" in rejected.error.message
                 assert commands.catalog().targets[0].state == "connected"
         assert {action for action, _ in calls} == {
-            "factory", "connect", "join", "resign", "disconnect", "poll",
+            "factory",
+            "connect",
+            "join",
+            "resign",
+            "disconnect",
+            "poll",
         }
         assert sum(action == "factory" for action, _ in calls) == 1
         assert len({thread for _, thread in calls}) == 1
         assert calls[0][1] != threading.get_ident()
-        assert [row["event_type"] for row in store.events() if row["family"] == "lifecycle"] == [
-            "session.connected", "federate.joined", "federate.resigned", "session.disconnected",
+        assert [
+            row["event_type"] for row in store.events() if row["family"] == "lifecycle"
+        ] == [
+            "session.connected",
+            "federate.joined",
+            "federate.resigned",
+            "session.disconnected",
         ]
     finally:
         commands.close()

@@ -34,7 +34,7 @@ namespace {
   return result;
 }
 
-[[nodiscard]] std::size_t paddingToBoundary(std::size_t encodedLength, unsigned int boundary) {
+[[nodiscard]] std::size_t paddingToBoundary(const std::size_t encodedLength, const unsigned int boundary) {
   std::size_t padding = 0U;
   if (!umbra::detail::composite2025::tryPaddingToBoundary(
           encodedLength, boundary, padding)) {

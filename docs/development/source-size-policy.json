@@ -1,11 +1,26 @@
 {
   "schema_version": 1,
   "policies": {
-    "production_cpp": { "soft": 3000, "hard": 10000 },
-    "header_cpp": { "soft": 3000, "hard": 10000 },
-    "test_cpp": { "soft": 3000, "hard": 10000 },
-    "documentation": { "soft": 3000, "hard": 6000 },
-    "cmake": { "soft": 3000, "hard": 10000 }
+    "production_cpp": {
+      "soft": 3000,
+      "hard": 10000
+    },
+    "header_cpp": {
+      "soft": 3000,
+      "hard": 10000
+    },
+    "test_cpp": {
+      "soft": 3000,
+      "hard": 10000
+    },
+    "documentation": {
+      "soft": 3000,
+      "hard": 6000
+    },
+    "cmake": {
+      "soft": 3000,
+      "hard": 10000
+    }
   },
   "legacy_exemptions": [
     {
@@ -52,33 +67,33 @@
       "max_expanded_lines": 1882,
       "reason": "Ratchet the retained shared registry-service type definitions from the former 2,903-line cross-domain header to 1,882 lines. MOM report, transportation-control, and TSO payload types now have dedicated ordinary headers with explicit consumers; preserve declaration order, layout, namespace, and the strict 2010/2025 boundary."
     },
-      {
-        "path": "cpp/src/internal/federation/process_federation_service.cpp",
+    {
+      "path": "cpp/src/internal/federation/process_federation_service.cpp",
       "max_lines": 290,
       "max_expanded_lines": 290,
       "reason": "Growth-guard the process-service dispatcher after all 11 former single-consumer fragments moved into cohesive ordinary .cpp units. It now has zero .inc dependencies and 275 physical/expanded lines. Keep future growth limited to cohesive dispatch logic; do not recreate single-consumer fragments. Preserve wire format, validation, protocol behavior, and strict 2010/2025 separation."
-      },
+    },
     {
       "path": "cpp/src/internal/federation/process_federation_service.hpp",
       "max_lines": 700,
       "reason": "The private process service API is now separated from its shared request/result/event and encode/decode protocol contract. The service declaration is 700 lines; keep it focused on service options and runtime API while client callbacks and codec modules consume the shared protocol header directly."
     },
-      {
-        "path": "cpp/src/internal/federation/federation_registry.hpp",
+    {
+      "path": "cpp/src/internal/federation/federation_registry.hpp",
       "max_lines": 3230,
       "reason": "Growth-guard the 3,230-line single-class declaration after folding its ten single-consumer class-scoped fragments into the header. Nested records and declarations remain class-owned; preserve declaration order, layout, access, and strict 2010/2025 separation. Do not restore .inc fragments or split solely for line count."
-      },
+    },
     {
       "path": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "max_lines": 2775,
       "max_expanded_lines": 2775,
       "reason": "Ratchet the retained ambassador translation unit from the 32,940-line monolith to its measured 2,775-line post-extraction size; 49 ordinary thematic .cpp units now own the service families. Preserve public API/ABI, strict 2010/2025 boundaries, and the no-single-consumer-.inc rule; keep remaining glue cohesive."
     },
-      {
-        "path": "cpp/src/internal/federation/process_federation_client.cpp",
-        "max_lines": 746,
-        "reason": "Ratchet the process-client core to its measured 746-line size after moving cohesive federation-management, time, declaration, object, region, and value service families into ordinary 2025 .cpp units. Keep request/transport lifecycle glue together and preserve the strict 2010/2025 protocol boundary."
-      },
+    {
+      "path": "cpp/src/internal/federation/process_federation_client.cpp",
+      "max_lines": 746,
+      "reason": "Ratchet the process-client core to its measured 746-line size after moving cohesive federation-management, time, declaration, object, region, and value service families into ordinary 2025 .cpp units. Keep request/transport lifecycle glue together and preserve the strict 2010/2025 protocol boundary."
+    },
     {
       "path": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
       "max_lines": 1050,
@@ -539,10 +554,6 @@
       "max_lines": 486,
       "reason": "Complete 2025 process service-report dimension-handle name-unknown file-destination case extracted from the mapped connection suite; reuse the shared private interaction runner."
     },
-
-
-
-
     {
       "path": "cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp",
       "max_lines": 80,
@@ -580,13 +591,23 @@
     },
     {
       "path": "docs/planning/ROADMAP.md",
-      "max_lines": 6221,
-      "reason": "Human roadmap snapshot; use bounded query cards rather than splitting historical prose during implementation work."
+      "max_lines": 6800,
+      "reason": "Human roadmap snapshot (6,643 lines after Markdown normalization); use bounded query cards rather than splitting the current snapshot. Treat 6,800 as a hard growth trigger and prune resolved entries before crossing it."
     },
     {
       "path": "docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md",
-      "max_lines": 17779,
-      "reason": "Historical Requirements Lab ledger; preserve append-only evidence and use the query tool for bounded access."
+      "max_lines": 18000,
+      "reason": "Growth-guard the historical Requirements Lab ledger (17,786 lines after Markdown spacing normalization); preserve append-only evidence and use the bounded query tool. Treat 18,000 as a hard split/index trigger."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-PROGRESS-LOG.md",
+      "max_lines": 12650,
+      "reason": "Append-only historical progress chronology (12,066 lines) with dated sections and stable heading links. Keep entries together for navigation; 12,650 is a hard extraction trigger. Before crossing it, split by date into indexed files and preserve legacy anchors."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md",
+      "max_lines": 10500,
+      "reason": "Append-only review evidence ledger (9,941 lines) with dated sections and stable heading links. Keep entries together for navigation; 10,500 is a hard extraction trigger. Before crossing it, split by date into indexed files and preserve legacy anchors."
     }
   ]
 }

@@ -24,7 +24,11 @@ source of requirements, or a claim of conformance.
   prove only their named scenarios. Internal registry tests are implementation
   evidence, not public-API or conformance evidence.
 
-For related but separate state machines, see the [2025 time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md), the [core attribute ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) and its [persistence/resignation companion](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md), and the [DDM/regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md). This guide points to those areas where their state affects a save image; it does not merge their rules into save/restore.
+For related but separate state machines, see the [2025 time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md), the
+[core attribute ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) and its
+[persistence/resignation companion](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md), and the
+[DDM/regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md). This guide points to those areas where their
+state affects a save image; it does not merge their rules into save/restore.
 
 ## The mental model
 
@@ -478,7 +482,7 @@ the process service's push-versus-poll choice are separate controls. The
 general frame path is documented in the [process endpoint
 guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#2-from-a-stream-frame-to-an-official-callback).
 
-#### Configured-process completion: participant success versus federation outcome
+### Configured-process completion: participant success versus federation outcome
 
 `federateSaveComplete()` reports that this participant finished its application
 save; it does not promise that the federation image was committed. Only the
@@ -503,15 +507,29 @@ event, then contrasts callback observation under `HLA_IMMEDIATE` and
 terminal notification before returning its correlated response
 ([notification path](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L417)).
 
-##### Pushed notification failure after save-state resolution
+#### Pushed notification failure after save-state resolution
 
 One additional configured-process failure edge is source-visible but is not
 covered by those success-path diagrams:
 
 - The registry resolves the federation save before the service routes its
-  terminal notifications ([registry transition](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L956)). If notification encoding or a pushed send fails, the handler returns an internal-error response ([service error branch](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L241)).
-- Pushed terminal frames are sent one recipient at a time ([send loop](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L469)); a later failure can therefore occur after earlier frames were already sent. No rollback of the resolved save state or prior frames is visible.
-- If the requesting member's terminal frame is already buffered, the client drains pushed events before the typed Save Complete method checks the response status ([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L614), [typed status check](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L222)). A returning `HLA_IMMEDIATE` callback may run before the ambassador maps the service failure to `RTIinternalError` ([public error mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L619)); under `HLA_EVOKED`, the task may remain queued for a later Evoke ([dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122), [evoked dispatch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156)).
+  terminal notifications
+  ([registry transition](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L956)). If notification
+  encoding or a pushed send fails, the handler returns an internal-error response
+  ([service error branch](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L241)).
+- Pushed terminal frames are sent one recipient at a time
+  ([send loop](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L469)); a later failure
+  can therefore occur after earlier frames were already sent. No rollback of the resolved save state or prior frames is
+  visible.
+- If the requesting member's terminal frame is already buffered, the client drains pushed events before the typed Save
+  Complete method checks the response status
+  ([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L614),
+  [typed status check](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L222)). A
+  returning `HLA_IMMEDIATE` callback may run before the ambassador maps the service failure to `RTIinternalError`
+  ([public error mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L619)); under
+  `HLA_EVOKED`, the task may remain queued for a later Evoke
+  ([dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
+  [evoked dispatch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156)).
 
 This is a composition of source paths, not a tested public outcome: no reviewed
 process test injects a partial notification-send failure. It does not establish
@@ -1422,7 +1440,6 @@ callback-time FQR frontier in its own context.
 
 This is one embedded `HLA_EVOKED` development-profile case, not a claim about
 process endpoints, durable restart, standard portability, or the 2010 stream.
-
 
 ### Worked case: queued timestamped object deletion returns after fresh-registry restore
 

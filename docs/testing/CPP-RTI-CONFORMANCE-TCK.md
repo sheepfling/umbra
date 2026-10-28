@@ -307,7 +307,8 @@ The initial green slice exercises:
   callback subscription gating;
 - standard MOM service reporting for successful ordinary `SendInteraction`,
   regional `SendInteractionWithRegions`,
-  `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`, `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`,
+  `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`,
+  `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`,
   `LocalDeleteObjectInstance`,
   and timestamped `SendInteraction` services, plus order/transportation lookup
   services and their failure reports, plus ordinary
@@ -333,13 +334,13 @@ The initial green slice exercises:
 - federate, object, attribute, interaction, and parameter handle lookups in both
   directions, pre-connect and pre-join lifecycle boundaries across the full
   public lookup family, standard invalid-name/handle boundaries, all public
-   handle decoder pre-connect and pre-join lifecycle boundaries, ordinary handle
-   encode/decode, direct-buffer and `VariableLengthData&` encoding, encoded-length
-   and truncated-buffer checks, copied-handle equality/hash/ordering stability,
-   valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent
-   `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage,
-   normalization stability, available-dimension boundaries, and order and
-   transportation handle lookups;
+  handle decoder pre-connect and pre-join lifecycle boundaries, ordinary handle
+  encode/decode, direct-buffer and `VariableLengthData&` encoding, encoded-length
+  and truncated-buffer checks, copied-handle equality/hash/ordering stability,
+  valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent
+  `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage,
+  normalization stability, available-dimension boundaries, and order and
+  transportation handle lookups;
 - ordinary object and interaction declarations, including pre-connect and
   pre-join lifecycle boundaries, active/passive subscription, withdrawal, and
   invalid-class/attribute failure boundaries;
@@ -1036,7 +1037,9 @@ official C++ API and standard library boundary.
 The transport-change duplicate-request negative case is asserted in evoked
 mode, where the request remains pending until its confirmation callback;
 immediate mode verifies the committed confirmation, query, and delivery state.
-The federation-list, federate-lookup, object-name-reservation, object-registration-discovery, Allow Relaxed DDM, multi-attribute, three-dimensional, and default-region regional object update, timestamped interaction, timestamped regional attribute/object-management cases, alternate-advance,
+The federation-list, federate-lookup, object-name-reservation, object-registration-discovery, Allow Relaxed DDM,
+multi-attribute, three-dimensional, and default-region regional object update, timestamped interaction, timestamped
+regional attribute/object-management cases, alternate-advance,
 Next Message Request, Query GALT/LITS, three FOM scenarios, thirty-two DDM scenarios,
 synchronization-point, asynchronous-delivery, save/restore interlock, and connection-loss
 scenarios are C++ adapter extensions.

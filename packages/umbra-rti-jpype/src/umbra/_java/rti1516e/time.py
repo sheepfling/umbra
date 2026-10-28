@@ -9,7 +9,8 @@ but values returned by this adapter retain the raw Java carrier so ``add``,
 from __future__ import annotations
 
 import math
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from hla.rti1516e import (
     HLAfloat64Interval,
@@ -30,7 +31,6 @@ from hla.rti1516e.exceptions import (
     exceptionForName,
 )
 
-
 _STANDARD_TIME_FACTORY_NAMES = {"HLAinteger64Time", "HLAfloat64Time"}
 
 
@@ -42,8 +42,10 @@ def _logical_time_bytes(
     buffer: bytes, offset: int, *, fixed_width: bool = True
 ) -> bytes:
     encoded = bytes(buffer)
-    if offset < 0 or offset > len(encoded) or (
-        fixed_width and offset > len(encoded) - 8
+    if (
+        offset < 0
+        or offset > len(encoded)
+        or (fixed_width and offset > len(encoded) - 8)
     ):
         raise exceptionForName(
             "CouldNotDecode",
@@ -60,7 +62,7 @@ class _JavaTimeMixin:
     __slots__ = ()
 
     _java_value: object
-    _factory: "Java2010TimeFactory"
+    _factory: Java2010TimeFactory
 
     def _raw(self) -> object:
         return self._java_value
@@ -112,7 +114,7 @@ class _JavaIntervalMixin:
     __slots__ = ()
 
     _java_value: object
-    _factory: "Java2010TimeFactory"
+    _factory: Java2010TimeFactory
 
     def _raw(self) -> object:
         return self._java_value
@@ -152,19 +154,19 @@ class _JavaIntervalMixin:
 
 
 class Java2010Integer64Time(_JavaTimeMixin, HLAinteger64Time):
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
 
 class Java2010Float64Time(_JavaTimeMixin, HLAfloat64Time):
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
 
 class Java2010Integer64Interval(_JavaIntervalMixin, HLAinteger64Interval):
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
 
 class Java2010Float64Interval(_JavaIntervalMixin, HLAfloat64Interval):
-    __slots__ = ("_java_value", "_factory")
+    __slots__ = ("_factory", "_java_value")
 
 
 class Java2010TimeFactory(LogicalTimeFactory):
@@ -174,7 +176,7 @@ class Java2010TimeFactory(LogicalTimeFactory):
         self._ambassador = ambassador
         self._runtime = runtime
         self._java_factory = java_factory
-        self._name = str(self._call(getattr(java_factory, "getName")))
+        self._name = str(self._call(java_factory.getName))
         if self._name == "HLAinteger64Time":
             self._time_type = Java2010Integer64Time
             self._interval_type = Java2010Integer64Interval
@@ -331,7 +333,7 @@ class Java2010TimeFactory(LogicalTimeFactory):
         raise TypeError(f"unsupported 2010 time carrier: {expected_type}")
 
     def from_java_query_return(self, value: object) -> TimeQueryReturn:
-        valid = bool(getattr(value, "timeIsValid"))
+        valid = bool(value.timeIsValid)
         raw_time = getattr(value, "time", None)
         return TimeQueryReturn(
             valid,
@@ -396,12 +398,14 @@ class Java2010TimeFactory(LogicalTimeFactory):
         return self._wrap_interval_if_standard(self._call(self._java_factory.makeZero))
 
     def makeEpsilon(self) -> LogicalTimeInterval:
-        return self._wrap_interval_if_standard(self._call(self._java_factory.makeEpsilon))
+        return self._wrap_interval_if_standard(
+            self._call(self._java_factory.makeEpsilon)
+        )
 
-    def makeLogicalTime(self, value: int | float) -> LogicalTime:
+    def makeLogicalTime(self, value: float) -> LogicalTime:
         return self.makeTime(value)
 
-    def makeTime(self, value: int | float) -> LogicalTime:
+    def makeTime(self, value: float) -> LogicalTime:
         method = getattr(self._java_factory, "makeTime", None)
         if method is None:
             method = getattr(self._java_factory, "makeLogicalTime", None)
@@ -416,10 +420,10 @@ class Java2010TimeFactory(LogicalTimeFactory):
             )
         return self._wrap_time_if_standard(self._call(method, value))
 
-    def makeLogicalTimeInterval(self, value: int | float) -> LogicalTimeInterval:
+    def makeLogicalTimeInterval(self, value: float) -> LogicalTimeInterval:
         return self.makeInterval(value)
 
-    def makeInterval(self, value: int | float) -> LogicalTimeInterval:
+    def makeInterval(self, value: float) -> LogicalTimeInterval:
         method = getattr(self._java_factory, "makeInterval", None)
         if method is None:
             method = getattr(self._java_factory, "makeLogicalTimeInterval", None)
@@ -431,9 +435,9 @@ class Java2010TimeFactory(LogicalTimeFactory):
 
 
 __all__ = [
-    "Java2010TimeFactory",
-    "Java2010Integer64Time",
+    "Java2010Float64Interval",
     "Java2010Float64Time",
     "Java2010Integer64Interval",
-    "Java2010Float64Interval",
+    "Java2010Integer64Time",
+    "Java2010TimeFactory",
 ]

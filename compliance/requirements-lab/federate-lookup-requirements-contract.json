@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This contract records a bounded IEEE 1516.1-2025 federate-designator identity invariant in Umbra's opt-in, non-installable development profile. Get Federate Handle remains limited to a currently joined federate name, while Get Federate Name retains the immutable name for a valid FederateHandle returned by Join after that federate resigns or is removed by the private Connection Lost path. The historical identity index is deliberately distinct from active-membership checks, so it does not authorize callbacks or any membership-sensitive service. This is source/test traceability only, not a service catalog entry, JUnit result, protected-review result, package claim, or conformance claim. Full restore/interoperability behavior remains separate work.",
+  "notes": "This contract records a bounded IEEE 1516.1-2025 federate-designator identity invariant in Umbra's opt-in, non-installable development profile. Get Federate Handle remains limited to a currently joined federate name, while Get Federate Name retains the immutable name for a valid FederateHandle returned by Join after that federate resigns or is removed by the private Connection Lost path. The historical identity index is deliberately distinct from active-membership checks, so it does not authorize callbacks or any membership-sensitive service. This is source/test traceability only, not a service catalog entry, JUnit result, protected-review result, package claim, or conformance claim. Full restore/interoperability behavior remains separate work. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-federate-designator-remains-valid-after-resignation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
-      "clause_id": "clause-4.11.4",
+      "clause_id": "clause-4.11",
       "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateNameFor",
       "tests": [
@@ -29,5 +29,18 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers federate and object-class lookup return arguments through MOM interaction"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "federate-lookup-requirements-contract.json",
+        "owned_id": "umbra-federate-designator-remains-valid-after-resignation",
+        "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
+        "previous_clause_id": "clause-4.11.4",
+        "reviewed_clause_id": "clause-4.11"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

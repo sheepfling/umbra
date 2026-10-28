@@ -35,63 +35,112 @@ class ObserverPlaytestTests(unittest.TestCase):
         return path
 
     def bundled_files(self) -> None:
-        for name in ("Start-Observer.cmd", "Start-Observer-Limited.cmd", "tools/observer_playtest.py",
-                     "packages/umbra-rti-observer/pyproject.toml",
-                     "packages/umbra-rti-observer/README.md",
-                     "packages/umbra-rti-observer/STORAGE.md",
-                     "packages/umbra-rti-observer/RECORDING.md",
-                     "packages/umbra-rti-observer/ALERTS.md",
-                     "packages/umbra-rti-observer/WORKSPACES.md",
-                     "packages/umbra-rti-observer/benchmarks/synthetic.json",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/__init__.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/mom.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/fom.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/capture.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/recording_models.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/recording_routes.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/alerting.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/alert_models.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/alert_routes.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_models.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_routes.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_schema.py",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/py.typed",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/static/observer-wire-v1.schema.json",
-                     "packages/umbra-rti-observer/src/umbra_rti_observer/static/workspace-v1.schema.json",
-                     "packages/umbra-rti-observer-ui/dist/index.html",
-                     "packages/umbra-rti-observer-ui/dist/assets/main.js"):
+        for name in (
+            "Start-Observer.cmd",
+            "Start-Observer-Limited.cmd",
+            "tools/observer_playtest.py",
+            "packages/umbra-rti-observer/pyproject.toml",
+            "packages/umbra-rti-observer/README.md",
+            "packages/umbra-rti-observer/STORAGE.md",
+            "packages/umbra-rti-observer/RECORDING.md",
+            "packages/umbra-rti-observer/ALERTS.md",
+            "packages/umbra-rti-observer/WORKSPACES.md",
+            "packages/umbra-rti-observer/benchmarks/synthetic.json",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/__init__.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/mom.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/fom.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/capture.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/recording_models.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/recording_routes.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/alerting.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/alert_models.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/alert_routes.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_models.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_routes.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_schema.py",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/py.typed",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/static/observer-wire-v1.schema.json",
+            "packages/umbra-rti-observer/src/umbra_rti_observer/static/workspace-v1.schema.json",
+            "packages/umbra-rti-observer-ui/dist/index.html",
+            "packages/umbra-rti-observer-ui/dist/assets/main.js",
+        ):
             self.write(name)
 
-    def test_bundle_is_small_scoped_and_does_not_include_local_environments(self) -> None:
+    def test_bundle_is_small_scoped_and_does_not_include_local_environments(
+        self,
+    ) -> None:
         self.bundled_files()
-        for name in ("packages/umbra-rti-observer/src/umbra_rti_observer/__pycache__/core.pyc",
-                     "packages/umbra-rti-observer/.venv/private.py",
-                     "packages/umbra-rti-observer-ui/node_modules/private.js",
-                     "src/private.cpp", ".cache/observer-playtest/venv/private.py"):
+        for name in (
+            "packages/umbra-rti-observer/src/umbra_rti_observer/__pycache__/core.pyc",
+            "packages/umbra-rti-observer/.venv/private.py",
+            "packages/umbra-rti-observer-ui/node_modules/private.js",
+            "src/private.cpp",
+            ".cache/observer-playtest/venv/private.py",
+        ):
             self.write(name)
         output = self.layout.root / "output with spaces" / "demo.zip"
         playtest.make_bundle(self.layout, output)
         with zipfile.ZipFile(output) as bundle:
             names = bundle.namelist()
-            self.assertTrue(all(name.startswith("umbra-observer-playtest/") for name in names))
+            self.assertTrue(
+                all(name.startswith("umbra-observer-playtest/") for name in names)
+            )
             self.assertTrue(any(name.endswith("dist/assets/main.js") for name in names))
             self.assertTrue(any(name.endswith("py.typed") for name in names))
-            self.assertTrue(any(name.endswith("observer-wire-v1.schema.json") for name in names))
-            self.assertTrue(any(name.endswith("workspace-v1.schema.json") for name in names))
-            for guide_name in ("STORAGE.md", "RECORDING.md", "ALERTS.md", "WORKSPACES.md", "benchmarks/synthetic.json"):
-                self.assertIn(f"umbra-observer-playtest/packages/umbra-rti-observer/{guide_name}", names)
-            for module in ("mom.py", "fom.py", "capture.py", "recording_models.py", "recording_routes.py", "alerting.py", "alert_models.py", "alert_routes.py",
-                           "workspace_models.py", "workspace_routes.py", "workspace_schema.py"):
-                self.assertTrue(any(name.endswith(f"umbra_rti_observer/{module}") for name in names))
-            self.assertFalse(any("private" in name or "__pycache__" in name for name in names))
+            self.assertTrue(
+                any(name.endswith("observer-wire-v1.schema.json") for name in names)
+            )
+            self.assertTrue(
+                any(name.endswith("workspace-v1.schema.json") for name in names)
+            )
+            for guide_name in (
+                "STORAGE.md",
+                "RECORDING.md",
+                "ALERTS.md",
+                "WORKSPACES.md",
+                "benchmarks/synthetic.json",
+            ):
+                self.assertIn(
+                    f"umbra-observer-playtest/packages/umbra-rti-observer/{guide_name}",
+                    names,
+                )
+            for module in (
+                "mom.py",
+                "fom.py",
+                "capture.py",
+                "recording_models.py",
+                "recording_routes.py",
+                "alerting.py",
+                "alert_models.py",
+                "alert_routes.py",
+                "workspace_models.py",
+                "workspace_routes.py",
+                "workspace_schema.py",
+            ):
+                self.assertTrue(
+                    any(name.endswith(f"umbra_rti_observer/{module}") for name in names)
+                )
+            self.assertFalse(
+                any("private" in name or "__pycache__" in name for name in names)
+            )
             guide = bundle.read("umbra-observer-playtest/README.txt").decode()
-            for text in ("Extract this ZIP", "MOM reports", "FOM browser", "Recordings", "Alerts"):
+            for text in (
+                "Extract this ZIP",
+                "MOM reports",
+                "FOM browser",
+                "Recordings",
+                "Alerts",
+            ):
                 self.assertIn(text, guide)
 
     def test_prebuilt_bundle_needs_no_node_or_ui_install(self) -> None:
         self.bundled_files()
-        with patch.object(playtest.shutil, "which", side_effect=AssertionError("must not look for Node")):
+        with patch.object(
+            playtest.shutil,
+            "which",
+            side_effect=AssertionError("must not look for Node"),
+        ):
             playtest.prepare_ui(self.layout)
 
     def test_incomplete_bundle_has_actionable_error(self) -> None:
@@ -119,13 +168,17 @@ class ObserverPlaytestTests(unittest.TestCase):
     def test_failed_setup_never_marks_python_ready(self) -> None:
         self.write("packages/umbra-rti-observer/pyproject.toml")
         with (
-            patch.object(playtest, "run_step", side_effect=playtest.PlaytestError("no network")),
+            patch.object(
+                playtest, "run_step", side_effect=playtest.PlaytestError("no network")
+            ),
             self.assertRaisesRegex(playtest.PlaytestError, "no network"),
         ):
             playtest.prepare_python(self.layout)
         self.assertFalse((self.layout.cache / "python-ready.txt").exists())
 
-    def test_python_install_is_isolated_and_paths_with_spaces_are_one_argument(self) -> None:
+    def test_python_install_is_isolated_and_paths_with_spaces_are_one_argument(
+        self,
+    ) -> None:
         self.write("packages/umbra-rti-observer/pyproject.toml")
         with patch.object(playtest, "run_step") as run:
             python = playtest.prepare_python(self.layout)
@@ -136,7 +189,9 @@ class ObserverPlaytestTests(unittest.TestCase):
         self.assertTrue((self.layout.cache / "python-ready.txt").is_file())
 
     def test_python_environment_does_not_inherit_source_overrides(self) -> None:
-        with patch.dict(os.environ, {"PYTHONPATH": "unrelated deps", "PYTHONHOME": "other Python"}):
+        with patch.dict(
+            os.environ, {"PYTHONPATH": "unrelated deps", "PYTHONHOME": "other Python"}
+        ):
             environment = playtest.clean_environment()
         self.assertNotIn("PYTHONPATH", environment)
         self.assertNotIn("PYTHONHOME", environment)
@@ -145,7 +200,9 @@ class ObserverPlaytestTests(unittest.TestCase):
         child = Mock()
         child.wait.side_effect = [KeyboardInterrupt(), 0]
         with patch.object(playtest.subprocess, "Popen", return_value=child):
-            self.assertEqual(playtest.forward_to_python(Path("new Python"), ["--check"]), 0)
+            self.assertEqual(
+                playtest.forward_to_python(Path("new Python"), ["--check"]), 0
+            )
         child.kill.assert_not_called()
         child.terminate.assert_not_called()
         self.assertEqual(child.wait.call_args.kwargs, {"timeout": 15})
@@ -155,7 +212,9 @@ class ObserverPlaytestTests(unittest.TestCase):
         child.wait.side_effect = [subprocess.TimeoutExpired("server", 0.5), 0]
         self.assertEqual(playtest.wait_for_exit(child), 0)
         self.assertEqual(child.wait.call_count, 2)
-        self.assertTrue(all(call.kwargs == {"timeout": 0.5} for call in child.wait.call_args_list))
+        self.assertTrue(
+            all(call.kwargs == {"timeout": 0.5} for call in child.wait.call_args_list)
+        )
 
     def test_partially_created_environment_retries_venv_setup(self) -> None:
         self.write("packages/umbra-rti-observer/pyproject.toml")
@@ -168,7 +227,9 @@ class ObserverPlaytestTests(unittest.TestCase):
             playtest.prepare_python(self.layout)
         self.assertIn("venv", run.call_args_list[0].args[0])
 
-    def test_busy_default_port_falls_back_without_touching_existing_listener(self) -> None:
+    def test_busy_default_port_falls_back_without_touching_existing_listener(
+        self,
+    ) -> None:
         with socket.socket() as existing:
             existing.bind((playtest.HOST, 0))
             existing.listen()
@@ -177,28 +238,45 @@ class ObserverPlaytestTests(unittest.TestCase):
                 port = playtest.choose_port(None)
             self.assertNotEqual(port, occupied)
             self.assertEqual(existing.getsockname()[1], occupied)
-            with self.assertRaisesRegex(playtest.PlaytestError, "No existing server was stopped"):
+            with self.assertRaisesRegex(
+                playtest.PlaytestError, "No existing server was stopped"
+            ):
                 playtest.choose_port(occupied)
 
     def test_zero_port_selects_a_free_port(self) -> None:
         self.assertGreater(playtest.choose_port(0), 0)
 
-    def test_health_requires_expected_service_contract_and_integer_event_count(self) -> None:
-        valid = {"service": "umbra-rti-observer", "contract_version": playtest.CONTRACT_VERSION,
-                 "event_count": 42}
-        for changes, expected in (({}, 42), ({"service": "other"}, None),
-                                  ({"contract_version": "other"}, None),
-                                  ({"event_count": True}, None), ({"event_count": -1}, None)):
+    def test_health_requires_expected_service_contract_and_integer_event_count(
+        self,
+    ) -> None:
+        valid = {
+            "service": "umbra-rti-observer",
+            "contract_version": playtest.CONTRACT_VERSION,
+            "event_count": 42,
+        }
+        for changes, expected in (
+            ({}, 42),
+            ({"service": "other"}, None),
+            ({"contract_version": "other"}, None),
+            ({"event_count": True}, None),
+            ({"event_count": -1}, None),
+        ):
             opener = Mock()
-            opener.open.return_value = io.BytesIO(json.dumps({**valid, **changes}).encode())
-            with patch.object(playtest.urllib.request, "build_opener", return_value=opener):
+            opener.open.return_value = io.BytesIO(
+                json.dumps({**valid, **changes}).encode()
+            )
+            with patch.object(
+                playtest.urllib.request, "build_opener", return_value=opener
+            ):
                 self.assertEqual(playtest.live_event_count("http://local"), expected)
 
     def test_readiness_waits_for_advancing_events_not_just_http(self) -> None:
         child = Mock()
         child.poll.return_value = None
         with (
-            patch.object(playtest, "live_event_count", side_effect=[None, 5, 5, 8]) as health,
+            patch.object(
+                playtest, "live_event_count", side_effect=[None, 5, 5, 8]
+            ) as health,
             patch.object(playtest.time, "sleep"),
         ):
             playtest.wait_until_ready(child, "http://local")
@@ -240,15 +318,23 @@ class ObserverPlaytestTests(unittest.TestCase):
             patch.object(playtest, "stop_server") as stop,
             patch.object(playtest.webbrowser, "open") as browser,
         ):
-            result = playtest.launch(self.layout, Path("python"), profile="limited",
-                                     port=None, no_browser=False, check=True)
+            result = playtest.launch(
+                self.layout,
+                Path("python"),
+                profile="limited",
+                port=None,
+                no_browser=False,
+                check=True,
+            )
         self.assertEqual(result, 0)
         arguments = spawn.call_args.args[0]
         self.assertIn("--showcase", arguments)
         self.assertIn("--enable-controls", arguments)
         self.assertIn("limited", arguments)
-        self.assertEqual(spawn.call_args.kwargs["env"]["UMBRA_OBSERVER_UI_DIST"],
-                         str(self.layout.ui / "dist"))
+        self.assertEqual(
+            spawn.call_args.kwargs["env"]["UMBRA_OBSERVER_UI_DIST"],
+            str(self.layout.ui / "dist"),
+        )
         browser.assert_not_called()
         stop.assert_called_once_with(child)
 
@@ -257,12 +343,20 @@ class ObserverPlaytestTests(unittest.TestCase):
         with (
             patch.object(playtest, "choose_port", return_value=9999),
             patch.object(playtest.subprocess, "Popen", return_value=child),
-            patch.object(playtest, "wait_until_ready", side_effect=playtest.PlaytestError("bad")),
+            patch.object(
+                playtest, "wait_until_ready", side_effect=playtest.PlaytestError("bad")
+            ),
             patch.object(playtest, "stop_server") as stop,
             self.assertRaisesRegex(playtest.PlaytestError, "bad"),
         ):
-            playtest.launch(self.layout, Path("python"), profile="umbra",
-                            port=None, no_browser=True, check=False)
+            playtest.launch(
+                self.layout,
+                Path("python"),
+                profile="umbra",
+                port=None,
+                no_browser=True,
+                check=False,
+            )
         stop.assert_called_once_with(child)
 
     def test_missing_browser_does_not_stop_healthy_server(self) -> None:
@@ -273,13 +367,23 @@ class ObserverPlaytestTests(unittest.TestCase):
             patch.object(playtest.subprocess, "Popen", return_value=child),
             patch.object(playtest, "wait_until_ready"),
             patch.object(playtest, "stop_server"),
-            patch.object(playtest.webbrowser, "open", side_effect=OSError("no browser")) as browser,
+            patch.object(
+                playtest.webbrowser, "open", side_effect=OSError("no browser")
+            ) as browser,
         ):
-            result = playtest.launch(self.layout, Path("python"), profile="umbra",
-                                    port=None, no_browser=False, check=False)
+            result = playtest.launch(
+                self.layout,
+                Path("python"),
+                profile="umbra",
+                port=None,
+                no_browser=False,
+                check=False,
+            )
         self.assertEqual(result, 0)
         browser.assert_called_once_with("http://127.0.0.1:9999/")
-        self.assertIn("Open http://127.0.0.1:9999/ in your browser.", self.output.getvalue())
+        self.assertIn(
+            "Open http://127.0.0.1:9999/ in your browser.", self.output.getvalue()
+        )
 
     def test_invalid_port_is_rejected_before_setup(self) -> None:
         with self.assertRaises(SystemExit):

@@ -458,7 +458,8 @@ TEST_CASE(
               std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
       REQUIRE(reflection.producingFederate == freshOwnerHandle);
       REQUIRE(reflection.sentRegionsSupplied);
-      REQUIRE(reflection.sentRegions == RegionHandleSet{sourceRegion});
+      REQUIRE(reflection.sentRegions.size() == 1U);
+      REQUIRE(reflection.sentRegions.begin()->isValid());
       REQUIRE(reflection.timeImplementationName == standard_hla::mom::integer64_time);
       REQUIRE(reflection.timeValue == L"9");
       REQUIRE(reflection.sentOrderType == TIMESTAMP);

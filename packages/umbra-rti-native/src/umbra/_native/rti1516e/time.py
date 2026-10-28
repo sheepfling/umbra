@@ -17,7 +17,6 @@ from hla.rti1516e.exceptions import exceptionForName
 
 from . import _native_2010
 
-
 _LOGICAL_TIME_ENCODED_LENGTH = 8
 
 
@@ -26,9 +25,7 @@ def _call_native(function: Any, *args: object) -> Any:
         return function(*args)
     except _native_2010.Native2010RtiError as error:
         name, separator, message = str(error).partition(": ")
-        raise exceptionForName(
-            name, message if separator else name, error
-        ) from error
+        raise exceptionForName(name, message if separator else name, error) from error
 
 
 def _logical_time_bytes(buffer: bytes, offset: int) -> bytes:
@@ -43,7 +40,7 @@ def _logical_time_bytes(buffer: bytes, offset: int) -> bytes:
 
 class _NativeTimeMixin:
     _implementation: Any
-    _factory: "Native2010TimeFactory"
+    _factory: Native2010TimeFactory
 
     def _require_time(self, value: object) -> LogicalTime:
         if not isinstance(value, LogicalTime):
@@ -63,23 +60,21 @@ class _NativeTimeMixin:
             )
         return value
 
-    def add(self, value: object) -> "Native2010Integer64Time":
+    def add(self, value: object) -> Native2010Integer64Time:
         interval = self._require_interval(value)
         result = self._factory.makeTime(self.getTime())
         _call_native(result._implementation.add_interval, interval.getInterval())
         return result
 
-    def subtract(self, value: object) -> "Native2010Integer64Time":
+    def subtract(self, value: object) -> Native2010Integer64Time:
         interval = self._require_interval(value)
         result = self._factory.makeTime(self.getTime())
         _call_native(result._implementation.subtract_interval, interval.getInterval())
         return result
 
-    def distance(self, value: object) -> "Native2010Integer64Interval":
+    def distance(self, value: object) -> Native2010Integer64Interval:
         other = self._require_time(value)
-        return self._factory.makeInterval(
-            self.getTime() - other.getTime()
-        )
+        return self._factory.makeInterval(self.getTime() - other.getTime())
 
     def compareTo(self, value: object) -> int:
         other = self._require_time(value)
@@ -88,9 +83,9 @@ class _NativeTimeMixin:
 
 class _NativeIntervalMixin:
     _implementation: Any
-    _factory: "Native2010TimeFactory"
+    _factory: Native2010TimeFactory
 
-    def _require_interval(self, value: object) -> "Native2010Integer64Interval":
+    def _require_interval(self, value: object) -> Native2010Integer64Interval:
         if not isinstance(value, LogicalTimeInterval):
             raise TypeError("interval must be LogicalTimeInterval")
         if value.implementationName() != self.implementationName():
@@ -99,13 +94,13 @@ class _NativeIntervalMixin:
             )
         return value  # type: ignore[return-value]
 
-    def add(self, value: object) -> "Native2010Integer64Interval":
+    def add(self, value: object) -> Native2010Integer64Interval:
         other = self._require_interval(value)
         result = self._factory.makeInterval(self.getInterval())
         _call_native(result._implementation.add_interval, other.getInterval())
         return result
 
-    def subtract(self, value: object) -> "Native2010Integer64Interval":
+    def subtract(self, value: object) -> Native2010Integer64Interval:
         other = self._require_interval(value)
         result = self._factory.makeInterval(self.getInterval())
         _call_native(result._implementation.subtract_interval, other.getInterval())
@@ -118,7 +113,7 @@ class _NativeIntervalMixin:
 
 
 class Native2010Integer64Time(_NativeTimeMixin, HLAinteger64Time):
-    __slots__ = ("_implementation", "_factory")
+    __slots__ = ("_factory", "_implementation")
 
     def getTime(self) -> int:
         return int(_call_native(self._implementation.get_time))
@@ -128,7 +123,7 @@ class Native2010Integer64Time(_NativeTimeMixin, HLAinteger64Time):
 
 
 class Native2010Integer64Interval(_NativeIntervalMixin, HLAinteger64Interval):
-    __slots__ = ("_implementation", "_factory")
+    __slots__ = ("_factory", "_implementation")
 
     def getInterval(self) -> int:
         return int(_call_native(self._implementation.get_interval))
@@ -138,7 +133,7 @@ class Native2010Integer64Interval(_NativeIntervalMixin, HLAinteger64Interval):
 
 
 class Native2010Float64Time(_NativeTimeMixin, HLAfloat64Time):
-    __slots__ = ("_implementation", "_factory")
+    __slots__ = ("_factory", "_implementation")
 
     def getTime(self) -> float:
         return float(_call_native(self._implementation.get_time))
@@ -148,7 +143,7 @@ class Native2010Float64Time(_NativeTimeMixin, HLAfloat64Time):
 
 
 class Native2010Float64Interval(_NativeIntervalMixin, HLAfloat64Interval):
-    __slots__ = ("_implementation", "_factory")
+    __slots__ = ("_factory", "_implementation")
 
     def getInterval(self) -> float:
         return float(_call_native(self._implementation.get_interval))
@@ -161,7 +156,9 @@ class Native2010TimeFactory(LogicalTimeFactory):
     """Provider-owned integer time factory backed by official C++ classes."""
 
     def __init__(self, implementation: Any | None = None) -> None:
-        self._implementation = implementation or _native_2010.Native2010Integer64TimeFactory()
+        self._implementation = (
+            implementation or _native_2010.Native2010Integer64TimeFactory()
+        )
         self._name = str(_call_native(self._implementation.name))
 
     def _wrap_time(self, implementation: Any) -> Native2010Integer64Time:
@@ -199,7 +196,9 @@ class Native2010TimeFactory(LogicalTimeFactory):
 
     def decodeTime(self, buffer: bytes, offset: int = 0) -> LogicalTime:
         return self._wrap_time(
-            _call_native(self._implementation.decode_time, _logical_time_bytes(buffer, offset))
+            _call_native(
+                self._implementation.decode_time, _logical_time_bytes(buffer, offset)
+            )
         )
 
     def decodeInterval(self, buffer: bytes, offset: int = 0) -> LogicalTimeInterval:
@@ -249,7 +248,9 @@ class Native2010Float64TimeFactory(LogicalTimeFactory):
     """Provider-owned floating-point time factory backed by official C++."""
 
     def __init__(self, implementation: Any | None = None) -> None:
-        self._implementation = implementation or _native_2010.Native2010Float64TimeFactory()
+        self._implementation = (
+            implementation or _native_2010.Native2010Float64TimeFactory()
+        )
         self._name = str(_call_native(self._implementation.name))
 
     def _wrap_time(self, implementation: Any) -> Native2010Float64Time:
@@ -287,7 +288,9 @@ class Native2010Float64TimeFactory(LogicalTimeFactory):
 
     def decodeTime(self, buffer: bytes, offset: int = 0) -> LogicalTime:
         return self._wrap_time(
-            _call_native(self._implementation.decode_time, _logical_time_bytes(buffer, offset))
+            _call_native(
+                self._implementation.decode_time, _logical_time_bytes(buffer, offset)
+            )
         )
 
     def decodeInterval(self, buffer: bytes, offset: int = 0) -> LogicalTimeInterval:
@@ -322,7 +325,9 @@ class Native2010Float64TimeFactory(LogicalTimeFactory):
         return self.makeTime(value)
 
     def makeTime(self, value: float) -> Native2010Float64Time:
-        return self._wrap_time(_call_native(self._implementation.make_time, float(value)))
+        return self._wrap_time(
+            _call_native(self._implementation.make_time, float(value))
+        )
 
     def makeLogicalTimeInterval(self, value: float) -> Native2010Float64Interval:
         return self.makeInterval(value)
@@ -334,10 +339,10 @@ class Native2010Float64TimeFactory(LogicalTimeFactory):
 
 
 __all__ = [
-    "Native2010TimeFactory",
-    "Native2010Integer64Time",
-    "Native2010Integer64Interval",
-    "Native2010Float64TimeFactory",
-    "Native2010Float64Time",
     "Native2010Float64Interval",
+    "Native2010Float64Time",
+    "Native2010Float64TimeFactory",
+    "Native2010Integer64Interval",
+    "Native2010Integer64Time",
+    "Native2010TimeFactory",
 ]

@@ -76,11 +76,16 @@
     {
       "name": "mingw-catch2",
       "displayName": "MinGW Catch2",
-      "description": "Native behavior tests; downloads Catch2 when it is not already available.",
+      "description": "Full native behavior tests with the embedded FOM-services profile and shared RTI libraries.",
       "inherits": "mingw-base",
       "binaryDir": "${sourceDir}/out/mgw/catch2",
       "cacheVariables": {
-        "UMBRA_FETCH_CATCH2": "ON"
+        "UMBRA_FETCH_CATCH2": "ON",
+        "UMBRA_BUILD_SHARED_LIBRARIES": "ON",
+        "UMBRA_EXPORT_INTERNAL_TEST_SYMBOLS": "ON",
+        "UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR": "ON",
+        "UMBRA_FETCH_LIBXML2": "ON",
+        "UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT": "ON"
       }
     },
     {
@@ -91,6 +96,17 @@
       "binaryDir": "${sourceDir}/out/mgw/shared",
       "cacheVariables": {
         "UMBRA_BUILD_SHARED_LIBRARIES": "ON"
+      }
+    },
+    {
+      "name": "mingw-focused-full-debug-static",
+      "displayName": "MinGW focused full-debug static",
+      "description": "Explicit single-target investigation with full debug symbols and static RTI libraries; not a routine all-tests build.",
+      "inherits": "mingw-catch2",
+      "binaryDir": "${sourceDir}/out/d",
+      "cacheVariables": {
+        "UMBRA_BUILD_SHARED_LIBRARIES": "OFF",
+        "UMBRA_FULL_DEBUG_TEST_EXECUTABLES": "ON"
       }
     },
     {
@@ -120,56 +136,64 @@
       "name": "windows-default-debug",
       "configurePreset": "windows-default",
       "configuration": "Debug",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "windows-catch2-debug",
       "configurePreset": "windows-catch2",
       "configuration": "Debug",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "windows-fom-debug",
       "configurePreset": "windows-fom",
       "configuration": "Debug",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "windows-fom-services-debug",
       "configurePreset": "windows-fom-services",
       "configuration": "Debug",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "mingw-default-debug",
       "configurePreset": "mingw-default",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "mingw-catch2-debug",
       "configurePreset": "mingw-catch2",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "mingw-shared-debug",
       "configurePreset": "mingw-shared",
-      "jobs": 1
+      "jobs": 4
+    },
+    {
+      "name": "mingw-focused-full-debug-static",
+      "configurePreset": "mingw-focused-full-debug-static",
+      "jobs": 4
     },
     {
       "name": "mingw-fom-debug",
       "configurePreset": "mingw-fom",
-      "jobs": 1
+      "jobs": 4
     },
     {
       "name": "mingw-fom-services-debug",
       "configurePreset": "mingw-fom-services",
-      "jobs": 1
+      "jobs": 4
     }
   ],
   "testPresets": [
     {
       "name": "windows-default-debug",
       "configurePreset": "windows-default",
+      "execution": {
+        "jobs": 4
+      },
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
@@ -178,6 +202,9 @@
     {
       "name": "windows-catch2-debug",
       "configurePreset": "windows-catch2",
+      "execution": {
+        "jobs": 4
+      },
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
@@ -186,6 +213,9 @@
     {
       "name": "windows-fom-debug",
       "configurePreset": "windows-fom",
+      "execution": {
+        "jobs": 4
+      },
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
@@ -194,6 +224,9 @@
     {
       "name": "windows-fom-services-debug",
       "configurePreset": "windows-fom-services",
+      "execution": {
+        "jobs": 4
+      },
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
@@ -202,6 +235,9 @@
     {
       "name": "mingw-default-debug",
       "configurePreset": "mingw-default",
+      "execution": {
+        "jobs": 4
+      },
       "output": {
         "outputOnFailure": true
       }
@@ -209,6 +245,14 @@
     {
       "name": "mingw-catch2-debug",
       "configurePreset": "mingw-catch2",
+      "execution": {
+        "jobs": 4
+      },
+      "filter": {
+        "exclude": {
+          "name": "_NOT_BUILT-"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }
@@ -216,6 +260,24 @@
     {
       "name": "mingw-shared-debug",
       "configurePreset": "mingw-shared",
+      "execution": {
+        "jobs": 4
+      },
+      "filter": {
+        "exclude": {
+          "name": "_NOT_BUILT-"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-focused-full-debug-static",
+      "configurePreset": "mingw-focused-full-debug-static",
+      "execution": {
+        "jobs": 4
+      },
       "output": {
         "outputOnFailure": true
       }
@@ -223,6 +285,14 @@
     {
       "name": "mingw-fom-debug",
       "configurePreset": "mingw-fom",
+      "execution": {
+        "jobs": 4
+      },
+      "filter": {
+        "exclude": {
+          "name": "_NOT_BUILT-"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }
@@ -230,6 +300,14 @@
     {
       "name": "mingw-fom-services-debug",
       "configurePreset": "mingw-fom-services",
+      "execution": {
+        "jobs": 4
+      },
+      "filter": {
+        "exclude": {
+          "name": "_NOT_BUILT-"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }

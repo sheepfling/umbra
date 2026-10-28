@@ -29,6 +29,10 @@ work you are doing.
   connect Java/JNI or Python bindings.
 - [Style and review](development/STYLE-AND-REVIEW.md) — source style,
   review expectations, and automated baseline checks.
+- [Alphus linting guide](development/ALPHUS-ADOPTION.md) — full-repository
+  Python and C++ linting through a local, report-only profile.
+- [Python development workflow](python/PYTHON-DEVELOPMENT-WORKFLOW.md) — which
+  Python checks to run at each stage and how often to run the full profile.
 - [CI contract](development/CI.md) — provider-neutral local and pipeline
   entry point.
 
@@ -94,6 +98,7 @@ corpus intake backlog.
 [python/](python/) contains the Python public-contract, native-provider,
 encoding, factory, coverage, conformance, and Java-provider adapter documents.
 
+- [Development workflow](python/PYTHON-DEVELOPMENT-WORKFLOW.md)
 - [Bindings design](python/PYTHON-BINDINGS-DESIGN.md)
 - [API coverage plan](python/PYTHON-API-COVERAGE-PLAN.md)
 - [Conformance testing](python/PYTHON-CONFORMANCE-TESTING.md)

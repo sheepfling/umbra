@@ -326,7 +326,8 @@ TEST_CASE(
                 responseTagBytes + sizeof(responseTagBytes)));
     REQUIRE(reflection.producingFederate == freshOwnerHandle);
     REQUIRE(reflection.sentRegionsSupplied);
-    REQUIRE(reflection.sentRegions == RegionHandleSet{sourceOwnerRegion});
+    REQUIRE(reflection.sentRegions.size() == 1U);
+    REQUIRE(reflection.sentRegions.begin()->isValid());
     REQUIRE(reflection.timeValue == L"2");
     REQUIRE(reflection.sentOrderType == TIMESTAMP);
     REQUIRE(reflection.receivedOrderType == TIMESTAMP);

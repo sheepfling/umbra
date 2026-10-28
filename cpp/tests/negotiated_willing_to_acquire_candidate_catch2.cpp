@@ -153,6 +153,7 @@ TEST_CASE(
     "Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
     "[integration][development-profile][ownership-management][callbacks]"
     "[negotiated-willing-to-acquire]"
+    "[lane.negotiated-willing-to-acquire]"
     "[rti.service.negotiated-attribute-ownership-divestiture]"
     "[rti.service.attribute-ownership-acquisition-if-available]"
     "[rti.service.confirm-divestiture]"

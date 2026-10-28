@@ -2662,6 +2662,9 @@ void scenarioTimestampedInteractions(Options const& options, rti::CallbackModel 
   require(secondImmediate.at(1).retraction == copyBytes(secondRetraction.encode()),
           "second timestamped interaction callback returned the wrong retraction handle");
 
+  // TAR's inclusive message set must deliver an equal-target TSO callback
+  // before the matching Time Advance Grant.
+  constrained.recorder().clearCallbackOrder();
   constrained.rtiAmbassador().timeAdvanceRequest(*secondConstrainedTime);
   publisher.rtiAmbassador().timeAdvanceRequest(*secondTime);
   waitFor(
@@ -2691,6 +2694,10 @@ void scenarioTimestampedInteractions(Options const& options, rti::CallbackModel 
           "time-constrained timestamped interaction callback omitted its retraction handle");
   require(constrainedInteractions.front().retraction == copyBytes(secondRetraction.encode()),
           "time-constrained timestamped interaction callback returned the wrong retraction handle");
+  require(
+      constrained.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "grant"},
+      "TAR granted before delivering the equal-target timestamped interaction");
 
   auto const immediateRetractions = immediate.recorder().retractions();
   auto const constrainedRetractions = constrained.recorder().retractions();
@@ -2829,11 +2836,27 @@ void scenarioTimestampedInteractionRegulationReenable(
       receiver,
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
             receiver.recorder().timedInteractions().size() >= 1U;
       },
       options,
-      "timestamped interaction regulation re-enable delivery");
+      "timestamped interaction regulation re-enable GALT boundary");
+  require(
+      receiver.recorder().timeAdvanceGrants().empty(),
+      "timestamped interaction regulation re-enable granted at the GALT boundary");
+  require(
+      receiver.recorder().callbackOrder() == std::vector<std::string>{"interaction"},
+      "timestamped interaction regulation re-enable did not deliver before the safe grant");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*changedLookaheadTime);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped interaction regulation re-enable safe grant");
   auto const interactions = receiver.recorder().timedInteractions();
   require(
       interactions.size() == 1U &&
@@ -2869,8 +2892,10 @@ void scenarioTimestampedInteractionRegulationReenable(
       interaction.retractionPresent && interaction.retraction == copyBytes(retraction.encode()),
       "timestamped interaction regulation re-enable omitted the retraction handle");
   require(
-      publisher.recorder().timeAdvanceGrants().front().encoded == encodeTime(*publisherTarget),
-      "timestamped interaction regulation re-enable returned the wrong producer grant");
+      publisher.recorder().timeAdvanceGrants().front().encoded == encodeTime(*publisherTarget) &&
+          publisher.recorder().timeAdvanceGrants().back().encoded ==
+              encodeTime(*changedLookaheadTime),
+      "timestamped interaction regulation re-enable returned the wrong producer grants");
   require(
       receiver.recorder().timeAdvanceGrants().front().encoded == encodeTime(*updateTime),
       "timestamped interaction regulation re-enable returned the wrong receiver grant");
@@ -13933,11 +13958,27 @@ void scenarioTimestampedRegionalInteractionRegulationReenable(
       receiver,
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
             receiver.recorder().timedInteractions().size() >= 1U;
       },
       options,
-      "timestamped regional interaction regulation re-enable delivery");
+      "timestamped regional interaction regulation re-enable GALT boundary");
+  require(
+      receiver.recorder().timeAdvanceGrants().empty(),
+      "timestamped regional interaction regulation re-enable granted at the GALT boundary");
+  require(
+      receiver.recorder().callbackOrder() == std::vector<std::string>{"interaction"},
+      "timestamped regional interaction regulation re-enable did not deliver before the safe grant");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*changedLookaheadTime);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped regional interaction regulation re-enable safe grant");
 
   auto const interactions = receiver.recorder().timedInteractions();
   require(
@@ -13981,8 +14022,10 @@ void scenarioTimestampedRegionalInteractionRegulationReenable(
       "timestamped regional interaction regulation re-enable omitted the retraction handle");
   require(
       publisher.recorder().timeAdvanceGrants().front().encoded ==
-          encodeTime(*publisherTarget),
-      "timestamped regional interaction regulation re-enable returned the wrong producer grant");
+              encodeTime(*publisherTarget) &&
+          publisher.recorder().timeAdvanceGrants().back().encoded ==
+              encodeTime(*changedLookaheadTime),
+      "timestamped regional interaction regulation re-enable returned the wrong producer grants");
   require(
       receiver.recorder().timeAdvanceGrants().front().encoded ==
           encodeTime(*interactionTime),
@@ -19354,6 +19397,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-update-contract",
       "cpp-tck.timestamped-object-deletion-contract",
       "cpp-tck.alternate-time-advances-contract",
+      "cpp-tck.non-regulating-federate-peer-advance-independence-contract",
       "cpp-tck.support-services-contract",
       "cpp-tck.transport-order-contract",
       "cpp-tck.relevance-advisories-contract",
@@ -19380,10 +19424,14 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.directed-retraction-immediate-only-contract",
       "cpp-tck.ownership-cancellation-idle",
       "cpp-tck.ownership-cancellation-idle-contract",
+      "cpp-tck.acquisition-publication-guard-unavailable",
+      "cpp-tck.acquisition-publication-guard-unavailable-contract",
       "cpp-tck.ownership-denial-idle",
       "cpp-tck.ownership-denial-idle-contract",
       "cpp-tck.ownership-acquisition-cancellation-denial-race",
       "cpp-tck.ownership-acquisition-cancellation-denial-race-contract",
+      "cpp-tck.ownership-acquisition-cancellation-mixed-replies",
+      "cpp-tck.ownership-acquisition-cancellation-mixed-replies-contract",
       "cpp-tck.ownership-denial-query",
       "cpp-tck.ownership-denial-query-contract",
       "cpp-tck.ownership-transition-query",
@@ -19509,6 +19557,8 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.malformed-inputs",
       "cpp-tck.malformed-inputs-contract",
       "java-tck.federation-membership",
+      "cpp-tck.application-multiple-federates-across-executions",
+      "cpp-tck.application-multiple-federates-across-executions-contract",
       "cpp-tck.unnamed-join-overload",
       "cpp-tck.unnamed-join-overload-contract",
       "cpp-tck.federation-list-services",
@@ -19724,6 +19774,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-mixed-advances-contract",
       "cpp-tck.timestamped-interaction-tara-equal-boundary-contract",
       "cpp-tck.timestamped-interaction-tar-equal-boundary-contract",
+      "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery-contract",
       "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract",
       "cpp-tck.timestamped-interaction-flush-queue-future-input-contract",
@@ -19758,6 +19809,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-tara-equal-boundary",
       "cpp-tck.timestamped-interaction-tara-strict-timestamp-cutoff",
       "cpp-tck.timestamped-interaction-tar-equal-boundary",
+      "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery",
       "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff",
       "cpp-tck.timestamped-interaction-flush-queue-future-input",
@@ -19850,6 +19902,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-object-deletion-mixed-advances",
       "cpp-tck.timestamped-object-deletion-mixed-advances-contract",
       "cpp-tck.alternate-time-advances",
+      "cpp-tck.non-regulating-federate-peer-advance-independence",
       "cpp-tck.timestamped-directed-alternate-advances",
       "cpp-tck.timestamped-directed-alternate-advances-contract",
       "cpp-tck.next-message-request",
@@ -19888,6 +19941,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.disable-time-regulation-send-order-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso",
       "cpp-tck.time-constrained-enable-retains-queued-tso-contract",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction-contract",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion-contract",
       "cpp-tck.time-constrained-enable-retains-queued-tso-attribute",
       "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract",
       "cpp-tck.time-constrained-enable-receive-order-boundary",
@@ -19902,6 +19959,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.time-constrained-disable-queued-directed-to-ro-contract",
       "cpp-tck.time-regulation-implicit-advance",
       "cpp-tck.time-regulation-implicit-advance-contract",
+      "cpp-tck.time-regulation-enable-tso-cutoff",
+      "cpp-tck.time-regulation-enable-tso-cutoff-contract",
       "cpp-tck.time-bounds-queries",
       "cpp-tck.time-bounds-queries-contract",
       "cpp-tck.query-lits-source-resignation",
@@ -19909,6 +19968,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-directed-interactions",
       "cpp-tck.region-lifecycle",
       "cpp-tck.region-lifecycle-contract",
+      "cpp-tck.region-commit-complete-ranges",
+      "cpp-tck.regional-object-attribute-dimension-subset",
       "cpp-tck.regional-unpublish-region-release",
       "cpp-tck.regional-unpublish-region-release-contract",
       "cpp-tck.regional-object-update",
@@ -20968,6 +21029,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.alternate-time-advances-contract") {
     return scenarioAlternateTimeAdvancesContract;
   }
+  if (id == "cpp-tck.non-regulating-federate-peer-advance-independence-contract") {
+    return scenarioNonRegulatingFederatePeerAdvanceIndependenceContract;
+  }
   if (id == "cpp-tck.support-services-contract") {
     return scenarioSupportServicesContract;
   }
@@ -21335,6 +21399,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioMalformedInputsContract;
   }
   if (id == "java-tck.federation-membership") return scenarioFederationLifecycle;
+  if (id == "cpp-tck.application-multiple-federates-across-executions") {
+    return scenarioApplicationMultipleFederatesAcrossExecutions;
+  }
+  if (id == "cpp-tck.application-multiple-federates-across-executions-contract") {
+    return scenarioApplicationMultipleFederatesAcrossExecutionsContract;
+  }
   if (id == "cpp-tck.unnamed-join-overload") return scenarioUnnamedJoinOverload;
   if (id == "cpp-tck.unnamed-join-overload-contract") {
     return scenarioUnnamedJoinOverloadContract;
@@ -21985,6 +22055,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract") {
     return scenarioTimestampedInteractionTarEqualBoundaryContract;
   }
+  if (id == "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery-contract") {
+    return scenarioTimestampedInteractionTarInclusiveTargetDeliveryContract;
+  }
   if (id == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract") {
     return scenarioTimestampedInteractionTarStrictTimestampCutoffContract;
   }
@@ -22089,6 +22162,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary") {
     return scenarioTimestampedInteractionTarEqualBoundary;
+  }
+  if (id == "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery") {
+    return scenarioTimestampedInteractionTarInclusiveTargetDelivery;
   }
   if (id == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff") {
     return scenarioTimestampedInteractionTarStrictTimestampCutoff;
@@ -22372,6 +22448,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.alternate-time-advances") {
     return scenarioAlternateTimeAdvances;
   }
+  if (id == "cpp-tck.non-regulating-federate-peer-advance-independence") {
+    return scenarioNonRegulatingFederatePeerAdvanceIndependence;
+  }
+  if (id == "cpp-tck.non-regulating-federate-peer-advance-independence-contract") {
+    return scenarioNonRegulatingFederatePeerAdvanceIndependenceContract;
+  }
   if (id == "cpp-tck.timestamped-directed-alternate-advances") {
     return scenarioTimestampedDirectedAlternateAdvances;
   }
@@ -22498,6 +22580,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-contract") {
     return scenarioTimeConstrainedEnableRetainsQueuedTsoContract;
   }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteraction;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction-contract") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteractionContract;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletion;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion-contract") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletionContract;
+  }
   if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute") {
     return scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute;
   }
@@ -22540,6 +22634,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.time-regulation-implicit-advance-contract") {
     return scenarioTimeRegulationImplicitAdvanceContract;
   }
+  if (id == "cpp-tck.time-regulation-enable-tso-cutoff") {
+    return scenarioTimeRegulationEnableTsoCutoff;
+  }
+  if (id == "cpp-tck.time-regulation-enable-tso-cutoff-contract") {
+    return scenarioTimeRegulationEnableTsoCutoffContract;
+  }
   if (id == "cpp-tck.time-bounds-queries") {
     return scenarioTimeBoundsQueries;
   }
@@ -22560,6 +22660,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.region-lifecycle") return scenarioRegionLifecycle;
   if (id == "cpp-tck.region-lifecycle-contract") return scenarioRegionLifecycleContract;
+  if (id == "cpp-tck.region-commit-complete-ranges") {
+    return scenarioRegionCommitCompleteRanges;
+  }
+  if (id == "cpp-tck.regional-object-attribute-dimension-subset") {
+    return scenarioRegionalObjectAttributeDimensionSubset;
+  }
   if (id == "cpp-tck.regional-unpublish-region-release") {
     return scenarioRegionalUnpublishRegionRelease;
   }
@@ -23306,6 +23412,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.ownership-cancellation-idle-contract") {
     return scenarioOwnershipCancellationIdleContract;
   }
+  if (id == "cpp-tck.acquisition-publication-guard-unavailable") {
+    return scenarioAcquisitionPublicationGuardUnavailable;
+  }
+  if (id == "cpp-tck.acquisition-publication-guard-unavailable-contract") {
+    return scenarioAcquisitionPublicationGuardUnavailableContract;
+  }
   if (id == "cpp-tck.ownership-denial-idle") {
     return scenarioOwnershipDenialIdle;
   }
@@ -23317,6 +23429,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ownership-acquisition-cancellation-denial-race-contract") {
     return scenarioOwnershipAcquisitionCancellationDenialRaceContract;
+  }
+  if (id == "cpp-tck.ownership-acquisition-cancellation-mixed-replies") {
+    return scenarioOwnershipAcquisitionCancellationMixedReplies;
+  }
+  if (id == "cpp-tck.ownership-acquisition-cancellation-mixed-replies-contract") {
+    return scenarioOwnershipAcquisitionCancellationMixedRepliesContract;
   }
   if (id == "cpp-tck.ownership-denial-query") {
     return scenarioOwnershipDenialQuery;
@@ -24558,6 +24676,8 @@ int run(Options const& options) {
         result.message = "requires an adapter-supplied switch-declaration FOM";
       } else if (scenario == "cpp-tck.region-lifecycle" ||
                  scenario == "cpp-tck.region-lifecycle-contract" ||
+                 scenario == "cpp-tck.region-commit-complete-ranges" ||
+                 scenario == "cpp-tck.regional-object-attribute-dimension-subset" ||
                  scenario == "cpp-tck.regional-unpublish-region-release" ||
                  scenario == "cpp-tck.regional-unpublish-region-release-contract" ||
                  scenario == "cpp-tck.regional-object-update" ||
@@ -24697,6 +24817,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-mixed-advances-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tara-equal-boundary-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract" ||
+                  scenario == "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-flush-queue-future-input-contract" ||
                   scenario == "cpp-tck.fqr-postgrant-lower-tso-retraction-contract" ||
@@ -24720,6 +24841,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-mixed-advances" ||
                   scenario == "cpp-tck.timestamped-interaction-tara-equal-boundary" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-equal-boundary" ||
+                  scenario == "cpp-tck.timestamped-interaction-tar-inclusive-target-delivery" ||
                   scenario == "cpp-tck.timestamped-interaction-flush-queue-future-input" ||
                   scenario == "cpp-tck.fqr-postgrant-lower-tso-retraction" ||
                   scenario == "cpp-tck.fqg-postgrant-delivery-cutoff" ||
@@ -24800,6 +24922,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-object-deletion-retraction-joined-owners" ||
                   scenario == "cpp-tck.timestamped-object-deletion-mixed-advances" ||
                   scenario == "cpp-tck.alternate-time-advances" ||
+                  scenario == "cpp-tck.non-regulating-federate-peer-advance-independence" ||
                   scenario == "cpp-tck.alternate-time-advances-contract" ||
                   scenario == "cpp-tck.timestamped-directed-alternate-advances" ||
                   scenario == "cpp-tck.timestamped-directed-alternate-advances-contract" ||
@@ -24835,6 +24958,10 @@ int run(Options const& options) {
                   scenario == "cpp-tck.disable-time-regulation-send-order-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-directed-interaction-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-object-deletion-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute" ||
                   scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-receive-order-boundary" ||
@@ -24847,6 +24974,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.time-constrained-disable-queued-deletion-to-ro-contract" ||
                   scenario == "cpp-tck.time-regulation-implicit-advance" ||
                   scenario == "cpp-tck.time-regulation-implicit-advance-contract" ||
+                  scenario == "cpp-tck.time-regulation-enable-tso-cutoff" ||
+                  scenario == "cpp-tck.time-regulation-enable-tso-cutoff-contract" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt-contract" ||
                   scenario == "cpp-tck.tar-acknowledged-tso-galt-release" ||
@@ -24918,6 +25047,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-mixed-advances-contract" ||
                   scenario == "cpp-tck.alternate-time-advances-contract" ||
+                  scenario == "cpp-tck.non-regulating-federate-peer-advance-independence-contract" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion" ||

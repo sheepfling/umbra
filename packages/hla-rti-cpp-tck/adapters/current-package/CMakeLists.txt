@@ -122,6 +122,8 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "dimension-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml"
   "dimension-duplicate-equal-unique=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml"
   "dimension-duplicate-conflicting-upper-bound=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
+  "dimension-default-range-outside=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-default-range-outside-tck.xml"
+  "dimension-default-range-bounded=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-default-range-bounded-tck.xml"
   "synchronization-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml"
   "synchronization-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml"
   "synchronization-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml"
@@ -436,8 +438,9 @@ math(EXPR _tck_last_scenario_index "${_tck_scenario_count} - 1")
 set(_tck_test_scenarios)
 set(_tck_candidate_scenarios)
 foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
-  string(JSON _tck_scenario GET "${_tck_catalog_json}" scenarios
-    ${_tck_scenario_index} id)
+  string(JSON _tck_entry GET "${_tck_catalog_json}" scenarios
+    ${_tck_scenario_index})
+  string(JSON _tck_scenario GET "${_tck_entry}" id)
   if(HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER AND
      NOT _tck_scenario IN_LIST HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
     continue()
@@ -445,10 +448,8 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   if(_tck_scenario IN_LIST HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS)
     continue()
   endif()
-  string(JSON _tck_status GET "${_tck_catalog_json}" scenarios
-    ${_tck_scenario_index} default_status)
-  string(JSON _tck_promotion GET "${_tck_catalog_json}" scenarios
-    ${_tck_scenario_index} promotion)
+  string(JSON _tck_status GET "${_tck_entry}" default_status)
+  string(JSON _tck_promotion GET "${_tck_entry}" promotion)
   if(_tck_promotion STREQUAL "candidate")
     list(APPEND _tck_candidate_scenarios "${_tck_scenario}")
   endif()
@@ -579,9 +580,13 @@ set(_tck_common_arguments
   --fom-update-rate "${HLA_RTI_TCK_ADAPTER_FOM_UPDATE_RATE}"
   --rate-designator "${HLA_RTI_TCK_ADAPTER_RATE_DESIGNATOR}"
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
-  --unsupported-time-implementation "${HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")
+if(NOT HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION STREQUAL "")
+  list(APPEND _tck_common_arguments
+    --unsupported-time-implementation
+    "${HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TIME_IMPLEMENTATION}")
+endif()
 list(APPEND _tck_common_arguments
   --service-report-directory "${HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY}")
 foreach(_additional_fom IN LISTS HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES)
@@ -637,6 +642,8 @@ set(HLA_RTI_TCK_TEST_COMMON_ARGUMENTS "${_tck_common_arguments}" CACHE STRING
 set(HLA_RTI_TCK_TEST_TIMEOUT_SECONDS 120 CACHE STRING
   "CTest timeout for each portable TCK scenario" FORCE)
 
+set(HLA_RTI_TCK_TEST_BUDGET_SCRIPT
+  "${_repository_root}/cmake/test_executable_budget.cmake")
 add_subdirectory(
   "${_repository_root}/packages/hla-rti-cpp-tck"
   "${CMAKE_CURRENT_BINARY_DIR}/portable-tck")
@@ -651,4 +658,26 @@ if(BUILD_TESTING)
   add_test(NAME hla_rti_cpp_tck_installed COMMAND ${_tck_command})
   set_tests_properties(hla_rti_cpp_tck_installed PROPERTIES
     LABELS "portable-cpp-tck-suite;installed-package")
+
+  if(WIN32)
+    get_target_property(_installed_rti_location umbra::rti IMPORTED_LOCATION_DEBUG)
+    if(NOT _installed_rti_location)
+      get_target_property(_installed_rti_location umbra::rti IMPORTED_LOCATION)
+    endif()
+    if(_installed_rti_location MATCHES "\\.dll$")
+      get_filename_component(_installed_runtime_directory
+        "${_installed_rti_location}" DIRECTORY)
+      get_property(_portable_tck_tests
+        DIRECTORY "${_repository_root}/packages/hla-rti-cpp-tck" PROPERTY TESTS)
+      foreach(_portable_tck_test IN LISTS _portable_tck_tests)
+        set_property(TEST "${_portable_tck_test}"
+          DIRECTORY "${_repository_root}/packages/hla-rti-cpp-tck"
+          APPEND PROPERTY ENVIRONMENT_MODIFICATION
+          "PATH=path_list_prepend:${_installed_runtime_directory}")
+      endforeach()
+      set_property(TEST hla_rti_cpp_tck_installed APPEND PROPERTY
+        ENVIRONMENT_MODIFICATION
+        "PATH=path_list_prepend:${_installed_runtime_directory}")
+    endif()
+  endif()
 endif()

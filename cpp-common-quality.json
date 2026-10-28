@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "source": {
+    "exclude": [
+      ".git/*",
+      "**/.git/**",
+      "out/*",
+      "**/out/**",
+      "build/*",
+      "**/build/**",
+      "**/.cache/**",
+      "**/.codex_pydeps/**",
+      "**/.pybind-build-deps/**",
+      "**/.venv*/**",
+      "**/venv/**",
+      "**/node_modules/**",
+      "third_party/*",
+      "**/vendor/**",
+      "vendor/*",
+      "**/third_party/**"
+    ],
+    "min_files": 1,
+    "soft_lines": 20000,
+    "hard_lines": 30000,
+    "hard_bytes": 4194304,
+    "single_consumer_header_lines": 3000,
+    "legacy": {},
+    "fragment_exceptions": {}
+  }
+}

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -90,11 +91,11 @@ TEST_CASE(
   publisher->createFederationExecution(federationName, fom, L"HLAinteger64Time");
   publisher->joinFederationExecution(L"package-validity-publisher", L"publisher", federationName);
   auto const publisherBase = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
   auto const publisherChild = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const publisherBaseAttribute = publisher->getAttributeHandle(publisherBase, L"ReliableBaseA");
-  auto const publisherChildAttribute = publisher->getAttributeHandle(publisherChild, L"ReliableChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
+  auto const publisherBaseAttribute = publisher->getAttributeHandle(publisherBase, umbra::test::hla::wide::fixture::reliable_base_a);
+  auto const publisherChildAttribute = publisher->getAttributeHandle(publisherChild, umbra::test::hla::wide::fixture::reliable_child);
   REQUIRE(publisherBase.isValid());
   REQUIRE(publisherChild.isValid());
   REQUIRE(publisherBaseAttribute.isValid());
@@ -115,11 +116,11 @@ TEST_CASE(
 
   subscriber->joinFederationExecution(L"package-validity-subscriber", L"subscriber", federationName);
   auto const subscriberBase = subscriber->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase");
+      umbra::test::hla::wide::fom::attribute_fixture_base);
   auto const subscriberChild = subscriber->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const subscriberBaseAttribute = subscriber->getAttributeHandle(subscriberBase, L"ReliableBaseA");
-  auto const subscriberChildAttribute = subscriber->getAttributeHandle(subscriberChild, L"ReliableChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
+  auto const subscriberBaseAttribute = subscriber->getAttributeHandle(subscriberBase, umbra::test::hla::wide::fixture::reliable_base_a);
+  auto const subscriberChildAttribute = subscriber->getAttributeHandle(subscriberChild, umbra::test::hla::wide::fixture::reliable_child);
   REQUIRE(subscriberBase.isValid());
   REQUIRE(subscriberChild.isValid());
   REQUIRE(subscriberBaseAttribute.isValid());

@@ -167,7 +167,8 @@ TEST_CASE(
   REQUIRE(reflection.transportationType == owner->getTransportationTypeHandle(L"HLAreliable"));
   REQUIRE(reflection.producingFederate == ownerHandle);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(reflection.sentRegions.begin()->isValid());
   REQUIRE(reflection.timeValue == L"2");
   REQUIRE(reflection.sentOrderType == TIMESTAMP);
   REQUIRE(reflection.receivedOrderType == TIMESTAMP);

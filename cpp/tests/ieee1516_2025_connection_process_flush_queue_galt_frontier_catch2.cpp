@@ -581,16 +581,37 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+        for (unsigned int attempt = 0U; attempt != 17U; ++attempt) {
+          bool expectedServed = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok) {
+                        throw std::runtime_error(
+                            "The process Flush Queue GALT server rejected a callback poll.");
+                      }
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(
+                              request.operation)) + ".");
+                    }
+                    expectedServed = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (expectedServed) {
+            return;
+          }
         }
+        throw std::runtime_error(
+            std::string(description) + " was preceded by too many callback polls.");
       };
       // Success reports are synchronous requests on the same connection.
       // Drain each before the fixed-order server switches federates.
@@ -600,6 +621,41 @@ TEST_CASE(
             session, handler,
             TransportServiceOperation::report_successful_void_service_invocation,
             "The process Flush Queue GALT server lost a successful void service report.");
+      };
+      auto serveTsoAcknowledgement = [&](ProcessTransportSession& session,
+                                         auto const& handler) {
+        for (unsigned int attempt = 0U; attempt != 9U; ++attempt) {
+          bool acknowledged = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation !=
+                            TransportServiceOperation::receive_interaction &&
+                        request.operation !=
+                            TransportServiceOperation::acknowledge_tso_delivery) {
+                      throw std::runtime_error(
+                          "The process Flush Queue GALT server expected a callback poll or TSO acknowledgement. Received operation " +
+                          std::to_string(static_cast<std::uint16_t>(
+                              request.operation)) + ".");
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          "The process Flush Queue GALT server rejected callback delivery progress.");
+                    }
+                    acknowledged = request.operation ==
+                        TransportServiceOperation::acknowledge_tso_delivery;
+                    return response;
+                  })) {
+            throw std::runtime_error(
+                "The process Flush Queue GALT server lost callback delivery progress.");
+          }
+          if (acknowledged) {
+            return;
+          }
+        }
+        throw std::runtime_error(
+            "The process Flush Queue GALT server received too many polls without a TSO acknowledgement.");
       };
       serveExpected(
           sender,
@@ -686,11 +742,7 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::flush_queue_request,
           "The process Flush Queue GALT server lost first FQR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::acknowledge_tso_delivery,
-          "The process Flush Queue GALT server lost first TSO acknowledgement.");
+      serveTsoAcknowledgement(receiver, receiverHandler);
       serveExpected(
           receiver,
           receiverHandler,

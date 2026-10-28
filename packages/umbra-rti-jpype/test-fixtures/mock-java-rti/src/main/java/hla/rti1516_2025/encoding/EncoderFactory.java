@@ -193,6 +193,7 @@ public interface EncoderFactory {
       hla.rti1516_2025.RTIambassador ambassador,
       hla.rti1516_2025.LogicalTimeInterval value);
 
-   HLAextendableVariantRecord createHLAextendableVariantRecord(
+    HLAextendableVariantRecord<DataElement>
+       createHLAextendableVariantRecord(
       DataElement discriminantPrototype);
 }

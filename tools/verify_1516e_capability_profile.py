@@ -12,15 +12,25 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
-from typing import Any
-
+from pathlib import Path
+from typing import Literal, TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_JAVA_CATALOG = ROOT / "compliance" / "catalogs" / "java-2010-tck-scenario-catalog.json"
-DEFAULT_PYTHON_CATALOG = ROOT / "compliance" / "catalogs" / "python-2010-tck-scenario-catalog.json"
-_MODES = {"run", "pass", "unsupported", "skip", "not applicable", "not_applicable", "not-applicable"}
+DEFAULT_JAVA_CATALOG = (
+    ROOT / "compliance" / "catalogs" / "java-2010-tck-scenario-catalog.json"
+)
+DEFAULT_PYTHON_CATALOG = (
+    ROOT / "compliance" / "catalogs" / "python-2010-tck-scenario-catalog.json"
+)
+
+
+class CapabilityProfileReport(TypedDict):
+    standard: Literal["IEEE 1516.1-2010"]
+    profile: str
+    status: Literal["fail", "pass"]
+    entries: int
+    findings: list[str]
 
 
 def _load_catalog(path: Path) -> set[str]:
@@ -33,7 +43,7 @@ def _load_catalog(path: Path) -> set[str]:
     identifiers: set[str] = set()
     for scenario in scenarios:
         if not isinstance(scenario, dict) or not isinstance(scenario.get("id"), str):
-            raise ValueError(f"{path} contains a scenario without a string id")
+            raise TypeError(f"{path} contains a scenario without a string id")
         identifier = scenario["id"]
         if identifier in identifiers:
             raise ValueError(f"{path} contains duplicate scenario id {identifier!r}")
@@ -57,7 +67,9 @@ def _parse_profile(path: Path) -> tuple[dict[str, str], list[str]]:
     findings: list[str] = []
     if not path.is_file():
         return {}, [f"capability profile does not exist: {path.resolve()}"]
-    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for line_number, raw_line in enumerate(
+        path.read_text(encoding="utf-8").splitlines(), 1
+    ):
         line = raw_line.strip()
         if not line or line.startswith(("#", ";")):
             continue
@@ -84,7 +96,7 @@ def verify(
     *,
     java_catalog: Path = DEFAULT_JAVA_CATALOG,
     python_catalog: Path = DEFAULT_PYTHON_CATALOG,
-) -> dict[str, Any]:
+) -> CapabilityProfileReport:
     """Return a machine-readable profile validation result."""
 
     findings: list[str] = []
@@ -105,7 +117,9 @@ def verify(
     findings.extend(parse_findings)
     for identifier in sorted(profile):
         if identifier not in known:
-            findings.append(f"unknown scenario id {identifier!r}; update the 2010 catalog before using it")
+            findings.append(
+                f"unknown scenario id {identifier!r}; update the 2010 catalog before using it"
+            )
     return {
         "standard": "IEEE 1516.1-2010",
         "profile": str(profile_path.resolve()),
@@ -120,9 +134,13 @@ def main() -> int:
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--java-catalog", type=Path, default=DEFAULT_JAVA_CATALOG)
     parser.add_argument("--python-catalog", type=Path, default=DEFAULT_PYTHON_CATALOG)
-    parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    parser.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     args = parser.parse_args()
-    result = verify(args.profile, java_catalog=args.java_catalog, python_catalog=args.python_catalog)
+    result = verify(
+        args.profile, java_catalog=args.java_catalog, python_catalog=args.python_catalog
+    )
     if args.json:
         print(json.dumps(result, indent=2))
     elif result["findings"]:

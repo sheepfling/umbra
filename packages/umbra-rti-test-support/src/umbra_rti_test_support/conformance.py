@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from hla.rti1516_2025.auth import HLAnoCredentials
 from hla.rti1516_2025.core import (
     AdditionalSettingsResultCode,
     CallbackModel,
@@ -15,13 +16,16 @@ from hla.rti1516_2025.core import (
     FederateAmbassador,
     FederationExecutionInformationSet,
     FederationExecutionMemberInformationSet,
-    RtiFactory,
-    RtiConfiguration,
     RTIambassador,
+    RtiConfiguration,
+    RtiFactory,
 )
-from hla.rti1516_2025.auth import HLAnoCredentials
-from hla.rti1516_2025.exceptions import AlreadyConnected, NotConnected, UnsupportedCallbackModel
 from hla.rti1516_2025.encoding import EncoderFactory
+from hla.rti1516_2025.exceptions import (
+    AlreadyConnected,
+    NotConnected,
+    UnsupportedCallbackModel,
+)
 
 
 class ProviderBindingParityConformanceMixin(ABC):
@@ -97,7 +101,9 @@ class ConnectionFoundationConformanceMixin(ABC):
         for callback_model in CallbackModel:
             with self.subTest(callback_model=callback_model):
                 ambassador = self.make_factory().getRtiAmbassador()
-                result = ambassador.connect(self.make_federate_ambassador(), callback_model)
+                result = ambassador.connect(
+                    self.make_federate_ambassador(), callback_model
+                )
 
                 self.assert_valid_configuration_result(result)
                 ambassador.disconnect()
@@ -112,7 +118,9 @@ class ConnectionFoundationConformanceMixin(ABC):
 
         ambassador.disconnect()
 
-    def test_disconnect_without_a_connection_is_translated_to_not_connected(self) -> None:
+    def test_disconnect_without_a_connection_is_translated_to_not_connected(
+        self,
+    ) -> None:
         ambassador = self.make_factory().getRtiAmbassador()
 
         with self.assertRaises(NotConnected):
@@ -171,7 +179,9 @@ class ConnectionOverloadConformanceMixin(ABC):
         self.assertIsInstance(result, ConfigurationResult)
         self.assertIsInstance(result.configurationUsed, bool)
         self.assertIsInstance(result.addressUsed, bool)
-        self.assertIn(result.additionalSettingsResultCode, tuple(AdditionalSettingsResultCode))
+        self.assertIn(
+            result.additionalSettingsResultCode, tuple(AdditionalSettingsResultCode)
+        )
 
     def test_each_standard_connect_overload_returns_a_standard_result(self) -> None:
         configuration = (
@@ -232,7 +242,9 @@ class FederationExecutionDiscoveryConformanceMixin(ABC):
                 if callback_model is CallbackModel.HLA_EVOKED:
                     ambassador.evokeMultipleCallbacks(0.0, 0.1)
                 self.assertEqual(len(callback.reports), 1)
-                self.assertIsInstance(callback.reports[0], FederationExecutionInformationSet)
+                self.assertIsInstance(
+                    callback.reports[0], FederationExecutionInformationSet
+                )
                 ambassador.disconnect()
 
 
@@ -245,12 +257,18 @@ class FederationExecutionMemberDiscoveryConformanceMixin(ABC):
 
     def test_list_federation_execution_members_requires_a_connection(self) -> None:
         with self.assertRaises(NotConnected):
-            self.make_factory().getRtiAmbassador().listFederationExecutionMembers("missing")
+            self.make_factory().getRtiAmbassador().listFederationExecutionMembers(
+                "missing"
+            )
 
-    def test_missing_federation_execution_is_reported_through_the_callback_model(self) -> None:
+    def test_missing_federation_execution_is_reported_through_the_callback_model(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
-                self.member_reports: list[tuple[str, FederationExecutionMemberInformationSet]] = []
+                self.member_reports: list[
+                    tuple[str, FederationExecutionMemberInformationSet]
+                ] = []
                 self.missing_federations: list[str] = []
 
             def reportFederationExecutionMembers(
@@ -260,7 +278,9 @@ class FederationExecutionMemberDiscoveryConformanceMixin(ABC):
             ) -> None:
                 self.member_reports.append((federationExecutionName, report))
 
-            def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+            def reportFederationExecutionDoesNotExist(
+                self, federationExecutionName: str
+            ) -> None:
                 self.missing_federations.append(federationExecutionName)
 
         for callback_model in CallbackModel:

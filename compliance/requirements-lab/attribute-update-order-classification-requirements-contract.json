@@ -3,54 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This portable C++ TCK slice maps ordinary and timestamped Update Attribute Values calls to their corresponding reflection callbacks. It witnesses selected §8.1.4 order-determination factors, the optional timestamp for one time-regulating sender's TSO-preferred attribute update, and the effect of changing sender time status while timestamp and preferred order stay fixed. It does not cover every sending service or the full order matrix. This is adapter-backed test evidence, not a conformance claim.",
-  "canonical_standard_section_overrides": [
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.1.4",
-      "canonical_clause_id": "clause-8.1.3",
-      "source_heading": "8.1.3 Messages",
-      "source_path": "content/clauses/08-time-management-page-180.tex",
-      "known_issue_id": "RL-330"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.1.4",
-      "canonical_clause_id": "clause-8.1.3",
-      "source_heading": "8.1.3 Messages",
-      "source_path": "content/clauses/08-time-management-page-180.tex",
-      "known_issue_id": "RL-330"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l27-7",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.1.4",
-      "canonical_clause_id": "clause-8.1.3",
-      "source_heading": "8.1.3 Messages",
-      "source_path": "content/clauses/08-time-management-page-180.tex",
-      "known_issue_id": "RL-330"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l39-11",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.1.4",
-      "canonical_clause_id": "clause-8.1.3",
-      "source_heading": "8.1.3 Messages",
-      "source_path": "content/clauses/08-time-management-page-180.tex",
-      "known_issue_id": "RL-330"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l45-13",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-8.1.4",
-      "canonical_clause_id": "clause-8.1.3",
-      "source_heading": "8.1.3 Messages",
-      "source_path": "content/clauses/08-time-management-page-180.tex",
-      "known_issue_id": "RL-330"
-    }
-  ],
+  "notes": "This portable C++ TCK slice maps ordinary and timestamped Update Attribute Values calls to their corresponding reflection callbacks. It witnesses selected \u00a78.1.4 order-determination factors, the optional timestamp for one time-regulating sender's TSO-preferred attribute update, and the effect of changing sender time status while timestamp and preferred order stay fixed. It does not cover every sending service or the full order matrix. This is adapter-backed test evidence, not a conformance claim. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "standard-attribute-update-message-order-classification",
@@ -110,5 +63,56 @@
       ],
       "scope_note": "The fixed timestamp, selected TimeStamp-preferred attribute order, receiver time-constrained status, and toggled sender time-regulating status jointly determine the observed RECEIVE/RECEIVE versus TIMESTAMP/TIMESTAMP classification. Evidence is limited to this attribute-service combination and is not a full message-order matrix or conformance claim."
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [],
+    "retired_overrides": [
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.1.4",
+        "canonical_clause_id": "clause-8.1.3",
+        "source_heading": "8.1.3 Messages",
+        "source_path": "content/clauses/08-time-management-page-180.tex",
+        "known_issue_id": "RL-330"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.1.4",
+        "canonical_clause_id": "clause-8.1.3",
+        "source_heading": "8.1.3 Messages",
+        "source_path": "content/clauses/08-time-management-page-180.tex",
+        "known_issue_id": "RL-330"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l27-7",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.1.4",
+        "canonical_clause_id": "clause-8.1.3",
+        "source_heading": "8.1.3 Messages",
+        "source_path": "content/clauses/08-time-management-page-180.tex",
+        "known_issue_id": "RL-330"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l39-11",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.1.4",
+        "canonical_clause_id": "clause-8.1.3",
+        "source_heading": "8.1.3 Messages",
+        "source_path": "content/clauses/08-time-management-page-180.tex",
+        "known_issue_id": "RL-330"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l45-13",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-8.1.4",
+        "canonical_clause_id": "clause-8.1.3",
+        "source_heading": "8.1.3 Messages",
+        "source_path": "content/clauses/08-time-management-page-180.tex",
+        "known_issue_id": "RL-330"
+      }
+    ]
+  }
 }

@@ -1,4 +1,5 @@
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
+#include "hla_test_names.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 #include "internal/federation/federation_state_image.hpp"
 
@@ -81,9 +82,9 @@ TEST_CASE(
         L"saved-region-receiver", L"participant", federationName));
 
     objectClass = publisher->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    attribute = publisher->getAttributeHandle(objectClass, L"ProviderAValue");
-    dimension = publisher->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    attribute = publisher->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    dimension = publisher->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     REQUIRE(objectClass.isValid());
     REQUIRE(attribute.isValid());
     REQUIRE(dimension.isValid());
@@ -220,9 +221,9 @@ TEST_CASE(
 
     auto const restoredObject = objectInstance;
     objectClass = publisher->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    attribute = publisher->getAttributeHandle(objectClass, L"ProviderAValue");
-    dimension = receiver->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    attribute = publisher->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    dimension = receiver->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     auto const receiverRegion = receiver->createRegion(DimensionHandleSet{dimension});
     REQUIRE_NOTHROW(receiver->setRangeBounds(
         receiverRegion, dimension, RangeBounds(5UL, 7UL)));

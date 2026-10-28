@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, TypeVar
+from collections.abc import Iterator
+from typing import TypeVar
 
-from ..byte_types import BytesLike, WritableBytes, copy_bytes
-
+from ..byte_types import BytesLike, copy_bytes
 
 _ScalarSelf = TypeVar("_ScalarSelf", bound="_ScalarDataElement")
 
@@ -14,12 +14,18 @@ _ScalarSelf = TypeVar("_ScalarSelf", bound="_ScalarDataElement")
 class ByteWrapper:
     """Small Python equivalent of the standard Java ``ByteWrapper`` helper."""
 
-    def __init__(self, buffer: BytesLike | int = b"", offset: int = 0, length: int | None = None) -> None:
+    def __init__(
+        self, buffer: BytesLike | int = b"", offset: int = 0, length: int | None = None
+    ) -> None:
         if isinstance(buffer, int):
             buffer = bytes(buffer)
-        self.reassign(buffer, offset, len(buffer) - offset if length is None else length)
+        self.reassign(
+            buffer, offset, len(buffer) - offset if length is None else length
+        )
 
-    def reassign(self, buffer: BytesLike, offset: int = 0, length: int | None = None) -> None:
+    def reassign(
+        self, buffer: BytesLike, offset: int = 0, length: int | None = None
+    ) -> None:
         data = buffer if isinstance(buffer, bytearray) else bytearray(buffer)
         length = len(data) - offset if length is None else length
         if offset < 0 or length < 0 or offset + length > len(data):
@@ -36,7 +42,9 @@ class ByteWrapper:
         """Read a big-endian signed 32-bit integer, like the Java helper."""
 
         self.verify(4)
-        value = int.from_bytes(self._buffer[self._pos : self._pos + 4], "big", signed=True)
+        value = int.from_bytes(
+            self._buffer[self._pos : self._pos + 4], "big", signed=True
+        )
         self._pos += 4
         return value
 
@@ -44,7 +52,9 @@ class ByteWrapper:
         """Write a big-endian signed 32-bit integer, like the Java helper."""
 
         self.verify(4)
-        self._buffer[self._pos : self._pos + 4] = int(value).to_bytes(4, "big", signed=True)
+        self._buffer[self._pos : self._pos + 4] = int(value).to_bytes(
+            4, "big", signed=True
+        )
         self._pos += 4
 
     def remaining(self) -> int:
@@ -68,7 +78,9 @@ class ByteWrapper:
         if length < 0 or self._pos + length > self._limit:
             raise IndexError("ByteWrapper does not contain enough data")
 
-    def get(self, destination: int | bytearray | memoryview | None = None) -> int | bytes | None:
+    def get(
+        self, destination: int | bytearray | memoryview | None = None
+    ) -> int | bytes | None:
         """Implement Java's ``get()``, ``get(byte[])`` and a byte-count helper.
 
         Java overloads are represented by one Python method.  A no-argument
@@ -127,7 +139,7 @@ class ByteWrapper:
         while (self._pos - self._offset) % alignment:
             self.advance(1)
 
-    def slice(self, length: int | None = None) -> "ByteWrapper":
+    def slice(self, length: int | None = None) -> ByteWrapper:
         if length is None:
             # Match the Java no-argument overload: it starts at the current
             # position and extends to the end of the backing array, rather
@@ -289,7 +301,7 @@ class HLAopaqueData(DataElement, ABC):
     def setValue(self, value: BytesLike) -> None:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[int]:
+    def __iter__(self) -> Iterator[int]:
         for index in range(self.size()):
             yield self.get(index)
 
@@ -311,7 +323,7 @@ class HLAvariableArray(DataElement, ABC):
     def get(self, index: int) -> DataElement:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[DataElement]:
+    def __iter__(self) -> Iterator[DataElement]:
         for index in range(self.size()):
             yield self.get(index)
 
@@ -325,7 +337,7 @@ class HLAfixedArray(DataElement, ABC):
     def get(self, index: int) -> DataElement:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[DataElement]:
+    def __iter__(self) -> Iterator[DataElement]:
         for index in range(self.size()):
             yield self.get(index)
 
@@ -343,7 +355,7 @@ class HLAfixedRecord(DataElement, ABC):
     def get(self, index: int) -> DataElement:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[DataElement]:
+    def __iter__(self) -> Iterator[DataElement]:
         for index in range(self.size()):
             yield self.get(index)
 
@@ -399,23 +411,25 @@ class EncoderFactory(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAfixedArray(self, factory_or_element: object | None = None, *elements_or_size: object) -> HLAfixedArray:
+    def createHLAfixedArray(
+        self, factory_or_element: object | None = None, *elements_or_size: object
+    ) -> HLAfixedArray:
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAfloat32BE(self, value: float | int | None = None) -> HLAfloat32BE:
+    def createHLAfloat32BE(self, value: float | None = None) -> HLAfloat32BE:
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAfloat32LE(self, value: float | int | None = None) -> HLAfloat32LE:
+    def createHLAfloat32LE(self, value: float | None = None) -> HLAfloat32LE:
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAfloat64BE(self, value: float | int | None = None) -> HLAfloat64BE:
+    def createHLAfloat64BE(self, value: float | None = None) -> HLAfloat64BE:
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAfloat64LE(self, value: float | int | None = None) -> HLAfloat64LE:
+    def createHLAfloat64LE(self, value: float | None = None) -> HLAfloat64LE:
         raise NotImplementedError
 
     @abstractmethod
@@ -467,17 +481,41 @@ class EncoderFactory(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def createHLAvariableArray(self, factory: DataElementFactory, *elements: DataElement) -> HLAvariableArray:
+    def createHLAvariableArray(
+        self, factory: DataElementFactory, *elements: DataElement
+    ) -> HLAvariableArray:
         raise NotImplementedError
 
 
 __all__ = [
-    "ByteWrapper", "DataElement", "DataElementFactory", "EncoderFactory",
-    "EncoderException", "DecoderException", "HLAASCIIchar", "HLAASCIIstring",
-    "HLAboolean", "HLAbyte", "HLAfixedArray", "HLAfixedRecord", "HLAfloat32BE",
-    "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE",
-    "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE",
-    "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE",
-    "HLAopaqueData", "HLAunicodeChar", "HLAunicodeString", "HLAvariableArray",
+    "ByteWrapper",
+    "DataElement",
+    "DataElementFactory",
+    "DecoderException",
+    "EncoderException",
+    "EncoderFactory",
+    "HLAASCIIchar",
+    "HLAASCIIstring",
+    "HLAboolean",
+    "HLAbyte",
+    "HLAfixedArray",
+    "HLAfixedRecord",
+    "HLAfloat32BE",
+    "HLAfloat32LE",
+    "HLAfloat64BE",
+    "HLAfloat64LE",
+    "HLAinteger16BE",
+    "HLAinteger16LE",
+    "HLAinteger32BE",
+    "HLAinteger32LE",
+    "HLAinteger64BE",
+    "HLAinteger64LE",
+    "HLAoctet",
+    "HLAoctetPairBE",
+    "HLAoctetPairLE",
+    "HLAopaqueData",
+    "HLAunicodeChar",
+    "HLAunicodeString",
+    "HLAvariableArray",
     "HLAvariantRecord",
 ]

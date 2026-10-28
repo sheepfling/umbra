@@ -116,11 +116,14 @@ class TsoMessageQueue final {
   [[nodiscard]] TsoMessageRetractionResult retract(std::uint64_t messageId);
 
   // Removes every still-pending fanout entry and records a terminal
-  // retraction even if another recipient has already been popped for
-  // delivery.  This lower-level operation deliberately does not decide which
-  // delivered recipients require Request Retraction; the owning federation
-  // service ledger makes that decision atomically with this queue mutation.
-  [[nodiscard]] TsoMessageRetractionResult retractPending(std::uint64_t messageId);
+  // retraction even if another recipient has already been popped for delivery
+  // or is still in transit before callback acknowledgement. This lower-level
+  // operation deliberately does not decide which delivered recipients require
+  // Request Retraction; the owning federation service ledger makes that
+  // decision atomically with this queue mutation.
+  [[nodiscard]] TsoMessageRetractionResult retractPending(
+      std::uint64_t messageId,
+      bool hasUnacknowledgedInTransitEntry = false);
 
   // Replaces the active queue view from a route-free save image while
   // preserving the current allocator high-water mark.  The caller owns the

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The public C++ scenario creates a regular ownership acquisition with the requester still publishing the class attribute. It verifies that unpublishing is rejected until Attribute Ownership Unavailable is delivered and, after a later ownership transfer, until Attribute Ownership Acquisition Notification is delivered. Under HLA_EVOKED, it specifically checks the notification guard after ownership has transferred but before the queued callback is evoked. The separately mapped acquisition-cancellation scenario verifies the Confirm Attribute Ownership Acquisition Cancellation terminal path. The primary and contract twin run under HLA_EVOKED and HLA_IMMEDIATE; they are bounded API evidence, not independent tests, Lab validation, or conformance.",
+  "requirements": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5",
+      "standard_section": "hla-1516.1-2025:clause-7.8.4"
+    }
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-acquisition-publication-guard-unavailable",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, attributeOwnershipReleaseDenied, attributeOwnershipDivestitureIfWanted, and unpublishObjectClassAttributes with requestAttributeOwnershipRelease, attributeOwnershipUnavailable, and attributeOwnershipAcquisitionNotification callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_acquisition_publication_guard.cpp::scenarioAcquisitionPublicationGuardUnavailableContract"
+      ]
+    }
+  ]
+}

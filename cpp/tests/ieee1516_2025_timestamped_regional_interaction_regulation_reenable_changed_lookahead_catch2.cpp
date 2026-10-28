@@ -113,8 +113,19 @@ TEST_CASE(
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  // The first callback is the timestamped interaction; the inclusive GALT
+  // boundary leaves the grant queued for the next Evoke call.
+  REQUIRE(receiver->evokeCallback(0.0));
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction"});
+
+  // The grant is safe only after the producer advances far enough to move
+  // GALT above the receiver's requested time.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder ==
           std::vector<std::string>{"interaction", "grant"});

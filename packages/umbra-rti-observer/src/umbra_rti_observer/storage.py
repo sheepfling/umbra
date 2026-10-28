@@ -24,8 +24,17 @@ R = TypeVar("R")
 
 
 def positive_limit(name: str, value: object, upper: int | None = None) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value < 1 or upper is not None and value > upper:
-        raise ValueError(f"{name} must be a positive integer" + (f" at most {upper}" if upper is not None else ""))
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < 1
+        or upper is not None
+        and value > upper
+    ):
+        raise ValueError(
+            f"{name} must be a positive integer"
+            + (f" at most {upper}" if upper is not None else "")
+        )
     return value
 
 
@@ -37,9 +46,19 @@ class BudgetEntry:
 
 
 class EvidenceBudget:
-    def __init__(self, max_bytes: int = MAX_EVIDENCE_BYTES, max_record_bytes: int | None = None) -> None:
-        self.max_bytes = positive_limit("max_evidence_bytes", max_bytes, MAX_EVIDENCE_BYTES)
-        self.max_record_bytes = positive_limit("max_evidence_record_bytes", min(DEFAULT_RECORD_BYTES, self.max_bytes) if max_record_bytes is None else max_record_bytes, self.max_bytes)
+    def __init__(
+        self, max_bytes: int = MAX_EVIDENCE_BYTES, max_record_bytes: int | None = None
+    ) -> None:
+        self.max_bytes = positive_limit(
+            "max_evidence_bytes", max_bytes, MAX_EVIDENCE_BYTES
+        )
+        self.max_record_bytes = positive_limit(
+            "max_evidence_record_bytes",
+            min(DEFAULT_RECORD_BYTES, self.max_bytes)
+            if max_record_bytes is None
+            else max_record_bytes,
+            self.max_bytes,
+        )
         self.used_bytes = 0
         self._serial = 0
         self._entries: OrderedDict[tuple[str, Hashable], BudgetEntry] = OrderedDict()
@@ -56,15 +75,25 @@ class EvidenceBudget:
         self._group_bytes[name] = 0
         # Soft floors preserve diversity, not empty space. They can be breached
         # when whole records cannot collectively fit. No family is inferred.
-        preferred = {"events": 512 * 1024, "object_snapshots": 384 * 1024,
-                     "object_changes": 256 * 1024, "objects": 256 * 1024,
-                     "federates": 64 * 1024, "time_snapshots": 64 * 1024,
-                     "time_requests": 64 * 1024, "interactions": 64 * 1024,
-                     "fom_snapshots": 256 * 1024, "mom_snapshots": 128 * 1024,
-                     "regions_snapshots": 128 * 1024, "coordination_snapshots": 128 * 1024,
-                     "declarations": 128 * 1024, "relationships": 128 * 1024,
-                     "interaction_flow": 128 * 1024, "ownership_states": 128 * 1024,
-                     "ownership_requests": 64 * 1024}
+        preferred = {
+            "events": 512 * 1024,
+            "object_snapshots": 384 * 1024,
+            "object_changes": 256 * 1024,
+            "objects": 256 * 1024,
+            "federates": 64 * 1024,
+            "time_snapshots": 64 * 1024,
+            "time_requests": 64 * 1024,
+            "interactions": 64 * 1024,
+            "fom_snapshots": 256 * 1024,
+            "mom_snapshots": 128 * 1024,
+            "regions_snapshots": 128 * 1024,
+            "coordination_snapshots": 128 * 1024,
+            "declarations": 128 * 1024,
+            "relationships": 128 * 1024,
+            "interaction_flow": 128 * 1024,
+            "ownership_states": 128 * 1024,
+            "ownership_requests": 64 * 1024,
+        }
         self._reservations[name] = min(preferred.get(name, 0), self.max_bytes // 4)
 
     def reservation(self, name: str) -> int:
@@ -77,7 +106,9 @@ class EvidenceBudget:
             self._groups[name].pop(key, None)
             self._group_bytes[name] -= entry.size
 
-    def note(self, name: str, key: Hashable, size: int, expire: Callable[[DropReason], None]) -> None:
+    def note(
+        self, name: str, key: Hashable, size: int, expire: Callable[[DropReason], None]
+    ) -> None:
         self.forget(name, key)
         if size > self.max_record_bytes:
             expire("oversized")
@@ -93,7 +124,10 @@ class EvidenceBudget:
             for group, entries in self._groups.items():
                 if entries:
                     first_key, first = next(iter(entries.items()))
-                    if self._group_bytes[group] - first.size >= self._reservations[group]:
+                    if (
+                        self._group_bytes[group] - first.size
+                        >= self._reservations[group]
+                    ):
                         eligible.append((first.serial, group, first_key, first))
             if eligible:
                 _, group, first_key, oldest = min(eligible, key=lambda item: item[0])
@@ -103,24 +137,48 @@ class EvidenceBudget:
             oldest.expire("bytes")
 
     def coverage(self, *, unbudgeted: tuple[str, ...] = ()) -> JsonObject:
-        return to_json_object({"basis": "encoded-json-plus-record-reserve", "policy": "shared-evidence-lru-with-soft-reservations",
-            "max_bytes": self.max_bytes, "max_record_bytes": self.max_record_bytes,
-            "accounted_bytes": self.used_bytes, "record_reserve_bytes": 64,
-            "collections": [coverage() for _, coverage in sorted(self._collections.items())],
-            "unbudgeted_collections": list(unbudgeted)})
+        return to_json_object(
+            {
+                "basis": "encoded-json-plus-record-reserve",
+                "policy": "shared-evidence-lru-with-soft-reservations",
+                "max_bytes": self.max_bytes,
+                "max_record_bytes": self.max_record_bytes,
+                "accounted_bytes": self.used_bytes,
+                "record_reserve_bytes": 64,
+                "collections": [
+                    coverage() for _, coverage in sorted(self._collections.items())
+                ],
+                "unbudgeted_collections": list(unbudgeted),
+            }
+        )
 
 
 class EvidenceIndex(MutableMapping[K, R], Generic[K, R]):
     """Owners must reassign/refresh after mutating a retained record in place."""
 
-    def __init__(self, name: str, capacity: int, budget: EvidenceBudget,
-                 encode: Callable[[K, R], JsonValue], *, unit: str = "records",
-                 on_expire: Callable[[K, R], None] | None = None) -> None:
-        self.name, self.capacity, self.budget, self.encode = name, positive_limit("capacity", capacity), budget, encode
+    def __init__(
+        self,
+        name: str,
+        capacity: int,
+        budget: EvidenceBudget,
+        encode: Callable[[K, R], JsonValue],
+        *,
+        unit: str = "records",
+        on_expire: Callable[[K, R], None] | None = None,
+    ) -> None:
+        self.name, self.capacity, self.budget, self.encode = (
+            name,
+            positive_limit("capacity", capacity),
+            budget,
+            encode,
+        )
         self.unit, self.on_expire = unit, on_expire
         self._rows: OrderedDict[K, R] = OrderedDict()
         self._sizes: dict[K, int] = {}
-        self._dropped: dict[DropReason, int] = {reason: 0 for reason in ("count", "bytes", "oversized", "encoding", "window")}
+        self._dropped: dict[DropReason, int] = {
+            reason: 0
+            for reason in ("count", "bytes", "oversized", "encoding", "window")
+        }
         self.dropped_bytes = 0
         budget.register(name, self.coverage)
 
@@ -144,8 +202,17 @@ class EvidenceIndex(MutableMapping[K, R], Generic[K, R]):
         try:
             # Keep invalid/non-UTF8 values out of retained wire evidence; ingress
             # still completes and reports the explicit encoding loss.
-            size = len(json.dumps(self.encode(key, value), ensure_ascii=False, allow_nan=False,
-                                  separators=(",", ":")).encode("utf-8")) + 64
+            size = (
+                len(
+                    json.dumps(
+                        self.encode(key, value),
+                        ensure_ascii=False,
+                        allow_nan=False,
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                )
+                + 64
+            )
         except (ValueError, TypeError, UnicodeError, RecursionError):
             self._expire(key, "encoding")
             return
@@ -182,20 +249,40 @@ class EvidenceIndex(MutableMapping[K, R], Generic[K, R]):
         self.dropped_bytes = 0
 
     def coverage(self) -> JsonObject:
-        return to_json_object({"collection": self.name, "unit": self.unit, "capacity": self.capacity,
-            "retained_records": len(self), "accounted_bytes": sum(self._sizes.values()),
-            "soft_reservation_bytes": self.budget.reservation(self.name),
-            "dropped_records": self.dropped, "dropped_bytes": self.dropped_bytes,
-            "count_limit_drops": self._dropped["count"], "byte_limit_drops": self._dropped["bytes"],
-            "oversized_drops": self._dropped["oversized"], "encoding_drops": self._dropped["encoding"],
-            "window_drops": self._dropped["window"]})
+        return to_json_object(
+            {
+                "collection": self.name,
+                "unit": self.unit,
+                "capacity": self.capacity,
+                "retained_records": len(self),
+                "accounted_bytes": sum(self._sizes.values()),
+                "soft_reservation_bytes": self.budget.reservation(self.name),
+                "dropped_records": self.dropped,
+                "dropped_bytes": self.dropped_bytes,
+                "count_limit_drops": self._dropped["count"],
+                "byte_limit_drops": self._dropped["bytes"],
+                "oversized_drops": self._dropped["oversized"],
+                "encoding_drops": self._dropped["encoding"],
+                "window_drops": self._dropped["window"],
+            }
+        )
 
 
 class EvidenceQueue(Generic[R]):
-    def __init__(self, name: str, capacity: int, budget: EvidenceBudget, encode: Callable[[R], JsonValue],
-                 *, unit: str = "records", contiguous: bool = False) -> None:
+    def __init__(
+        self,
+        name: str,
+        capacity: int,
+        budget: EvidenceBudget,
+        encode: Callable[[R], JsonValue],
+        *,
+        unit: str = "records",
+        contiguous: bool = False,
+    ) -> None:
         self.capacity, self.contiguous, self._next = capacity, contiguous, 0
-        self._index = EvidenceIndex[int, R](name, capacity, budget, lambda _, row: encode(row), unit=unit)
+        self._index = EvidenceIndex[int, R](
+            name, capacity, budget, lambda _, row: encode(row), unit=unit
+        )
         if contiguous:
             self._index.on_expire = self._expire_prefix
 

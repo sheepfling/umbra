@@ -1,27 +1,32 @@
-#include "tck_timestamped_object_deletion_router.hpp"
+#include "tck_timestamped_tso_message_set_router.hpp"
 
 #include <string>
 
 #include "tck_harness.hpp"
 #include "tck_nmr_future_timestamped_object_deletion.hpp"
+#include "tck_nmr_regional_timestamped_interaction.hpp"
 #include "tck_nmra_future_timestamped_object_deletion.hpp"
 #include "tck_tara_future_timestamped_object_deletion.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
 
-constexpr char nmrScenario[] =
+constexpr char nmrDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion-future-nmr-arrival";
-constexpr char nmrContractId[] =
+constexpr char nmrDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-future-nmr-arrival-contract";
-constexpr char nmraScenario[] =
+constexpr char nmraDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion-future-nmra-arrival";
-constexpr char nmraContractId[] =
+constexpr char nmraDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-future-nmra-arrival-contract";
-constexpr char taraScenario[] =
+constexpr char taraDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion-future-tara-arrival";
-constexpr char taraContractId[] =
+constexpr char taraDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-future-tara-arrival-contract";
+constexpr char regionalNmrScenario[] =
+    "cpp-tck.nmr-regional-timestamped-interaction-message-set";
+constexpr char regionalNmrContractId[] =
+    "cpp-tck.nmr-regional-timestamped-interaction-message-set-contract";
 
 bool selectedScenario(
     int argc,
@@ -42,35 +47,44 @@ bool selectedScenario(
 
 }  // namespace
 
-std::optional<int> tryRunTimestampedObjectDeletionScenario(
+std::optional<int> tryRunTimestampedTsoMessageSetScenario(
     int argc,
     char** argv) {
-  if (selectedScenario(argc, argv, nmrScenario, nmrContractId)) {
+  if (selectedScenario(argc, argv, nmrDeletionScenario, nmrDeletionContractId)) {
     return runPortableScenarioPair(
         argc,
         argv,
-        nmrScenario,
-        nmrContractId,
+        nmrDeletionScenario,
+        nmrDeletionContractId,
         scenarioNmrFutureTimestampedObjectDeletion,
         scenarioNmrFutureTimestampedObjectDeletionContract);
   }
-  if (selectedScenario(argc, argv, nmraScenario, nmraContractId)) {
+  if (selectedScenario(argc, argv, nmraDeletionScenario, nmraDeletionContractId)) {
     return runPortableScenarioPair(
         argc,
         argv,
-        nmraScenario,
-        nmraContractId,
+        nmraDeletionScenario,
+        nmraDeletionContractId,
         scenarioNmraFutureTimestampedObjectDeletion,
         scenarioNmraFutureTimestampedObjectDeletionContract);
   }
-  if (selectedScenario(argc, argv, taraScenario, taraContractId)) {
+  if (selectedScenario(argc, argv, taraDeletionScenario, taraDeletionContractId)) {
     return runPortableScenarioPair(
         argc,
         argv,
-        taraScenario,
-        taraContractId,
+        taraDeletionScenario,
+        taraDeletionContractId,
         scenarioTaraFutureTimestampedObjectDeletion,
         scenarioTaraFutureTimestampedObjectDeletionContract);
+  }
+  if (selectedScenario(argc, argv, regionalNmrScenario, regionalNmrContractId)) {
+    return runPortableScenarioPair(
+        argc,
+        argv,
+        regionalNmrScenario,
+        regionalNmrContractId,
+        scenarioNmrRegionalTimestampedInteractionMessageSet,
+        scenarioNmrRegionalTimestampedInteractionMessageSetContract);
   }
   return std::nullopt;
 }

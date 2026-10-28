@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records the Requirements Lab service clauses exercised while the embedded profile rejects representative object-class declaration, interaction declaration, object, DDM, update, interaction, ownership, and time service calls during an active federation save or restore. The SaveInProgress and RestoreInProgress exception bindings are validated through the paired API contract; the selected clauses remain service semantics rather than a claim that all HLA services are interlocked.",
+  "notes": "This contract records the Requirements Lab service clauses exercised while the embedded profile rejects representative object-class declaration, interaction declaration, object, DDM, update, interaction, ownership, and time service calls during an active federation save or restore. The SaveInProgress and RestoreInProgress exception bindings are validated through the paired API contract; the selected clauses remain service semantics rather than a claim that all HLA services are interlocked. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-interlock-object-class-declaration",
@@ -68,7 +68,7 @@
     {
       "id": "umbra-interlock-time-advance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
@@ -248,7 +248,7 @@
     {
       "id": "umbra-interlock-disable-time-regulation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
       "tests": [
@@ -258,7 +258,7 @@
     {
       "id": "umbra-interlock-time-constrained-role",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
-      "clause_id": "clause-8.5.5",
+      "clause_id": "clause-8.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "tests": [
@@ -268,7 +268,7 @@
     {
       "id": "umbra-interlock-disable-time-constrained",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l58-12",
-      "clause_id": "clause-8.7.5",
+      "clause_id": "clause-8.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeConstrained",
       "tests": [
@@ -288,7 +288,7 @@
     {
       "id": "umbra-interlock-query-galt",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
-      "clause_id": "clause-8.18.1",
+      "clause_id": "clause-8.17",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryGALT",
       "tests": [
@@ -298,7 +298,7 @@
     {
       "id": "umbra-interlock-query-lits",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
-      "clause_id": "clause-8.19.3",
+      "clause_id": "clause-8.19",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLITS",
       "tests": [
@@ -465,5 +465,53 @@
         "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-time-advance",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      },
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-disable-time-regulation",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-time-constrained-role",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "previous_clause_id": "clause-8.5.5",
+        "reviewed_clause_id": "clause-8.5"
+      },
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-disable-time-constrained",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l58-12",
+        "previous_clause_id": "clause-8.7.5",
+        "reviewed_clause_id": "clause-8.7"
+      },
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-query-galt",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "previous_clause_id": "clause-8.18.1",
+        "reviewed_clause_id": "clause-8.17"
+      },
+      {
+        "contract": "save-restore-interlock-requirements-contract.json",
+        "owned_id": "umbra-interlock-query-lits",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+        "previous_clause_id": "clause-8.19.3",
+        "reviewed_clause_id": "clause-8.19"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

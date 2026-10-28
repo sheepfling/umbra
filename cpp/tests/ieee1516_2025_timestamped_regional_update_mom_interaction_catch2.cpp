@@ -1,6 +1,9 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <exception>
+#include <optional>
+
 namespace {
 TEST_CASE(
     "Embedded service reporting delivers accepted timestamped regional Update Attribute Values through MOM interaction",
@@ -204,17 +207,36 @@ TEST_CASE(
   // The public MOM report is selected and delivered before the queued
   // constrained regional reflection callback is allowed to enter user code.
   bool momReportPresentAtCallback = false;
+  std::optional<RangeBounds> conveyedRegionBounds;
+  std::exception_ptr conveyedRegionQueryFailure;
   receiverReports.onAttributeReflection = [&] {
     momReportPresentAtCallback = observerReports.interactionReports.size() == 1U;
+    auto const& callbackRegions =
+        receiverReports.attributeReflectionReports.back().sentRegions;
+    if (callbackRegions.size() == 1U) {
+      try {
+        conveyedRegionBounds = receiver->getRangeBounds(
+            *callbackRegions.begin(),
+            sodaFlavor);
+      } catch (...) {
+        conveyedRegionQueryFailure = std::current_exception();
+      }
+    }
   };
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  // Evoke returns whether more callbacks remain after the one it dispatches.
+  // The constrained receiver has both the TSO reflection and its grant queued.
+  REQUIRE(receiver->evokeCallback(0.0));
   REQUIRE(momReportPresentAtCallback);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == timestamp.toString());
   auto const& reflection = receiverReports.attributeReflectionReports.front();
   REQUIRE(reflection.objectInstance == objectInstance);
   REQUIRE(reflection.attributeValues.size() == values.size());
@@ -223,7 +245,11 @@ TEST_CASE(
   REQUIRE(variableLengthDataBytes(reflection.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(conveyedRegionQueryFailure == nullptr);
+  REQUIRE(conveyedRegionBounds.has_value());
+  REQUIRE(conveyedRegionBounds->getLowerBound() == 0UL);
+  REQUIRE(conveyedRegionBounds->getUpperBound() == 2UL);
   REQUIRE(reflection.timeImplementationName == L"HLAinteger64Time");
   REQUIRE(reflection.timeValue == timestamp.toString());
   REQUIRE(reflection.sentOrderType == TIMESTAMP);

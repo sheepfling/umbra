@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from hla.rti1516_2025 import CallbackModel
 from umbra_rti_observer import ObserverStore
 from umbra_rti_observer_umbra import UmbraRtiAdapter
@@ -38,7 +37,9 @@ def test_umbra_adapter_connects_and_translates_standard_callbacks() -> None:
     assert adapter.capabilities["objects"]["state"] == "available"
     assert adapter.capabilities["mom"]["state"] == "partial"
     callback, callback_model, kwargs = rti.connected_with
-    callback.discoverObjectInstance(Handle("object-1"), Handle("class-1"), "Object One", Handle("federate-1"))
+    callback.discoverObjectInstance(
+        Handle("object-1"), Handle("class-1"), "Object One", Handle("federate-1")
+    )
     callback.reflectAttributeValues(
         Handle("object-1"),
         {Handle("attribute-1"): b"value"},
@@ -86,7 +87,9 @@ def test_umbra_adapter_translates_directed_and_time_callbacks() -> None:
     store.detach_adapter(adapter)
 
     events = store.events()
-    directed = next(event for event in events if event["event_type"] == "interaction.received")
+    directed = next(
+        event for event in events if event["event_type"] == "interaction.received"
+    )
     assert directed["directed"] is True
     assert directed["object_handle"] == "object-1"
     assert any(event.get("operation") == "timeAdvanceGrant" for event in events)
@@ -107,5 +110,9 @@ def test_connect_failure_is_reported_and_adapter_is_cleaned_up() -> None:
         store.attach_adapter(adapter)
 
     assert adapter.connected is False
-    errors = [event for event in store.events() if event["event_type"] == "runtime.error"]
-    assert errors and any(event["details"]["operation"] == "connect" for event in errors)
+    errors = [
+        event for event in store.events() if event["event_type"] == "runtime.error"
+    ]
+    assert errors and any(
+        event["details"]["operation"] == "connect" for event in errors
+    )

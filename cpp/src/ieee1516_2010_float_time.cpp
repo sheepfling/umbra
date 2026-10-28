@@ -52,6 +52,20 @@ double canonicalZero(double value) {
   return value == 0.0 ? 0.0 : value;
 }
 
+double checkedTime(double value) {
+  if (!valid(value)) {
+    invalidTime(L"HLAfloat64Time must be finite and nonnegative.");
+  }
+  return canonicalZero(value);
+}
+
+double checkedInterval(double value) {
+  if (!valid(value)) {
+    invalidInterval(L"HLAfloat64Interval must be finite and nonnegative.");
+  }
+  return canonicalZero(value);
+}
+
 std::uint64_t bitsOf(double value) {
   std::uint64_t bits = 0U;
   std::memcpy(&bits, &value, sizeof(bits));
@@ -152,12 +166,12 @@ HLAfloat64Time::HLAfloat64Time() : _impl(new HLAfloat64TimeImpl()) {}
 
 HLAfloat64Time::HLAfloat64Time(double const& value)
     : _impl(new HLAfloat64TimeImpl()) {
-  setTime(value);
+  _impl->value = checkedTime(value);
 }
 
 HLAfloat64Time::HLAfloat64Time(LogicalTime const& value)
     : _impl(new HLAfloat64TimeImpl()) {
-  setTime(asTime(value));
+  _impl->value = checkedTime(asTime(value));
 }
 
 HLAfloat64Time::HLAfloat64Time(HLAfloat64Time const& value)
@@ -215,10 +229,7 @@ std::wstring HLAfloat64Time::toString() const { return stringValue(_impl->value)
 std::wstring HLAfloat64Time::implementationName() const { return HLAfloat64TimeName; }
 double HLAfloat64Time::getTime() const { return _impl->value; }
 void HLAfloat64Time::setTime(double value) {
-  if (!valid(value)) {
-    invalidTime(L"HLAfloat64Time must be finite and nonnegative.");
-  }
-  _impl->value = canonicalZero(value);
+  _impl->value = checkedTime(value);
 }
 HLAfloat64Time& HLAfloat64Time::operator=(HLAfloat64Time const& value) {
   if (this != &value) _impl->value = value._impl->value;
@@ -229,11 +240,11 @@ HLAfloat64Time::operator double() const { return _impl->value; }
 HLAfloat64Interval::HLAfloat64Interval() : _impl(new HLAfloat64IntervalImpl()) {}
 HLAfloat64Interval::HLAfloat64Interval(double value)
     : _impl(new HLAfloat64IntervalImpl()) {
-  setInterval(value);
+  _impl->value = checkedInterval(value);
 }
 HLAfloat64Interval::HLAfloat64Interval(LogicalTimeInterval const& value)
     : _impl(new HLAfloat64IntervalImpl()) {
-  setInterval(asInterval(value));
+  _impl->value = checkedInterval(asInterval(value));
 }
 HLAfloat64Interval::HLAfloat64Interval(HLAfloat64Interval const& value)
     : _impl(new HLAfloat64IntervalImpl()) {
@@ -292,10 +303,7 @@ std::wstring HLAfloat64Interval::toString() const { return stringValue(_impl->va
 std::wstring HLAfloat64Interval::implementationName() const { return HLAfloat64TimeName; }
 double HLAfloat64Interval::getInterval() const { return _impl->value; }
 void HLAfloat64Interval::setInterval(double value) {
-  if (!valid(value)) {
-    invalidInterval(L"HLAfloat64Interval must be finite and nonnegative.");
-  }
-  _impl->value = canonicalZero(value);
+  _impl->value = checkedInterval(value);
 }
 HLAfloat64Interval& HLAfloat64Interval::operator=(HLAfloat64Interval const& value) {
   if (this != &value) _impl->value = value._impl->value;

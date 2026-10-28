@@ -38,7 +38,7 @@ using rti1516_2025::RangeBounds;
 using rti1516_2025::RegionHandleSet;
 using rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST;
 
-class ReportingFederateAmbassador final : public NullFederateAmbassador {
+class [[maybe_unused]] ReportingFederateAmbassador final : public NullFederateAmbassador {
  public:
   struct DiscoveryReport {
     ObjectInstanceHandle objectInstance;

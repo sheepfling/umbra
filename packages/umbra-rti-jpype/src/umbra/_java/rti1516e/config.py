@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
-from typing import Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,7 +19,7 @@ class Java2010ProviderConfiguration:
     def from_environment(
         cls,
         environment: Mapping[str, str] | None = None,
-    ) -> "Java2010ProviderConfiguration":
+    ) -> Java2010ProviderConfiguration:
         values = os.environ if environment is None else environment
         classpath = tuple(
             path

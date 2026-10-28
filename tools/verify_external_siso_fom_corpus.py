@@ -7,22 +7,38 @@ import hashlib
 import json
 import sys
 import xml.etree.ElementTree as element_tree
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
-
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = REPOSITORY_ROOT / "compliance" / "fom" / "external-siso-fom-corpus.json"
+DEFAULT_MANIFEST = (
+    REPOSITORY_ROOT / "compliance" / "fom" / "external-siso-fom-corpus.json"
+)
 XSI_SCHEMA_LOCATION = "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"
+
+
+@dataclass(frozen=True, slots=True)
+class CorpusManifest:
+    fixtures: tuple[object, ...]
+    schema_negative_fixtures: tuple[object, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class FixtureFields:
+    fixture_id: object
+    relative_path: object
+    digest: object
+    namespace: object
+    schema_location: object
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _load_manifest(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
+def _load_manifest(path: Path) -> tuple[CorpusManifest | None, tuple[str, ...]]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload: object = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         return None, (f"cannot read corpus manifest: {error}",)
     if not isinstance(payload, dict) or payload.get("schema_version") != 1:
@@ -32,8 +48,16 @@ def _load_manifest(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
         return None, ("corpus manifest must contain a non-empty fixtures array",)
     schema_negative_fixtures = payload.get("schema_negative_fixtures", [])
     if not isinstance(schema_negative_fixtures, list):
-        return None, ("corpus manifest schema_negative_fixtures must be an array when present",)
-    return payload, ()
+        return None, (
+            "corpus manifest schema_negative_fixtures must be an array when present",
+        )
+    return (
+        CorpusManifest(
+            fixtures=tuple(fixtures),
+            schema_negative_fixtures=tuple(schema_negative_fixtures),
+        ),
+        (),
+    )
 
 
 def _safe_path(root: Path, relative_path: str) -> Path | None:
@@ -56,18 +80,22 @@ def verify(root: Path, manifest_path: Path) -> tuple[str, ...]:
         return findings
 
     validated_ids: set[str] = set()
-    for fixture in [
-        *manifest["fixtures"],
-        *manifest.get("schema_negative_fixtures", []),
-    ]:
-        if not isinstance(fixture, dict):
+    for fixture_value in (*manifest.fixtures, *manifest.schema_negative_fixtures):
+        if not isinstance(fixture_value, dict):
             findings += ("corpus manifest contains a non-object fixture",)
             continue
-        fixture_id = fixture.get("id")
-        relative_path = fixture.get("path")
-        digest = fixture.get("sha256")
-        namespace = fixture.get("xml_namespace")
-        schema_location = fixture.get("schema_location")
+        fixture = FixtureFields(
+            fixture_id=fixture_value.get("id"),
+            relative_path=fixture_value.get("path"),
+            digest=fixture_value.get("sha256"),
+            namespace=fixture_value.get("xml_namespace"),
+            schema_location=fixture_value.get("schema_location"),
+        )
+        fixture_id = fixture.fixture_id
+        relative_path = fixture.relative_path
+        digest = fixture.digest
+        namespace = fixture.namespace
+        schema_location = fixture.schema_location
         if (
             not isinstance(fixture_id, str)
             or not fixture_id
@@ -107,8 +135,12 @@ def verify(root: Path, manifest_path: Path) -> tuple[str, ...]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True, help="configured external SISO corpus root")
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="Umbra corpus manifest")
+    parser.add_argument(
+        "--root", type=Path, required=True, help="configured external SISO corpus root"
+    )
+    parser.add_argument(
+        "--manifest", type=Path, default=DEFAULT_MANIFEST, help="Umbra corpus manifest"
+    )
     arguments = parser.parse_args()
 
     findings = verify(arguments.root, arguments.manifest)
@@ -120,7 +152,9 @@ def main() -> int:
 
     manifest, _ = _load_manifest(arguments.manifest)
     assert manifest is not None
-    print(f"External SISO FOM corpus integrity: PASS ({len(manifest['fixtures'])} fixtures)")
+    print(
+        f"External SISO FOM corpus integrity: PASS ({len(manifest.fixtures)} fixtures)"
+    )
     return 0
 
 

@@ -12,9 +12,29 @@ import json
 import os
 import shlex
 from pathlib import Path
-
+from typing import Literal, TypedDict
 
 LIBRARY_SUFFIXES = (".a", ".lib", ".so", ".dylib", ".dll")
+
+
+class _LinkedLibrary(TypedDict):
+    path: str
+    sha256: str
+    references: int
+    within_package_prefix: bool
+
+
+class _ValidLinkReport(TypedDict):
+    valid: Literal[True]
+    response_file: str
+    package_prefix: str
+    working_directory: str
+    libraries: list[_LinkedLibrary]
+
+
+class _InvalidLinkReport(TypedDict):
+    valid: Literal[False]
+    finding: str
 
 
 def _is_library_token(token: str) -> bool:
@@ -36,7 +56,7 @@ def inspect_link_response(
     *,
     working_directory: Path | None = None,
     require_package_libraries: bool = False,
-) -> dict:
+) -> _ValidLinkReport:
     response_file = response_file.resolve()
     package_prefix = package_prefix.resolve()
     working_directory = (working_directory or response_file.parent).resolve()
@@ -104,7 +124,8 @@ def main() -> int:
             require_package_libraries=arguments.require_package_libraries,
         )
     except (OSError, ValueError) as error:
-        print(json.dumps({"valid": False, "finding": str(error)}, indent=2))
+        report: _InvalidLinkReport = {"valid": False, "finding": str(error)}
+        print(json.dumps(report, indent=2))
         return 1
     print(json.dumps(result, indent=2))
     return 0

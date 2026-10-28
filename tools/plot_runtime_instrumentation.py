@@ -40,10 +40,11 @@ def plot(rows: list[dict[str, str]], output: Path | None, show: bool) -> None:
         x = [float(row["elapsed_ms"]) / 1000.0 for row in operation_rows]
         calls = [float(row["delta_calls"]) for row in operation_rows]
         failures = [float(row["delta_failures"]) for row in operation_rows]
-        durations = [float(row["delta_duration_ns"]) / 1_000_000.0 for row in operation_rows]
+        durations = [
+            float(row["delta_duration_ns"]) / 1_000_000.0 for row in operation_rows
+        ]
         average_ms = [
-            duration / call if call else 0.0
-            for duration, call in zip(durations, calls)
+            duration / call if call else 0.0 for duration, call in zip(durations, calls)
         ]
         failure_rate = [
             100.0 * failure / call if call else 0.0
@@ -75,7 +76,7 @@ def plot(rows: list[dict[str, str]], output: Path | None, show: bool) -> None:
     axes[3].set_xlabel("elapsed seconds")
     for axis in axes:
         axis.grid(True, alpha=0.25)
-        handles, labels = axis.get_legend_handles_labels()
+        handles, _ = axis.get_legend_handles_labels()
         if handles:
             axis.legend(loc="upper left", fontsize="small")
     figure.tight_layout()
@@ -91,7 +92,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="sampler CSV path")
     parser.add_argument("-o", "--output", type=Path, help="PNG/SVG output path")
-    parser.add_argument("--show", action="store_true", help="show an interactive window")
+    parser.add_argument(
+        "--show", action="store_true", help="show an interactive window"
+    )
     args = parser.parse_args()
     rows = load_rows(args.input)
     if not rows:

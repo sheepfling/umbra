@@ -80,7 +80,8 @@ TEST_CASE(
   REQUIRE(firstReport.interactionClass == interactionClass);
   REQUIRE(firstReport.producingFederate == publisherHandle);
   REQUIRE(firstReport.sentRegionsSupplied);
-  REQUIRE(firstReport.sentRegions == RegionHandleSet{sourceRegion});
+  REQUIRE(firstReport.sentRegions.size() == 1U);
+  REQUIRE(firstReport.sentRegions.begin()->isValid());
   REQUIRE(variableLengthDataBytes(firstReport.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
 

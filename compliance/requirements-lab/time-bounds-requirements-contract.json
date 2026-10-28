@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable no-TSO Query GALT and Query LITS slice to source-derived IEEE 1516.1-2025 records. It calculates bounds only from other time-regulating members' current or pending-advance time plus actual lookahead; a forward TAR from a zero-lookahead regulator makes that lower timestamp exclusive, so the calculator advances it by the selected factory's epsilon. Within this no-TSO calculator slice, LITS equals a defined GALT and both are undefined with no other regulator. A separate limited scheduler consumes these bounds and the NRG setting for TAR release; the calculator itself does not queue callbacks. It does not cover the private TSO message inputs, TSO delivery, asynchronous delivery, the separately traced Modify Lookahead service, save/restore, package support, catalog result, JUnit sidecar, protected review, or a conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable no-TSO Query GALT and Query LITS slice to source-derived IEEE 1516.1-2025 records. It calculates bounds only from other time-regulating members' current or pending-advance time plus actual lookahead; a forward TAR from a zero-lookahead regulator makes that lower timestamp exclusive, so the calculator advances it by the selected factory's epsilon. Within this no-TSO calculator slice, LITS equals a defined GALT and both are undefined with no other regulator. A separate limited scheduler consumes these bounds and the NRG setting for TAR release; the calculator itself does not queue callbacks. It does not cover the private TSO message inputs, TSO delivery, asynchronous delivery, the separately traced Modify Lookahead service, save/restore, package support, catalog result, JUnit sidecar, protected review, or a conformance claim. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-no-tso-galt-uses-other-regulator-temporal-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -33,7 +33,7 @@
     {
       "id": "umbra-no-tso-zero-lookahead-tar-uses-an-exclusive-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l43-13",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -54,7 +54,7 @@
     {
       "id": "umbra-embedded-query-galt-reports-definition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
-      "clause_id": "clause-8.18.1",
+      "clause_id": "clause-8.17",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryGALT",
       "tests": [
@@ -65,7 +65,7 @@
     {
       "id": "umbra-embedded-query-lits-reports-definition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
-      "clause_id": "clause-8.19.3",
+      "clause_id": "clause-8.19",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLITS",
       "tests": [
@@ -73,5 +73,39 @@
         "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "time-bounds-requirements-contract.json",
+        "owned_id": "umbra-no-tso-galt-uses-other-regulator-temporal-state",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.6"
+      },
+      {
+        "contract": "time-bounds-requirements-contract.json",
+        "owned_id": "umbra-no-tso-zero-lookahead-tar-uses-an-exclusive-boundary",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l43-13",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "time-bounds-requirements-contract.json",
+        "owned_id": "umbra-embedded-query-galt-reports-definition",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "previous_clause_id": "clause-8.18.1",
+        "reviewed_clause_id": "clause-8.17"
+      },
+      {
+        "contract": "time-bounds-requirements-contract.json",
+        "owned_id": "umbra-embedded-query-lits-reports-definition",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+        "previous_clause_id": "clause-8.19.3",
+        "reviewed_clause_id": "clause-8.19"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

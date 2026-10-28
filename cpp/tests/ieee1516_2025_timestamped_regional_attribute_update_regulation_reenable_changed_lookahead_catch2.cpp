@@ -51,6 +51,18 @@ TEST_CASE(
   REQUIRE(flavor.isValid());
   REQUIRE(sodaFlavor.isValid());
   AttributeHandleSet const flavorOnly{flavor};
+  std::map<DimensionHandle, std::pair<unsigned long, unsigned long>> callbackRegionRanges;
+  receiverReports.onAttributeReflection = [&] {
+    auto const& report = receiverReports.attributeReflectionReports.back();
+    for (auto const& callbackRegion : report.sentRegions) {
+      for (auto const& dimension : receiver->getDimensionHandleSet(callbackRegion)) {
+        auto const bounds = receiver->getRangeBounds(callbackRegion, dimension);
+        callbackRegionRanges.emplace(
+            dimension,
+            std::pair{bounds.getLowerBound(), bounds.getUpperBound()});
+      }
+    }
+  };
   REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
   REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(
       soda,
@@ -132,15 +144,16 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->queryLookahead(changedLookahead));
   REQUIRE(changedLookahead.getInterval() == 3);
 
-  // With current time zero and lookahead three, the producer's advance to two
-  // raises GALT to the queued timestamp five. Reflection must precede the
-  // receiver's matching grant and preserve the original source region.
+  // With current time zero and lookahead three, the producer's advance to
+  // three raises GALT above the queued timestamp five. Reflection must precede
+  // the receiver's matching grant and preserve the original source region.
   receiverReports.callbackOrder.clear();
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.attributeReflectionReports.empty());
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
@@ -155,7 +168,10 @@ TEST_CASE(
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(reflection.producingFederate == publisherHandle);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(callbackRegionRanges.size() == 1U);
+  REQUIRE(callbackRegionRanges.at(sodaFlavor) ==
+          (std::pair<unsigned long, unsigned long>{0UL, 2UL}));
   REQUIRE(reflection.timeImplementationName == standard_hla::mom::integer64_time);
   REQUIRE(reflection.timeValue == L"5");
   REQUIRE(reflection.sentOrderType == rti1516_2025::TIMESTAMP);

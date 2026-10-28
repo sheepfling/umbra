@@ -181,6 +181,10 @@
                 <objectClass>
                     <name>TckTypedDerivedObject</name>
                     <sharing>PublishSubscribe</sharing>
+                    <directedInteraction>
+                        <name>HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction</name>
+                        <sharing>PublishSubscribe</sharing>
+                    </directedInteraction>
                     <attribute>
                         <name>DerivedValue</name>
                         <dataType>TckInteger32</dataType>

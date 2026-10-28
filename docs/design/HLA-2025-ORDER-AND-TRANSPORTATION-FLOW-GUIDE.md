@@ -148,7 +148,15 @@ sequenceDiagram
   RTI-->>C: timeAdvanceGrant(6)
 ```
 
-This is the bounded observation in the [per-recipient conversion test](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L125), not a complete order-conversion table or an independent normative interpretation. Its source comment maps the expected case to §8.1.4 Table 3; the licensed standard text is still needed to verify that normative mapping. The embedded sender path separates time-constrained recipients from the receive-order callback route ([recipient split and TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L288), [receive-order callback fields](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L396)). It is one `HLA_EVOKED` scenario; do not generalize it to every sender/receiver role combination, process endpoint, or the separate 2010 stream.
+This is the bounded observation in the
+[per-recipient conversion test](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L125),
+not a complete order-conversion table or an independent normative interpretation. Its source comment maps the expected
+case to §8.1.4 Table 3; the licensed standard text is still needed to verify that normative mapping. The embedded sender
+path separates time-constrained recipients from the receive-order callback route
+([recipient split and TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L288),
+[receive-order callback fields](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L396)).
+It is one `HLA_EVOKED` scenario; do not generalize it to every sender/receiver role combination, process endpoint, or
+the separate 2010 stream.
 
 ## Who controls what, and when does it take effect?
 

@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "repository": "../Document-Recreation",
-  "revision": "4bafa0619cf8c777a79294c9e0e78f2a38ee55b4",
-  "tag": "v0.1.0.a1",
+  "revision": "c055d904738b2855aae57312b5e2c458634516ce",
   "edition": "all",
   "document_ids": [
     "hla-1516-2010",
@@ -12,5 +11,5 @@
     "hla-1516.1-2025",
     "hla-1516.2-2025"
   ],
-  "notes": "Pinned to the v0.1.0.a1 HLA Requirements Lab release. The Umbra contracts currently bind 2025 implementation slices, while the portable bundle is exported for both 2010 and 2025 editions."
+  "notes": "Reviewed 2026-10-24 HLA backflow: 84 Lab repairs and four Umbra-local repairs; 2026-10-26 clause-ownership audit adds RL-388/RL-389/RL-390. RL-369 is dispositioned: preserve the literal Table 5 anomaly without a direct binding, and use the corroborated MIM type-20 spelling for implementation."
 }

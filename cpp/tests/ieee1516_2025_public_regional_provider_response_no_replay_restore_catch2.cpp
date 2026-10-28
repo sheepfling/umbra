@@ -195,7 +195,8 @@ TEST_CASE(
                   response.attributeValues.at(sourceFlavor)) == responseValueBytes);
       REQUIRE(variableLengthDataBytes(response.userSuppliedTag) == responseTagBytes);
       REQUIRE(response.sentRegionsSupplied);
-      REQUIRE(response.sentRegions == RegionHandleSet{sourceOwnerRegion});
+      REQUIRE(response.sentRegions.size() == 1U);
+      REQUIRE(response.sentRegions.begin()->isValid());
 
       // The delivered receive-order response is now application state, not a
       // pending provider request.  Clear the callback observation before save
@@ -360,7 +361,8 @@ TEST_CASE(
       REQUIRE(variableLengthDataBytes(freshResponse.userSuppliedTag) ==
               responseTagBytes);
       REQUIRE(freshResponse.sentRegionsSupplied);
-      REQUIRE(freshResponse.sentRegions == RegionHandleSet{sourceOwnerRegion});
+      REQUIRE(freshResponse.sentRegions.size() == 1U);
+      REQUIRE(freshResponse.sentRegions.begin()->isValid());
 
       REQUIRE_NOTHROW(owner->resignFederationExecution(
           CANCEL_THEN_DELETE_THEN_DIVEST));

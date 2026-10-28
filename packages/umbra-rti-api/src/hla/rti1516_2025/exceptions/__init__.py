@@ -11,7 +11,8 @@ from .types import exceptionForName
 _EXCEPTION_TYPES = _types._EXCEPTION_TYPES
 _STANDARD_EXCEPTION_NAMES = _types._STANDARD_EXCEPTION_NAMES
 
-__all__ = [*_types.__all__, "exceptionForName"]
+# `types.py` owns the canonical string inventory for generated exception names.
+__all__ = [*_types.__all__, "exceptionForName"]  # noqa: PLE0604
 
 for _name in __all__:
     _value = globals().get(_name)

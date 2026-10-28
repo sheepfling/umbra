@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable limited no-TSO TAR scheduler to source-derived IEEE 1516.1-2025 records. The private registry retains an accepted TAR, evaluates every pending requester against the federation-owned GALT/NRG snapshot after a relevant temporal state change, and queues a callback action only when the current policy allows it. The delivery action rechecks eligibility immediately before it changes logical time and invokes Time Advance Grant. This supports only TAR and no-TSO GALT/NRG inputs; it does not implement timestamped send/receive queues, TSO delivery/order, asynchronous delivery, other time-advance modes, or save/restore. Modify Lookahead is traced separately; package, catalog, JUnit, protected-review, and conformance evidence remain outside this contract.",
+  "notes": "This contract pins Umbra's opt-in, non-installable limited no-TSO TAR scheduler to source-derived IEEE 1516.1-2025 records. The private registry retains an accepted TAR, evaluates every pending requester against the federation-owned GALT/NRG snapshot after a relevant temporal state change, and queues a callback action only when the current policy allows it. The delivery action rechecks eligibility immediately before it changes logical time and invokes Time Advance Grant. This supports only TAR and no-TSO GALT/NRG inputs; it does not implement timestamped send/receive queues, TSO delivery/order, asynchronous delivery, other time-advance modes, or save/restore. Modify Lookahead is traced separately; package, catalog, JUnit, protected-review, and conformance evidence remain outside this contract. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-no-tso-scheduler-holds-a-constrained-tar-at-the-defined-galt-boundary",
@@ -19,7 +19,7 @@
     {
       "id": "umbra-no-tso-scheduler-releases-a-time-constrained-request-only-when-the-bound-policy-permits",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::scheduleEligibleTimeAdvanceGrants",
       "tests": [
@@ -40,5 +40,18 @@
         "cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "time-grant-scheduler-requirements-contract.json",
+        "owned_id": "umbra-no-tso-scheduler-releases-a-time-constrained-request-only-when-the-bound-policy-permits",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.6"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

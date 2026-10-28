@@ -117,6 +117,12 @@ void scenarioDelaySubscriptionEvaluationInteraction(
     require(
         !afterUnsubscribe.present,
         "callback-boundary subscription removal did not suppress the interaction");
+    require(
+        publisher.rtiAmbassador().getDelaySubscriptionEvaluationSwitch() ==
+                delaySubscriptionEvaluationEnabled &&
+            receiver.rtiAmbassador().getDelaySubscriptionEvaluationSwitch() ==
+                delaySubscriptionEvaluationEnabled,
+        "Delay Subscription Evaluation switch changed during the federation execution");
 
     receiver.resign(rti::NO_ACTION);
     publisher.resign(rti::NO_ACTION);

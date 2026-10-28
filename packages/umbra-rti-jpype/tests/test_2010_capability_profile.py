@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 from tools.verify_1516e_capability_profile import verify
 
 
 class CapabilityProfile2010Tests(unittest.TestCase):
     def test_checked_in_shared_profile_is_catalog_linked(self) -> None:
-        profile = Path("packages/umbra-rti-java-tck-2010/profiles/mock-java-rti-2010.properties")
+        profile = Path(
+            "packages/umbra-rti-java-tck-2010/profiles/mock-java-rti-2010.properties"
+        )
         result = verify(profile)
         self.assertEqual(result["status"], "pass")
         self.assertGreaterEqual(result["entries"], 60)
@@ -25,8 +27,12 @@ class CapabilityProfile2010Tests(unittest.TestCase):
             )
             result = verify(path)
         self.assertEqual(result["status"], "fail")
-        self.assertTrue(any("repeats scenario id" in item for item in result["findings"]))
-        self.assertTrue(any("unknown scenario id" in item for item in result["findings"]))
+        self.assertTrue(
+            any("repeats scenario id" in item for item in result["findings"])
+        )
+        self.assertTrue(
+            any("unknown scenario id" in item for item in result["findings"])
+        )
 
     def test_jni_null_profile_exposes_only_the_bounded_connection_slice(self) -> None:
         profile = Path(

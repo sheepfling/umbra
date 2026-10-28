@@ -79,7 +79,7 @@ void CallbackDispatcher::reset() {
   callbackAvailable_.notify_all();
 }
 
-void CallbackDispatcher::setEnabled(bool enabled) {
+void CallbackDispatcher::setEnabled(const bool enabled) {
   bool drain = false;
   {
     std::scoped_lock lock(mutex_);
@@ -153,7 +153,12 @@ void CallbackDispatcher::submit(CallbackTask callback) {
   }
 }
 
-bool CallbackDispatcher::evokeOne(std::chrono::milliseconds minimumWait) {
+bool CallbackDispatcher::evokeOne(
+    std::chrono::milliseconds minimumWait,
+    bool* callbackInvoked) {
+  if (callbackInvoked != nullptr) {
+    *callbackInvoked = false;
+  }
   minimumWait = nonNegative(minimumWait);
 
   // Extract and invoke under one recursive dispatcher lock.  Recursive entry
@@ -184,6 +189,9 @@ bool CallbackDispatcher::evokeOne(std::chrono::milliseconds minimumWait) {
   }
 
   invoke(std::move(callback), CallbackDispatchModel::evoked);
+  if (callbackInvoked != nullptr) {
+    *callbackInvoked = true;
+  }
 
   std::scoped_lock lock(mutex_);
   return !pending_.empty();
@@ -286,15 +294,16 @@ void CallbackDispatcher::drainImmediate() {
 }
 
 void CallbackDispatcher::invoke(
-    QueuedCallback callback,
-    CallbackDispatchModel dispatchModel) {
+    const QueuedCallback& callback,
+    const CallbackDispatchModel dispatchModel) const
+{
   CallbackExecutionScope scope(dispatchModel);
   auto const queueDelayName = dispatchModel == CallbackDispatchModel::immediate
-      ? "queue_delay.immediate"
-      : "queue_delay.evoked";
+      ? callback_dispatch_instrumentation::queue_delay_immediate
+      : callback_dispatch_instrumentation::queue_delay_evoked;
   auto const executeName = dispatchModel == CallbackDispatchModel::immediate
-      ? "execute.immediate"
-      : "execute.evoked";
+      ? callback_dispatch_instrumentation::execute_immediate
+      : callback_dispatch_instrumentation::execute_evoked;
   auto queueDelayScope = instrumentation_
       ? instrumentation_->beginAt(
             InstrumentationLayer::callback_dispatch,

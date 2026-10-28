@@ -3,7 +3,7 @@
 ## Purpose
 
 This is Umbra's curated intake register for richer FOM families and scenario
-plans observed in the adjacent legacy Python RTI.  It exists to make the
+plans observed in the adjacent legacy Python RTI. It exists to make the
 future FOM, declaration, object, interaction, DDM, TSO, and save/restore
 slices face realistic model pressure early enough to shape their design.
 
@@ -88,7 +88,7 @@ create named/anonymous objects; they deliberately do not claim 2010 API,
 FDD, MOM, simulation, or interoperability coverage.
 
 The official IEEE 1516.2-2025 MIM, schemas, and Restaurant examples remain
-the authoritative baseline for Umbra's current FOM validator.  The corpus
+the authoritative baseline for Umbra's current FOM validator. The corpus
 below complements those small canonical inputs with more demanding future
 inputs; it does not replace them.
 
@@ -96,12 +96,12 @@ inputs; it does not replace them.
 
 - Source inspection: adjacent legacy Python RTI at revision
   `7d92a5e24563ad996d2ec7ea5c1840c7c4a9c9bc`, read on 2026-08-16.
-- That source worktree had unrelated local changes.  Re-check both revision
+- That source worktree had unrelated local changes. Re-check both revision
   and worktree state before any later reading or acquisition.
-- Paths below are relative to that source tree.  A recorded SHA-256 is a
-  discovery snapshot only, not an Umbra-managed dependency digest.  Rehash a
+- Paths below are relative to that source tree. A recorded SHA-256 is a
+  discovery snapshot only, not an Umbra-managed dependency digest. Rehash a
   candidate at the point of approved acquisition.
-- Every model must pass the intake gate before it becomes a test input.  In
+- Every model must pass the intake gate before it becomes a test input. In
   particular, a model can be useful for parser stress while being unsuitable
   as a 2025 federation root or runtime interoperability case.
 
@@ -162,13 +162,13 @@ None of these categories alone establishes a broad conformance claim.
 | `FOM-STR-011` | **NETN merged-with-RPR.** A high-volume merged HLA Evolved XML stress input, useful for resource limits, diagnostics, and non-mutating preflight. | Only after a license and immutable-input review; parser robustness rather than federation creation. | The recorded upstream license note is CC BY-ND 4.0 and calls for preserving XML unchanged.  Do not transform, merge, or vendor a derivative without a reviewed policy. |
 
 The legacy map mentions a U-FOM family, but this pass did not locate a source
-asset and provenance package for it.  It is deliberately not promoted to an
+asset and provenance package for it. It is deliberately not promoted to an
 Umbra candidate until those facts are recorded.
 
 ## Planned extraction sequence
 
 1. Keep using the official Restaurant modules and Umbra-owned malformed/minimal
-   fixtures to complete the current 2025 preflight rules.  These are the right
+   fixtures to complete the current 2025 preflight rules. These are the right
    source of truth for a strict schema and Annex C behavior.
 2. Keep the reviewed 2010 Target Radar/Restaurant lane focused on loading,
    catalog lookup, publication, and registration; do not widen it into a
@@ -183,7 +183,7 @@ Umbra candidate until those facts are recorded.
 6. Promote `FOM-STR-005` and `FOM-STR-006` only when their paired capability
    groups (TSO/save-restore and DDM/save-restore) have real state models.
 7. Keep the RPR full-family normalization/composition and the remaining
-   third-party corpora in a distinct parser/composition lane.  Keep those
+   third-party corpora in a distinct parser/composition lane. Keep those
    inputs out of the normal green embedded-runtime target until provenance,
    edition policy, module order, normalization policy, and expected verdict
    are all recorded.
@@ -201,7 +201,7 @@ The adjacent test plans are more valuable than their implementation details:
   attachment, freeze/resume, pacing, and late-join acceptance shapes.
 - `section8_matrix.py`, `scenario_target_radar_time.py`, and
   `scenario_save_restore.py` identify high-value negative and cross-capability
-  boundaries.  They remain hypotheses until independently tied to the
+  boundaries. They remain hypotheses until independently tied to the
   Requirements Lab and restated in C++.
 
 No legacy pytest markers, proof wording, callback ordering assumptions, or

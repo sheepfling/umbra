@@ -10,6 +10,8 @@ from .models import JsonObject
 from .storage import EvidenceBudget, EvidenceIndex, EvidenceQueue
 
 K = TypeVar("K", bound=Hashable)
+
+
 class EncodedReport(Protocol):
     def to_json(self) -> JsonObject: ...
 
@@ -24,12 +26,23 @@ def _capacity(name: str, value: object) -> int:
 
 
 class LatestHistory(Generic[K, R]):
-    def __init__(self, capacity: int, history_capacity: int, *, name: str, budget: EvidenceBudget | None = None) -> None:
+    def __init__(
+        self,
+        capacity: int,
+        history_capacity: int,
+        *,
+        name: str,
+        budget: EvidenceBudget | None = None,
+    ) -> None:
         self.capacity = _capacity("capacity", capacity)
         self.history_capacity = _capacity("history_capacity", history_capacity)
         shared = budget if budget is not None else EvidenceBudget()
-        self._latest = EvidenceIndex[K, R](name + "_snapshots", capacity, shared, lambda _, row: row.to_json())
-        self._history = EvidenceQueue[R](name + "_history", history_capacity, shared, lambda row: row.to_json())
+        self._latest = EvidenceIndex[K, R](
+            name + "_snapshots", capacity, shared, lambda _, row: row.to_json()
+        )
+        self._history = EvidenceQueue[R](
+            name + "_history", history_capacity, shared, lambda row: row.to_json()
+        )
 
     @property
     def dropped_snapshots(self) -> int:

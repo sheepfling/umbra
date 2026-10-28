@@ -1,5 +1,8 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <exception>
+#include <optional>
+
 namespace {
 void runRegionalRequestAttributeValueUpdateProviderResponseScenario() {
   ReportingFederateAmbassador ownerReports;
@@ -121,6 +124,21 @@ void runRegionalRequestAttributeValueUpdateProviderResponseScenario() {
   REQUIRE(observedRequestTag ==
           std::vector<unsigned char>(requestTagBytes, requestTagBytes + sizeof(requestTagBytes)));
 
+  std::optional<RangeBounds> conveyedRegionBounds;
+  std::exception_ptr conveyedRegionQueryFailure;
+  requesterReports.onAttributeReflection = [&] {
+    auto const& callbackRegions =
+        requesterReports.attributeReflectionReports.back().sentRegions;
+    if (callbackRegions.size() == 1U) {
+      try {
+        conveyedRegionBounds = requester->getRangeBounds(
+            *callbackRegions.begin(),
+            sodaFlavor);
+      } catch (...) {
+        conveyedRegionQueryFailure = std::current_exception();
+      }
+    }
+  };
   while (requester->evokeCallback(0.0)) {
   }
   REQUIRE(requesterReports.attributeReflectionReports.size() == 1U);
@@ -133,7 +151,11 @@ void runRegionalRequestAttributeValueUpdateProviderResponseScenario() {
   REQUIRE(reflection.transportationType == owner->getTransportationTypeHandle(L"HLAreliable"));
   REQUIRE(reflection.producingFederate == ownerHandle);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(conveyedRegionQueryFailure == nullptr);
+  REQUIRE(conveyedRegionBounds.has_value());
+  REQUIRE(conveyedRegionBounds->getLowerBound() == 0UL);
+  REQUIRE(conveyedRegionBounds->getUpperBound() == 1UL);
 
   REQUIRE_NOTHROW(requester->unsubscribeObjectClassAttributesWithRegions(
       soda,

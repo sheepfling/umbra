@@ -11,16 +11,38 @@ from pydantic import Field, model_validator
 from .schemas import CapabilityState, DeclarationId, JsonObject, JsonText, ObserverModel
 
 CommandAction: TypeAlias = Literal[
-    "session.connect", "federate.join", "federate.resign", "session.disconnect",
-    "session.inspect", "session.recover",
-    "sync.register", "sync.achieve", "save.request", "save.begun",
-    "save.complete", "restore.request", "restore.complete",
+    "session.connect",
+    "federate.join",
+    "federate.resign",
+    "session.disconnect",
+    "session.inspect",
+    "session.recover",
+    "sync.register",
+    "sync.achieve",
+    "save.request",
+    "save.begun",
+    "save.complete",
+    "restore.request",
+    "restore.complete",
 ]
-CoordinationAction: TypeAlias = Literal["sync.register", "sync.achieve", "save.request",
-    "save.begun", "save.complete", "restore.request", "restore.complete"]
+CoordinationAction: TypeAlias = Literal[
+    "sync.register",
+    "sync.achieve",
+    "save.request",
+    "save.begun",
+    "save.complete",
+    "restore.request",
+    "restore.complete",
+]
 COORDINATION_ACTIONS: tuple[CoordinationAction, ...] = (
-    "sync.register", "sync.achieve", "save.request", "save.begun",
-    "save.complete", "restore.request", "restore.complete")
+    "sync.register",
+    "sync.achieve",
+    "save.request",
+    "save.begun",
+    "save.complete",
+    "restore.request",
+    "restore.complete",
+)
 CommandStatus: TypeAlias = Literal[
     "accepted", "running", "succeeded", "failed", "unavailable"
 ]
@@ -36,7 +58,9 @@ Identifier = Annotated[
     JsonText, Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_.:-]+$")
 ]
 SessionText = Annotated[str, Field(min_length=1, max_length=256)]
-ReportedSessionName = Annotated[JsonText, Field(min_length=1, max_length=256, pattern=r"\S")]
+ReportedSessionName = Annotated[
+    JsonText, Field(min_length=1, max_length=256, pattern=r"\S")
+]
 
 
 class EmptyParameters(ObserverModel):
@@ -83,16 +107,22 @@ class SessionStateObservation(ObserverModel):
     membership: Literal["joined", "not-joined", "unknown"]
     federation: ReportedSessionName | None = None
     federate: ReportedSessionName | None = None
-    federate_handle: Annotated[JsonText, Field(min_length=1, max_length=256)] | None = None
+    federate_handle: Annotated[JsonText, Field(min_length=1, max_length=256)] | None = (
+        None
+    )
     reason: Annotated[str, Field(max_length=2048)] | None = None
 
     @model_validator(mode="after")
     def consistent_facts(self) -> SessionStateObservation:
         if self.connection == "disconnected" and self.membership == "joined":
             raise ValueError("a disconnected driver cannot report joined membership")
-        if self.membership == "not-joined" and any(value is not None for value in
-                (self.federation, self.federate, self.federate_handle)):
-            raise ValueError("not-joined membership cannot retain stale member metadata")
+        if self.membership == "not-joined" and any(
+            value is not None
+            for value in (self.federation, self.federate, self.federate_handle)
+        ):
+            raise ValueError(
+                "not-joined membership cannot retain stale member metadata"
+            )
         return self
 
 
@@ -107,10 +137,15 @@ class SessionInspectionResult(ObserverModel):
     def complete_reconciliation(self) -> SessionInspectionResult:
         observation = self.observation
         if self.reconciled and not (
-            observation.connection in {"connected", "disconnected"} and observation.membership == "not-joined"
-            or observation.connection == "connected" and observation.membership == "joined" and observation.federation is not None
+            observation.connection in {"connected", "disconnected"}
+            and observation.membership == "not-joined"
+            or observation.connection == "connected"
+            and observation.membership == "joined"
+            and observation.federation is not None
         ):
-            raise ValueError("incomplete provider facts cannot claim reconciled authority")
+            raise ValueError(
+                "incomplete provider facts cannot claim reconciled authority"
+            )
         return self
 
 
@@ -193,13 +228,34 @@ class CompleteRestoreCommand(InspectionCommandBase):
     parameters: CoordinationCompletionParameters
 
 
-CoordinationCommandRequest: TypeAlias = RegisterSynchronizationCommand | AchieveSynchronizationCommand | RequestSaveCommand | SaveBegunCommand | CompleteSaveCommand | RequestRestoreCommand | CompleteRestoreCommand
-COORDINATION_REQUEST_TYPES = (RegisterSynchronizationCommand, AchieveSynchronizationCommand,
-    RequestSaveCommand, SaveBegunCommand, CompleteSaveCommand, RequestRestoreCommand, CompleteRestoreCommand)
+CoordinationCommandRequest: TypeAlias = (
+    RegisterSynchronizationCommand
+    | AchieveSynchronizationCommand
+    | RequestSaveCommand
+    | SaveBegunCommand
+    | CompleteSaveCommand
+    | RequestRestoreCommand
+    | CompleteRestoreCommand
+)
+COORDINATION_REQUEST_TYPES = (
+    RegisterSynchronizationCommand,
+    AchieveSynchronizationCommand,
+    RequestSaveCommand,
+    SaveBegunCommand,
+    CompleteSaveCommand,
+    RequestRestoreCommand,
+    CompleteRestoreCommand,
+)
 
 
 CommandRequest: TypeAlias = Annotated[
-    ConnectCommand | JoinCommand | ResignCommand | DisconnectCommand | InspectSessionCommand | RecoverSessionCommand | CoordinationCommandRequest,
+    ConnectCommand
+    | JoinCommand
+    | ResignCommand
+    | DisconnectCommand
+    | InspectSessionCommand
+    | RecoverSessionCommand
+    | CoordinationCommandRequest,
     Field(discriminator="action"),
 ]
 
@@ -228,13 +284,21 @@ class CommandDefinition(ObserverModel):
 
     @model_validator(mode="after")
     def inspection_contract(self) -> CommandDefinition:
-        if self.action in COORDINATION_ACTIONS and (not self.requires_confirmation or self.completion != "service-return"):
-            raise ValueError("coordination requires confirmation and local service-return completion")
+        if self.action in COORDINATION_ACTIONS and (
+            not self.requires_confirmation or self.completion != "service-return"
+        ):
+            raise ValueError(
+                "coordination requires confirmation and local service-return completion"
+            )
         if self.action in {"session.inspect", "session.recover"} and (
-            self.parameter_model != "EmptyParameters" or self.fields or self.completion != "inspection-result"
+            self.parameter_model != "EmptyParameters"
+            or self.fields
+            or self.completion != "inspection-result"
             or self.requires_confirmation != (self.action == "session.recover")
         ):
-            raise ValueError("inspection/recovery uses empty parameters, named inspection completion and explicit recovery confirmation")
+            raise ValueError(
+                "inspection/recovery uses empty parameters, named inspection completion and explicit recovery confirmation"
+            )
         return self
 
 
@@ -290,8 +354,15 @@ class CommandRecord(ObserverModel):
 
     @model_validator(mode="after")
     def inspection_outcomes(self) -> CommandRecord:
-        if self.status == "succeeded" and self.request.action in {"session.inspect", "session.recover", *COORDINATION_ACTIONS} and self.outcome is None:
-            raise ValueError("successful versioned inspection/coordination must retain its named outcome")
+        if (
+            self.status == "succeeded"
+            and self.request.action
+            in {"session.inspect", "session.recover", *COORDINATION_ACTIONS}
+            and self.outcome is None
+        ):
+            raise ValueError(
+                "successful versioned inspection/coordination must retain its named outcome"
+            )
         for outcome in (self.outcome, self.late_outcome):
             if outcome is not None:
                 validate_command_outcome(self.request, outcome)
@@ -300,16 +371,37 @@ class CommandRecord(ObserverModel):
 
 def validate_command_outcome(request: CommandRequest, outcome: CommandOutcome) -> None:
     if request.action in COORDINATION_ACTIONS:
-        expected = "synchronization" if request.action.startswith("sync.") else request.action.partition(".")[0]
+        expected = (
+            "synchronization"
+            if request.action.startswith("sync.")
+            else request.action.partition(".")[0]
+        )
         if outcome.coordination is None or outcome.coordination.kind != expected:
-            raise ValueError("coordination commands require a matching named service-return receipt")
-        if isinstance(request, (RegisterSynchronizationCommand, AchieveSynchronizationCommand, RequestSaveCommand, RequestRestoreCommand)) and outcome.coordination.label != request.parameters.label:
-            raise ValueError("coordination receipt must preserve the exact requested label")
+            raise ValueError(
+                "coordination commands require a matching named service-return receipt"
+            )
+        if (
+            isinstance(
+                request,
+                (
+                    RegisterSynchronizationCommand,
+                    AchieveSynchronizationCommand,
+                    RequestSaveCommand,
+                    RequestRestoreCommand,
+                ),
+            )
+            and outcome.coordination.label != request.parameters.label
+        ):
+            raise ValueError(
+                "coordination receipt must preserve the exact requested label"
+            )
     elif outcome.coordination is not None:
         raise ValueError("only coordination commands return coordination receipts")
     if request.action in {"session.inspect", "session.recover"}:
         if outcome.inspection is None:
-            raise ValueError("inspection/recovery returns its named inspection evidence")
+            raise ValueError(
+                "inspection/recovery returns its named inspection evidence"
+            )
         if request.action == "session.inspect" and outcome.inspection.reconciled:
             raise ValueError("inspection-only commands cannot restore authority")
 
@@ -325,9 +417,19 @@ class CommandCatalog(ObserverModel):
     def unique_versioned_targets(self) -> CommandCatalog:
         if len({target.target_id for target in self.targets}) != len(self.targets):
             raise ValueError("owned command targets must be unique")
-        if any(target.version is None and any(definition.action in {"session.inspect", "session.recover", *COORDINATION_ACTIONS}
-                and definition.state != "unsupported" for definition in target.commands) for target in self.targets):
-            raise ValueError("offered inspection/recovery or coordination requires an owned target version")
+        if any(
+            target.version is None
+            and any(
+                definition.action
+                in {"session.inspect", "session.recover", *COORDINATION_ACTIONS}
+                and definition.state != "unsupported"
+                for definition in target.commands
+            )
+            for target in self.targets
+        ):
+            raise ValueError(
+                "offered inspection/recovery or coordination requires an owned target version"
+            )
         return self
 
 

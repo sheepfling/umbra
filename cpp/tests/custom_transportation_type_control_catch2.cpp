@@ -104,6 +104,7 @@ TEST_CASE(
     "[integration][development-profile][federation-management][transportation]"
     "[transportation-management][custom-transportation]"
     "[custom-transportation-type-control]"
+    "[unowned-attribute-transportation-fallback]"
     "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
     "[rti.service.get-transportation-type-handle]"
     "[rti.service.publish-object-class-attributes]"
@@ -233,10 +234,45 @@ TEST_CASE(
   REQUIRE(ownerReports.attributeQueries.back().objectInstance == firstObject);
   REQUIRE(ownerReports.attributeQueries.back().transportationType == custom);
 
-  // A peer cannot mutate the owner's per-instance transportation state merely
-  // by observing the same FOM; its callback ledger remains discovery-only.
+  // The FOM declares the custom transportation type, but a later class-default
+  // override gives this new instance reliable transport. Once the owner
+  // divests it, a peer query must report the FDD value, not the stale instance
+  // value that applied while the attribute was owned.
+  REQUIRE_NOTHROW(owner->changeDefaultAttributeTransportationType(
+      ownerObjectClass,
+      AttributeHandleSet{ownerAttribute},
+      reliable));
+  ObjectInstanceHandle unownedFallbackObject;
+  REQUIRE_NOTHROW(unownedFallbackObject =
+                      owner->registerObjectInstance(ownerObjectClass));
+  while (peer->evokeCallback(0.0)) {
+  }
+  REQUIRE(peerReports.discoveries.size() == 3U);
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(
+      unownedFallbackObject,
+      ownerAttribute));
+  static_cast<void>(drainOwnerCallbacks());
+  REQUIRE(ownerReports.attributeQueries.size() == 3U);
+  REQUIRE(ownerReports.attributeQueries.back().objectInstance == unownedFallbackObject);
+  REQUIRE(ownerReports.attributeQueries.back().attribute == ownerAttribute);
+  REQUIRE(ownerReports.attributeQueries.back().transportationType == reliable);
+  REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+      unownedFallbackObject,
+      AttributeHandleSet{ownerAttribute},
+      rti1516_2025::VariableLengthData{}));
+  REQUIRE_NOTHROW(peer->queryAttributeTransportationType(
+      unownedFallbackObject,
+      peerAttribute));
+  while (peer->evokeCallback(0.0)) {
+  }
+  REQUIRE(peerReports.attributeQueries.size() == 1U);
+  REQUIRE(peerReports.attributeQueries.back().objectInstance == unownedFallbackObject);
+  REQUIRE(peerReports.attributeQueries.back().attribute == peerAttribute);
+  REQUIRE(peerReports.attributeQueries.back().transportationType == custom);
+
+  // The peer can query the public state, but its query does not alter the
+  // owner's prior transportation-change callback ledger.
   REQUIRE(peerReports.attributeChanges.empty());
-  REQUIRE(peerReports.attributeQueries.empty());
   REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(owner->resignFederationExecution(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));

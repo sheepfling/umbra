@@ -139,7 +139,7 @@ follows profile-specific paths. The first diagram summarizes that planning
 seam; the callback-entry recheck in the second is bounded to the embedded
 path. Neither diagram is a portable HLA algorithm.
 
-#### 1. Expand request scope into candidate provider/object work
+### 1. Expand request scope into candidate provider/object work
 
 ```mermaid
 flowchart TD
@@ -942,7 +942,7 @@ focused configured-process test establishes the fate or callback count of a
 queued or already-sent RAVU notification across Save/Restore. Do not infer
 process replay, exactly-once delivery, or host-restart recovery.
 
-#### Process request metadata is separate from notification delivery
+### Process request metadata is separate from notification delivery
 
 This source map separates the per-provider registry record from the provider's
 RAVU notification. It is an Umbra process-path diagram, not a callback or
@@ -1059,4 +1059,3 @@ clause-by-clause review of IEEE 1516.1-2025.
 - [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md)
 - [Time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
 - [Federation save/restore](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md)
-

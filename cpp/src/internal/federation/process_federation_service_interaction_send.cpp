@@ -105,6 +105,7 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
     producingTimeState = state->second.timeState;
   }
 
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   if (sendRequest.timestamp && producingTimeState) {
     auto const timestamp = decodeProcessLogicalTime(
         *sendRequest.timestamp,
@@ -117,6 +118,7 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
           request, TransportServiceStatus::invalid_logical_time);
     }
   }
+#endif
 
   // HLAsetSwitches is a predefined Subscribe-only MOM interaction.  It is
   // consumed by the RTI rather than routed through the ordinary interaction
@@ -559,7 +561,7 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
         std::nullopt,
         messageId == 0U ? std::nullopt
                         : std::optional<std::uint64_t>(messageId)};
-    if (sendRequest.timestamp) {
+    if (queueTimestampedInteraction) {
       event.sentOrderType = rti1516_2025::TIMESTAMP;
       event.receivedOrderType = rti1516_2025::TIMESTAMP;
     }

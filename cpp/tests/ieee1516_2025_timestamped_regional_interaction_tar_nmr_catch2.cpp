@@ -83,15 +83,17 @@ TEST_CASE(
   REQUIRE(tarReports.timestampedInteractionReports.empty());
   REQUIRE(nmrReports.timestampedInteractionReports.empty());
 
-  // Ordinary TAR and NMR both admit the inclusive timestamp-7 frontier. The
-  // regulator's request to 2 plus lookahead 5 establishes GALT 7 for both
+  // Ordinary TAR and NMR both admit the timestamp-7 frontier once the
+  // regulator's request to 3 plus lookahead 5 establishes GALT 8 for both
   // regional recipients, and each callback must precede its own grant.
   REQUIRE_NOTHROW(tar->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
   REQUIRE_NOTHROW(nmr->nextMessageRequest(rti1516_2025::HLAinteger64Time(10)));
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(tar->evokeCallback(0.0));
-  REQUIRE_FALSE(nmr->evokeCallback(0.0));
+  while (tar->evokeCallback(0.0)) {
+  }
+  while (nmr->evokeCallback(0.0)) {
+  }
 
   auto requireRegionalReport = [&](auto const& report) {
     REQUIRE(report.interactionClass == interactionClass);
@@ -109,7 +111,7 @@ TEST_CASE(
   };
 
   REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"2");
+  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"3");
   REQUIRE(tarReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(tarReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(tarReports.timeAdvanceGrantReports.front().value == L"7");

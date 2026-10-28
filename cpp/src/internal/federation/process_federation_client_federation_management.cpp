@@ -43,6 +43,32 @@ ProcessFederationClient::destroyFederationExecution(
   return decodeProcessFederationDestroyResult(response.payload);
 }
 
+ProcessFederationExecutionMembersResult
+ProcessFederationClient::listFederationExecutionMembers(
+    std::wstring federationName) {
+  auto response = request(
+      TransportServiceOperation::list_federation_execution_members,
+      encodeProcessFederationExecutionMembersRequest(
+          ProcessFederationExecutionMembersRequest{std::move(federationName)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationExecutionMembersResult(response.payload);
+}
+
+ProcessFederationExecutionsResult
+ProcessFederationClient::listFederationExecutions() {
+  auto response = request(
+      TransportServiceOperation::list_federation_executions,
+      std::vector<std::uint8_t>{});
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationExecutionsResult(response.payload);
+}
+
 ProcessFederationJoinResult ProcessFederationClient::joinFederationExecution(
     std::wstring federationName,
     std::wstring federateType,

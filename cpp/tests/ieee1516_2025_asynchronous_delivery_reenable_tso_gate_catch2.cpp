@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 
@@ -43,7 +44,7 @@ void runScenario(rti1516_2025::CallbackModel const callbackModel) {
   auto const tsoClass = sender->getInteractionClassHandle(
       fixture_hla::fom::parameter_fixture_child_interaction);
   auto const roClass = sender->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase");
+      umbra::test::hla::wide::fom::parameter_fixture_base);
   REQUIRE(tsoClass.isValid());
   REQUIRE(roClass.isValid());
   REQUIRE_NOTHROW(sender->publishInteractionClass(tsoClass));
@@ -147,7 +148,7 @@ void runTimeAdvancingScenario(rti1516_2025::CallbackModel const callbackModel,
   auto const tsoClass = sender->getInteractionClassHandle(
       fixture_hla::fom::parameter_fixture_child_interaction);
   auto const roClass = sender->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase");
+      umbra::test::hla::wide::fom::parameter_fixture_base);
   REQUIRE(tsoClass.isValid());
   REQUIRE(roClass.isValid());
   REQUIRE_NOTHROW(sender->publishInteractionClass(tsoClass));

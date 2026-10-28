@@ -148,7 +148,9 @@ TEST_CASE(
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(subscriberReports.attributeReflectionReports.size() == 3);
   REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegionsSupplied);
-  REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegions.contains(publisherRegion));
+  REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegions.size() == 1U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().sentRegions.begin()->isValid());
 
   // Changing the committed subscriber region to a disjoint range removes the
   // regional reflection route without changing ordinary known-instance state.

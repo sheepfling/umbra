@@ -416,8 +416,12 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE(receiverCallbacks.timestampedInteractions.empty());
   REQUIRE(receiverCallbacks.timeAdvanceGrants.empty());
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   drain(*publisher);
+  drain(*receiver);
+  // A callback acknowledgement can make the matching grant eligible after
+  // the first drain observed an empty queue; service once more before
+  // treating the absence of currently queued callbacks as final.
   drain(*receiver);
   REQUIRE(reportPresentAtReceiverCallback);
   REQUIRE(receiverCallbacks.timestampedInteractions.size() == 1U);

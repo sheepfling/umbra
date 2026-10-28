@@ -1,6 +1,7 @@
 #include "internal/federation/federation_registry.hpp"
 #include "internal/fom/fom_catalog.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <mutex>
@@ -156,7 +157,12 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation(
       cancellationId);
   if (cancellation == instance->second.pendingAttributeOwnershipAcquisitionCancellations.end() ||
       cancellation->second.requestingFederateId != requestingFederateId ||
-      cancellation->second.attributeHandles != scheduledAttributeHandles) {
+      cancellation->second.attributeHandles.empty() ||
+      !std::includes(
+          scheduledAttributeHandles.begin(),
+          scheduledAttributeHandles.end(),
+          cancellation->second.attributeHandles.begin(),
+          cancellation->second.attributeHandles.end())) {
     return std::nullopt;
   }
 

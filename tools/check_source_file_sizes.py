@@ -18,24 +18,77 @@ import json
 import re
 import subprocess
 import sys
+from collections import defaultdict
+from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Literal, TypedDict, cast
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = REPOSITORY_ROOT / "docs" / "development" / "source-size-policy.json"
-LOCAL_INCLUDE_PATTERN = re.compile(r'^\s*#\s*include\s*"([^"]+\.inc)"')
-TRANSLATION_UNIT_SUFFIXES = {".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp"}
+LOCAL_INCLUDE_PATTERN = re.compile(
+    r'^\s*#\s*include\s*[<"]([^">]+\.(?:inc|c|cc|cpp|cxx))[>"]'
+)
+TRANSLATION_UNIT_SUFFIXES = frozenset({".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp"})
+SOURCE_BODY_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx"})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Policy:
     soft: int
     hard: int
 
 
-def _load_config(path: Path) -> tuple[dict[str, Policy], dict[str, dict[str, Any]]]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+FileKind = Literal[
+    "cmake",
+    "test_cpp",
+    "production_cpp",
+    "header_cpp",
+    "documentation",
+    "explicit_artifact",
+]
+
+
+class PolicyConfig(TypedDict):
+    soft: int
+    hard: int
+
+
+class _OptionalLegacyExemption(TypedDict, total=False):
+    max_expanded_lines: int
+
+
+class LegacyExemption(_OptionalLegacyExemption):
+    path: str
+    max_lines: int
+    reason: str
+
+
+class _OptionalSourceSizeConfig(TypedDict, total=False):
+    legacy_exemptions: list[LegacyExemption]
+
+
+class SourceSizeConfig(_OptionalSourceSizeConfig):
+    schema_version: int
+    policies: dict[str, PolicyConfig]
+
+
+class SizeFinding(TypedDict):
+    path: str
+    kind: str
+    lines: int
+    physical_lines: int
+    included_fragments: int
+    soft: int
+    hard: int
+
+
+PathExpansion = tuple[int, tuple[Path, ...]]
+
+
+def _load_config(path: Path) -> tuple[dict[str, Policy], dict[str, LegacyExemption]]:
+    payload = cast(SourceSizeConfig, json.loads(path.read_text(encoding="utf-8")))
     policies = {
         name: Policy(int(values["soft"]), int(values["hard"]))
         for name, values in payload["policies"].items()
@@ -58,7 +111,7 @@ def _tracked_paths() -> list[Path]:
     ]
 
 
-def _classify(path: Path) -> tuple[str, Policy] | None:
+def _classify(path: Path) -> tuple[FileKind, Policy] | None:
     relative = path.relative_to(REPOSITORY_ROOT).as_posix()
     suffix = path.suffix.lower()
 
@@ -94,7 +147,7 @@ def _line_count(path: Path) -> int:
 def _resolve_local_fragment(
     includer: Path,
     include_name: str,
-    repository_paths: set[Path],
+    repository_paths: AbstractSet[Path],
 ) -> Path | None:
     include_path = Path(include_name)
     search_roots = (
@@ -112,8 +165,8 @@ def _resolve_local_fragment(
 
 def _expanded_line_count(
     path: Path,
-    repository_paths: set[Path],
-    cache: dict[Path, tuple[int, tuple[Path, ...]]],
+    repository_paths: AbstractSet[Path],
+    cache: MutableMapping[Path, PathExpansion],
     active: frozenset[Path] = frozenset(),
 ) -> tuple[int, tuple[Path, ...]]:
     """Count a source and its recursively included local .inc fragments."""
@@ -123,7 +176,9 @@ def _expanded_line_count(
         return cached
 
     physical_lines = _line_count(path)
-    if path in active or path.suffix.lower() not in TRANSLATION_UNIT_SUFFIXES | {".inc"}:
+    if path in active or path.suffix.lower() not in TRANSLATION_UNIT_SUFFIXES | {
+        ".inc"
+    }:
         return physical_lines, ()
 
     expanded_lines = physical_lines
@@ -149,26 +204,49 @@ def _expanded_line_count(
 
 
 def _scan(
-    policies: dict[str, Policy],
-    baseline: dict[str, dict[str, Any]],
-) -> tuple[list[dict[str, Any]], list[str]]:
-    findings: list[dict[str, Any]] = []
+    policies: Mapping[str, Policy],
+    baseline: Mapping[str, LegacyExemption],
+) -> tuple[list[SizeFinding], list[str]]:
+    findings: list[SizeFinding] = []
     errors: list[str] = []
     tracked_paths = _tracked_paths()
     repository_paths = {path.resolve() for path in tracked_paths}
-    expanded_cache: dict[Path, tuple[int, tuple[Path, ...]]] = {}
+    expanded_cache: dict[Path, PathExpansion] = {}
+    fragment_consumers: dict[Path, set[Path]] = defaultdict(set)
     present = set()
 
     for path in tracked_paths:
         if not path.is_file():
             continue
         relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+        if path.suffix.lower() in TRANSLATION_UNIT_SUFFIXES | {".inc"}:
+            for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                match = LOCAL_INCLUDE_PATTERN.match(line)
+                if match is None:
+                    continue
+                include_name = match.group(1)
+                suffix = Path(include_name).suffix.lower()
+                if suffix in SOURCE_BODY_SUFFIXES:
+                    errors.append(
+                        f"source file included into another source: {relative} includes {include_name}"
+                    )
+                fragment = _resolve_local_fragment(path, include_name, repository_paths)
+                if suffix == ".inc":
+                    if fragment is None:
+                        errors.append(
+                            f"unresolved included .inc fragment: {relative} includes {include_name}"
+                        )
+                    else:
+                        fragment_consumers[fragment].add(path.resolve())
         classified = _classify(path)
         if classified is None and relative in baseline:
             # Explicit artifact ratchets also cover generated TS/CJS/JSON.
             # Do not enroll every unsupported format or call an existing,
             # registered artifact "missing" merely because it is not C++.
-            classified = "explicit_artifact", Policy(soft=3000, hard=int(baseline[relative]["max_lines"]))
+            classified = (
+                "explicit_artifact",
+                Policy(soft=3000, hard=int(baseline[relative]["max_lines"])),
+            )
         if classified is None:
             continue
         kind, default_policy = classified
@@ -181,7 +259,7 @@ def _scan(
             lines, included_fragments = _expanded_line_count(
                 path, repository_paths, expanded_cache
             )
-        entry = {
+        entry: SizeFinding = {
             "path": relative,
             "kind": kind,
             "lines": lines,
@@ -215,15 +293,25 @@ def _scan(
                 f"{relative} has {lines} expanded lines; limit is {policy.hard}"
             )
 
+    for path in tracked_paths:
+        if path.is_file() and path.suffix.lower() == ".inc":
+            count = len(fragment_consumers[path.resolve()])
+            if count < 2:
+                errors.append(
+                    f"single-consumer .inc fragment: {path.relative_to(REPOSITORY_ROOT).as_posix()} "
+                    f"has {count} direct consumers; fold it into its owner"
+                )
     for relative in sorted(set(baseline) - present):
         errors.append(f"size-policy baseline names a missing source file: {relative}")
     return findings, errors
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--report", action="store_true", help="print every soft-limit finding"
+        "--report",
+        action="store_true",
+        help="print every soft-limit finding; blockers still fail",
     )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     arguments = parser.parse_args(argv)
@@ -258,9 +346,7 @@ def main(argv: list[str] | None = None) -> int:
 
     for error in errors:
         print(f"ERROR: {error}", file=sys.stderr)
-    if errors and not arguments.report:
-        return 1
-    return 0
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":

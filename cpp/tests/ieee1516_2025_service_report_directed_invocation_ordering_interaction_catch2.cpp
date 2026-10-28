@@ -47,6 +47,7 @@ TEST_CASE(
       L"directed-report-publisher", L"publisher", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"directed-report-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   // The support FOM enables both switches by default.  Disable the
   // publisher's file route and the observer's own reporting before selecting

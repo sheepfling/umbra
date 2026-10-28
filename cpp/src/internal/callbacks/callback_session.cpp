@@ -51,7 +51,7 @@ void CallbackSession::waitUntilIdle() {
   noInvocationsInFlight_.wait(lock, [this] { return invocationsInFlight_ == 0; });
 }
 
-void CallbackSession::invoke(Invocation invocation) {
+void CallbackSession::invoke(const Invocation& invocation) {
   if (!invocation) {
     return;
   }

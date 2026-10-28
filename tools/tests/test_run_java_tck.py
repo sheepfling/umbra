@@ -20,25 +20,26 @@ class RunUnverifiedTests(unittest.TestCase):
         self.classes.mkdir()
 
     def test_opt_in_is_passed_only_when_requested(self) -> None:
-        inputs = dict(
-            api_jar=self.root / "api.jar",
-            provider_jars=[self.root / "provider.jar"],
-            dependency_jars=[],
-            fom_path=self.root / "model.xml",
-            classes_directory=self.classes,
-            java="java",
-            javac="javac",
-            skip_build=True,
-        )
+        inputs = {
+            "api_jar": self.root / "api.jar",
+            "provider_jars": [self.root / "provider.jar"],
+            "dependency_jars": [],
+            "fom_path": self.root / "model.xml",
+            "classes_directory": self.classes,
+            "java": "java",
+            "javac": "javac",
+            "skip_build": True,
+        }
         with patch("tools.run_java_tck.run_command", return_value=0) as command:
             self.assertEqual(run_tck(**inputs), 0)
             self.assertFalse(
-                any("hla.rti.tck.runUnverified" in arg for arg in command.call_args.args[0])
+                any(
+                    "hla.rti.tck.runUnverified" in arg
+                    for arg in command.call_args.args[0]
+                )
             )
             self.assertEqual(run_tck(**inputs, run_unverified=True), 0)
-            self.assertIn(
-                "-Dhla.rti.tck.runUnverified=true", command.call_args.args[0]
-            )
+            self.assertIn("-Dhla.rti.tck.runUnverified=true", command.call_args.args[0])
 
     def test_matrix_can_opt_in_without_a_profile(self) -> None:
         for name in ("api.jar", "provider-a.jar", "provider-b.jar", "model.xml"):

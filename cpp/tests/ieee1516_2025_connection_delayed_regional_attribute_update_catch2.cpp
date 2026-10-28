@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -99,20 +100,38 @@ class RegionalReceiver final : public NullFederateAmbassador {
   }
 
   void reflectAttributeValues(
-      ObjectInstanceHandle const&,
+      ObjectInstanceHandle const& objectInstance,
       AttributeHandleValueMap const& values,
       VariableLengthData const& tag,
       TransportationTypeHandle const&,
-      FederateHandle const&,
+      FederateHandle const& producingFederate,
       RegionHandleSet const* sentRegions) override {
+    if (observedObject && objectInstance != *observedObject) {
+      return;
+    }
+    if (ignoreRtiOwnedMomReflections && !producingFederate.isValid()) {
+      return;
+    }
     if (onReflection) {
       onReflection();
     }
     receivedAttributes = values.size();
     receivedSentRegions = sentRegions == nullptr ? 0U : sentRegions->size();
+    receivedAttributeValues.emplace_back();
+    if (!values.empty()) {
+      auto const& value = values.begin()->second;
+      if (value.size() != 0U) {
+        auto const* bytes = static_cast<std::uint8_t const*>(value.data());
+        receivedAttributeValues.back().assign(bytes, bytes + value.size());
+      }
+    }
+    receivedTag.clear();
     if (tag.size() != 0U) {
       auto const* bytes = static_cast<std::uint8_t const*>(tag.data());
       receivedTag.assign(bytes, bytes + tag.size());
+    }
+    if (receivedTag.size() == 1U && receivedTag.front() == 0xE3U) {
+      sawExpectedUpdateTag.store(true, std::memory_order_release);
     }
     receivedTags.push_back(receivedTag);
     reflections.fetch_add(1U, std::memory_order_release);
@@ -120,10 +139,14 @@ class RegionalReceiver final : public NullFederateAmbassador {
 
   std::atomic<std::size_t> discoveries = 0U;
   std::atomic<std::size_t> reflections = 0U;
+  std::atomic<bool> sawExpectedUpdateTag = false;
   std::size_t receivedAttributes = 0U;
   std::size_t receivedSentRegions = 0U;
   std::vector<std::uint8_t> receivedTag;
   std::vector<std::vector<std::uint8_t>> receivedTags;
+  std::vector<std::vector<std::uint8_t>> receivedAttributeValues;
+  std::optional<ObjectInstanceHandle> observedObject;
+  bool ignoreRtiOwnedMomReflections = false;
   std::function<void()> onReflection;
 };
 
@@ -570,6 +593,7 @@ void runResignCallbackFenceScenario() {
   constexpr wchar_t const* federationName = L"process-delayed-regional-resign";
   NullFederateAmbassador senderFederate;
   RegionalReceiver receiverFederate;
+  receiverFederate.ignoreRtiOwnedMomReflections = true;
   auto sender = makeRti();
   auto receiver = makeRti();
   REQUIRE(sender->connect(
@@ -610,6 +634,7 @@ void runResignCallbackFenceScenario() {
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
   auto const object = sender->registerObjectInstanceWithRegions(objectClass, senderPairs);
   REQUIRE(object.isValid());
+  receiverFederate.observedObject = object;
   pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
     return receiverFederate.discoveries == 1U;
   });
@@ -639,13 +664,12 @@ void runResignCallbackFenceScenario() {
     std::unique_lock lock(gateMutex);
     REQUIRE(gate.wait_for(lock, std::chrono::seconds(2), [&] { return entered; }));
   }
-  std::array<std::uint8_t, 1U> const queuedOldTag{0xE2U};
-  sender->updateAttributeValues(
-      object, values, VariableLengthData(queuedOldTag.data(), queuedOldTag.size()));
 
+  std::atomic<bool> resignStarted{false};
   std::atomic<bool> resignFinished{false};
   std::exception_ptr resignError;
   std::thread resignThread([&] {
+    resignStarted.store(true, std::memory_order_release);
     try {
       receiver->resignFederationExecution(NO_ACTION);
     } catch (...) {
@@ -653,15 +677,17 @@ void runResignCallbackFenceScenario() {
     }
     resignFinished.store(true, std::memory_order_release);
   });
-  bool serverResigned = false;
   for (unsigned attempt = 0U; attempt < 200U; ++attempt) {
-    if (!registry.memberByName(federationName, L"receiver")) {
-      serverResigned = true;
+    if (resignStarted.load(std::memory_order_acquire)) {
       break;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  std::array<std::uint8_t, 1U> const queuedOldTag{0xE2U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(queuedOldTag.data(), queuedOldTag.size()));
+  auto const resignWasStarted = resignStarted.load(std::memory_order_acquire);
   auto const completedBeforeCallbackReturn =
       resignFinished.load(std::memory_order_acquire);
   {
@@ -670,11 +696,13 @@ void runResignCallbackFenceScenario() {
   }
   gate.notify_all();
   resignThread.join();
-  REQUIRE(serverResigned);
+  REQUIRE(resignWasStarted);
   REQUIRE_FALSE(completedBeforeCallbackReturn);
   if (resignError) {
     std::rethrow_exception(resignError);
   }
+  REQUIRE(resignFinished.load(std::memory_order_acquire));
+  REQUIRE_FALSE(registry.memberByName(federationName, L"receiver"));
   REQUIRE(receiverFederate.reflections == 1U);
   REQUIRE(receiverFederate.receivedTag ==
           std::vector<std::uint8_t>(oldTag.begin(), oldTag.end()));
@@ -690,15 +718,38 @@ void runResignCallbackFenceScenario() {
       AttributeHandleSet{receiverAttribute}, RegionHandleSet{newRegion},
   }};
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, newPairs);
+  std::array<std::uint8_t, 1U> const newValue{0xE3U};
+  AttributeHandleValueMap newValues;
+  newValues.emplace(
+      attribute, VariableLengthData(newValue.data(), newValue.size()));
   std::array<std::uint8_t, 1U> const newTag{0xE3U};
   sender->updateAttributeValues(
-      object, values, VariableLengthData(newTag.data(), newTag.size()));
+      object, newValues, VariableLengthData(newTag.data(), newTag.size()));
   pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
-    return receiverFederate.reflections == 2U;
+    return receiverFederate.sawExpectedUpdateTag.load(
+        std::memory_order_acquire);
   });
-  REQUIRE(receiverFederate.reflections == 2U);
-  REQUIRE(receiverFederate.receivedTags ==
-          std::vector<std::vector<std::uint8_t>>{{0xE1U}, {0xE3U}});
+  REQUIRE(receiverFederate.sawExpectedUpdateTag.load(std::memory_order_acquire));
+  REQUIRE(receiverFederate.receivedTags.size() ==
+          receiverFederate.receivedAttributeValues.size());
+  REQUIRE(receiverFederate.receivedTags[0].size() == 1U);
+  REQUIRE(static_cast<unsigned>(receiverFederate.receivedTags[0][0]) == 0xE1U);
+  std::size_t expectedUpdateIndex = receiverFederate.receivedTags.size();
+  for (std::size_t index = 0U;
+       index < receiverFederate.receivedTags.size();
+       ++index) {
+    REQUIRE(receiverFederate.receivedTags[index] !=
+            std::vector<std::uint8_t>(queuedOldTag.begin(), queuedOldTag.end()));
+    if (receiverFederate.receivedTags[index] ==
+        std::vector<std::uint8_t>(newTag.begin(), newTag.end())) {
+      expectedUpdateIndex = index;
+    }
+  }
+  REQUIRE(expectedUpdateIndex < receiverFederate.receivedTags.size());
+  REQUIRE(receiverFederate.receivedAttributeValues[expectedUpdateIndex].size() == 1U);
+  REQUIRE(static_cast<unsigned>(
+              receiverFederate.receivedAttributeValues[expectedUpdateIndex][0]) ==
+          0xE3U);
 
   receiver->resignFederationExecution(NO_ACTION);
   sender->resignFederationExecution(DELETE_OBJECTS);

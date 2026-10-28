@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from umbra_rti_observer import OBSERVER_CONTRACT_VERSION
-from umbra_rti_observer.probe import ObserverContractProbe
 from umbra_rti_observer.contract import build_contract_document
 from umbra_rti_observer.core import EVENT_TYPES, OBSERVER_SCHEMA_VERSION
+from umbra_rti_observer.models import JsonObject
+from umbra_rti_observer.probe import ObserverContractProbe
 
 
-def _responses() -> dict[str, object]:
-    contract = build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION)
+def _responses() -> dict[str, JsonObject]:
+    contract = build_contract_document(
+        EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION
+    )
     return {
         "/api/contract": contract,
         "/api/health": {
@@ -60,7 +63,9 @@ def _responses() -> dict[str, object]:
 
 def test_probe_accepts_a_contract_compatible_backend() -> None:
     responses = _responses()
-    result = ObserverContractProbe("http://backend", fetch=lambda path: (200, responses[path])).run()
+    result = ObserverContractProbe(
+        "http://backend", fetch=lambda path: (200, responses[path])
+    ).run()
 
     assert result.passed is True
     assert all(check.passed for check in result.checks)
@@ -69,10 +74,14 @@ def test_probe_accepts_a_contract_compatible_backend() -> None:
 def test_probe_reports_missing_backend_fields() -> None:
     responses = _responses()
     responses["/api/metrics"] = {"status": "running"}
-    result = ObserverContractProbe("http://backend", fetch=lambda path: (200, responses[path])).run()
+    result = ObserverContractProbe(
+        "http://backend", fetch=lambda path: (200, responses[path])
+    ).run()
 
     assert result.passed is False
-    assert any(check.name == "metrics_fields" and not check.passed for check in result.checks)
+    assert any(
+        check.name == "metrics_fields" and not check.passed for check in result.checks
+    )
 
 
 def test_probe_rejects_malformed_event_envelopes() -> None:
@@ -81,7 +90,11 @@ def test_probe_rejects_malformed_event_envelopes() -> None:
         **responses["/api/events?after=0&limit=20"],
         "events": [{"sequence": "one"}],
     }
-    result = ObserverContractProbe("http://backend", fetch=lambda path: (200, responses[path])).run()
+    result = ObserverContractProbe(
+        "http://backend", fetch=lambda path: (200, responses[path])
+    ).run()
 
     assert result.passed is False
-    assert any(check.name == "event_envelopes" and not check.passed for check in result.checks)
+    assert any(
+        check.name == "event_envelopes" and not check.passed for check in result.checks
+    )

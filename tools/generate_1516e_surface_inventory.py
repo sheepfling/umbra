@@ -19,13 +19,45 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
-
+from typing import Literal, TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PYTHON_CONTRACT = (
     ROOT / "packages" / "umbra-rti-api" / "src" / "hla" / "rti1516e" / "contracts.py"
 )
+
+
+class _SurfaceNamespaces(TypedDict):
+    cpp: Literal["rti1516e"]
+    java: Literal["hla.rti1516e"]
+    python: Literal["hla.rti1516e"]
+
+
+class _MethodSurface(TypedDict):
+    rti_method_count: int
+    federate_method_count: int
+    rti_methods: list[str]
+    federate_methods: list[str]
+
+
+class _SurfaceDifferences(TypedDict):
+    cpp_rti_only: list[str]
+    java_rti_only: list[str]
+    cpp_federate_only: list[str]
+    java_federate_only: list[str]
+    python_rti_missing_java: list[str]
+    python_rti_extra: list[str]
+    python_federate_missing_java: list[str]
+    python_federate_extra: list[str]
+
+
+class _SurfaceInventory(TypedDict):
+    standard: Literal["IEEE 1516.1-2010"]
+    namespaces: _SurfaceNamespaces
+    cpp: _MethodSurface
+    java: _MethodSurface
+    python: _MethodSurface
+    differences: _SurfaceDifferences
 
 
 def _strip_comments(source: str) -> str:
@@ -82,16 +114,23 @@ def _python_contract_names(path: Path, assignment: str) -> list[str]:
     for node in tree.body:
         if not isinstance(node, ast.Assign):
             continue
-        if not any(isinstance(target, ast.Name) and target.id == assignment for target in node.targets):
+        if not any(
+            isinstance(target, ast.Name) and target.id == assignment
+            for target in node.targets
+        ):
             continue
         value = ast.literal_eval(node.value)
-        if not isinstance(value, tuple) or not all(isinstance(item, str) for item in value):
+        if not isinstance(value, tuple) or not all(
+            isinstance(item, str) for item in value
+        ):
             raise ValueError(f"{assignment} is not a tuple of method names")
         return list(value)
     raise ValueError(f"Python contract is missing {assignment}")
 
 
-def _surface(cpp_root: Path, java_root: Path, python_contract: Path) -> dict[str, Any]:
+def _surface(
+    cpp_root: Path, java_root: Path, python_contract: Path
+) -> _SurfaceInventory:
     cpp_rti = _cpp_method_names(
         (cpp_root / "RTI" / "RTIambassador.h").read_text(encoding="utf-8"),
         "RTIambassador",
@@ -101,18 +140,24 @@ def _surface(cpp_root: Path, java_root: Path, python_contract: Path) -> dict[str
         "FederateAmbassador",
     )
     java_rti = _java_method_names(
-        (java_root / "hla" / "rti1516e" / "RTIambassador.java").read_text(encoding="utf-8")
+        (java_root / "hla" / "rti1516e" / "RTIambassador.java").read_text(
+            encoding="utf-8"
+        )
     )
     java_federate = _java_method_names(
-        (java_root / "hla" / "rti1516e" / "FederateAmbassador.java").read_text(encoding="utf-8")
+        (java_root / "hla" / "rti1516e" / "FederateAmbassador.java").read_text(
+            encoding="utf-8"
+        )
     )
     python_rti = _python_contract_names(python_contract, "RTIAMBASSADOR_METHODS")
-    python_federate = _python_contract_names(python_contract, "FEDERATE_AMBASSADOR_METHODS")
+    python_federate = _python_contract_names(
+        python_contract, "FEDERATE_AMBASSADOR_METHODS"
+    )
 
     def diff(left: list[str], right: list[str]) -> list[str]:
         return sorted(set(left) - set(right))
 
-    result: dict[str, Any] = {
+    result: _SurfaceInventory = {
         "standard": "IEEE 1516.1-2010",
         "namespaces": {
             "cpp": "rti1516e",
@@ -153,8 +198,15 @@ def _surface(cpp_root: Path, java_root: Path, python_contract: Path) -> dict[str
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cpp-root", type=Path, required=True, help="root containing RTI/*.h")
-    parser.add_argument("--java-root", type=Path, required=True, help="root containing hla/rti1516e/*.java")
+    parser.add_argument(
+        "--cpp-root", type=Path, required=True, help="root containing RTI/*.h"
+    )
+    parser.add_argument(
+        "--java-root",
+        type=Path,
+        required=True,
+        help="root containing hla/rti1516e/*.java",
+    )
     parser.add_argument("--python-contract", type=Path, default=DEFAULT_PYTHON_CONTRACT)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -169,7 +221,9 @@ def main() -> int:
             differences["python_federate_extra"],
         ]
         if any(python_differences):
-            raise ValueError("Python contract does not exactly mirror the Java method groups")
+            raise ValueError(
+                "Python contract does not exactly mirror the Java method groups"
+            )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         print("IEEE 1516e cross-language surface inventory: PASS")
@@ -193,7 +247,10 @@ def main() -> int:
         print(f"  output: {args.output}")
         return 0
     except (OSError, ValueError, SyntaxError, json.JSONDecodeError) as error:
-        print(f"IEEE 1516e cross-language surface inventory: FAIL: {error}", file=sys.stderr)
+        print(
+            f"IEEE 1516e cross-language surface inventory: FAIL: {error}",
+            file=sys.stderr,
+        )
         return 1
 
 

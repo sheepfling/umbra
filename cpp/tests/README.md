@@ -1548,39 +1548,54 @@ The public process-address/message slice is also directly queryable:
     python tools/query_rti_work.py test "RTIambassador selects a configured tcp process endpoint through the official address field" --summary --compact
     python tools/query_rti_work.py test "RTIambassador rejects malformed tcp process addresses before connecting" --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes public object-class attribute subscription through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py trace "RTIambassador routes public object-class attribute subscription through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador delivers object discovery through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py trace "RTIambassador delivers object discovery through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py trace "Embedded attribute relevance advisories use subscriptions when known-class policy is disabled" --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes public object-class attribute subscription through a
+configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador delivers object discovery through a configured process endpoint"
+--summary --compact
+python tools/query_rti_work.py trace "RTIambassador delivers object discovery through a configured process endpoint"
+--summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories use subscriptions when known-class policy
+is disabled" --summary --compact
 python tools/query_rti_work.py search known-class-disabled --summary --compact
-python tools/query_rti_work.py trace "Embedded attribute relevance advisories honor known class when the static policy is enabled" --summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories honor known class when the static policy
+is enabled" --summary --compact
 python tools/query_rti_work.py search known-class-enabled --summary --compact
 python tools/query_rti_work.py trace "Embedded update-rate lookup ignores passive regional subscriptions" --summary --compact
 python tools/query_rti_work.py focus update-rate-passive-regional-subscription --summary --compact
-python tools/query_rti_work.py trace "Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery" --summary --compact
+python tools/query_rti_work.py trace "Embedded passive object-attribute subscriptions do not arrange ordinary or
+regional delivery" --summary --compact
 python tools/query_rti_work.py focus passive-regional-object-attribute-transition --summary --compact
 python tools/query_rti_work.py matrix passive-regional-object-attribute-transition --group-by section --summary --compact
-ctest --test-dir .build -C Debug -R "^umbra\.passive_object_attribute_subscription\.catch2\.Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery$" --output-on-failure
+ctest --test-dir .build -C Debug -R "^umbra\.passive_object_attribute_subscription\.catch2\.Embedded passive
+object-attribute subscriptions do not arrange ordinary or regional delivery$" --output-on-failure
 python tools/query_rti_work.py focus interaction-subscription-mode-exclusivity --summary --compact
 python tools/query_rti_work.py case umbra-cpp-joined-federate-mom-subscriptions-report-integration --summary --compact
 python tools/query_rti_work.py focus interaction-sent-class-preservation --summary --compact
 python tools/query_rti_work.py focus ddm-clause6-service-expansion --summary --compact
 ctest --test-dir .build -C Debug -L "^ddm-clause6-service-expansion$" --output-on-failure
 python tools/query_rti_work.py case umbra-cpp-receive-order-interaction-integration --summary --compact
-python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently" --summary --compact
+python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently"
+--summary --compact
 python tools/query_rti_work.py focus update-rate-mixed-attribute-gating --summary --compact
-python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
+python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM
+join" --summary --compact
 python tools/query_rti_work.py search transportation-handle-stability --summary --compact
-python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Update Attribute Values
+invocations through MOM interaction (restored baseline copy)" --summary --compact
 python tools/query_rti_work.py search restored-baseline-copy --summary --compact
-python tools/query_rti_work.py trace "Embedded regional Provide Attribute Value Update reports before callback delivery (restored baseline copy)" --summary --compact
-python tools/query_rti_work.py trace "Embedded three-dimensional regional object attributes require complete overlap" --summary --compact
+python tools/query_rti_work.py trace "Embedded regional Provide Attribute Value Update reports before callback delivery
+(restored baseline copy)" --summary --compact
+python tools/query_rti_work.py trace "Embedded three-dimensional regional object attributes require complete overlap"
+--summary --compact
 python tools/query_rti_work.py search complete-overlap --summary --compact
-python tools/query_rti_work.py trace "Embedded regional Request Attribute Value Update filters 2025 owner solicitations (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py trace "Embedded regional Request Attribute Value Update filters 2025 owner solicitations
+(restored baseline copy)" --summary --compact
 python tools/query_rti_work.py search regional-request-filtering --summary --compact
-python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Update Attribute
+Values invocations through MOM interaction (restored baseline copy)" --summary --compact
 python tools/query_rti_work.py search timestamped-regional-attribute-update-failure --summary --compact
-python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Update Attribute Values invocations (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Update Attribute Values
+invocations (restored baseline copy)" --summary --compact
 python tools/query_rti_work.py search timestamped-attribute-update-failure --summary --compact
 
 The public object-discovery process-endpoint case is now implemented and indexed
@@ -2944,7 +2959,8 @@ constrained recipient's pending removal is suppressed:
     python tools/query_rti_work.py trace "Embedded Request Retraction reconstitutes a delivered timestamped object deletion" --summary --compact
     python tools/query_rti_work.py matrix "Embedded Request Retraction reconstitutes a delivered timestamped object deletion" --summary --compact
     python tools/query_rti_work.py check --lane tso-object-deletion-retraction-reconstitution --summary --compact
-ctest --test-dir <build-dir> -C Debug -R "^umbra\.timestamped_object_deletion_retraction\.catch2\.Embedded Request Retraction reconstitutes a delivered timestamped object deletion$" --output-on-failure
+ctest --test-dir `<build-dir>` -C Debug -R "^umbra\.timestamped_object_deletion_retraction\.catch2\.Embedded Request
+Retraction reconstitutes a delivered timestamped object deletion$" --output-on-failure
 
 The joined-owner timestamped object-deletion retraction slice is independently
 buildable at `timestamped_object_deletion_joined_owner_retraction_catch2.cpp:170`.

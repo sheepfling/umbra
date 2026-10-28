@@ -11,16 +11,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 from zipfile import ZipFile
 
 from generate_1516e_surface_inventory import _cpp_method_names, _java_method_names
 
-
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "compliance" / "standards" / "ieee1516e-2010-artifact-manifest.json"
+DEFAULT_MANIFEST = (
+    ROOT / "compliance" / "standards" / "ieee1516e-2010-artifact-manifest.json"
+)
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -96,8 +97,7 @@ def main() -> int:
         if manifest.get("kind") != "ieee1516e-2010-artifact-manifest":
             raise ValueError("manifest is not an IEEE 1516e artifact manifest")
         expected_archives = {
-            item["part"]: item["sha256"]
-            for item in manifest["archives"]
+            item["part"]: item["sha256"] for item in manifest["archives"]
         }
         part1 = archive_bytes(args.part1_archive)
         part2 = archive_bytes(args.part2_archive)
@@ -117,34 +117,55 @@ def main() -> int:
         if "package hla.rti1516e;" not in java_rti:
             raise ValueError("Java API does not declare package hla.rti1516e")
         expected_cpp = manifest["api_archives"]["cpp"]
-        if pure_virtual_count(cpp_source) != expected_cpp["rti_ambassador_pure_virtual_count"]:
+        if (
+            pure_virtual_count(cpp_source)
+            != expected_cpp["rti_ambassador_pure_virtual_count"]
+        ):
             raise ValueError("2010 C++ RTIambassador surface count mismatch")
-        if pure_virtual_count(federate_source) != expected_cpp["federate_ambassador_pure_virtual_count"]:
+        if (
+            pure_virtual_count(federate_source)
+            != expected_cpp["federate_ambassador_pure_virtual_count"]
+        ):
             raise ValueError("2010 C++ FederateAmbassador surface count mismatch")
         expected_java = manifest["api_archives"]["java"]
         java_rti_count = java_declaration_count(java_rti)
         java_federate_count = java_declaration_count(java_federate)
         if java_rti_count != expected_java["rti_ambassador_declared_method_count"]:
             raise ValueError("2010 Java RTIambassador surface count mismatch")
-        if java_federate_count != expected_java["federate_ambassador_declared_method_count"]:
+        if (
+            java_federate_count
+            != expected_java["federate_ambassador_declared_method_count"]
+        ):
             raise ValueError("2010 Java FederateAmbassador surface count mismatch")
         expected_surface = manifest.get("surface_inventory")
         if expected_surface:
             cpp_rti_names = _cpp_method_names(cpp_source, "RTIambassador")
-            cpp_federate_names = _cpp_method_names(federate_source, "FederateAmbassador")
+            cpp_federate_names = _cpp_method_names(
+                federate_source, "FederateAmbassador"
+            )
             java_rti_names = _java_method_names(java_rti)
             java_federate_names = _java_method_names(java_federate)
             if len(cpp_rti_names) != expected_surface["cpp_unique_rti_method_count"]:
                 raise ValueError("2010 C++ unique RTI method inventory mismatch")
             if len(java_rti_names) != expected_surface["java_unique_rti_method_count"]:
                 raise ValueError("2010 Java unique RTI method inventory mismatch")
-            if len(cpp_federate_names) != expected_surface["cpp_unique_federate_callback_count"]:
+            if (
+                len(cpp_federate_names)
+                != expected_surface["cpp_unique_federate_callback_count"]
+            ):
                 raise ValueError("2010 C++ unique callback inventory mismatch")
-            if len(java_federate_names) != expected_surface["java_unique_federate_callback_count"]:
+            if (
+                len(java_federate_names)
+                != expected_surface["java_unique_federate_callback_count"]
+            ):
                 raise ValueError("2010 Java unique callback inventory mismatch")
-            if sorted(set(cpp_rti_names) - set(java_rti_names)) != sorted(expected_surface["cpp_rti_only"]):
+            if sorted(set(cpp_rti_names) - set(java_rti_names)) != sorted(
+                expected_surface["cpp_rti_only"]
+            ):
                 raise ValueError("2010 C++-only RTI method inventory mismatch")
-            if sorted(set(java_rti_names) - set(cpp_rti_names)) != sorted(expected_surface["java_rti_only"]):
+            if sorted(set(java_rti_names) - set(cpp_rti_names)) != sorted(
+                expected_surface["java_rti_only"]
+            ):
                 raise ValueError("2010 Java-only RTI method inventory mismatch")
             if sorted(set(cpp_federate_names) - set(java_federate_names)):
                 raise ValueError("2010 C++ callback name differences are not zero")

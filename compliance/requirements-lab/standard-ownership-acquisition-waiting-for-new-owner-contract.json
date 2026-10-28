@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK first invokes Negotiated Attribute Ownership Divestiture with no pending acquirer, placing the owner in Waiting for a New Owner to be Found. A later Attribute Ownership Acquisition causes Request Divestiture Confirmation at the owner without Request Attribute Ownership Release. The owner retains ownership until Confirm Divestiture, after which the requester receives Attribute Ownership Acquisition Notification. The page-161 source behavior is tested, but the Lab candidates page-161-l152-45, l158-47, and l167-50 are split/truncated under RL-376; catalog rows remain candidate-only and do not count as promoted requirement coverage until usable atomic boundaries are provided. This is standard public-API evidence only; it does not claim Java parity, independent-provider testing, or general conformance.",
+  "requirements": [
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l152-45", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l158-47", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l167-50", "standard_section": "hla-1516.1-2025:clause-7.8"}
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-acquisition-waiting-for-new-owner",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador negotiatedAttributeOwnershipDivestiture, attributeOwnershipAcquisition, and confirmDivestiture with requestDivestitureConfirmation, requestAttributeOwnershipRelease, and attributeOwnershipAcquisitionNotification callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioAcquisitionWhileOwnerWaitsForNewOwnerContract"
+      ]
+    }
+  ]
+}

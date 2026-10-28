@@ -2,8 +2,8 @@
 
 #include "internal/fom/fom_catalog.hpp"
 #include "fom_composer_test_support.hpp"
+#include "scoped_temporary_directory.hpp"
 
-#include <atomic>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -13,27 +13,17 @@ namespace {
 
 class TemporaryFomDirectory final {
  public:
-  TemporaryFomDirectory() {
-    static std::atomic_uint64_t next{0U};
-    do {
-      path_ = std::filesystem::temp_directory_path() /
-          ("umbra-annex-c-general-data-type-merge-" +
-           std::to_string(++next));
-    } while (!std::filesystem::create_directory(path_));
-  }
+  TemporaryFomDirectory()
+      : directory_(umbra::test_support::ScopedTemporaryDirectory::reserve(
+            "umbra-annex-c-general-data-type-merge")) {}
 
   TemporaryFomDirectory(TemporaryFomDirectory const&) = delete;
   TemporaryFomDirectory& operator=(TemporaryFomDirectory const&) = delete;
 
-  ~TemporaryFomDirectory() {
-    std::error_code ignored;
-    std::filesystem::remove_all(path_, ignored);
-  }
-
   [[nodiscard]] std::filesystem::path write_module(
       std::string const& filename,
       std::string const& moduleName) const {
-    auto const path = path_ / filename;
+    auto const path = directory_.path() / filename;
     std::ofstream output(path, std::ios::binary);
     REQUIRE(output.good());
     output << R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -109,7 +99,7 @@ class TemporaryFomDirectory final {
   }
 
  private:
-  std::filesystem::path path_;
+  umbra::test_support::ScopedTemporaryDirectory directory_;
 };
 
 }  // namespace

@@ -66,29 +66,31 @@ def _require_unsigned_integer32_le(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger32LE values must be int")
     if not 0 <= value < 2**32:
-        raise ValueError("HLAunsignedInteger32LE value is outside the unsigned 32-bit range")
+        raise ValueError(
+            "HLAunsignedInteger32LE value is outside the unsigned 32-bit range"
+        )
     return value
 
 
-def _require_float64(value: float | int) -> float:
+def _require_float64(value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("HLAfloat64BE values must be real numbers")
     return float(value)
 
 
-def _require_float64_le(value: float | int) -> float:
+def _require_float64_le(value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("HLAfloat64LE values must be real numbers")
     return float(value)
 
 
-def _require_float32(value: float | int) -> float:
+def _require_float32(value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("HLAfloat32BE values must be real numbers")
     return float(value)
 
 
-def _require_float32_le(value: float | int) -> float:
+def _require_float32_le(value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("HLAfloat32LE values must be real numbers")
     return float(value)
@@ -98,7 +100,9 @@ def _require_unsigned_integer32(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger32BE values must be int")
     if not 0 <= value < 2**32:
-        raise ValueError("HLAunsignedInteger32BE value is outside the unsigned 32-bit range")
+        raise ValueError(
+            "HLAunsignedInteger32BE value is outside the unsigned 32-bit range"
+        )
     return value
 
 
@@ -106,7 +110,9 @@ def _require_unsigned_integer16(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger16BE values must be int")
     if not 0 <= value < 2**16:
-        raise ValueError("HLAunsignedInteger16BE value is outside the unsigned 16-bit range")
+        raise ValueError(
+            "HLAunsignedInteger16BE value is outside the unsigned 16-bit range"
+        )
     return value
 
 
@@ -114,7 +120,9 @@ def _require_unsigned_integer16_le(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger16LE values must be int")
     if not 0 <= value < 2**16:
-        raise ValueError("HLAunsignedInteger16LE value is outside the unsigned 16-bit range")
+        raise ValueError(
+            "HLAunsignedInteger16LE value is outside the unsigned 16-bit range"
+        )
     return value
 
 
@@ -122,7 +130,9 @@ def _require_unsigned_integer64(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger64BE values must be int")
     if not 0 <= value < 2**64:
-        raise ValueError("HLAunsignedInteger64BE value is outside the unsigned 64-bit range")
+        raise ValueError(
+            "HLAunsignedInteger64BE value is outside the unsigned 64-bit range"
+        )
     return value
 
 
@@ -130,7 +140,9 @@ def _require_unsigned_integer64_le(value: int) -> int:
     if type(value) is not int:
         raise TypeError("HLAunsignedInteger64LE values must be int")
     if not 0 <= value < 2**64:
-        raise ValueError("HLAunsignedInteger64LE value is outside the unsigned 64-bit range")
+        raise ValueError(
+            "HLAunsignedInteger64LE value is outside the unsigned 64-bit range"
+        )
     return value
 
 
@@ -341,7 +353,7 @@ class HLAfloat64BE(DataElement):
         """Return the binary64 value."""
 
     @abstractmethod
-    def setValue(self, value: float | int) -> Self:
+    def setValue(self, value: float) -> Self:
         """Set the binary64 value and return this element."""
 
 
@@ -353,7 +365,7 @@ class HLAfloat32BE(DataElement):
         """Return the binary32 value."""
 
     @abstractmethod
-    def setValue(self, value: float | int) -> Self:
+    def setValue(self, value: float) -> Self:
         """Set the binary32 value and return this element."""
 
 
@@ -365,7 +377,7 @@ class HLAfloat64LE(DataElement):
         """Return the binary64 value."""
 
     @abstractmethod
-    def setValue(self, value: float | int) -> Self:
+    def setValue(self, value: float) -> Self:
         """Set the binary64 value and return this element."""
 
 
@@ -377,7 +389,7 @@ class HLAfloat32LE(DataElement):
         """Return the binary32 value."""
 
     @abstractmethod
-    def setValue(self, value: float | int) -> Self:
+    def setValue(self, value: float) -> Self:
         """Set the binary32 value and return this element."""
 
 
@@ -712,19 +724,19 @@ class EncoderFactory(ABC):
         """Create a signed 64-bit little-endian element."""
 
     @abstractmethod
-    def createHLAfloat64BE(self, value: float | int | None = None) -> HLAfloat64BE:
+    def createHLAfloat64BE(self, value: float | None = None) -> HLAfloat64BE:
         """Create an IEEE-754 binary64 big-endian element."""
 
     @abstractmethod
-    def createHLAfloat32BE(self, value: float | int | None = None) -> HLAfloat32BE:
+    def createHLAfloat32BE(self, value: float | None = None) -> HLAfloat32BE:
         """Create an IEEE-754 binary32 big-endian element."""
 
     @abstractmethod
-    def createHLAfloat64LE(self, value: float | int | None = None) -> HLAfloat64LE:
+    def createHLAfloat64LE(self, value: float | None = None) -> HLAfloat64LE:
         """Create an IEEE-754 binary64 little-endian element."""
 
     @abstractmethod
-    def createHLAfloat32LE(self, value: float | int | None = None) -> HLAfloat32LE:
+    def createHLAfloat32LE(self, value: float | None = None) -> HLAfloat32LE:
         """Create an IEEE-754 binary32 little-endian element."""
 
     @abstractmethod
@@ -746,7 +758,9 @@ class EncoderFactory(ABC):
         """Create an unsigned 32-bit little-endian element."""
 
     @abstractmethod
-    def createHLAunsignedInteger32BE(self, value: int | None = None) -> HLAunsignedInteger32BE:
+    def createHLAunsignedInteger32BE(
+        self, value: int | None = None
+    ) -> HLAunsignedInteger32BE:
         """Create an unsigned 32-bit big-endian element."""
 
     @abstractmethod
@@ -790,9 +804,7 @@ class EncoderFactory(ABC):
         """Create a two-octet little-endian pair element."""
 
     @abstractmethod
-    def createHLAopaqueData(
-        self, value: BytesLike | None = None
-    ) -> HLAopaqueData:
+    def createHLAopaqueData(self, value: BytesLike | None = None) -> HLAopaqueData:
         """Create an HLAbyte variable-array opaque-data element."""
 
     @abstractmethod

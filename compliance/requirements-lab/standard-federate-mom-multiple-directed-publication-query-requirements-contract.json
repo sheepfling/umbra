@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-federate-mom-multiple-directed-publication-query-declaration",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
-      "clause_id": "clause-5.6.3",
+      "clause_id": "clause-5.6",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "publishObjectClassDirectedInteractions",
       "statement": "The subject publishes one adapter-selected directed interaction for each of two distinct adapter-selected object classes through the standard set-based API.",

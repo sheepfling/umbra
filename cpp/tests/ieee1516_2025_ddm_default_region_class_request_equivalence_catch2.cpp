@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 
@@ -32,9 +33,9 @@ TEST_CASE(
   REQUIRE_NOTHROW(regionalRequester->joinFederationExecution(
       L"ddm-default-region-regional-requester", L"requester", federationName));
 
-  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
-  auto const sodaFlavor = owner->getDimensionHandle(L"SodaFlavor");
+  auto const soda = owner->getObjectClassHandle(umbra::test::hla::wide::fom::food_drink_soda);
+  auto const flavor = owner->getAttributeHandle(soda, umbra::test::hla::wide::fixture::flavor);
+  auto const sodaFlavor = owner->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
   REQUIRE(soda.isValid());
   REQUIRE(flavor.isValid());
   REQUIRE(sodaFlavor.isValid());

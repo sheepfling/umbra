@@ -88,6 +88,29 @@ struct ProcessFederationDestroyResult final {
       ProcessFederationDestroyStatus::invalid_request;
 };
 
+struct ProcessFederationExecutionMember final {
+  std::wstring name;
+  std::wstring type;
+};
+
+struct ProcessFederationExecutionMembersRequest final {
+  std::wstring federationName;
+};
+
+struct ProcessFederationExecutionMembersResult final {
+  bool federationExists = false;
+  std::vector<ProcessFederationExecutionMember> members;
+};
+
+struct ProcessFederationExecutionSummary final {
+  std::wstring name;
+  std::wstring logicalTimeImplementationName;
+};
+
+struct ProcessFederationExecutionsResult final {
+  std::vector<ProcessFederationExecutionSummary> federations;
+};
+
 // Federation synchronization-point control crosses the private process seam
 // as the already-decoded official values.  The registry remains authoritative
 // for membership, uniqueness, late-join expansion, and achievement state;
@@ -1760,6 +1783,24 @@ class ProcessFederationServiceProtocolError final : public std::runtime_error {
 [[nodiscard]] std::vector<std::uint8_t> encodeProcessFederationDestroyResult(
     ProcessFederationDestroyResult const& result);
 [[nodiscard]] ProcessFederationDestroyResult decodeProcessFederationDestroyResult(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationExecutionMembersRequest(
+    ProcessFederationExecutionMembersRequest const& request);
+[[nodiscard]] ProcessFederationExecutionMembersRequest
+decodeProcessFederationExecutionMembersRequest(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationExecutionMembersResult(
+    ProcessFederationExecutionMembersResult const& result);
+[[nodiscard]] ProcessFederationExecutionMembersResult
+decodeProcessFederationExecutionMembersResult(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationExecutionsResult(
+    ProcessFederationExecutionsResult const& result);
+[[nodiscard]] ProcessFederationExecutionsResult
+decodeProcessFederationExecutionsResult(
     std::span<std::uint8_t const> encoded);
 
 [[nodiscard]] std::vector<std::uint8_t>

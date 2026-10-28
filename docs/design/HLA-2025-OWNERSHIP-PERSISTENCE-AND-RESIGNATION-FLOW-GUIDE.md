@@ -15,11 +15,17 @@ contract or a claim of conformance.
 
 ## Scope and evidence boundaries
 
-- **Standard boundary:** IEEE 1516.1-2025 only. The official [IEEE standard page](https://standards.ieee.org/ieee/1516.1/6688/) identifies the normative document. Consult its exact service text for requirements; this guide does not reconstruct the full resignation-action matrix.
-- **Implementation boundary:** selected 2025 embedded ownership ledgers and resignation cleanup, plus selected configured process-endpoint save/restore paths.
-- **Test boundary:** the cited public-API tests cover named embedded fresh-registry and process-endpoint scenarios. The process callback-queue cases perform service-level save/restore through a live endpoint; they do not restart the RTI host process. None proves behavior across every deployed process, transport, or profile.
+- **Standard boundary:** IEEE 1516.1-2025 only. The official
+  [IEEE standard page](https://standards.ieee.org/ieee/1516.1/6688/) identifies the normative document. Consult its
+  exact service text for requirements; this guide does not reconstruct the full resignation-action matrix.
+- **Implementation boundary:** selected 2025 embedded ownership ledgers and resignation cleanup, plus selected
+  configured process-endpoint save/restore paths.
+- **Test boundary:** the cited public-API tests cover named embedded fresh-registry and process-endpoint scenarios. The
+  process callback-queue cases perform service-level save/restore through a live endpoint; they do not restart the RTI
+  host process. None proves behavior across every deployed process, transport, or profile.
 - **Edition boundary:** the 2010 API and runtime are separate. Nothing here implies 2010 behavior or parity.
-- **Evidence labels:** source links describe current implementation; focused tests establish only their named observations. Neither substitutes for the standard or proves complete support.
+- **Evidence labels:** source links describe current implementation; focused tests establish only their named
+  observations. Neither substitutes for the standard or proves complete support.
 
 ## Keep HLA state distinct from the implementation's recovery model
 
@@ -52,11 +58,18 @@ complete normative rule for every `ResignAction`
 ([test](../../cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp#L36),
 [pinned API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L250)).
 
-The state-image capture writes typed ownership records. In the route-free fresh-registry path, restore validates their identities against current members and object attributes; for regular acquisition work, it clears old queued-delivery markers so the restored planner can reserve work against live routes. This is deliberately narrower than “all ownership work survives restart.” Only supported ledger shapes should be inferred to restore.
+The state-image capture writes typed ownership records. In the route-free fresh-registry path, restore validates their
+identities against current members and object attributes; for regular acquisition work, it clears old queued-delivery
+markers so the restored planner can reserve work against live routes. This is deliberately narrower than “all ownership
+work survives restart.” Only supported ledger shapes should be inferred to restore.
 
 ## 1. A pending release callback across save and restore
 
-The focused regular-acquisition case intentionally leaves the owner's release callback undelivered at the save boundary. The test inspects the encoded image, creates a new registry, rejoins, restores, and then checks that the current owner's callback receives the original object, attribute set, and tag. It checks both `HLA_EVOKED` and `HLA_IMMEDIATE` callback models. It does **not** claim that ownership transferred: the requester has no acquisition notification in this scenario.
+The focused regular-acquisition case intentionally leaves the owner's release callback undelivered at the save boundary.
+The test inspects the encoded image, creates a new registry, rejoins, restores, and then checks that the current owner's
+callback receives the original object, attribute set, and tag. It checks both `HLA_EVOKED` and `HLA_IMMEDIATE` callback
+models. It does **not** claim that ownership transferred: the requester has no acquisition notification in this
+scenario.
 
 ```mermaid
 sequenceDiagram
@@ -91,11 +104,17 @@ sequenceDiagram
   Note over Owner,Requester: Release request is not an ownership transfer
 ```
 
-The diagram is a scenario trace, not a normative callback-order guarantee. In the test, callback delivery is drained or enabled according to the selected callback model after restore completion. The later ownership service that resolves the request is outside this chart.
+The diagram is a scenario trace, not a normative callback-order guarantee. In the test, callback delivery is drained or
+enabled according to the selected callback model after restore completion. The later ownership service that resolves the
+request is outside this chart.
 
 ## 2. Resignation with pending acquisition work
 
-The embedded registry first checks whether the departing member is still referenced by regular or If-Available acquisition requests, cancellation work, negotiated-divestiture candidacy, or a pending Confirm Divestiture notification. For the voluntary actions covered by the source guard, unresolved work rejects the resignation attempt before cleanup mutates the federation. The explicit cancellation action removes acquisition-side work belonging to the departing member; it does not erase another joined member's competing request.
+The embedded registry first checks whether the departing member is still referenced by regular or If-Available
+acquisition requests, cancellation work, negotiated-divestiture candidacy, or a pending Confirm Divestiture
+notification. For the voluntary actions covered by the source guard, unresolved work rejects the resignation attempt
+before cleanup mutates the federation. The explicit cancellation action removes acquisition-side work belonging to the
+departing member; it does not erase another joined member's competing request.
 
 ```mermaid
 flowchart TD
@@ -111,17 +130,27 @@ flowchart TD
   E --> I[Finish resignation and invalidate the departing live route]
 ```
 
-In current source, the preflight rejects unresolved acquisition work for `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, `DELETE_OBJECTS`, `DELETE_OBJECTS_THEN_DIVEST`, and `NO_ACTION`; `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` and `CANCEL_THEN_DELETE_THEN_DIVEST` select cancellation. The latter also has its own object action. Do not read the chart as the complete standard action table: last-member deletion and connection-loss cleanup are separate rules and are intentionally not expanded here.
+In current source, the preflight rejects unresolved acquisition work for `UNCONDITIONALLY_DIVEST_ATTRIBUTES`,
+`DELETE_OBJECTS`, `DELETE_OBJECTS_THEN_DIVEST`, and `NO_ACTION`; `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` and
+`CANCEL_THEN_DELETE_THEN_DIVEST` select cancellation. The latter also has its own object action. Do not read the chart
+as the complete standard action table: last-member deletion and connection-loss cleanup are separate rules and are
+intentionally not expanded here.
 
 For the distinct deleted-object versus retained-object projections—and the
 embedded/process callback-order difference—see the [object and interaction
 guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md).
 
-The two focused embedded tests make the contrast tangible: an unconditional-divest resignation is rejected while acquisition work is pending, then a combined cancellation action succeeds; separately, a requester resigning with the cancellation-only action leaves the surviving owner's queued release callback undelivered.
+The two focused embedded tests make the contrast tangible: an unconditional-divest resignation is rejected while
+acquisition work is pending, then a combined cancellation action succeeds; separately, a requester resigning with the
+cancellation-only action leaves the surviving owner's queued release callback undelivered.
 
 ## 3. Remove one candidate without discarding the surviving recipient
 
-One fresh-registry test follows a negotiated divestiture with two selected candidates. The regular candidate resigns with pending-acquisition cancellation. The owner then confirms divestiture for the If-Available candidate. The saved image contains only the surviving recipient's pending Confirm Divestiture notification (`pendingOperationCount == 1`); after restore, that recipient receives the notification with its object, attribute, and tag, while the other attribute remains owned by the original owner.
+One fresh-registry test follows a negotiated divestiture with two selected candidates. The regular candidate resigns
+with pending-acquisition cancellation. The owner then confirms divestiture for the If-Available candidate. The saved
+image contains only the surviving recipient's pending Confirm Divestiture notification (`pendingOperationCount == 1`);
+after restore, that recipient receives the notification with its object, attribute, and tag, while the other attribute
+remains owned by the original owner.
 
 ```mermaid
 sequenceDiagram
@@ -153,7 +182,8 @@ sequenceDiagram
   Note over Owner,Available: Regular attribute stays with Owner, confirmed attribute belongs to Available
 ```
 
-This chart emphasizes candidate pruning and recipient preservation, not arbitration order or a general fairness rule. In particular, a resigned candidate is not a reason to discard a different candidate's pending operation.
+This chart emphasizes candidate pruning and recipient preservation, not arbitration order or a general fairness rule. In
+particular, a resigned candidate is not a reason to discard a different candidate's pending operation.
 
 ## 4. A pushed callback queue differs from restored ownership work
 
@@ -204,23 +234,60 @@ process/embedded parity, 2010 behavior, or a normative ordering guarantee.
 
 ## Implementation and focused test evidence
 
-- **Capture:** [typed ownership image capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1015) records acquisition requests, request/candidate identities, attribute sets, tags, callback markers, and Confirm Divestiture notifications.
-- **Restore validation and reconstruction:** [ownership-ledger restore](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L569) validates live requester/owner identities and attributes. The route-free regular-request path resets queued callback markers so the restored work can be replanned ([lines 695–704](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L695)); Confirm Divestiture notifications likewise require a live recipient ([lines 794–829](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L794)).
-- **Process callback mapping and restore enqueue boundary:** the [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L501) maps an ownership-assumption event to the public FederateAmbassador callback. The [process restore service](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L246) queues federation-restore notifications before enqueueing returned ownership-assumption work; its comment identifies this as the callback-order boundary.
-- **Already-pushed HLA_EVOKED callback:** [process endpoint test](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62) admits discovery and assumption frames before save without invoking them, then checks the later Evoke sequence ([queue admission](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L418), [post-restore delivery](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L464)).
-- **Ownership work reconstructed through process restore:** [configured process endpoint test](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L62) checks federationRestored before the restored ownership-assumption callback.
+- **Capture:**
+  [typed ownership image capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1015)
+  records acquisition requests, request/candidate identities, attribute sets, tags, callback markers, and Confirm
+  Divestiture notifications.
+- **Restore validation and reconstruction:**
+  [ownership-ledger restore](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L569)
+  validates live requester/owner identities and attributes. The route-free regular-request path resets queued callback
+  markers so the restored work can be replanned
+  ([lines 695–704](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L695)); Confirm
+  Divestiture notifications likewise require a live recipient
+  ([lines 794–829](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L794)).
+- **Process callback mapping and restore enqueue boundary:** the
+  [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L501) maps an
+  ownership-assumption event to the public FederateAmbassador callback. The
+  [process restore service](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L246) queues
+  federation-restore notifications before enqueueing returned ownership-assumption work; its comment identifies this as
+  the callback-order boundary.
+- **Already-pushed HLA_EVOKED callback:**
+  [process endpoint test](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62)
+  admits discovery and assumption frames before save without invoking them, then checks the later Evoke sequence
+  ([queue admission](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L418),
+  [post-restore delivery](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L464)).
+- **Ownership work reconstructed through process restore:**
+  [configured process endpoint test](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L62)
+  checks federationRestored before the restored ownership-assumption callback.
 - **Resignation preflight and cleanup:** [resignation pending-work check](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L142) and [member-scoped cancellation](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L462).
-- **Regular release callback restored:** [public fresh-registry restore scenario](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L142) captures pending work; [post-restore callback assertions](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L256) verify object, attribute, and tag with both callback models.
-- **Surviving recipient after candidate resignation:** [two-candidate setup and resignation](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L180), [single-operation saved-image assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L285), and [restored notification/ownership assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L361).
+- **Regular release callback restored:**
+  [public fresh-registry restore scenario](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L142)
+  captures pending work;
+  [post-restore callback assertions](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L256)
+  verify object, attribute, and tag with both callback models.
+- **Surviving recipient after candidate resignation:**
+  [two-candidate setup and resignation](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L180),
+  [single-operation saved-image assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L285),
+  and
+  [restored notification/ownership assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L361).
 - **Resignation rejection:** [unconditional-divest action rejected while acquisition is pending](../../cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp#L36).
 - **Cancellation-only action:** [departing requester cancellation suppresses the queued release callback](../../cpp/tests/ieee1516_2025_embedded_resign_action_cancel_pending_acquisition_catch2.cpp#L49).
-- **Adjacent restore coverage:** [If-Available callback](../../cpp/tests/ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp#L6) and [mixed negotiated confirmations](../../cpp/tests/ieee1516_2025_public_mixed_negotiated_ownership_restore_catch2.cpp#L6) have separate focused scenarios. They are not extra claims in the diagrams above.
+- **Adjacent restore coverage:**
+  [If-Available callback](../../cpp/tests/ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp#L6) and
+  [mixed negotiated confirmations](../../cpp/tests/ieee1516_2025_public_mixed_negotiated_ownership_restore_catch2.cpp#L6)
+  have separate focused scenarios. They are not extra claims in the diagrams above.
 
-The resignation source comments associate the unresolved-acquisition check with IEEE 1516.1-2025 §4.12.3 and mandatory last-member object deletion with §4.12.4. Verify exact wording and applicability in the official standard before using either as a normative interpretation. The cited tests are development-profile evidence only.
+The resignation source comments associate the unresolved-acquisition check with IEEE 1516.1-2025 §4.12.3 and mandatory
+last-member object deletion with §4.12.4. Verify exact wording and applicability in the official standard before using
+either as a normative interpretation. The cited tests are development-profile evidence only.
 
 ## Deliberate limits and next step
 
-This companion covers selected regular acquisition and Confirm Divestiture/If-Available state, plus the two process callback/restore cases described above. It does not claim every ownership operation is portable across a fresh registry, expand all `ResignAction` combinations, or integrate ownership with time management, DDM, or TSO scheduling. Use the [core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) for transfer and callback-time state, and the [save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md) for federation-wide save coordination.
+This companion covers selected regular acquisition and Confirm Divestiture/If-Available state, plus the two process
+callback/restore cases described above. It does not claim every ownership operation is portable across a fresh registry,
+expand all `ResignAction` combinations, or integrate ownership with time management, DDM, or TSO scheduling. Use the
+[core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) for transfer and callback-time state, and the
+[save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md) for federation-wide save coordination.
 
 Receive-order deletion and stale ownership-callback invalidation are now
 diagrammed in the [core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#accepted-object-deletion-invalidates-pending-ownership-work),

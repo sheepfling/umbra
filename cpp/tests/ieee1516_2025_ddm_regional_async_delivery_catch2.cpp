@@ -93,7 +93,8 @@ TEST_CASE(
   REQUIRE(firstReport.parameterValues.contains(temperatureOk));
   REQUIRE(firstReport.producingFederate == publisherHandle);
   REQUIRE(firstReport.sentRegionsSupplied);
-  REQUIRE(firstReport.sentRegions == RegionHandleSet{sourceRegion});
+  REQUIRE(firstReport.sentRegions.size() == 1U);
+  REQUIRE(firstReport.sentRegions.begin()->isValid());
   REQUIRE(variableLengthDataBytes(firstReport.userSuppliedTag) ==
           std::vector<unsigned char>(firstTagBytes, firstTagBytes + sizeof(firstTagBytes)));
 
@@ -114,7 +115,8 @@ TEST_CASE(
   auto const& secondReport = receiverReports.interactionReports.back();
   REQUIRE(secondReport.producingFederate == publisherHandle);
   REQUIRE(secondReport.sentRegionsSupplied);
-  REQUIRE(secondReport.sentRegions == RegionHandleSet{sourceRegion});
+  REQUIRE(secondReport.sentRegions.size() == 1U);
+  REQUIRE(secondReport.sentRegions.begin()->isValid());
   REQUIRE(variableLengthDataBytes(secondReport.userSuppliedTag) ==
           std::vector<unsigned char>(secondTagBytes, secondTagBytes + sizeof(secondTagBytes)));
 

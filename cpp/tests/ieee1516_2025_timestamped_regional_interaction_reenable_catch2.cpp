@@ -84,12 +84,12 @@ TEST_CASE(
   REQUIRE(retraction.isValid());
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
 
-  // The explicit source-region realization and queued TSO identity must
-  // survive a receiver role transition. Disabling and re-enabling Time
-  // Constrained must not deliver, discard, duplicate, or replace the passel.
+  // Section 8.7 requires queued TSO messages to become receive-order delivery
+  // when the recipient leaves the Time Constrained role.
   REQUIRE_NOTHROW(receiver->disableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 2U);
@@ -98,11 +98,12 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant"});
 
-  auto const& report = receiverReports.timestampedInteractionReports.front();
+  auto const& report = receiverReports.interactionReports.front();
   REQUIRE(report.interactionClass == interactionClass);
   REQUIRE(report.parameterValues.size() == 1U);
   REQUIRE(report.parameterValues.contains(temperatureOk));
@@ -111,14 +112,9 @@ TEST_CASE(
   REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(report.producingFederate == publisherHandle);
-  REQUIRE(report.timeImplementationName == standard_hla::mom::integer64_time);
-  REQUIRE(report.timeValue == L"6");
-  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.retractionSupplied);
-  REQUIRE(report.retractionValid);
   REQUIRE(report.sentRegionsSupplied);
-  REQUIRE(report.sentRegions == RegionHandleSet{sourceRegion});
+  REQUIRE(report.sentRegions.size() == 1U);
+  REQUIRE(report.sentRegions.begin()->isValid());
   REQUIRE_THROWS_AS(
       publisher->retract(retraction),
       rti1516_2025::MessageCanNoLongerBeRetracted);

@@ -6,14 +6,20 @@ import re
 import sys
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 OFFICIAL_HEADER = (
-    REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "include" / "RTI" / "Exception.h"
+    REPOSITORY_ROOT
+    / "third_party"
+    / "ieee1516.1-2025"
+    / "include"
+    / "RTI"
+    / "Exception.h"
 )
 BINDING_SOURCE = REPOSITORY_ROOT / "cpp" / "src" / "ieee1516_2025_binding_shell.cpp"
 
-_OFFICIAL_EXCEPTION = re.compile(r"^\s*RTI_EXCEPTION\((?P<name>[A-Za-z_]\w*)\)\s*$", re.MULTILINE)
+_OFFICIAL_EXCEPTION = re.compile(
+    r"^\s*RTI_EXCEPTION\((?P<name>[A-Za-z_]\w*)\)\s*$", re.MULTILINE
+)
 _BINDING_EXCEPTION = re.compile(
     r'^\s*UMBRA_DEFINE_EXCEPTION\((?P<name>[A-Za-z_]\w*),\s*L"(?P<literal>[A-Za-z_]\w*)"\)\s*$',
     re.MULTILINE,
@@ -39,14 +45,24 @@ def verify() -> tuple[str, ...]:
 
     findings: list[str] = []
     if len(official) != len(set(official)):
-        findings.append("official Exception.h contains duplicate RTI_EXCEPTION declarations")
+        findings.append(
+            "official Exception.h contains duplicate RTI_EXCEPTION declarations"
+        )
     if len(defined) != len(set(defined)):
-        findings.append("binding source contains duplicate UMBRA_DEFINE_EXCEPTION definitions")
+        findings.append(
+            "binding source contains duplicate UMBRA_DEFINE_EXCEPTION definitions"
+        )
 
     official_set = set(official)
     defined_set = set(defined)
-    findings.extend(f"missing binding definition for {name}" for name in sorted(official_set - defined_set))
-    findings.extend(f"unexpected binding definition for {name}" for name in sorted(defined_set - official_set))
+    findings.extend(
+        f"missing binding definition for {name}"
+        for name in sorted(official_set - defined_set)
+    )
+    findings.extend(
+        f"unexpected binding definition for {name}"
+        for name in sorted(defined_set - official_set)
+    )
     findings.extend(
         f"binding exception literal drift for {name}"
         for name in sorted(official_set & defined_set)

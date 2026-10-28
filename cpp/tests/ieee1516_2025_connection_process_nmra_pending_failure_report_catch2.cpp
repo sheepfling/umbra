@@ -217,7 +217,9 @@ TEST_CASE(
     auto const reportFile = *constrainedFile;
     REQUIRE(reportFile.is_absolute());
 
-    REQUIRE_NOTHROW(regulator->enableTimeRegulation(HLAinteger64Interval(0)));
+    // Leave a positive initial GALT so the constrained role can complete
+    // before this test queues its future NMRA request.
+    REQUIRE_NOTHROW(regulator->enableTimeRegulation(HLAinteger64Interval(1)));
     REQUIRE_FALSE(regulator->evokeCallback(0.0));
     REQUIRE(regulatorReports.regulationEnabled == 1U);
     REQUIRE_NOTHROW(constrained->enableTimeConstrained());

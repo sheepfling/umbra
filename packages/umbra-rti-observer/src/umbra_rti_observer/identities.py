@@ -8,10 +8,16 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
-from .models import JsonObject, to_json_object
+from .models import (
+    JsonObject,
+    RawParticipantIdentity,
+    to_json_object,
+)
 
 
-def identity_text(value: object, *, optional: bool = False, limit: int = 512) -> str | None:
+def identity_text(
+    value: object, *, optional: bool = False, limit: int = 512
+) -> str | None:
     if value is None and optional:
         return None
     if isinstance(value, str) and value.strip() and len(value) <= limit:
@@ -57,9 +63,17 @@ def identifier_array(value: object) -> tuple[str, ...] | None:
 def decimal_bound(value: object, *, optional: bool = False) -> str | None:
     if value is None and optional:
         return None
-    if isinstance(value, str) and 1 <= len(value) <= 128 and value.isascii() and value.isdigit() and (value == "0" or not value.startswith("0")):
+    if (
+        isinstance(value, str)
+        and 1 <= len(value) <= 128
+        and value.isascii()
+        and value.isdigit()
+        and (value == "0" or not value.startswith("0"))
+    ):
         return value
-    raise ValueError("range bounds must be canonical nonnegative decimal strings of at most 128 digits")
+    raise ValueError(
+        "range bounds must be canonical nonnegative decimal strings of at most 128 digits"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,12 +86,32 @@ class ObservationScope:
         return source, self.session_id, self.identity_namespace, self.federation_id
 
     def to_json(self) -> JsonObject:
-        return {"session_id": self.session_id, "identity_namespace": self.identity_namespace, "federation_id": self.federation_id}
+        return {
+            "session_id": self.session_id,
+            "identity_namespace": self.identity_namespace,
+            "federation_id": self.federation_id,
+        }
 
 
+def observation_scope_from_fields(
+    session_id: object, identity_namespace: object, federation_id: object
+) -> ObservationScope:
+    """Build a validated observation scope from its explicit fields."""
+    return ObservationScope(
+        cast(str, identity_text(session_id, limit=256)),
+        cast(str, identity_text(identity_namespace)),
+        cast(str, identity_text(federation_id)),
+    )
+
+
+# opaque-boundary: Validate raw participant identity values from provider events.
 def observation_scope(values: Mapping[str, object]) -> ObservationScope:
-    return ObservationScope(cast(str, identity_text(values.get("session_id"), limit=256)),
-                            cast(str, identity_text(values.get("identity_namespace"))), cast(str, identity_text(values.get("federation_id"))))
+    """Validate the named scope fields in a raw participant-attribution record."""
+    return observation_scope_from_fields(
+        values.get("session_id"),
+        values.get("identity_namespace"),
+        values.get("federation_id"),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,19 +122,44 @@ class ParticipantIdentity:
     handle: str | None
 
     def to_json(self) -> JsonObject:
-        return to_json_object({"participant_id": self.participant_id, "membership_id": self.membership_id,
-                               "display_name": self.display_name, "handle": self.handle})
+        return to_json_object(
+            {
+                "participant_id": self.participant_id,
+                "membership_id": self.membership_id,
+                "display_name": self.display_name,
+                "handle": self.handle,
+            }
+        )
+
+
+def participant_identity_from_fields(
+    participant_id: object,
+    membership_id: object,
+    display_name: object = None,
+    handle: object = None,
+) -> ParticipantIdentity:
+    """Build a validated identity from fields already exposed by a named model."""
+    return ParticipantIdentity(
+        cast(str, identity_text(participant_id)),
+        cast(str, identity_text(membership_id)),
+        identity_text(display_name, optional=True),
+        identity_text(handle, optional=True),
+    )
 
 
 def participant_identity(raw: object) -> ParticipantIdentity:
     if not isinstance(raw, Mapping):
-        raise TypeError("participant identity requires explicit participant and membership IDs")
-    values = cast(Mapping[str, object], raw)
+        raise TypeError(
+            "participant identity requires explicit participant and membership IDs"
+        )
+    values = cast(RawParticipantIdentity, raw)
     if set(values) - {"participant_id", "membership_id", "display_name", "handle"}:
         raise ValueError("unknown participant identity fields")
-    return ParticipantIdentity(
-        cast(str, identity_text(values.get("participant_id"))), cast(str, identity_text(values.get("membership_id"))),
-        identity_text(values.get("display_name"), optional=True), identity_text(values.get("handle"), optional=True),
+    return participant_identity_from_fields(
+        values.get("participant_id"),
+        values.get("membership_id"),
+        values.get("display_name"),
+        values.get("handle"),
     )
 
 
@@ -111,7 +170,26 @@ class ParticipantReference:
     handle: str | None
 
     def to_json(self) -> JsonObject:
-        return {"identity": self.identity.to_json() if self.identity else None, "display_name": self.display_name, "handle": self.handle}
+        return {
+            "identity": self.identity.to_json() if self.identity else None,
+            "display_name": self.display_name,
+            "handle": self.handle,
+        }
+
+
+def participant_reference_from_fields(
+    identity: ParticipantIdentity | None,
+    display_name: object,
+    handle: object,
+) -> ParticipantReference:
+    """Build a participant reference from explicit validated domain fields."""
+    name = identity_text(display_name, optional=True)
+    normalized_handle = identity_text(handle, optional=True)
+    if identity is None and name is None and normalized_handle is None:
+        raise ValueError(
+            "participant reference needs explicit identity or reported name/handle metadata"
+        )
+    return ParticipantReference(identity, name, normalized_handle)
 
 
 def participant_reference(raw: object) -> ParticipantReference:
@@ -120,8 +198,13 @@ def participant_reference(raw: object) -> ParticipantReference:
     values = cast(Mapping[str, object], raw)
     if set(values) - {"identity", "display_name", "handle"}:
         raise ValueError("unknown participant reference fields")
-    identity = participant_identity(values["identity"]) if values.get("identity") is not None else None
-    name, handle = identity_text(values.get("display_name"), optional=True), identity_text(values.get("handle"), optional=True)
-    if identity is None and name is None and handle is None:
-        raise ValueError("participant reference needs explicit identity or reported name/handle metadata")
-    return ParticipantReference(identity, name, handle)
+    identity = (
+        participant_identity(values["identity"])
+        if values.get("identity") is not None
+        else None
+    )
+    return participant_reference_from_fields(
+        identity,
+        values.get("display_name"),
+        values.get("handle"),
+    )

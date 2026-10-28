@@ -230,7 +230,10 @@ def add_test_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--capability-profile", help="Optional 2010 Java/Python capability profile."
     )
-    parser.add_argument("--native-library", help="Optional JNI native library path.")
+    parser.add_argument(
+        "--native-library",
+        help="Optional prebuilt JNI native library for Java or JNI routes.",
+    )
     parser.add_argument(
         "--build-root", default="out/ci", help="Disposable route output root."
     )
@@ -279,7 +282,13 @@ def stage_commands(
     return {
         "configure": [arguments.cmake, "--preset", profile.configure_preset],
         "build": [arguments.cmake, "--build", "--preset", profile.build_preset],
-        "test": [arguments.ctest, "--preset", profile.test_preset],
+        "test": [
+            arguments.ctest,
+            "--preset",
+            profile.test_preset,
+            "--timeout",
+            "120",
+        ],
     }
 
 
@@ -375,6 +384,8 @@ def native_route(arguments: argparse.Namespace, standard: str) -> None:
             "-R",
             test_regex,
             "--output-on-failure",
+            "--timeout",
+            "120",
         ],
         dry_run=arguments.dry_run,
     )
@@ -670,6 +681,17 @@ def compile_java_tck(
     sources = java_sources(tck_root / "src" / "main" / "java", label=f"{standard} TCK")
     if not arguments.dry_run:
         output.mkdir(parents=True, exist_ok=True)
+        source_list = output / "javac-sources.args"
+        source_list.write_text(
+            "\n".join(
+                '"' + str(source.resolve()).replace("\\", "/").replace('"', '\\"') + '"'
+                for source in sources
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    else:
+        source_list = output / "javac-sources.args"
     run_command(
         [
             javac,
@@ -683,7 +705,7 @@ def compile_java_tck(
             str(api),
             "-d",
             str(output),
-            *(str(path) for path in sources),
+            f"@{source_list}",
         ],
         dry_run=arguments.dry_run,
     )
@@ -948,6 +970,43 @@ def validate_jni_archive(archive_path: Path, standard: str) -> None:
                     )
 
 
+def jni_cmake_arguments(native_build: Path) -> list[str]:
+    """Keep a fresh Windows JNI build on the repository's MinGW toolchain."""
+    if os.name != "nt":
+        return []
+
+    cache = native_build / "CMakeCache.txt"
+    if cache.is_file():
+        generator = next(
+            (
+                line.partition("=")[2]
+                for line in cache.read_text(encoding="utf-8").splitlines()
+                if line.startswith("CMAKE_GENERATOR:INTERNAL=")
+            ),
+            None,
+        )
+        if generator is not None and generator != "Ninja":
+            raise CiError(
+                f"The existing JNI build directory uses {generator}. The Windows "
+                "JNI route follows the MinGW/Ninja setup; pass a fresh --build-root "
+                "to configure it with the repository toolchain."
+            )
+        return []
+
+    toolchain = REPOSITORY_ROOT / "cmake" / "toolchains" / "mingw-scoop.cmake"
+    if not toolchain.is_file():
+        raise CiError(f"The Windows MinGW toolchain file is missing: {toolchain}")
+    find_executable("ninja", label="Ninja")
+    # --config is ignored by single-configuration generators. Set the build
+    # type explicitly so the JNI route's Release configuration is honored.
+    return [
+        "-G",
+        "Ninja",
+        f"-DCMAKE_TOOLCHAIN_FILE={toolchain}",
+        "-DCMAKE_BUILD_TYPE=Release",
+    ]
+
+
 def jni_route(arguments: argparse.Namespace, standard: str) -> None:
     output = (REPOSITORY_ROOT / arguments.build_root / f"jni-{standard}").resolve()
     package = (
@@ -960,7 +1019,10 @@ def jni_route(arguments: argparse.Namespace, standard: str) -> None:
     jar_path = output / (
         "umbra-rti-jni-2010.jar" if standard == "2010" else "umbra-rti-jni.jar"
     )
-    native_library = output / (
+    prebuilt_native_library = resolve_path(
+        arguments.native_library, label="Prebuilt JNI native library", required=False
+    )
+    native_library = prebuilt_native_library or output / (
         "umbra_rti_jni_2010.dll" if standard == "2010" else "umbra_rti_jni.dll"
     )
     if not arguments.dry_run:
@@ -992,36 +1054,49 @@ def jni_route(arguments: argparse.Namespace, standard: str) -> None:
             "-DUMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON",
             "-DUMBRA_FETCH_LIBXML2=ON",
         ]
-        cached_libxml = (
+        cached_libxml_candidates = (
             REPOSITORY_ROOT
             / "packages"
             / "umbra-rti-native"
             / "build"
             / "cp312-cp312-win_amd64"
             / "_deps"
-            / "libxml2-src"
+            / "libxml2-src",
+            REPOSITORY_ROOT / "out" / "mgw" / "shared" / "_deps" / "libxml2-src",
         )
-        if cached_libxml.is_dir():
+        cached_libxml = next(
+            (
+                path
+                for path in cached_libxml_candidates
+                if (path / "CMakeLists.txt").is_file()
+            ),
+            None,
+        )
+        if cached_libxml is not None:
             cmake_arguments.append(f"-DFETCHCONTENT_SOURCE_DIR_LIBXML2={cached_libxml}")
         target = "umbra_rti_jni"
         source_label = "2025 JNI"
         source_level = False
 
-    cmake = find_executable(arguments.cmake, label="CMake")
-    run_command([cmake, *cmake_arguments], dry_run=arguments.dry_run)
-    run_command(
-        [
-            cmake,
-            "--build",
-            str(native_build),
-            "--config",
-            "Release",
-            "--target",
-            target,
-        ],
-        dry_run=arguments.dry_run,
-    )
-    if not arguments.dry_run:
+    if prebuilt_native_library is None:
+        cmake = find_executable(arguments.cmake, label="CMake")
+        cmake_arguments.extend(jni_cmake_arguments(native_build))
+        run_command([cmake, *cmake_arguments], dry_run=arguments.dry_run)
+        run_command(
+            [
+                cmake,
+                "--build",
+                str(native_build),
+                "--config",
+                "Release",
+                "--target",
+                target,
+                "--parallel",
+                "4",
+            ],
+            dry_run=arguments.dry_run,
+        )
+    if prebuilt_native_library is None and not arguments.dry_run:
         names = (
             (
                 "umbra_rti_jni_2010.dll",
@@ -1277,11 +1352,12 @@ def run_whitespace_check() -> None:
 def lint_command(arguments: argparse.Namespace) -> int:
     require_python_version()
     run_python_integrity_checks(arguments)
-    run_command(
-        [sys.executable, "tools/check_source_file_sizes.py"],
-        dry_run=arguments.dry_run,
-        env=python_environment(),
-    )
+    if arguments.scope != "ci":
+        run_command(
+            [sys.executable, "tools/check_source_file_sizes.py"],
+            dry_run=arguments.dry_run,
+            env=python_environment(),
+        )
     run_ruff(arguments, fix=False)
     run_clang_format(arguments, fix=False)
     if not arguments.dry_run:

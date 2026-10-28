@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <time>
+        <logicalTime>
+            <dataType>UmbraTestTaggedTime</dataType>
+            <semantics>One TRADT with an explicit logical-versus-wall-clock type bit.</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>UmbraTestTaggedTime</dataType>
+            <semantics>Intervals use common units for both tagged time-value kinds.</semantics>
+        </logicalTimeInterval>
+    </time>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>UmbraTestTaggedTime</name>
+                <representation>HLAinteger64BE</representation>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

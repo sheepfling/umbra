@@ -1474,7 +1474,8 @@ it reports the next plan/test/lane, mapping counts, and a bounded preview of
 requirement and section ids. It labels the queued roadmap family as
 `roadmap_owner` and, when the broad active pointer differs, also prints
 `active_pointer`; this keeps cross-family handoffs legible. Use `ready --json`
-only when a script or review needs the complete mapping arrays; this keeps ordinary implementation resumes from expanding the
+only when a script or review needs the complete mapping arrays; this keeps ordinary implementation resumes from
+expanding the
 unchanged Requirements Lab into the working context. `work` remains useful for
 family context and completed baselines, but it may intentionally retain a
 historical baseline while `ready` advances to the next queued source/test.

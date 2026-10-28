@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check that a joined federate which does not enable Time Regulation can submit an attribute update with a logical timestamp and that the receiver observes the same attribute value, tag, producer, and timestamp through the timestamped reflection API. The test deliberately makes no callback-order, sent/received-order, retraction-validity, or broader time-management claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-unregulated-timestamped-attribute-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped UpdateAttributeValues from a joined non-regulating federate and FederateAmbassador timestamped ReflectAttributeValues",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped attribute-update and FederateAmbassador timestamped reflection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_unregulated_sender_timestamped_attribute_update.cpp::scenarioUnregulatedSenderTimestampedAttributeUpdatePortable",
+        "packages/hla-rti-cpp-tck/src/tck_unregulated_sender_timestamped_attribute_update.cpp::scenarioUnregulatedSenderTimestampedAttributeUpdateContractPortable"
+      ]
+    }
+  ]
+}

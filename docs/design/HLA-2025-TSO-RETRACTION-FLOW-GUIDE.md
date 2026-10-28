@@ -926,11 +926,21 @@ that branch is source-derived and has no focused throwing-callback test.
 
 ### Focused tests
 
-- [Timestamped Send Interaction: retract before delivery, reject after the time boundary, then Request Retraction after delivery](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L150) — freshly rebuilt dedicated target; elevated-filesystem CTest passes all 61 assertions. The sandboxed failure was fixture-path canonicalization access denial.
-- [Regional timestamped attribute update retracted across FQR, TARA, and NMRA](../../cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp#L160) — the focused test body asserts successful then terminal Retract, no attribute reflections, and the three grant results; this documentation increment did not rerun C++ tests.
-- [Mixed interaction fan-out: notify the delivered recipient and suppress the still-queued recipient](../../cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp#L3) — no fresh result; its aggregate target was not rebuilt to completion.
+- [Timestamped Send Interaction: retract before delivery, reject after the time boundary, then Request Retraction after delivery](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L150)
+  — freshly rebuilt dedicated target; elevated-filesystem CTest passes all 61 assertions. The sandboxed failure was
+  fixture-path canonicalization access denial.
+- [Regional timestamped attribute update retracted across FQR, TARA, and NMRA](../../cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp#L160)
+  — the focused test body asserts successful then terminal Retract, no attribute reflections, and the three grant
+  results; this documentation increment did not rerun C++ tests.
+- [Mixed interaction fan-out: notify the delivered recipient and suppress the still-queued recipient](../../cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp#L3)
+  — no fresh result; its aggregate target was not rebuilt to completion.
 - [Attribute-update mixed fan-out and delivered-recipient callback](../../cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp#L5)
-- [Public embedded fresh-registry restore after a peer's post-delivery Resign](../../cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp#L6) exercises both `HLA_EVOKED` and `HLA_IMMEDIATE`: the peer receives its directed TSO callback, Resigns and Disconnects, and a different ownership-qualified recipient keeps its queued copy through restore; a later Retract produces one valid Request Retraction for that still-joined recipient. This is development-profile test-body evidence, not process-route evidence; it does not assert a later callback to the departed peer, and no fresh CTest result was captured in this review.
+- [Public embedded fresh-registry restore after a peer's post-delivery Resign](../../cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp#L6)
+  exercises both `HLA_EVOKED` and `HLA_IMMEDIATE`: the peer receives its directed TSO callback, Resigns and Disconnects,
+  and a different ownership-qualified recipient keeps its queued copy through restore; a later Retract produces one
+  valid Request Retraction for that still-joined recipient. This is development-profile test-body evidence, not
+  process-route evidence; it does not assert a later callback to the departed peer, and no fresh CTest result was
+  captured in this review.
 - [Regional interaction recipient filtering and mixed delivery phases](../../cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp#L4)
 - [Process endpoint cancels a timestamped attribute update before reflection](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L366)
 - [Timestamped deletion reconstitution and pending-removal cancellation](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L5)

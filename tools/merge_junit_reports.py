@@ -9,6 +9,8 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+# Catch2 emits the simple JUnit suite structure handled here. The standard
+# library is sufficient for merging it, so this helper needs no extra package.
 
 _COUNT_ATTRIBUTES = ("tests", "failures", "errors", "skipped")
 

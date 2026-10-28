@@ -465,7 +465,8 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     bool requestNmr,
     bool verifyProducerTimeBoundary,
     bool receiverKnowsObject,
-    bool disableProducerRegulation) {
+    bool disableProducerRegulation,
+    bool verifyDeferredLookaheadDeletionBoundary) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -906,6 +907,48 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
             TransportServiceOperation::report_successful_void_service_invocation,
             "The public timestamped process delete server lost the sender time-regulation report.");
       }
+      if (verifyDeferredLookaheadDeletionBoundary) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::modify_lookahead,
+            "The public timestamped process delete server lost the deferred lookahead decrease.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The public timestamped process delete server lost the lookahead-decrease report.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::query_lookahead,
+            "The public timestamped process delete server lost the pre-grant lookahead query.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_service_invocation,
+            "The public timestamped process delete server lost the pre-grant lookahead-query report.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The public timestamped process delete server lost the lookahead-applying TAR.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The public timestamped process delete server lost the lookahead-applying TAR report.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::query_lookahead,
+            "The public timestamped process delete server lost the post-grant lookahead query.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_service_invocation,
+            "The public timestamped process delete server lost the lookahead-query report.");
+      }
       if (constrainReceiver) {
         serveExpected(
             receiver,
@@ -1155,10 +1198,30 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     // role.  Run both sides of that boundary in this focused process slice.
     if (regulateSender) {
       REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-          rti1516_2025::HLAinteger64Interval(1)));
+          rti1516_2025::HLAinteger64Interval(
+              verifyDeferredLookaheadDeletionBoundary ? 5 : 1)));
       if (callbackModel == HLA_EVOKED) {
         REQUIRE_FALSE(senderRti->evokeCallback(0.0));
       }
+    }
+
+    if (verifyDeferredLookaheadDeletionBoundary) {
+      REQUIRE(regulateSender);
+      REQUIRE_NOTHROW(senderRti->modifyLookahead(
+          rti1516_2025::HLAinteger64Interval(1)));
+      rti1516_2025::HLAinteger64Interval deferredLookahead;
+      REQUIRE_NOTHROW(senderRti->queryLookahead(deferredLookahead));
+      REQUIRE(deferredLookahead.getInterval() == 5);
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      }
+      REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(senderFederate.timeAdvanceGrantValue == 5);
+      rti1516_2025::HLAinteger64Interval appliedLookahead;
+      REQUIRE_NOTHROW(senderRti->queryLookahead(appliedLookahead));
+      REQUIRE(appliedLookahead.getInterval() == 1);
     }
 
     if (constrainReceiver) {
@@ -1179,7 +1242,9 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
         dynamic_cast<rti1516_2025::HLAinteger64TimeFactory*>(factory.get());
     REQUIRE(integerFactory != nullptr);
     auto timestamp = integerFactory->makeLogicalTime(
-        verifyProducerTimeBoundary ? 10 : 5);
+        verifyDeferredLookaheadDeletionBoundary
+            ? 6
+            : verifyProducerTimeBoundary ? 10 : 5);
     REQUIRE(timestamp);
     auto const expectedTimestampEncoding = timestamp->encode();
     std::vector<std::uint8_t> const expectedTag{0x54U, 0x44U, 0x4FU};
@@ -1250,9 +1315,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     }
     if (receiverKnowsObject) {
       REQUIRE(receiverFederate.timestampEncoding == expectedTimestampBytes);
-      REQUIRE(receiverFederate.removedSentOrder ==
-              (preferReceiveOrder ? rti1516_2025::RECEIVE
-                                   : rti1516_2025::TIMESTAMP));
+      auto const expectedSentOrder =
+          regulateSender && !preferReceiveOrder ? rti1516_2025::TIMESTAMP
+                                                : rti1516_2025::RECEIVE;
+      REQUIRE(receiverFederate.removedSentOrder == expectedSentOrder);
       REQUIRE(receiverFederate.removedReceivedOrder ==
               (constrainReceiver ? rti1516_2025::TIMESTAMP
                                  : rti1516_2025::RECEIVE));
@@ -1401,7 +1467,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
-    "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][rti.service.delete-object-instance][federate.callback.remove-object-instance]") {
+    "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][delete-object-instance-order-classification-process][rti.service.delete-object-instance][federate.callback.remove-object-instance]") {
   SECTION("HLA_EVOKED") {
     verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_EVOKED, true);
   }

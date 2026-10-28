@@ -84,7 +84,8 @@ TEST_CASE(
   REQUIRE(ownerReports.initiateFederateSaveReports.empty());
   REQUIRE(ownerReports.callbackOrder.empty());
 
-  REQUIRE_FALSE(delayed->evokeCallback(0.0));
+  while (delayed->evokeCallback(0.0)) {
+  }
   REQUIRE(delayedReports.timestampedInteractionReports.size() == 1);
   REQUIRE(delayedReports.timestampedInteractionReports.back().timeValue == L"5");
   REQUIRE(delayedReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});

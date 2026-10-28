@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.23)
+# FindJNI's imported JNI::JNI target is available starting with CMake 3.24.
+cmake_minimum_required(VERSION 3.24)
 
 project(umbra_rti_jni LANGUAGES CXX)
 
@@ -27,5 +28,11 @@ target_include_directories(umbra_rti_jni PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../cpp/src"
 )
-target_link_libraries(umbra_rti_jni PRIVATE umbra::rti JNI::JNI)
-set_target_properties(umbra_rti_jni PROPERTIES OUTPUT_NAME "umbra_rti_jni")
+target_link_libraries(umbra_rti_jni PRIVATE umbra::rti umbra::fedtime JNI::JNI)
+set_target_properties(umbra_rti_jni PROPERTIES
+  OUTPUT_NAME "umbra_rti_jni"
+)
+if(WIN32)
+  # The PowerShell build helper stages this exact DLL name for System.load().
+  set_target_properties(umbra_rti_jni PROPERTIES PREFIX "")
+endif()

@@ -690,11 +690,34 @@ TEST_CASE(
           TransportServiceOperation::update_attribute_values,
           "The public process reflection server lost Update.");
       if (callbackModel == HLA_IMMEDIATE) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public process reflection server lost immediate event polling.");
+        auto const expectedAcknowledgements = recipientCount.load(
+            std::memory_order_acquire);
+        bool pollServed = false;
+        std::uint32_t acknowledgementsServed = 0U;
+        while (!pollServed || acknowledgementsServed < expectedAcknowledgements) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver,
+                  receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::get_object_class_handle &&
+                        !pollServed) {
+                      pollServed = true;
+                      return receiverHandler(request);
+                    }
+                    if (request.operation == TransportServiceOperation::
+                            acknowledge_push_attribute_update &&
+                        acknowledgementsServed < expectedAcknowledgements) {
+                      ++acknowledgementsServed;
+                      return receiverHandler(request);
+                    }
+                    throw std::runtime_error(
+                        "The public process reflection server received unexpected immediate callback work.");
+                  })) {
+            throw std::runtime_error(
+                "The public process reflection server lost immediate callback work.");
+          }
+        }
       } else {
         serveExpected(
             receiver,

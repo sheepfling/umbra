@@ -3,11 +3,12 @@ from __future__ import annotations
 import importlib.util
 import math
 import os
-from pathlib import Path
 import struct
 import tempfile
 import unittest
+from pathlib import Path
 
+from _mock_java_fixture import build_mock_java_rti, java_toolchain_available
 from hla.rti1516_2025 import (
     AttributeHandle,
     AttributeHandleSet,
@@ -15,54 +16,54 @@ from hla.rti1516_2025 import (
     AttributeSetRegionSetPair,
     AttributeSetRegionSetPairList,
     CallbackModel,
-    DecoderException,
-    EncoderException,
     DataElementFactory,
+    DecoderException,
     DimensionHandle,
     DimensionHandleSet,
+    EncoderException,
     EncoderFactory,
-    HLAfixedArray,
-    HLAfixedRecord,
-    HLAvariantRecord,
     FederateAmbassador,
+    FederateHandle,
+    FederateHandleSet,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
     FederationExecutionMemberInformationSet,
-    FederateHandle,
-    FederateHandleSet,
-    HLAboolean,
     HLAASCIIchar,
     HLAASCIIstring,
+    HLAboolean,
     HLAbyte,
+    HLAfixedArray,
+    HLAfixedRecord,
     HLAfloat32BE,
     HLAfloat32LE,
     HLAfloat64BE,
-    HLAfloat64LE,
-    HLAinteger16BE,
-    HLAinteger16LE,
-    HLAinteger64Interval,
-    HLAinteger64Time,
-    HLAinteger64TimeFactory,
     HLAfloat64Interval,
+    HLAfloat64LE,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
+    HLAinteger16BE,
+    HLAinteger16LE,
     HLAinteger32BE,
     HLAinteger32LE,
     HLAinteger64BE,
+    HLAinteger64Interval,
     HLAinteger64LE,
-    HLAunsignedInteger16BE,
-    HLAunsignedInteger16LE,
-    HLAunsignedInteger32LE,
-    HLAunsignedInteger64BE,
-    HLAunsignedInteger64LE,
+    HLAinteger64Time,
+    HLAinteger64TimeFactory,
     HLAoctet,
     HLAoctetPairBE,
     HLAoctetPairLE,
     HLAopaqueData,
-    HLAvariableArray,
     HLAunicodeChar,
     HLAunicodeString,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
     HLAunsignedInteger32BE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAvariableArray,
+    HLAvariantRecord,
     InteractionClassHandle,
     InteractionClassHandleSet,
     MessageRetractionHandle,
@@ -82,9 +83,9 @@ from hla.rti1516_2025 import (
     RegionHandle,
     RegionHandleSet,
     ResignAction,
+    RestoreFailureReason,
     SaveFailureReason,
     SaveStatus,
-    RestoreFailureReason,
     ServiceGroup,
     TransportationTypeHandle,
 )
@@ -95,6 +96,7 @@ from hla.rti1516_2025.exceptions import (
     InvalidLogicalTime,
     InvalidLogicalTimeInterval,
 )
+from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
 from umbra_rti_test_support import (
     HLA_FIXTURES,
     HLA_FOM,
@@ -102,12 +104,9 @@ from umbra_rti_test_support import (
     HLA_TYPES,
     SurfaceEventTrace,
     assert_event_order,
+    best_effort_cleanup,
     iter_surface_matrix,
 )
-from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
-
-from _mock_java_fixture import build_mock_java_rti, java_toolchain_available
-
 
 JPYPE_AVAILABLE = importlib.util.find_spec("jpype") is not None
 
@@ -152,15 +151,27 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         ] = []
         self.reserved_names: list[str] = []
         self.rejected_reservations: list[str] = []
-        self.attribute_value_requests: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
+        self.attribute_value_requests: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
         self.scope_entries: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
         self.scope_exits: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
-        self.updates_on: list[tuple[ObjectInstanceHandle, AttributeHandleSet, str | None]] = []
+        self.updates_on: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, str | None]
+        ] = []
         self.updates_off: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
-        self.attribute_transport_confirmations: list[tuple[ObjectInstanceHandle, AttributeHandleSet, TransportationTypeHandle]] = []
-        self.attribute_transport_reports: list[tuple[ObjectInstanceHandle, AttributeHandle, TransportationTypeHandle]] = []
-        self.interaction_transport_confirmations: list[tuple[InteractionClassHandle, TransportationTypeHandle]] = []
-        self.interaction_transport_reports: list[tuple[FederateHandle, InteractionClassHandle, TransportationTypeHandle]] = []
+        self.attribute_transport_confirmations: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, TransportationTypeHandle]
+        ] = []
+        self.attribute_transport_reports: list[
+            tuple[ObjectInstanceHandle, AttributeHandle, TransportationTypeHandle]
+        ] = []
+        self.interaction_transport_confirmations: list[
+            tuple[InteractionClassHandle, TransportationTypeHandle]
+        ] = []
+        self.interaction_transport_reports: list[
+            tuple[FederateHandle, InteractionClassHandle, TransportationTypeHandle]
+        ] = []
         self.removals: list[tuple[ObjectInstanceHandle, bytes, FederateHandle]] = []
         self.reflections: list[
             tuple[
@@ -184,7 +195,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.timed_interactions: list[tuple[object, ...]] = []
         self.timed_removals: list[tuple[object, ...]] = []
         self.sent_regions: list[RegionHandleSet] = []
-        self.ownership_reports: list[tuple[ObjectInstanceHandle, AttributeHandleSet, FederateHandle]] = []
+        self.ownership_reports: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, FederateHandle]
+        ] = []
         self.ownership_acquisitions: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
         ] = []
@@ -197,8 +210,12 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.ownership_unavailable: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
         ] = []
-        self.ownership_not_owned: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
-        self.ownership_owned_by_rti: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
+        self.ownership_not_owned: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet]
+        ] = []
+        self.ownership_owned_by_rti: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet]
+        ] = []
         self.time_regulation: list[HLAinteger64Time] = []
         self.time_constrained: list[HLAinteger64Time] = []
         self.time_grants: list[HLAinteger64Time] = []
@@ -247,7 +264,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         attributes: AttributeHandleSet,
         userSuppliedTag: bytes,
     ) -> None:
-        self.attribute_value_requests.append((objectInstance, attributes, userSuppliedTag))
+        self.attribute_value_requests.append(
+            (objectInstance, attributes, userSuppliedTag)
+        )
 
     def attributesInScope(self, objectInstance, attributes) -> None:
         self.scope_entries.append((objectInstance, attributes))
@@ -255,23 +274,41 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def attributesOutOfScope(self, objectInstance, attributes) -> None:
         self.scope_exits.append((objectInstance, attributes))
 
-    def turnUpdatesOnForObjectInstance(self, objectInstance, attributes, updateRateDesignator=None) -> None:
+    def turnUpdatesOnForObjectInstance(
+        self, objectInstance, attributes, updateRateDesignator=None
+    ) -> None:
         self.updates_on.append((objectInstance, attributes, updateRateDesignator))
 
     def turnUpdatesOffForObjectInstance(self, objectInstance, attributes) -> None:
         self.updates_off.append((objectInstance, attributes))
 
-    def confirmAttributeTransportationTypeChange(self, objectInstance, attributes, transportationType) -> None:
-        self.attribute_transport_confirmations.append((objectInstance, attributes, transportationType))
+    def confirmAttributeTransportationTypeChange(
+        self, objectInstance, attributes, transportationType
+    ) -> None:
+        self.attribute_transport_confirmations.append(
+            (objectInstance, attributes, transportationType)
+        )
 
-    def reportAttributeTransportationType(self, objectInstance, attribute, transportationType) -> None:
-        self.attribute_transport_reports.append((objectInstance, attribute, transportationType))
+    def reportAttributeTransportationType(
+        self, objectInstance, attribute, transportationType
+    ) -> None:
+        self.attribute_transport_reports.append(
+            (objectInstance, attribute, transportationType)
+        )
 
-    def confirmInteractionTransportationTypeChange(self, interactionClass, transportationType) -> None:
-        self.interaction_transport_confirmations.append((interactionClass, transportationType))
+    def confirmInteractionTransportationTypeChange(
+        self, interactionClass, transportationType
+    ) -> None:
+        self.interaction_transport_confirmations.append(
+            (interactionClass, transportationType)
+        )
 
-    def reportInteractionTransportationType(self, federate, interactionClass, transportationType) -> None:
-        self.interaction_transport_reports.append((federate, interactionClass, transportationType))
+    def reportInteractionTransportationType(
+        self, federate, interactionClass, transportationType
+    ) -> None:
+        self.interaction_transport_reports.append(
+            (federate, interactionClass, transportationType)
+        )
 
     def removeObjectInstance(
         self,
@@ -285,7 +322,15 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     ) -> None:
         if time is not None:
             self.timed_removals.append(
-                (objectInstance, userSuppliedTag, producingFederate, time, sentOrderType, receivedOrderType, retraction)
+                (
+                    objectInstance,
+                    userSuppliedTag,
+                    producingFederate,
+                    time,
+                    sentOrderType,
+                    receivedOrderType,
+                    retraction,
+                )
             )
         else:
             self.removals.append((objectInstance, userSuppliedTag, producingFederate))
@@ -305,12 +350,28 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     ) -> None:
         if time is not None:
             self.timed_reflections.append(
-                (objectInstance, attributeValues, userSuppliedTag, transportationType,
-                 producingFederate, sentRegions, time, sentOrderType, receivedOrderType, retraction)
+                (
+                    objectInstance,
+                    attributeValues,
+                    userSuppliedTag,
+                    transportationType,
+                    producingFederate,
+                    sentRegions,
+                    time,
+                    sentOrderType,
+                    receivedOrderType,
+                    retraction,
+                )
             )
         else:
             self.reflections.append(
-                (objectInstance, attributeValues, userSuppliedTag, transportationType, producingFederate)
+                (
+                    objectInstance,
+                    attributeValues,
+                    userSuppliedTag,
+                    transportationType,
+                    producingFederate,
+                )
             )
 
     def receiveInteraction(
@@ -328,12 +389,28 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     ) -> None:
         if time is not None:
             self.timed_interactions.append(
-                (interactionClass, parameterValues, userSuppliedTag, transportationType,
-                 producingFederate, sentRegions, time, sentOrderType, receivedOrderType, retraction)
+                (
+                    interactionClass,
+                    parameterValues,
+                    userSuppliedTag,
+                    transportationType,
+                    producingFederate,
+                    sentRegions,
+                    time,
+                    sentOrderType,
+                    receivedOrderType,
+                    retraction,
+                )
             )
         else:
             self.interactions.append(
-                (interactionClass, parameterValues, userSuppliedTag, transportationType, producingFederate)
+                (
+                    interactionClass,
+                    parameterValues,
+                    userSuppliedTag,
+                    transportationType,
+                    producingFederate,
+                )
             )
         if sentRegions is not None:
             self.sent_regions.append(sentRegions)
@@ -366,14 +443,19 @@ class _RecordingFederateAmbassador(FederateAmbassador):
                 entry + (time, sentOrderType, receivedOrderType, retraction)
             )
 
-    def multipleObjectInstanceNameReservationSucceeded(self, objectInstanceNames) -> None:
+    def multipleObjectInstanceNameReservationSucceeded(
+        self, objectInstanceNames
+    ) -> None:
         self.name_batch_successes.append(objectInstanceNames)
 
     def multipleObjectInstanceNameReservationFailed(self, objectInstanceNames) -> None:
         self.name_batch_failures.append(objectInstanceNames)
 
     def informAttributeOwnership(
-        self, objectInstance: ObjectInstanceHandle, attributes: AttributeHandleSet, owner: FederateHandle
+        self,
+        objectInstance: ObjectInstanceHandle,
+        attributes: AttributeHandleSet,
+        owner: FederateHandle,
     ) -> None:
         self.ownership_reports.append((objectInstance, attributes, owner))
 
@@ -383,7 +465,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         securedAttributes: AttributeHandleSet,
         userSuppliedTag: bytes,
     ) -> None:
-        self.ownership_acquisitions.append((objectInstance, securedAttributes, userSuppliedTag))
+        self.ownership_acquisitions.append(
+            (objectInstance, securedAttributes, userSuppliedTag)
+        )
 
     def confirmAttributeOwnershipAcquisitionCancellation(
         self, objectInstance: ObjectInstanceHandle, attributes: AttributeHandleSet
@@ -424,7 +508,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def timeConstrainedEnabled(self, time: HLAinteger64Time) -> None:
         self.time_constrained.append(time)
 
-    def flushQueueGrant(self, time: HLAinteger64Time, optimisticTime: HLAinteger64Time) -> None:
+    def flushQueueGrant(
+        self, time: HLAinteger64Time, optimisticTime: HLAinteger64Time
+    ) -> None:
         self.flush_grants.append((time, optimisticTime))
 
     def timeAdvanceGrant(self, time: HLAinteger64Time) -> None:
@@ -433,7 +519,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def requestRetraction(self, retraction: MessageRetractionHandle) -> None:
         self.request_retractions.append(retraction)
 
-    def reportFederationExecutions(self, report: FederationExecutionInformationSet) -> None:
+    def reportFederationExecutions(
+        self, report: FederationExecutionInformationSet
+    ) -> None:
         self.federation_execution_reports.append(report)
 
     def reportFederationExecutionMembers(
@@ -441,9 +529,13 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         federationExecutionName: str,
         report: FederationExecutionMemberInformationSet,
     ) -> None:
-        self.federation_execution_member_reports.append((federationExecutionName, report))
+        self.federation_execution_member_reports.append(
+            (federationExecutionName, report)
+        )
 
-    def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+    def reportFederationExecutionDoesNotExist(
+        self, federationExecutionName: str
+    ) -> None:
         self.missing_federation_executions.append(federationExecutionName)
 
     def federateResigned(self, reasonForResignDescription: str) -> None:
@@ -455,7 +547,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def announceSynchronizationPoint(self, label: str, tag: bytes) -> None:
         self.sync_announcements.append((label, tag))
 
-    def federationSynchronized(self, label: str, failedToSyncSet: FederateHandleSet) -> None:
+    def federationSynchronized(
+        self, label: str, failedToSyncSet: FederateHandleSet
+    ) -> None:
         self.sync_completions.append((label, failedToSyncSet))
 
     def federationSaveStatusResponse(self, response: tuple[object, ...]) -> None:
@@ -485,7 +579,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def initiateFederateRestore(
         self, label: str, federateName: str, postRestoreFederateHandle: FederateHandle
     ) -> None:
-        self.restore_initiations.append((label, federateName, postRestoreFederateHandle))
+        self.restore_initiations.append(
+            (label, federateName, postRestoreFederateHandle)
+        )
 
     def federationRestored(self) -> None:
         self.restore_completions += 1
@@ -560,14 +656,18 @@ class _MatrixFederateAmbassador(_RecordingFederateAmbassador):
         super().federationNotRestored(reason)
 
 
-@unittest.skipUnless(JPYPE_AVAILABLE and java_toolchain_available(), "requires JPype and a JDK")
+@unittest.skipUnless(
+    JPYPE_AVAILABLE and java_toolchain_available(), "requires JPype and a JDK"
+)
 class JPypeMockIntegrationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         import jpype
 
         if jpype.isJVMStarted():
-            raise unittest.SkipTest("the fixture classpath must be present before the JVM starts")
+            raise unittest.SkipTest(
+                "the fixture classpath must be present before the JVM starts"
+            )
         # JPype does not permit a safe JVM restart, so leave this temporary
         # directory for process cleanup after the one integration JVM exits.
         cls._temporary_directory = Path(tempfile.mkdtemp(prefix="umbra-mock-java-rti-"))
@@ -589,7 +689,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(self.factory.rtiName(), "Umbra Mock Java RTI")
         self.assertEqual(self.factory.rtiVersion(), "2025.mock")
         self.assertFalse(result.configurationUsed)
-        self.assertEqual(result.message, "connected through the mock Java RTI using HLA_EVOKED")
+        self.assertEqual(
+            result.message, "connected through the mock Java RTI using HLA_EVOKED"
+        )
 
         encoder = self.factory.getEncoderFactory()
         # The provider-scoped Java façade exposes the creator declared by the
@@ -623,7 +725,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         unicode_char = encoder.createHLAunicodeChar(0x03A9)
         pair_be = encoder.createHLAoctetPairBE(0x1234)
         pair_le = encoder.createHLAoctetPairLE(0x1234)
-        opaque = encoder.createHLAopaqueData(b"\x00\xA5\xFF")
+        opaque = encoder.createHLAopaqueData(b"\x00\xa5\xff")
         self.assertIsInstance(encoder, EncoderFactory)
         self.assertIsInstance(integer, HLAinteger32BE)
         self.assertIsInstance(integer16, HLAinteger16BE)
@@ -652,11 +754,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertIsInstance(pair_le, HLAoctetPairLE)
         self.assertIsInstance(opaque, HLAopaqueData)
         self.assertEqual(integer.toByteArray(), b"\xff\xff\xff\xfe")
-        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xA5\xFF")
+        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xa5\xff")
         self.assertEqual(opaque.getOctetBoundary(), 4)
         self.assertEqual(opaque.size(), 3)
         self.assertEqual([opaque.get(index) for index in range(3)], [0, 0xA5, 0xFF])
-        self.assertEqual(opaque.getValue(), b"\x00\xA5\xFF")
+        self.assertEqual(opaque.getValue(), b"\x00\xa5\xff")
         self.assertIs(opaque.decode(b"\x00\x00\x00\x02OK"), opaque)
         self.assertEqual(opaque.getValue(), b"OK")
         with self.assertRaises(DecoderException):
@@ -668,11 +770,16 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         decoded_array = encoder.createHLAvariableArray(integer_factory)
         decoded_array.decode(variable_array.toByteArray())
         self.assertIsInstance(variable_array, HLAvariableArray)
-        self.assertEqual(variable_array.toByteArray(), b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(
+            variable_array.toByteArray(),
+            b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe",
+        )
         self.assertEqual(variable_array.getOctetBoundary(), 4)
         self.assertEqual(variable_array.size(), 2)
         self.assertEqual([element.getValue() for element in variable_array], [1, -2])
-        self.assertEqual([decoded_array.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_array.get(index).getValue() for index in range(2)], [1, -2]
+        )
         with self.assertRaises(EncoderException):
             variable_array.addElement(encoder.createHLAoctet(1))
         with self.assertRaises(IndexError):
@@ -694,7 +801,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(fixed_array.toByteArray(), b"\x00\x00\x00\x01\xff\xff\xff\xfe")
         self.assertEqual(fixed_array.size(), 2)
         self.assertEqual([element.getValue() for element in fixed_array], [1, -2])
-        self.assertEqual([decoded_fixed.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_fixed.get(index).getValue() for index in range(2)], [1, -2]
+        )
         ascii_factory = type(
             "_AsciiStringFactory",
             (DataElementFactory,),
@@ -730,13 +839,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         first.setValue(99)
         middle.setValue(0x11)
         last.setValue(7)
-        record_bytes = b"\x10\x20\x30\x40\xA5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        record_bytes = b"\x10\x20\x30\x40\xa5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(record, HLAfixedRecord)
         self.assertEqual(record.toByteArray(), record_bytes)
         self.assertEqual(record.getEncodedLength(), len(record_bytes))
         self.assertEqual(record.getOctetBoundary(), 4)
         self.assertEqual(record.size(), 3)
-        self.assertEqual([element.getValue() for element in record], [0x10203040, 0xA5, -2])
+        self.assertEqual(
+            [element.getValue() for element in record], [0x10203040, 0xA5, -2]
+        )
         decoded_record = encoder.createHLAfixedRecord()
         decoded_record.appendElement(encoder.createHLAinteger32BE())
         decoded_record.appendElement(encoder.createHLAoctet())
@@ -749,7 +860,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         record.set(1, encoder.createHLAoctet(0x5A))
         self.assertEqual(
             record.toByteArray(),
-            b"\x10\x20\x30\x40\x5A" + b"\0\0\0" + b"\xff\xff\xff\xfe",
+            b"\x10\x20\x30\x40\x5a" + b"\0\0\0" + b"\xff\xff\xff\xfe",
         )
         with self.assertRaises(EncoderException):
             record.set(1, encoder.createHLAinteger32BE(1))
@@ -768,7 +879,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         outer.appendElement(nested)
         outer.appendElement(encoder.createHLAinteger32BE(-2))
         nested.set(0, encoder.createHLAinteger32BE(99))
-        nested_bytes = b"\x01\x02\x03\x04\xA5"
+        nested_bytes = b"\x01\x02\x03\x04\xa5"
         outer_bytes = nested_bytes + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(outer.get(0), HLAfixedRecord)
         self.assertEqual(outer.toByteArray(), outer_bytes)
@@ -797,7 +908,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         decoded_array_outer.appendElement(decoded_nested_array)
         decoded_array_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_array_outer.decode(array_outer_bytes)
-        self.assertEqual([decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12]
+        )
         self.assertEqual(decoded_array_outer.get(1).getValue(), -2)
         nested_variable_factory = type(
             "_NestedIntegerFactory",
@@ -816,12 +929,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertIsInstance(variable_outer.get(0), HLAvariableArray)
         self.assertEqual(variable_outer.toByteArray(), variable_outer_bytes)
         decoded_variable_outer = encoder.createHLAfixedRecord()
-        decoded_nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        decoded_nested_variable = encoder.createHLAvariableArray(
+            nested_variable_factory
+        )
         decoded_variable_outer.appendElement(decoded_nested_variable)
         decoded_variable_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_variable_outer.decode(variable_outer_bytes)
         self.assertEqual(decoded_variable_outer.get(0).size(), 2)
-        self.assertEqual([decoded_variable_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_variable_outer.get(0).get(i).getValue() for i in range(2)],
+            [11, -12],
+        )
         self.assertEqual(decoded_variable_outer.get(1).getValue(), -2)
         nested_variant_value = encoder.createHLAfixedRecord()
         nested_variant_value.appendElement(encoder.createHLAinteger32BE(0x01020304))
@@ -829,33 +947,47 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
         nested_variant.setVariant(encoder.createHLAoctet(3), nested_variant_value)
         nested_variant_value.set(0, encoder.createHLAinteger32BE(99))
-        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xA5"
+        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xa5"
         self.assertIsInstance(nested_variant.getValue(), HLAfixedRecord)
         self.assertEqual(nested_variant.toByteArray(), nested_variant_bytes)
-        decoded_nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_nested_variant = encoder.createHLAvariantRecord(
+            encoder.createHLAoctet()
+        )
         decoded_nested_variant_value = encoder.createHLAfixedRecord()
         decoded_nested_variant_value.appendElement(encoder.createHLAinteger32BE())
         decoded_nested_variant_value.appendElement(encoder.createHLAoctet())
-        decoded_nested_variant.setVariant(encoder.createHLAoctet(3), decoded_nested_variant_value)
+        decoded_nested_variant.setVariant(
+            encoder.createHLAoctet(3), decoded_nested_variant_value
+        )
         decoded_nested_variant.decode(nested_variant_bytes)
-        self.assertEqual(decoded_nested_variant.getValue().get(0).getValue(), 0x01020304)
+        self.assertEqual(
+            decoded_nested_variant.getValue().get(0).getValue(), 0x01020304
+        )
         composite_discriminant = encoder.createHLAfixedRecord()
         composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
         composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
         composite_variant = encoder.createHLAvariantRecord(composite_discriminant)
-        composite_variant.setVariant(composite_discriminant, encoder.createHLAinteger32BE(7))
+        composite_variant.setVariant(
+            composite_discriminant, encoder.createHLAinteger32BE(7)
+        )
         composite_discriminant.set(0, encoder.createHLAinteger32BE(99))
-        composite_variant_bytes = b"\x01\x02\x03\x04\xA5" + b"\0\0\0" + b"\0\0\0\x07"
+        composite_variant_bytes = b"\x01\x02\x03\x04\xa5" + b"\0\0\0" + b"\0\0\0\x07"
         self.assertIsInstance(composite_variant.getDiscriminant(), HLAfixedRecord)
         self.assertEqual(composite_variant.toByteArray(), composite_variant_bytes)
         decoded_composite_discriminant = encoder.createHLAfixedRecord()
         decoded_composite_discriminant.appendElement(encoder.createHLAinteger32BE())
         decoded_composite_discriminant.appendElement(encoder.createHLAoctet())
-        decoded_composite_variant = encoder.createHLAvariantRecord(decoded_composite_discriminant)
+        decoded_composite_variant = encoder.createHLAvariantRecord(
+            decoded_composite_discriminant
+        )
         mapped_composite_discriminant = encoder.createHLAfixedRecord()
-        mapped_composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        mapped_composite_discriminant.appendElement(
+            encoder.createHLAinteger32BE(0x01020304)
+        )
         mapped_composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
-        decoded_composite_variant.setVariant(mapped_composite_discriminant, encoder.createHLAinteger32BE())
+        decoded_composite_variant.setVariant(
+            mapped_composite_discriminant, encoder.createHLAinteger32BE()
+        )
         decoded_composite_variant.decode(composite_variant_bytes)
         self.assertEqual(decoded_composite_variant.getValue().getValue(), 7)
         variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
@@ -882,8 +1014,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertIsNone(variant.getValue())
         self.assertEqual(variant.toByteArray(), b"\x03")
         decoded_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
-        decoded_variant.setVariant(encoder.createHLAoctet(1), encoder.createHLAinteger32BE())
-        decoded_variant.setVariant(encoder.createHLAoctet(2), encoder.createHLAASCIIstring())
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(1), encoder.createHLAinteger32BE()
+        )
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(2), encoder.createHLAASCIIstring()
+        )
         decoded_variant.decode(variant_two_bytes)
         self.assertEqual(decoded_variant.getValue().getValue(), "A")  # type: ignore[union-attr]
         bad_variant_padding = bytearray(variant_two_bytes)
@@ -940,11 +1076,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(integer64.getValue(), 0x0102030405060708)
         self.assertEqual(integer64le.toByteArray(), struct.pack("<q", -0x123456789AB))
         self.assertEqual(integer64le.getOctetBoundary(), 8)
-        self.assertEqual(unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64.getValue(), 0xFEDCBA9876543210)
-        self.assertIs(unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64)
+        self.assertIs(
+            unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64
+        )
         self.assertEqual(unsigned64.getValue(), 0xFFFFFFFFFFFFFFFF)
-        self.assertEqual(unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64le.getValue(), 0xFEDCBA9876543210)
         self.assertEqual(unsigned.toByteArray(), b"\x124\xab\xcd")
         self.assertEqual(unsigned_maximum.toByteArray(), b"\xff\xff\xff\xff")
@@ -1013,7 +1155,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             callbacks.federation_execution_reports,
             [
                 FederationExecutionInformationSet(
-                    [FederationExecutionInformation("Umbra Mock Federation", HLA_TYPES.INTEGER64_TIME)]
+                    [
+                        FederationExecutionInformation(
+                            "Umbra Mock Federation", HLA_TYPES.INTEGER64_TIME
+                        )
+                    ]
                 )
             ],
         )
@@ -1026,7 +1172,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.listFederationExecutions()
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertIn(
-            FederationExecutionInformation("Python-created mock federation", HLA_TYPES.INTEGER64_TIME),
+            FederationExecutionInformation(
+                "Python-created mock federation", HLA_TYPES.INTEGER64_TIME
+            ),
             callbacks.federation_execution_reports[-1],
         )
         ambassador.destroyFederationExecution("Python-created mock federation")
@@ -1053,7 +1201,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         )
         ambassador.listFederationExecutionMembers("Missing mock federation")
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.missing_federation_executions, ["Missing mock federation"])
+        self.assertEqual(
+            callbacks.missing_federation_executions, ["Missing mock federation"]
+        )
 
         handle = ambassador.joinFederationExecution(
             "observer", "Umbra Mock Federation", federateName="python-mock-member"
@@ -1120,16 +1270,24 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(callbacks.sync_announcements, [("real-jvm-sync", b"sync-tag")])
         ambassador.synchronizationPointAchieved("real-jvm-sync")
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.sync_completions, [("real-jvm-sync", FederateHandleSet())])
-        ambassador.registerFederationSynchronizationPoint("real-jvm-failed-sync", b"failed-tag")
+        self.assertEqual(
+            callbacks.sync_completions, [("real-jvm-sync", FederateHandleSet())]
+        )
+        ambassador.registerFederationSynchronizationPoint(
+            "real-jvm-failed-sync", b"failed-tag"
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertTrue(ambassador.evokeCallback(0.0))
-        ambassador.synchronizationPointAchieved("real-jvm-failed-sync", successfully=False)
+        ambassador.synchronizationPointAchieved(
+            "real-jvm-failed-sync", successfully=False
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertIn(
             (
                 "real-jvm-failed-sync",
-                FederateHandleSet([FederateHandle(b"Umbra Mock Federation:python-module-member")]),
+                FederateHandleSet(
+                    [FederateHandle(b"Umbra Mock Federation:python-module-member")]
+                ),
             ),
             callbacks.sync_completions,
         )
@@ -1157,14 +1315,21 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(lookahead.getInterval(), 1)
         self.assertIsInstance(requested_time, HLAinteger64Time)
         self.assertIsInstance(lookahead, HLAinteger64Interval)
-        self.assertEqual(time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 5)
         self.assertEqual(
-            time_factory.decodeLogicalTimeInterval(lookahead.toByteArray()).getInterval(), 1
+            time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 5
+        )
+        self.assertEqual(
+            time_factory.decodeLogicalTimeInterval(
+                lookahead.toByteArray()
+            ).getInterval(),
+            1,
         )
         advanced = time_factory.add(requested_time, lookahead)
         self.assertEqual(advanced.getTime(), 6)
         self.assertEqual(time_factory.subtract(advanced, lookahead).getTime(), 5)
-        self.assertEqual(time_factory.difference(advanced, requested_time).getInterval(), 1)
+        self.assertEqual(
+            time_factory.difference(advanced, requested_time).getInterval(), 1
+        )
         malformed_time_values = (
             b"",
             b"\0" * 7,
@@ -1189,7 +1354,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.add(time_factory.makeFinal(), time_factory.makeEpsilon())
         with self.assertRaises(IllegalTimeArithmetic):
-            time_factory.subtract(time_factory.makeInitial(), time_factory.makeEpsilon())
+            time_factory.subtract(
+                time_factory.makeInitial(), time_factory.makeEpsilon()
+            )
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.difference(time_factory.makeInitial(), requested_time)
         ambassador.enableTimeRegulation(lookahead)
@@ -1228,7 +1395,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         region = ambassador.createRegion(DimensionHandleSet([dimension]))
         self.assertIsInstance(region, RegionHandle)
-        self.assertEqual(ambassador.getDimensionHandleSet(region), DimensionHandleSet([dimension]))
+        self.assertEqual(
+            ambassador.getDimensionHandleSet(region), DimensionHandleSet([dimension])
+        )
         ambassador.setRangeBounds(region, dimension, RangeBounds(1, 3))
         bounds = ambassador.getRangeBounds(region, dimension)
         self.assertEqual((bounds.getLowerBound(), bounds.getUpperBound()), (1, 3))
@@ -1236,11 +1405,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.deleteRegion(region)
         object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
         attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
-        interaction = ambassador.getInteractionClassHandle(
-            HLA_FOM.MAIN_COURSE_SERVED
-        )
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
         directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
-        parameter = ambassador.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+        parameter = ambassador.getParameterHandle(
+            interaction, HLA_FIXTURES.TEMPERATURE_OK
+        )
         transportation = ambassador.getTransportationTypeHandle(HLA_MOM.RELIABLE)
         dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
         self.assertIsInstance(object_class, ObjectClassHandle)
@@ -1249,7 +1418,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertIsInstance(parameter, ParameterHandle)
         self.assertIsInstance(transportation, TransportationTypeHandle)
         self.assertIsInstance(dimension, DimensionHandle)
-        self.assertEqual(ambassador.getObjectClassName(object_class), HLA_FOM.EMPLOYEE_SERVER)
+        self.assertEqual(
+            ambassador.getObjectClassName(object_class), HLA_FOM.EMPLOYEE_SERVER
+        )
         self.assertEqual(
             ambassador.getAttributeName(object_class, attribute),
             HLA_FIXTURES.EFFICIENCY,
@@ -1262,7 +1433,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             ambassador.getParameterName(interaction, parameter),
             HLA_FIXTURES.TEMPERATURE_OK,
         )
-        self.assertEqual(ambassador.getTransportationTypeName(transportation), HLA_MOM.RELIABLE)
+        self.assertEqual(
+            ambassador.getTransportationTypeName(transportation), HLA_MOM.RELIABLE
+        )
         self.assertEqual(ambassador.getDimensionName(dimension), HLA_FIXTURES.SERVER_ID)
         batch_names = ObjectInstanceNameSet(["jvm-batch-one", "jvm-batch-two"])
         ambassador.reserveMultipleObjectInstanceNames(batch_names)
@@ -1274,7 +1447,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(callbacks.reserved_names[-1], "mock-reserved-then-released")
         ambassador.releaseObjectInstanceName("mock-reserved-then-released")
         attributes = AttributeHandleSet([attribute])
-        ambassador.subscribeObjectClassAttributes(object_class, attributes, active=False)
+        ambassador.subscribeObjectClassAttributes(
+            object_class, attributes, active=False
+        )
         ambassador.publishObjectClassAttributes(object_class, attributes)
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.start_registration, [object_class])
@@ -1307,19 +1482,37 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertIsInstance(registered, ObjectInstanceHandle)
-        self.assertEqual(ambassador.getObjectInstanceName(registered), "mock-registered-server")
-        self.assertEqual(ambassador.getObjectInstanceHandle("mock-registered-server"), registered)
-        ambassador.requestAttributeValueUpdate(registered, attributes, b"instance-request")
+        self.assertEqual(
+            ambassador.getObjectInstanceName(registered), "mock-registered-server"
+        )
+        self.assertEqual(
+            ambassador.getObjectInstanceHandle("mock-registered-server"), registered
+        )
+        ambassador.requestAttributeValueUpdate(
+            registered, attributes, b"instance-request"
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.attribute_value_requests[-1], (registered, attributes, b"instance-request"))
-        ambassador.requestAttributeValueUpdate(object_class, attributes, b"class-request")
+        self.assertEqual(
+            callbacks.attribute_value_requests[-1],
+            (registered, attributes, b"instance-request"),
+        )
+        ambassador.requestAttributeValueUpdate(
+            object_class, attributes, b"class-request"
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.attribute_value_requests[-1], (registered, attributes, b"class-request"))
+        self.assertEqual(
+            callbacks.attribute_value_requests[-1],
+            (registered, attributes, b"class-request"),
+        )
         federate = ambassador.getFederateHandle("python-mock-member")
         self.assertEqual(ambassador.getFederateName(federate), "python-mock-member")
         self.assertEqual(ambassador.getKnownObjectClassHandle(registered), object_class)
-        self.assertEqual(ambassador.getUpdateRateValue(HLA_MOM.DEFAULT_UPDATE_RATE), 1.0)
-        self.assertEqual(ambassador.getUpdateRateValueForAttribute(registered, attribute), 1.0)
+        self.assertEqual(
+            ambassador.getUpdateRateValue(HLA_MOM.DEFAULT_UPDATE_RATE), 1.0
+        )
+        self.assertEqual(
+            ambassador.getUpdateRateValueForAttribute(registered, attribute), 1.0
+        )
         self.assertEqual(ambassador.getOrderType("Receive"), OrderType.RECEIVE)
         self.assertEqual(ambassador.getOrderName(OrderType.TIMESTAMP), "TimeStamp")
         self.assertEqual(
@@ -1331,7 +1524,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             DimensionHandleSet([DimensionHandle(b"dimension:SodaFlavor")]),
         )
         self.assertEqual(ambassador.getDimensionUpperBound(dimension), 100)
-        self.assertEqual(ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2)
+        self.assertEqual(
+            ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2
+        )
         self.assertEqual(ambassador.normalizeFederateHandle(federate), 1)
         self.assertEqual(ambassador.normalizeObjectClassHandle(object_class), 2)
         self.assertEqual(ambassador.normalizeInteractionClassHandle(interaction), 3)
@@ -1343,13 +1538,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             b"timestamped-update",
         )
         timestamped_interaction = ambassador.sendInteractionWithTime(
-            interaction, ParameterHandleValueMap({parameter: b"timestamped"}), requested_time,
-            b"timestamped-interaction"
+            interaction,
+            ParameterHandleValueMap({parameter: b"timestamped"}),
+            requested_time,
+            b"timestamped-interaction",
         )
         timestamped_delete = ambassador.deleteObjectInstanceWithTime(
             registered, requested_time, b"timestamped-delete"
         )
-        for retraction in (timestamped_update, timestamped_interaction, timestamped_delete):
+        for retraction in (
+            timestamped_update,
+            timestamped_interaction,
+            timestamped_delete,
+        ):
             self.assertIsInstance(retraction, MessageRetractionHandle)
             self.assertTrue(retraction.isValid())
         ambassador.retract(timestamped_update)
@@ -1365,7 +1566,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             ],
         )
         reflection_values = AttributeHandleValueMap({attribute: b"\x01\x02\xff"})
-        ambassador.updateAttributeValues(registered, reflection_values, b"mock-update-tag")
+        ambassador.updateAttributeValues(
+            registered, reflection_values, b"mock-update-tag"
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(
             callbacks.reflections,
@@ -1380,7 +1583,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             ],
         )
         interaction_values = ParameterHandleValueMap({parameter: b"served"})
-        ambassador.sendInteraction(interaction, interaction_values, b"mock-interaction-tag")
+        ambassador.sendInteraction(
+            interaction, interaction_values, b"mock-interaction-tag"
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(
             callbacks.interactions,
@@ -1412,8 +1617,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(callbacks.timed_directed_interactions[-1][0], directed)
         self.assertEqual(callbacks.timed_directed_interactions[-1][1], registered)
         self.assertEqual(callbacks.timed_directed_interactions[-1][6].getTime(), 5)
-        self.assertEqual(callbacks.timed_directed_interactions[-1][7], OrderType.TIMESTAMP)
-        self.assertIsInstance(callbacks.timed_directed_interactions[-1][9], MessageRetractionHandle)
+        self.assertEqual(
+            callbacks.timed_directed_interactions[-1][7], OrderType.TIMESTAMP
+        )
+        self.assertIsInstance(
+            callbacks.timed_directed_interactions[-1][9], MessageRetractionHandle
+        )
         ambassador._implementation.emitTimestampedCallbacksForEncoded(
             registered.encodedValue, interaction.encodedValue, 7
         )
@@ -1427,7 +1636,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         )
         self.assertEqual(callbacks.timed_reflections[-1][6].getTime(), 7)
         self.assertEqual(callbacks.timed_reflections[-1][7], OrderType.TIMESTAMP)
-        self.assertIsInstance(callbacks.timed_reflections[-1][9], MessageRetractionHandle)
+        self.assertIsInstance(
+            callbacks.timed_reflections[-1][9], MessageRetractionHandle
+        )
         self.assertEqual(callbacks.timed_interactions[-1][0], interaction)
         self.assertEqual(
             callbacks.timed_interactions[-1][5],
@@ -1441,40 +1652,70 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         )
         for _ in range(5):
             self.assertTrue(ambassador.evokeMultipleCallbacks(0.0, 0.0))
-        self.assertEqual(callbacks.scope_entries[-1], (registered, AttributeHandleSet([attribute])))
-        self.assertEqual(callbacks.scope_exits[-1], (registered, AttributeHandleSet([attribute])))
+        self.assertEqual(
+            callbacks.scope_entries[-1], (registered, AttributeHandleSet([attribute]))
+        )
+        self.assertEqual(
+            callbacks.scope_exits[-1], (registered, AttributeHandleSet([attribute]))
+        )
         self.assertEqual(callbacks.updates_on[-1][2], "High")
-        self.assertEqual(callbacks.updates_off[-1], (registered, AttributeHandleSet([attribute])))
+        self.assertEqual(
+            callbacks.updates_off[-1], (registered, AttributeHandleSet([attribute]))
+        )
         ambassador.changeAttributeOrderType(registered, attributes, OrderType.TIMESTAMP)
-        ambassador.changeDefaultAttributeOrderType(object_class, attributes, OrderType.RECEIVE)
+        ambassador.changeDefaultAttributeOrderType(
+            object_class, attributes, OrderType.RECEIVE
+        )
         ambassador.changeInteractionOrderType(interaction, OrderType.RECEIVE)
-        ambassador.requestAttributeTransportationTypeChange(registered, attributes, transportation)
+        ambassador.requestAttributeTransportationTypeChange(
+            registered, attributes, transportation
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.attribute_transport_confirmations[-1], (registered, attributes, transportation))
-        ambassador.changeDefaultAttributeTransportationType(object_class, attributes, transportation)
+        self.assertEqual(
+            callbacks.attribute_transport_confirmations[-1],
+            (registered, attributes, transportation),
+        )
+        ambassador.changeDefaultAttributeTransportationType(
+            object_class, attributes, transportation
+        )
         ambassador.queryAttributeTransportationType(registered, attribute)
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.attribute_transport_reports[-1], (registered, attribute, transportation))
-        ambassador.requestInteractionTransportationTypeChange(interaction, transportation)
+        self.assertEqual(
+            callbacks.attribute_transport_reports[-1],
+            (registered, attribute, transportation),
+        )
+        ambassador.requestInteractionTransportationTypeChange(
+            interaction, transportation
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.interaction_transport_confirmations[-1], (interaction, transportation))
+        self.assertEqual(
+            callbacks.interaction_transport_confirmations[-1],
+            (interaction, transportation),
+        )
         ambassador.queryInteractionTransportationType(federate, interaction)
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.interaction_transport_reports[-1], (federate, interaction, transportation))
+        self.assertEqual(
+            callbacks.interaction_transport_reports[-1],
+            (federate, interaction, transportation),
+        )
         regional_dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         regional = ambassador.createRegion(DimensionHandleSet([regional_dimension]))
         ambassador.setRangeBounds(regional, regional_dimension, RangeBounds(1, 3))
         ambassador.commitRegionModifications(RegionHandleSet([regional]))
-        timestamped_regional_interaction = ambassador.sendInteractionWithRegionsWithTime(
-            interaction,
-            ParameterHandleValueMap({parameter: b"timestamped-regional"}),
-            RegionHandleSet([regional]),
-            requested_time,
-            b"timestamped-regional-interaction",
+        timestamped_regional_interaction = (
+            ambassador.sendInteractionWithRegionsWithTime(
+                interaction,
+                ParameterHandleValueMap({parameter: b"timestamped-regional"}),
+                RegionHandleSet([regional]),
+                requested_time,
+                b"timestamped-regional-interaction",
+            )
         )
         self.assertIsInstance(timestamped_regional_interaction, MessageRetractionHandle)
         self.assertTrue(timestamped_regional_interaction.isValid())
-        ambassador.subscribeInteractionClassWithRegions(interaction, RegionHandleSet([regional]))
+        ambassador.subscribeInteractionClassWithRegions(
+            interaction, RegionHandleSet([regional])
+        )
         ambassador.setConveyRegionDesignatorSetsSwitch(True)
         for getter, setter in (
             (
@@ -1500,14 +1741,22 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             setter(initial)
             self.assertEqual(getter(), initial)
         initial_resign = ambassador.getAutomaticResignDirective()
-        alternate_resign = next(action for action in ResignAction if action is not initial_resign)
+        alternate_resign = next(
+            action for action in ResignAction if action is not initial_resign
+        )
         ambassador.setAutomaticResignDirective(alternate_resign)
         self.assertEqual(ambassador.getAutomaticResignDirective(), alternate_resign)
         ambassador.setAutomaticResignDirective(initial_resign)
         self.assertEqual(ambassador.getAutomaticResignDirective(), initial_resign)
         for getter, setter in (
-            (ambassador.getServiceReportingSwitch, ambassador.setServiceReportingSwitch),
-            (ambassador.getExceptionReportingSwitch, ambassador.setExceptionReportingSwitch),
+            (
+                ambassador.getServiceReportingSwitch,
+                ambassador.setServiceReportingSwitch,
+            ),
+            (
+                ambassador.getExceptionReportingSwitch,
+                ambassador.setExceptionReportingSwitch,
+            ),
         ):
             initial = getter()
             setter(not initial)
@@ -1524,7 +1773,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ):
             self.assertIsInstance(getter(), bool)
         ambassador.sendInteractionWithRegions(
-            interaction, interaction_values, RegionHandleSet([regional]), b"regional-tag"
+            interaction,
+            interaction_values,
+            RegionHandleSet([regional]),
+            b"regional-tag",
         )
         self.assertTrue(ambassador.evokeCallback(0.0))
         # The earlier timestamped callback probe also carries a non-null region
@@ -1533,8 +1785,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         regional_pairs = AttributeSetRegionSetPairList(
             [AttributeSetRegionSetPair(attributes, RegionHandleSet([regional]))]
         )
-        ambassador.subscribeObjectClassAttributesWithRegions(object_class, regional_pairs)
-        regional_registered = ambassador.registerObjectInstanceWithRegions(object_class, regional_pairs)
+        ambassador.subscribeObjectClassAttributesWithRegions(
+            object_class, regional_pairs
+        )
+        regional_registered = ambassador.registerObjectInstanceWithRegions(
+            object_class, regional_pairs
+        )
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.discoveries[-1][0], regional_registered)
         ambassador.unwrap_java_object().enableTimestampedRegionalAttributeProbe()
@@ -1551,7 +1807,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(
             callbacks.timed_reflections[-1][1][attribute], b"regional-timed-update"
         )
-        self.assertEqual(callbacks.timed_reflections[-1][2], b"regional-timed-update-tag")
+        self.assertEqual(
+            callbacks.timed_reflections[-1][2], b"regional-timed-update-tag"
+        )
         self.assertEqual(
             callbacks.timed_reflections[-1][5],
             RegionHandleSet([RegionHandle(b"region:regional-attribute")]),
@@ -1564,13 +1822,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(callbacks.time_grants[-1].getTime(), 11)
         ambassador.associateRegionsForUpdates(regional_registered, regional_pairs)
         ambassador.unassociateRegionsForUpdates(regional_registered, regional_pairs)
-        ambassador.requestAttributeValueUpdateWithRegions(object_class, regional_pairs, b"regional-request")
+        ambassador.requestAttributeValueUpdateWithRegions(
+            object_class, regional_pairs, b"regional-request"
+        )
         ambassador.queryAttributeOwnership(regional_registered, attributes)
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.ownership_reports[-1][0], regional_registered)
         self.assertEqual(callbacks.ownership_reports[-1][1], attributes)
         self.assertIsInstance(callbacks.ownership_reports[-1][2], FederateHandle)
-        self.assertTrue(ambassador.isAttributeOwnedByFederate(regional_registered, attribute))
+        self.assertTrue(
+            ambassador.isAttributeOwnedByFederate(regional_registered, attribute)
+        )
         ambassador.unconditionalAttributeOwnershipDivestiture(
             regional_registered, attributes, b"regional-divest"
         )
@@ -1599,8 +1861,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.negotiatedAttributeOwnershipDivestiture(
             regional_registered, attributes, b"regional-negotiated"
         )
-        ambassador.confirmDivestiture(regional_registered, attributes, b"regional-confirm")
-        ambassador.cancelNegotiatedAttributeOwnershipDivestiture(regional_registered, attributes)
+        ambassador.confirmDivestiture(
+            regional_registered, attributes, b"regional-confirm"
+        )
+        ambassador.cancelNegotiatedAttributeOwnershipDivestiture(
+            regional_registered, attributes
+        )
         ambassador.attributeOwnershipReleaseDenied(
             regional_registered, attributes, b"regional-release-denied"
         )
@@ -1610,7 +1876,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             ),
             attributes,
         )
-        ambassador.unsubscribeObjectClassAttributesWithRegions(object_class, regional_pairs)
+        ambassador.unsubscribeObjectClassAttributesWithRegions(
+            object_class, regional_pairs
+        )
         ambassador.deleteObjectInstance(regional_registered, b"regional-delete-tag")
         self.assertTrue(ambassador.evokeCallback(0.0))
         ambassador.deleteObjectInstance(registered, b"mock-delete-tag")
@@ -1670,7 +1938,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertTrue(ambassador.evokeCallback(0.0))
         raw_timed_save = ambassador.unwrap_java_object().getLastRequestedSaveTime()
         self.assertEqual(raw_timed_save.getTime(), 12)
-        self.assertEqual(str(raw_timed_save.implementationName()), HLA_TYPES.INTEGER64_TIME)
+        self.assertEqual(
+            str(raw_timed_save.implementationName()), HLA_TYPES.INTEGER64_TIME
+        )
         ambassador.federateSaveBegun()
         ambassador.federateSaveComplete()
         self.assertTrue(ambassador.evokeCallback(0.0))
@@ -1693,7 +1963,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.timeAdvanceRequest(tso_save_time)
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.timed_interactions[-1][0], interaction)
-        self.assertEqual(callbacks.timed_interactions[-1][1][parameter], b"queued-before-save")
+        self.assertEqual(
+            callbacks.timed_interactions[-1][1][parameter], b"queued-before-save"
+        )
         self.assertEqual(callbacks.timed_interactions[-1][2], b"queued-before-save-tag")
         self.assertEqual(callbacks.timed_interactions[-1][6].getTime(), 14)
         self.assertEqual(callbacks.timed_interactions[-1][7], OrderType.TIMESTAMP)
@@ -1724,7 +1996,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
 
         ambassador.requestFederationSave("missing-save")
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.save_failures[-1], SaveFailureReason.RTI_UNABLE_TO_SAVE)
+        self.assertEqual(
+            callbacks.save_failures[-1], SaveFailureReason.RTI_UNABLE_TO_SAVE
+        )
 
         ambassador.queryFederationRestoreStatus()
         self.assertTrue(ambassador.evokeCallback(0.0))
@@ -1774,7 +2048,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(ambassador.evokeCallback(0.0))
         ambassador.abortFederationRestore()
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED)
+        self.assertEqual(
+            callbacks.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED
+        )
 
         ambassador.requestFederationRestore("missing-restore")
         self.assertTrue(ambassador.evokeCallback(0.0))
@@ -1822,8 +2098,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             second_object_class = second_subscriber.getObjectClassHandle(
                 HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
-            first_attribute = first_subscriber.getAttributeHandle(first_object_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_object_class, HLA_FIXTURES.FLAVOR
+            )
+            first_attribute = first_subscriber.getAttributeHandle(
+                first_object_class, HLA_FIXTURES.FLAVOR
+            )
             second_attribute = second_subscriber.getAttributeHandle(
                 second_object_class, HLA_FIXTURES.FLAVOR
             )
@@ -1869,8 +2149,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 second_subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(first_callbacks.reflections), 1)
             self.assertEqual(len(second_callbacks.reflections), 1)
-            self.assertEqual(first_callbacks.reflections[0][1][first_attribute], b"fanout-flavor")
-            self.assertEqual(second_callbacks.reflections[0][1][second_attribute], b"fanout-flavor")
+            self.assertEqual(
+                first_callbacks.reflections[0][1][first_attribute], b"fanout-flavor"
+            )
+            self.assertEqual(
+                second_callbacks.reflections[0][1][second_attribute], b"fanout-flavor"
+            )
             self.assertEqual(first_callbacks.reflections[0][2], b"fanout-update-tag")
             self.assertEqual(second_callbacks.reflections[0][2], b"fanout-update-tag")
 
@@ -1886,8 +2170,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(len(second_callbacks.interactions), 1)
             self.assertEqual(first_callbacks.interactions[0][0], first_interaction)
             self.assertEqual(second_callbacks.interactions[0][0], second_interaction)
-            self.assertEqual(first_callbacks.interactions[0][2], b"fanout-interaction-tag")
-            self.assertEqual(second_callbacks.interactions[0][2], b"fanout-interaction-tag")
+            self.assertEqual(
+                first_callbacks.interactions[0][2], b"fanout-interaction-tag"
+            )
+            self.assertEqual(
+                second_callbacks.interactions[0][2], b"fanout-interaction-tag"
+            )
         finally:
             if second_joined:
                 second_subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -1925,7 +2213,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             owner_class = owner.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             acquirer_class = acquirer.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             owner_attribute = owner.getAttributeHandle(owner_class, HLA_FIXTURES.FLAVOR)
-            acquirer_attribute = acquirer.getAttributeHandle(acquirer_class, HLA_FIXTURES.FLAVOR)
+            acquirer_attribute = acquirer.getAttributeHandle(
+                acquirer_class, HLA_FIXTURES.FLAVOR
+            )
             attributes = AttributeHandleSet([owner_attribute])
             acquirer_attributes = AttributeHandleSet([acquirer_attribute])
             owner.publishObjectClassAttributes(owner_class, attributes)
@@ -1934,15 +2224,21 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             object_instance = owner.registerObjectInstance(owner_class)
             self.assertTrue(acquirer.evokeCallback(0.0))
             self.assertEqual(acquirer_callbacks.discoveries[0][0], object_instance)
-            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
             self.assertFalse(
                 acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
             )
 
             acquirer.queryAttributeOwnership(object_instance, acquirer_attributes)
             self.assertTrue(acquirer.evokeCallback(0.0))
-            self.assertEqual(acquirer_callbacks.ownership_reports[-1][0], object_instance)
-            self.assertEqual(acquirer_callbacks.ownership_reports[-1][1], acquirer_attributes)
+            self.assertEqual(
+                acquirer_callbacks.ownership_reports[-1][0], object_instance
+            )
+            self.assertEqual(
+                acquirer_callbacks.ownership_reports[-1][1], acquirer_attributes
+            )
 
             acquirer.attributeOwnershipAcquisition(
                 object_instance, acquirer_attributes, b"acquire-request"
@@ -1952,8 +2248,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 owner_callbacks.ownership_divestiture_requests[-1][0], object_instance
             )
-            self.assertEqual(owner_callbacks.ownership_divestiture_requests[-1][1], attributes)
-            self.assertEqual(owner_callbacks.ownership_divestiture_requests[-1][2], b"acquire-request")
+            self.assertEqual(
+                owner_callbacks.ownership_divestiture_requests[-1][1], attributes
+            )
+            self.assertEqual(
+                owner_callbacks.ownership_divestiture_requests[-1][2],
+                b"acquire-request",
+            )
             self.assertFalse(
                 acquirer_callbacks.ownership_acquisitions,
                 "the negotiated request must wait for owner confirmation",
@@ -1965,7 +2266,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 acquirer_callbacks.ownership_acquisitions[-1],
                 (object_instance, acquirer_attributes, b"confirm-transfer"),
             )
-            self.assertFalse(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertFalse(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
             self.assertTrue(
                 acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
             )
@@ -1994,19 +2297,25 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 acquirer_callbacks.ownership_unavailable[-1],
                 (object_instance, acquirer_attributes, b"deny-tag"),
             )
-            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
 
             acquirer.attributeOwnershipAcquisition(
                 object_instance, acquirer_attributes, b"cancel-me"
             )
             self.assertTrue(owner.evokeCallback(0.0))
-            acquirer.cancelAttributeOwnershipAcquisition(object_instance, acquirer_attributes)
+            acquirer.cancelAttributeOwnershipAcquisition(
+                object_instance, acquirer_attributes
+            )
             self.assertTrue(acquirer.evokeCallback(0.0))
             self.assertEqual(
                 acquirer_callbacks.ownership_acquisition_cancellations[-1],
                 (object_instance, acquirer_attributes),
             )
-            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
         finally:
             if acquirer_joined:
                 acquirer.resignFederationExecution(ResignAction.NO_ACTION)
@@ -2094,12 +2403,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(first.evokeCallback(0.0))
             self.assertTrue(second.evokeCallback(0.0))
             self.assertTrue(second.evokeCallback(0.0))
-            self.assertEqual(
-                first_callbacks.restore_initiations[-1][1], "save-first"
-            )
-            self.assertEqual(
-                second_callbacks.restore_initiations[-1][1], "save-second"
-            )
+            self.assertEqual(first_callbacks.restore_initiations[-1][1], "save-first")
+            self.assertEqual(second_callbacks.restore_initiations[-1][1], "save-second")
 
             second.queryFederationRestoreStatus()
             self.assertTrue(second.evokeCallback(0.0))
@@ -2148,8 +2453,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             first.abortFederationSave()
             self.assertTrue(first.evokeCallback(0.0))
             self.assertTrue(second.evokeCallback(0.0))
-            self.assertEqual(first_callbacks.save_failures[-1], SaveFailureReason.SAVE_ABORTED)
-            self.assertEqual(second_callbacks.save_failures[-1], SaveFailureReason.SAVE_ABORTED)
+            self.assertEqual(
+                first_callbacks.save_failures[-1], SaveFailureReason.SAVE_ABORTED
+            )
+            self.assertEqual(
+                second_callbacks.save_failures[-1], SaveFailureReason.SAVE_ABORTED
+            )
 
             first.requestFederationRestore(save_label)
             self.assertTrue(first.evokeCallback(0.0))
@@ -2178,8 +2487,14 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             first.abortFederationRestore()
             self.assertTrue(first.evokeCallback(0.0))
             self.assertTrue(second.evokeCallback(0.0))
-            self.assertEqual(first_callbacks.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED)
-            self.assertEqual(second_callbacks.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED)
+            self.assertEqual(
+                first_callbacks.restore_failures[-1],
+                RestoreFailureReason.RESTORE_ABORTED,
+            )
+            self.assertEqual(
+                second_callbacks.restore_failures[-1],
+                RestoreFailureReason.RESTORE_ABORTED,
+            )
         finally:
             if second_joined:
                 second.resignFederationExecution(ResignAction.NO_ACTION)
@@ -2201,8 +2516,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         created = publisher_joined = immediate_joined = constrained_joined = False
         try:
             publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
-            immediate_subscriber.connect(immediate_callbacks, CallbackModel.HLA_IMMEDIATE)
-            constrained_subscriber.connect(constrained_callbacks, CallbackModel.HLA_EVOKED)
+            immediate_subscriber.connect(
+                immediate_callbacks, CallbackModel.HLA_IMMEDIATE
+            )
+            constrained_subscriber.connect(
+                constrained_callbacks, CallbackModel.HLA_EVOKED
+            )
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
@@ -2229,7 +2548,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             constrained_object_class = constrained_subscriber.getObjectClassHandle(
                 HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_object_class, HLA_FIXTURES.FLAVOR
+            )
             immediate_attribute = immediate_subscriber.getAttributeHandle(
                 immediate_object_class, HLA_FIXTURES.FLAVOR
             )
@@ -2277,7 +2598,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(len(immediate_callbacks.timed_interactions), 1)
             self.assertEqual(immediate_callbacks.timed_interactions[0][6].getTime(), 5)
-            self.assertEqual(immediate_callbacks.timed_interactions[0][8], OrderType.RECEIVE)
+            self.assertEqual(
+                immediate_callbacks.timed_interactions[0][8], OrderType.RECEIVE
+            )
             self.assertEqual(constrained_callbacks.timed_interactions, [])
 
             attribute_retraction = publisher.updateAttributeValuesWithTime(
@@ -2288,29 +2611,41 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(len(immediate_callbacks.timed_reflections), 1)
             self.assertEqual(immediate_callbacks.timed_reflections[0][6].getTime(), 6)
-            self.assertEqual(immediate_callbacks.timed_reflections[0][8], OrderType.RECEIVE)
+            self.assertEqual(
+                immediate_callbacks.timed_reflections[0][8], OrderType.RECEIVE
+            )
             self.assertEqual(constrained_callbacks.timed_reflections, [])
 
             constrained_subscriber.timeAdvanceRequest(time_five)
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertEqual(len(constrained_callbacks.timed_interactions), 1)
-            self.assertEqual(constrained_callbacks.timed_interactions[0][0], constrained_interaction)
-            self.assertEqual(constrained_callbacks.timed_interactions[0][6].getTime(), 5)
-            self.assertEqual(constrained_callbacks.timed_interactions[0][8], OrderType.TIMESTAMP)
+            self.assertEqual(
+                constrained_callbacks.timed_interactions[0][0], constrained_interaction
+            )
+            self.assertEqual(
+                constrained_callbacks.timed_interactions[0][6].getTime(), 5
+            )
+            self.assertEqual(
+                constrained_callbacks.timed_interactions[0][8], OrderType.TIMESTAMP
+            )
             self.assertEqual(constrained_callbacks.timed_reflections, [])
 
             constrained_subscriber.timeAdvanceRequest(time_six)
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertEqual(len(constrained_callbacks.timed_reflections), 1)
-            self.assertEqual(constrained_callbacks.timed_reflections[0][0], object_instance)
+            self.assertEqual(
+                constrained_callbacks.timed_reflections[0][0], object_instance
+            )
             self.assertEqual(
                 constrained_callbacks.timed_reflections[0][1][constrained_attribute],
                 b"timestamped-flavor",
             )
             self.assertEqual(constrained_callbacks.timed_reflections[0][6].getTime(), 6)
-            self.assertEqual(constrained_callbacks.timed_reflections[0][8], OrderType.TIMESTAMP)
+            self.assertEqual(
+                constrained_callbacks.timed_reflections[0][8], OrderType.TIMESTAMP
+            )
 
             dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             region = publisher.createRegion(DimensionHandleSet([dimension]))
@@ -2341,9 +2676,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertIsNone(constrained_callbacks.timed_interactions[-1][5])
 
             regional_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([region])
-                )]
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([region]),
+                    )
+                ]
             )
             immediate_subscriber.subscribeObjectClassAttributesWithRegions(
                 immediate_object_class, regional_pairs
@@ -2354,7 +2692,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.associateRegionsForUpdates(object_instance, regional_pairs)
             regional_attribute_retraction = publisher.updateAttributeValuesWithTime(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"timestamped-regional-flavor"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"timestamped-regional-flavor"}
+                ),
                 time_factory.makeLogicalTime(10),
                 b"timestamped-regional-attribute-fanout",
             )
@@ -2373,7 +2713,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.unassociateRegionsForUpdates(object_instance, regional_pairs)
             unassociated_retraction = publisher.updateAttributeValuesWithTime(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"timestamped-unassociated-flavor"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"timestamped-unassociated-flavor"}
+                ),
                 time_factory.makeLogicalTime(12),
                 b"timestamped-unassociated-attribute-fanout",
             )
@@ -2395,20 +2737,25 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 constrained_object_class, HLA_FIXTURES.COLOR
             )
             publisher.publishObjectClassAttributes(
-                publisher_object_class, AttributeHandleSet([publisher_secondary_attribute])
+                publisher_object_class,
+                AttributeHandleSet([publisher_secondary_attribute]),
             )
             immediate_subscriber.subscribeObjectClassAttributes(
-                immediate_object_class, AttributeHandleSet([immediate_secondary_attribute])
+                immediate_object_class,
+                AttributeHandleSet([immediate_secondary_attribute]),
             )
             constrained_subscriber.subscribeObjectClassAttributes(
-                constrained_object_class, AttributeHandleSet([constrained_secondary_attribute])
+                constrained_object_class,
+                AttributeHandleSet([constrained_secondary_attribute]),
             )
             secondary_region = publisher.createRegion(DimensionHandleSet([dimension]))
             secondary_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_secondary_attribute]),
-                    RegionHandleSet([region, secondary_region]),
-                )]
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_secondary_attribute]),
+                        RegionHandleSet([region, secondary_region]),
+                    )
+                ]
             )
             immediate_subscriber.subscribeObjectClassAttributesWithRegions(
                 immediate_object_class, secondary_pairs
@@ -2418,18 +2765,26 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             publisher.associateRegionsForUpdates(object_instance, regional_pairs)
             publisher.associateRegionsForUpdates(object_instance, secondary_pairs)
-            multi_region_values = AttributeHandleValueMap({
-                publisher_attribute: b"multi-flavor",
-                publisher_secondary_attribute: b"multi-color",
-            })
+            multi_region_values = AttributeHandleValueMap(
+                {
+                    publisher_attribute: b"multi-flavor",
+                    publisher_secondary_attribute: b"multi-color",
+                }
+            )
             publisher.updateAttributeValuesWithTime(
-                object_instance, multi_region_values, time_factory.makeLogicalTime(14), b"multi-14"
+                object_instance,
+                multi_region_values,
+                time_factory.makeLogicalTime(14),
+                b"multi-14",
             )
             self.assertEqual(
                 immediate_callbacks.timed_reflections[-1][5],
-                RegionHandleSet([
-                    RegionHandle(region.encodedValue), RegionHandle(secondary_region.encodedValue)
-                ]),
+                RegionHandleSet(
+                    [
+                        RegionHandle(region.encodedValue),
+                        RegionHandle(secondary_region.encodedValue),
+                    ]
+                ),
             )
             constrained_subscriber.timeAdvanceRequest(time_factory.makeLogicalTime(14))
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
@@ -2438,29 +2793,40 @@ class JPypeMockIntegrationTest(unittest.TestCase):
 
             publisher.unassociateRegionsForUpdates(object_instance, regional_pairs)
             publisher.updateAttributeValuesWithTime(
-                object_instance, multi_region_values, time_factory.makeLogicalTime(16), b"multi-16"
+                object_instance,
+                multi_region_values,
+                time_factory.makeLogicalTime(16),
+                b"multi-16",
             )
             self.assertEqual(
                 immediate_callbacks.timed_reflections[-1][5],
-                RegionHandleSet([
-                    RegionHandle(region.encodedValue), RegionHandle(secondary_region.encodedValue)
-                ]),
+                RegionHandleSet(
+                    [
+                        RegionHandle(region.encodedValue),
+                        RegionHandle(secondary_region.encodedValue),
+                    ]
+                ),
             )
             constrained_subscriber.timeAdvanceRequest(time_factory.makeLogicalTime(16))
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
 
             publisher.unassociateRegionsForUpdates(
-               object_instance,
-               AttributeSetRegionSetPairList([
-                  AttributeSetRegionSetPair(
-                     AttributeHandleSet([publisher_secondary_attribute]),
-                     RegionHandleSet([region]),
-                  )
-               ]),
+                object_instance,
+                AttributeSetRegionSetPairList(
+                    [
+                        AttributeSetRegionSetPair(
+                            AttributeHandleSet([publisher_secondary_attribute]),
+                            RegionHandleSet([region]),
+                        )
+                    ]
+                ),
             )
             publisher.updateAttributeValuesWithTime(
-                object_instance, multi_region_values, time_factory.makeLogicalTime(18), b"multi-18"
+                object_instance,
+                multi_region_values,
+                time_factory.makeLogicalTime(18),
+                b"multi-18",
             )
             self.assertEqual(
                 immediate_callbacks.timed_reflections[-1][5],
@@ -2472,15 +2838,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
 
             publisher.unassociateRegionsForUpdates(
                 object_instance,
-                AttributeSetRegionSetPairList([
-                    AttributeSetRegionSetPair(
-                     AttributeHandleSet([publisher_secondary_attribute]),
-                     RegionHandleSet([secondary_region]),
-                    )
-                ]),
+                AttributeSetRegionSetPairList(
+                    [
+                        AttributeSetRegionSetPair(
+                            AttributeHandleSet([publisher_secondary_attribute]),
+                            RegionHandleSet([secondary_region]),
+                        )
+                    ]
+                ),
             )
             publisher.updateAttributeValuesWithTime(
-                object_instance, multi_region_values, time_factory.makeLogicalTime(20), b"multi-20"
+                object_instance,
+                multi_region_values,
+                time_factory.makeLogicalTime(20),
+                b"multi-20",
             )
             self.assertIsNone(immediate_callbacks.timed_reflections[-1][5])
             constrained_subscriber.timeAdvanceRequest(time_factory.makeLogicalTime(20))
@@ -2495,7 +2866,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 b"timestamped-pending-retraction",
             )
             self.assertEqual(len(immediate_callbacks.timed_interactions), 3)
-            self.assertEqual(constrained_callbacks.timed_interactions[0][6].getTime(), 5)
+            self.assertEqual(
+                constrained_callbacks.timed_interactions[0][6].getTime(), 5
+            )
             self.assertEqual(len(constrained_callbacks.timed_interactions), 2)
             publisher.retract(pending_retraction)
 
@@ -2514,7 +2887,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(len(constrained_callbacks.request_retractions), 5)
             self.assertEqual(
                 {
-                    entry.encodedValue for entry in constrained_callbacks.request_retractions
+                    entry.encodedValue
+                    for entry in constrained_callbacks.request_retractions
                 },
                 {
                     entry.encodedValue
@@ -2524,7 +2898,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertNotIn(
                 pending_retraction.encodedValue,
-                {entry.encodedValue for entry in constrained_callbacks.request_retractions},
+                {
+                    entry.encodedValue
+                    for entry in constrained_callbacks.request_retractions
+                },
             )
         finally:
             if constrained_joined:
@@ -2560,9 +2937,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             created = True
             publisher.joinFederationExecution("overlap-publisher", federation_name)
             publisher_joined = True
-            overlap_subscriber.joinFederationExecution("overlap-subscriber", federation_name)
+            overlap_subscriber.joinFederationExecution(
+                "overlap-subscriber", federation_name
+            )
             overlap_joined = True
-            disjoint_subscriber.joinFederationExecution("disjoint-subscriber", federation_name)
+            disjoint_subscriber.joinFederationExecution(
+                "disjoint-subscriber", federation_name
+            )
             disjoint_joined = True
 
             publisher_interaction = publisher.getInteractionClassHandle(
@@ -2577,15 +2958,27 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.publishInteractionClass(publisher_interaction)
 
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            overlap_dimension = overlap_subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            disjoint_dimension = disjoint_subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            overlap_region = overlap_subscriber.createRegion(DimensionHandleSet([overlap_dimension]))
+            overlap_dimension = overlap_subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
+            disjoint_dimension = disjoint_subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            overlap_region = overlap_subscriber.createRegion(
+                DimensionHandleSet([overlap_dimension])
+            )
             disjoint_region = disjoint_subscriber.createRegion(
                 DimensionHandleSet([disjoint_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
-            overlap_subscriber.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(5, 15))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 10)
+            )
+            overlap_subscriber.setRangeBounds(
+                overlap_region, overlap_dimension, RangeBounds(5, 15)
+            )
             disjoint_subscriber.setRangeBounds(
                 disjoint_region, disjoint_dimension, RangeBounds(20, 30)
             )
@@ -2634,7 +3027,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             disjoint_object_class = disjoint_subscriber.getObjectClassHandle(
                 HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_object_class, HLA_FIXTURES.FLAVOR
+            )
             overlap_attribute = overlap_subscriber.getAttributeHandle(
                 overlap_object_class, HLA_FIXTURES.FLAVOR
             )
@@ -2644,27 +3039,36 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([publisher_attribute])
             )
-            overlap_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([overlap_attribute]), RegionHandleSet([overlap_region])
-                )
-            ])
-            disjoint_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([disjoint_attribute]), RegionHandleSet([disjoint_region])
-                )
-            ])
+            overlap_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([overlap_attribute]),
+                        RegionHandleSet([overlap_region]),
+                    )
+                ]
+            )
+            disjoint_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([disjoint_attribute]),
+                        RegionHandleSet([disjoint_region]),
+                    )
+                ]
+            )
             overlap_subscriber.subscribeObjectClassAttributesWithRegions(
                 overlap_object_class, overlap_pairs
             )
             disjoint_subscriber.subscribeObjectClassAttributesWithRegions(
                 disjoint_object_class, disjoint_pairs
             )
-            source_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([publisher_region])
-                )
-            ])
+            source_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_region]),
+                    )
+                ]
+            )
             object_instance = publisher.registerObjectInstanceWithRegions(
                 publisher_object_class, source_pairs
             )
@@ -2672,7 +3076,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(disjoint_callbacks.discoveries, [])
             publisher.updateAttributeValues(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"regional-object-receive"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"regional-object-receive"}
+                ),
                 b"regional-object-receive-tag",
             )
             self.assertEqual(len(overlap_callbacks.reflections), 1)
@@ -2684,7 +3090,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
 
             object_retraction = publisher.updateAttributeValuesWithTime(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"regional-object-timed"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"regional-object-timed"}
+                ),
                 publisher.getTimeFactory().makeLogicalTime(5),
                 b"regional-object-timed-tag",
             )
@@ -2712,7 +3120,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         subscriber = self.factory.getRtiAmbassador()
         publisher_callbacks = _RecordingFederateAmbassador()
         subscriber_callbacks = _RecordingFederateAmbassador()
-        federation_name = "Python regional interaction subscription reprojection federation"
+        federation_name = (
+            "Python regional interaction subscription reprojection federation"
+        )
         created = publisher_joined = subscriber_joined = False
         try:
             publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
@@ -2723,9 +3133,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("interaction-reprojection-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "interaction-reprojection-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("interaction-reprojection-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "interaction-reprojection-subscriber", federation_name
+            )
             subscriber_joined = True
 
             publisher_interaction = publisher.getInteractionClassHandle(
@@ -2740,15 +3154,27 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.publishInteractionClass(publisher_interaction)
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
-            overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            disjoint_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            overlap_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
             overlap_region_two = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 5))
-            subscriber.setRangeBounds(disjoint_region, subscriber_dimension, RangeBounds(10, 15))
-            subscriber.setRangeBounds(overlap_region, subscriber_dimension, RangeBounds(2, 7))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 5)
+            )
+            subscriber.setRangeBounds(
+                disjoint_region, subscriber_dimension, RangeBounds(10, 15)
+            )
+            subscriber.setRangeBounds(
+                overlap_region, subscriber_dimension, RangeBounds(2, 7)
+            )
             subscriber.setRangeBounds(
                 overlap_region_two, subscriber_dimension, RangeBounds(2, 7)
             )
@@ -2829,7 +3255,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_relaxed_ddm_allows_boundary_touching_regional_delivery(self) -> None:
+    def test_real_jvm_relaxed_ddm_allows_boundary_touching_regional_delivery(
+        self,
+    ) -> None:
         federation_name = "Python relaxed DDM boundary federation"
         publisher = self.factory.getRtiAmbassador()
         subscriber = self.factory.getRtiAmbassador()
@@ -2847,18 +3275,24 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             created = True
             publisher.joinFederationExecution("relaxed-ddm-publisher", federation_name)
             publisher_joined = True
-            subscriber.joinFederationExecution("relaxed-ddm-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "relaxed-ddm-subscriber", federation_name
+            )
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
                 HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
             dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
+                DimensionHandleSet(
+                    [subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)]
+                )
             )
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 1))
             subscriber.setRangeBounds(
@@ -2895,12 +3329,18 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 subscriber_callbacks.interactions[-1][1][parameter], b"relaxed-boundary"
             )
-            self.assertEqual(subscriber_callbacks.interactions[-1][2], b"relaxed-boundary-tag")
+            self.assertEqual(
+                subscriber_callbacks.interactions[-1][2], b"relaxed-boundary-tag"
+            )
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -2930,7 +3370,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.associateRegionsForUpdates(object_instance, source_pairs)
             publisher.updateAttributeValues(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"relaxed-object-boundary"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"relaxed-object-boundary"}
+                ),
                 b"relaxed-object-boundary-tag",
             )
             self.assertTrue(subscriber.evokeCallback(0.0))
@@ -2949,7 +3391,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_default_region_object_callbacks_convey_empty_region_set(self) -> None:
+    def test_real_jvm_default_region_object_callbacks_convey_empty_region_set(
+        self,
+    ) -> None:
         class DefaultRegionCallbacks(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -2976,21 +3420,31 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("default-region-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "default-region-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("default-region-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "default-region-subscriber", federation_name
+            )
             subscriber_joined = True
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
             subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
-            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
+                DimensionHandleSet(
+                    [subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)]
+                )
             )
             subscriber.setRangeBounds(
                 subscriber_region,
@@ -2998,12 +3452,14 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 RangeBounds(1, 3),
             )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
-            subscriber_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([subscriber_attribute]),
-                    RegionHandleSet([subscriber_region]),
-                )
-            ])
+            subscriber_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet([subscriber_region]),
+                    )
+                ]
+            )
             subscriber.subscribeObjectClassAttributesWithRegions(
                 subscriber_class, subscriber_pairs
             )
@@ -3021,7 +3477,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(len(subscriber_callbacks.reflections), 1)
             receive_reflection = subscriber_callbacks.reflections[-1]
-            self.assertEqual(receive_reflection[1][subscriber_attribute], b"default-receive")
+            self.assertEqual(
+                receive_reflection[1][subscriber_attribute], b"default-receive"
+            )
             self.assertEqual(receive_reflection[5], RegionHandleSet())
 
             time_factory = publisher.getTimeFactory()
@@ -3037,7 +3495,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(len(subscriber_callbacks.reflections), 2)
             timed_reflection = subscriber_callbacks.reflections[-1]
-            self.assertEqual(timed_reflection[1][subscriber_attribute], b"default-timestamped")
+            self.assertEqual(
+                timed_reflection[1][subscriber_attribute], b"default-timestamped"
+            )
             self.assertEqual(timed_reflection[5], RegionHandleSet())
             self.assertEqual(timed_reflection[6].getTime(), 5)
         finally:
@@ -3050,7 +3510,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_regional_delayed_subscription_rechecks_at_callback_boundary(self) -> None:
+    def test_real_jvm_regional_delayed_subscription_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         federation_name = "Python regional delayed subscription federation"
         publisher = self.factory.getRtiAmbassador()
         subscriber = self.factory.getRtiAmbassador()
@@ -3066,20 +3528,28 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("regional-delayed-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-delayed-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-delayed-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-delayed-subscriber", federation_name
+            )
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
                 HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
             dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
+                DimensionHandleSet(
+                    [subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)]
+                )
             )
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 2))
             subscriber.setRangeBounds(
@@ -3118,7 +3588,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 subscriber_callbacks.interactions[-1][1][parameter], b"delayed-regional"
             )
-            self.assertEqual(subscriber_callbacks.interactions[-1][2], b"delayed-regional-tag")
+            self.assertEqual(
+                subscriber_callbacks.interactions[-1][2], b"delayed-regional-tag"
+            )
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -3129,7 +3601,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_regional_delayed_object_update_rechecks_at_callback_boundary(self) -> None:
+    def test_real_jvm_regional_delayed_object_update_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         federation_name = "Python regional delayed object federation"
         publisher = self.factory.getRtiAmbassador()
         subscriber = self.factory.getRtiAmbassador()
@@ -3145,35 +3619,59 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("regional-delayed-object-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-delayed-object-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-delayed-object-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-delayed-object-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle(
-                HLA_FOM.FOOD_DRINK_SODA
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
             )
-            subscriber_class = subscriber.getObjectClassHandle(
-                HLA_FOM.FOOD_DRINK_SODA
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
-            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            subscriber_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 2))
-            subscriber.setRangeBounds(subscriber_region, subscriber_dimension, RangeBounds(1, 3))
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            subscriber_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 2)
+            )
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(1, 3)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
             publisher_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(publisher_attributes, RegionHandleSet([publisher_region]))]
+                [
+                    AttributeSetRegionSetPair(
+                        publisher_attributes, RegionHandleSet([publisher_region])
+                    )
+                ]
             )
             subscriber_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(subscriber_attributes, RegionHandleSet([subscriber_region]))]
+                [
+                    AttributeSetRegionSetPair(
+                        subscriber_attributes, RegionHandleSet([subscriber_region])
+                    )
+                ]
             )
             subscriber.subscribeObjectClassAttributesWithRegions(
                 subscriber_class, subscriber_pairs
@@ -3186,7 +3684,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.unwrap_java_object().enableDelayedSubscriptionEvaluation()
             self.assertTrue(subscriber.getDelaySubscriptionEvaluationSwitch())
 
-            subscriber.setRangeBounds(subscriber_region, subscriber_dimension, RangeBounds(20, 30))
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(20, 30)
+            )
             publisher.updateAttributeValues(
                 object_instance,
                 AttributeHandleValueMap({publisher_attribute: b"delayed-object"}),
@@ -3194,7 +3694,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(subscriber_callbacks.reflections, [])
 
-            subscriber.setRangeBounds(subscriber_region, subscriber_dimension, RangeBounds(1, 3))
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(1, 3)
+            )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
             subscriber.evokeCallback(0.0)
             self.assertEqual(len(subscriber_callbacks.reflections), 1)
@@ -3202,7 +3704,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 subscriber_callbacks.reflections[-1][1][subscriber_attribute],
                 b"delayed-object",
             )
-            self.assertEqual(subscriber_callbacks.reflections[-1][2], b"delayed-object-tag")
+            self.assertEqual(
+                subscriber_callbacks.reflections[-1][2], b"delayed-object-tag"
+            )
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -3213,7 +3717,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_timestamped_regional_association_rechecks_at_callback_boundary(self) -> None:
+    def test_real_jvm_timestamped_regional_association_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         """The Java adapter preserves delayed TSO association re-projection.
 
         This mirrors the native binding's association-change vector: the
@@ -3244,24 +3750,36 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("timed-association-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "timed-association-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("timed-association-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "timed-association-subscriber", federation_name
+            )
             subscriber_joined = True
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
-            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
             publisher.changeDefaultAttributeOrderType(
                 publisher_class, publisher_attributes, OrderType.TIMESTAMP
             )
 
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
             publisher_overlap_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
@@ -3296,14 +3814,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 [
                     AttributeSetRegionSetPair(
                         publisher_attributes,
-                        RegionHandleSet([publisher_overlap_region, publisher_disjoint_region]),
+                        RegionHandleSet(
+                            [publisher_overlap_region, publisher_disjoint_region]
+                        ),
                     )
                 ]
             )
             source_overlap_region = AttributeSetRegionSetPairList(
                 [
                     AttributeSetRegionSetPair(
-                        publisher_attributes, RegionHandleSet([publisher_overlap_region])
+                        publisher_attributes,
+                        RegionHandleSet([publisher_overlap_region]),
                     )
                 ]
             )
@@ -3331,9 +3852,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 b"stale-overlap-tag",
             )
             self.assertTrue(first_retraction.isValid())
-            publisher.unassociateRegionsForUpdates(object_instance, source_overlap_region)
+            publisher.unassociateRegionsForUpdates(
+                object_instance, source_overlap_region
+            )
             publisher.timeAdvanceRequest(first_time)
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(5))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(5)
+            )
             pump()
             self.assertEqual(subscriber_callbacks.timed_reflections, [])
 
@@ -3347,7 +3872,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertTrue(second_retraction.isValid())
             publisher.timeAdvanceRequest(second_time)
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(7))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(7)
+            )
             pump()
             self.assertEqual(len(subscriber_callbacks.timed_reflections), 1)
             reflection = subscriber_callbacks.timed_reflections[0]
@@ -3367,7 +3894,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_passive_regional_subscriptions_activate_before_delivery(self) -> None:
+    def test_real_jvm_passive_regional_subscriptions_activate_before_delivery(
+        self,
+    ) -> None:
         publisher = self.factory.getRtiAmbassador()
         passive = self.factory.getRtiAmbassador()
         active = self.factory.getRtiAmbassador()
@@ -3396,9 +3925,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             passive_class = passive.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             active_class = active.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            passive_attribute = passive.getAttributeHandle(passive_class, HLA_FIXTURES.FLAVOR)
-            active_attribute = active.getAttributeHandle(active_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            passive_attribute = passive.getAttributeHandle(
+                passive_class, HLA_FIXTURES.FLAVOR
+            )
+            active_attribute = active.getAttributeHandle(
+                active_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -3419,12 +3954,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 ]
             )
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 10)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             passive_dimension = passive.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            passive_region = passive.createRegion(DimensionHandleSet([passive_dimension]))
-            passive.setRangeBounds(passive_region, passive_dimension, RangeBounds(5, 15))
+            passive_region = passive.createRegion(
+                DimensionHandleSet([passive_dimension])
+            )
+            passive.setRangeBounds(
+                passive_region, passive_dimension, RangeBounds(5, 15)
+            )
             passive.commitRegionModifications(RegionHandleSet([passive_region]))
             active_dimension = active.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             active_region = active.createRegion(DimensionHandleSet([active_dimension]))
@@ -3452,15 +3995,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             active.subscribeObjectClassAttributesWithRegions(
                 active_class, active_pair, active=True
             )
-            interaction = publisher.getInteractionClassHandle(
-                HLA_FOM.SODA_SERVED
-            )
-            passive_interaction = passive.getInteractionClassHandle(
-                HLA_FOM.SODA_SERVED
-            )
-            active_interaction = active.getInteractionClassHandle(
-                HLA_FOM.SODA_SERVED
-            )
+            interaction = publisher.getInteractionClassHandle(HLA_FOM.SODA_SERVED)
+            passive_interaction = passive.getInteractionClassHandle(HLA_FOM.SODA_SERVED)
+            active_interaction = active.getInteractionClassHandle(HLA_FOM.SODA_SERVED)
             publisher.publishInteractionClass(interaction)
             passive.subscribeInteractionClassWithRegions(
                 passive_interaction, RegionHandleSet([passive_region]), active=False
@@ -3487,7 +4024,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(active_callbacks.discoveries[0][0], first_object)
 
             publisher.sendInteractionWithRegions(
-                interaction, ParameterHandleValueMap(), RegionHandleSet([publisher_region]), b"passive"
+                interaction,
+                ParameterHandleValueMap(),
+                RegionHandleSet([publisher_region]),
+                b"passive",
             )
             for _ in range(3):
                 passive.evokeMultipleCallbacks(0.0, 0.0)
@@ -3516,7 +4056,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 passive.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(passive_callbacks.discoveries[-1][0], second_object)
             publisher.sendInteractionWithRegions(
-                interaction, ParameterHandleValueMap(), RegionHandleSet([publisher_region]), b"active"
+                interaction,
+                ParameterHandleValueMap(),
+                RegionHandleSet([publisher_region]),
+                b"active",
             )
             for _ in range(3):
                 passive.evokeMultipleCallbacks(0.0, 0.0)
@@ -3534,7 +4077,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             passive.disconnect()
             publisher.disconnect()
 
-    def test_real_jvm_regional_object_association_selectively_reprojects_attributes(self) -> None:
+    def test_real_jvm_regional_object_association_selectively_reprojects_attributes(
+        self,
+    ) -> None:
         publisher = self.factory.getRtiAmbassador()
         subscriber = self.factory.getRtiAmbassador()
         publisher_callbacks = _RecordingFederateAmbassador()
@@ -3552,21 +4097,35 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             created = True
             publisher.joinFederationExecution("association-publisher", federation_name)
             publisher_joined = True
-            subscriber.joinFederationExecution("association-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "association-subscriber", federation_name
+            )
             subscriber_joined = True
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_flavor = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            publisher_color = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.COLOR)
-            subscriber_flavor = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
-            subscriber_color = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.COLOR)
+            publisher_flavor = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            publisher_color = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.COLOR
+            )
+            subscriber_flavor = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_color = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.COLOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_flavor, publisher_color])
             )
             dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            publisher_overlap_region = publisher.createRegion(DimensionHandleSet([dimension]))
-            publisher_disjoint_region = publisher.createRegion(DimensionHandleSet([dimension]))
+            publisher_overlap_region = publisher.createRegion(
+                DimensionHandleSet([dimension])
+            )
+            publisher_disjoint_region = publisher.createRegion(
+                DimensionHandleSet([dimension])
+            )
             publisher.setRangeBounds(
                 publisher_overlap_region, dimension, RangeBounds(0, 10)
             )
@@ -3577,10 +4136,14 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
             )
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
+                DimensionHandleSet(
+                    [subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)]
+                )
             )
             subscriber.setRangeBounds(
-                subscriber_region, subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR), RangeBounds(5, 15)
+                subscriber_region,
+                subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR),
+                RangeBounds(5, 15),
             )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
             subscriber_pairs = AttributeSetRegionSetPairList(
@@ -3598,7 +4161,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 [
                     AttributeSetRegionSetPair(
                         AttributeHandleSet([publisher_flavor]),
-                        RegionHandleSet([publisher_overlap_region, publisher_disjoint_region]),
+                        RegionHandleSet(
+                            [publisher_overlap_region, publisher_disjoint_region]
+                        ),
                     ),
                     AttributeSetRegionSetPair(
                         AttributeHandleSet([publisher_color]),
@@ -3623,7 +4188,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 set(subscriber_callbacks.reflections[-1][1].keys()), {subscriber_flavor}
             )
-            self.assertEqual(subscriber_callbacks.reflections[-1][1][subscriber_flavor], b"overlap-1")
+            self.assertEqual(
+                subscriber_callbacks.reflections[-1][1][subscriber_flavor], b"overlap-1"
+            )
 
             color_association = AttributeSetRegionSetPairList(
                 [
@@ -3655,7 +4222,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                     )
                 ]
             )
-            publisher.unassociateRegionsForUpdates(object_instance, flavor_unassociation)
+            publisher.unassociateRegionsForUpdates(
+                object_instance, flavor_unassociation
+            )
             publisher.updateAttributeValues(
                 object_instance,
                 AttributeHandleValueMap(
@@ -3667,7 +4236,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 set(subscriber_callbacks.reflections[-1][1].keys()), {subscriber_color}
             )
-            self.assertEqual(subscriber_callbacks.reflections[-1][1][subscriber_color], b"overlap-3")
+            self.assertEqual(
+                subscriber_callbacks.reflections[-1][1][subscriber_color], b"overlap-3"
+            )
 
             color_default_association = AttributeSetRegionSetPairList(
                 [
@@ -3679,7 +4250,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                     )
                 ]
             )
-            publisher.unassociateRegionsForUpdates(object_instance, color_default_association)
+            publisher.unassociateRegionsForUpdates(
+                object_instance, color_default_association
+            )
             publisher.updateAttributeValues(
                 object_instance,
                 AttributeHandleValueMap({publisher_color: b"default-region"}),
@@ -3690,7 +4263,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 set(subscriber_callbacks.reflections[-1][1].keys()), {subscriber_color}
             )
             self.assertEqual(
-                subscriber_callbacks.reflections[-1][1][subscriber_color], b"default-region"
+                subscriber_callbacks.reflections[-1][1][subscriber_color],
+                b"default-region",
             )
         finally:
             if subscriber_joined:
@@ -3728,19 +4302,31 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("recipient-isolation-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "recipient-isolation-publisher", federation_name
+            )
             publisher_joined = True
-            overlap.joinFederationExecution("recipient-isolation-overlap", federation_name)
+            overlap.joinFederationExecution(
+                "recipient-isolation-overlap", federation_name
+            )
             overlap_joined = True
-            disjoint.joinFederationExecution("recipient-isolation-disjoint", federation_name)
+            disjoint.joinFederationExecution(
+                "recipient-isolation-disjoint", federation_name
+            )
             disjoint_joined = True
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             overlap_class = overlap.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             disjoint_class = disjoint.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            overlap_attribute = overlap.getAttributeHandle(overlap_class, HLA_FIXTURES.FLAVOR)
-            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            overlap_attribute = overlap.getAttributeHandle(
+                overlap_class, HLA_FIXTURES.FLAVOR
+            )
+            disjoint_attribute = disjoint.getAttributeHandle(
+                disjoint_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -3757,19 +4343,27 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             disjoint_overlap_region = disjoint.createRegion(
                 DimensionHandleSet([disjoint_dimension])
             )
-            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
-            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
+            overlap_region = overlap.createRegion(
+                DimensionHandleSet([overlap_dimension])
+            )
+            disjoint_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint_dimension])
+            )
             publisher.setRangeBounds(
                 publisher_overlap_region, publisher_dimension, RangeBounds(0, 10)
             )
             publisher.setRangeBounds(
                 publisher_disjoint_region, publisher_dimension, RangeBounds(20, 30)
             )
-            overlap.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(0, 10))
+            overlap.setRangeBounds(
+                overlap_region, overlap_dimension, RangeBounds(0, 10)
+            )
             disjoint.setRangeBounds(
                 disjoint_overlap_region, disjoint_dimension, RangeBounds(0, 10)
             )
-            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(20, 30))
+            disjoint.setRangeBounds(
+                disjoint_region, disjoint_dimension, RangeBounds(20, 30)
+            )
             publisher.commitRegionModifications(
                 RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
             )
@@ -3802,7 +4396,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                     )
                 ]
             )
-            overlap.subscribeObjectClassAttributesWithRegions(overlap_class, overlap_pairs)
+            overlap.subscribeObjectClassAttributesWithRegions(
+                overlap_class, overlap_pairs
+            )
             disjoint.setAttributeScopeAdvisorySwitch(True)
             disjoint.subscribeObjectClassAttributesWithRegions(
                 disjoint_class, disjoint_overlap_pairs
@@ -3837,7 +4433,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(overlap_callbacks.scope_exits, [])
             self.assertEqual(len(disjoint_callbacks.scope_exits), 1)
 
-            disjoint.subscribeObjectClassAttributesWithRegions(disjoint_class, disjoint_pairs)
+            disjoint.subscribeObjectClassAttributesWithRegions(
+                disjoint_class, disjoint_pairs
+            )
             pump()
             self.assertEqual(len(disjoint_callbacks.scope_entries), 0)
 
@@ -3855,10 +4453,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(len(overlap_callbacks.reflections), 1)
             self.assertEqual(len(disjoint_callbacks.reflections), 1)
             self.assertEqual(
-                overlap_callbacks.reflections[-1][1][overlap_attribute], b"both-recipients"
+                overlap_callbacks.reflections[-1][1][overlap_attribute],
+                b"both-recipients",
             )
             self.assertEqual(
-                disjoint_callbacks.reflections[-1][1][disjoint_attribute], b"both-recipients"
+                disjoint_callbacks.reflections[-1][1][disjoint_attribute],
+                b"both-recipients",
             )
 
             publisher.unassociateRegionsForUpdates(object_instance, source_disjoint)
@@ -3907,7 +4507,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("value-request-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "value-request-publisher", federation_name
+            )
             publisher_joined = True
             overlap.joinFederationExecution("value-request-overlap", federation_name)
             overlap_joined = True
@@ -3917,9 +4519,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             overlap_class = overlap.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             disjoint_class = disjoint.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            overlap_attribute = overlap.getAttributeHandle(overlap_class, HLA_FIXTURES.FLAVOR)
-            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            overlap_attribute = overlap.getAttributeHandle(
+                overlap_class, HLA_FIXTURES.FLAVOR
+            )
+            disjoint_attribute = disjoint.getAttributeHandle(
+                disjoint_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -3930,12 +4538,24 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             overlap_dimension = overlap.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             disjoint_dimension = disjoint.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
-            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
-            overlap.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(5, 15))
-            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(20, 30))
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            overlap_region = overlap.createRegion(
+                DimensionHandleSet([overlap_dimension])
+            )
+            disjoint_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 10)
+            )
+            overlap.setRangeBounds(
+                overlap_region, overlap_dimension, RangeBounds(5, 15)
+            )
+            disjoint.setRangeBounds(
+                disjoint_region, disjoint_dimension, RangeBounds(20, 30)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             overlap.commitRegionModifications(RegionHandleSet([overlap_region]))
             disjoint.commitRegionModifications(RegionHandleSet([disjoint_region]))
@@ -3948,7 +4568,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                     )
                 ]
             )
-            overlap.subscribeObjectClassAttributesWithRegions(overlap_class, overlap_pairs)
+            overlap.subscribeObjectClassAttributesWithRegions(
+                overlap_class, overlap_pairs
+            )
             source_pairs = AttributeSetRegionSetPairList(
                 [
                     AttributeSetRegionSetPair(
@@ -3969,7 +4591,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(publisher.evokeCallback(0.0))
             self.assertEqual(
                 publisher_callbacks.attribute_value_requests[-1],
-                (object_instance, AttributeHandleSet([publisher_attribute]), b"overlap-request"),
+                (
+                    object_instance,
+                    AttributeHandleSet([publisher_attribute]),
+                    b"overlap-request",
+                ),
             )
 
             disjoint_pairs = AttributeSetRegionSetPairList(
@@ -4017,27 +4643,47 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             created = True
             publisher.joinFederationExecution("reprojection-publisher", federation_name)
             publisher_joined = True
-            subscriber.joinFederationExecution("reprojection-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "reprojection-subscriber", federation_name
+            )
             subscriber_joined = True
 
             publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
             subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
-            overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            disjoint_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            overlap_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
             overlap_region_two = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
-            subscriber.setRangeBounds(disjoint_region, subscriber_dimension, RangeBounds(20, 30))
-            subscriber.setRangeBounds(overlap_region, subscriber_dimension, RangeBounds(5, 15))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 10)
+            )
+            subscriber.setRangeBounds(
+                disjoint_region, subscriber_dimension, RangeBounds(20, 30)
+            )
+            subscriber.setRangeBounds(
+                overlap_region, subscriber_dimension, RangeBounds(5, 15)
+            )
             subscriber.setRangeBounds(
                 overlap_region_two, subscriber_dimension, RangeBounds(5, 15)
             )
@@ -4108,7 +4754,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 ]
             )
             subscriber.setAttributeScopeAdvisorySwitch(True)
-            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriber_class, first_region)
+            subscriber.unsubscribeObjectClassAttributesWithRegions(
+                subscriber_class, first_region
+            )
             self.assertFalse(subscriber.evokeCallback(0.0))
             self.assertEqual(subscriber_callbacks.scope_exits, [])
             publisher.updateAttributeValues(
@@ -4117,7 +4765,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(
-                subscriber_callbacks.reflections[-1][1][subscriber_attribute], b"second-region"
+                subscriber_callbacks.reflections[-1][1][subscriber_attribute],
+                b"second-region",
             )
             remaining_regions = AttributeSetRegionSetPairList(
                 [
@@ -4153,9 +4802,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(
-                subscriber_callbacks.reflections[-1][1][subscriber_attribute], b"reprojected"
+                subscriber_callbacks.reflections[-1][1][subscriber_attribute],
+                b"reprojected",
             )
-            self.assertEqual(subscriber_callbacks.reflections[-1][2], b"reprojected-tag")
+            self.assertEqual(
+                subscriber_callbacks.reflections[-1][2], b"reprojected-tag"
+            )
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -4177,8 +4829,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         created = publisher_joined = immediate_joined = constrained_joined = False
         try:
             publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
-            immediate_subscriber.connect(immediate_callbacks, CallbackModel.HLA_IMMEDIATE)
-            constrained_subscriber.connect(constrained_callbacks, CallbackModel.HLA_EVOKED)
+            immediate_subscriber.connect(
+                immediate_callbacks, CallbackModel.HLA_IMMEDIATE
+            )
+            constrained_subscriber.connect(
+                constrained_callbacks, CallbackModel.HLA_EVOKED
+            )
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
@@ -4187,7 +4843,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             created = True
             publisher.joinFederationExecution("directed-publisher", federation_name)
             publisher_joined = True
-            immediate_subscriber.joinFederationExecution("directed-immediate", federation_name)
+            immediate_subscriber.joinFederationExecution(
+                "directed-immediate", federation_name
+            )
             immediate_joined = True
             constrained_subscriber.joinFederationExecution(
                 "directed-constrained", federation_name
@@ -4243,13 +4901,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 immediate_callbacks.timed_directed_interactions[-1][1], target
             )
             self.assertEqual(
-                immediate_callbacks.timed_directed_interactions[-1][0], immediate_interaction
+                immediate_callbacks.timed_directed_interactions[-1][0],
+                immediate_interaction,
             )
             self.assertEqual(
                 immediate_callbacks.timed_directed_interactions[-1][6].getTime(), 2
             )
             self.assertEqual(
-                immediate_callbacks.timed_directed_interactions[-1][8], OrderType.RECEIVE
+                immediate_callbacks.timed_directed_interactions[-1][8],
+                OrderType.RECEIVE,
             )
             self.assertEqual(
                 immediate_callbacks.timed_directed_interactions[-1][9].encodedValue,
@@ -4275,7 +4935,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(len(immediate_callbacks.directed_interactions), 1)
             self.assertEqual(len(constrained_callbacks.directed_interactions), 0)
             self.assertEqual(immediate_callbacks.directed_interactions[-1][1], target)
-            self.assertEqual(immediate_callbacks.directed_interactions[-1][3], b"directed-receive-tag")
+            self.assertEqual(
+                immediate_callbacks.directed_interactions[-1][3],
+                b"directed-receive-tag",
+            )
             self.assertTrue(constrained_subscriber.evokeCallback(0.0))
             self.assertEqual(len(constrained_callbacks.directed_interactions), 1)
             self.assertEqual(constrained_callbacks.directed_interactions[-1][1], target)
@@ -4301,7 +4964,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             "fixture-does-not-parse-fom.xml",
             HLA_TYPES.FLOAT64_TIME,
         )
-        ambassador.joinFederationExecution("observer", "Python-created floating federation")
+        ambassador.joinFederationExecution(
+            "observer", "Python-created floating federation"
+        )
 
         time_factory = ambassador.getTimeFactory()
         self.assertIsInstance(time_factory, HLAfloat64TimeFactory)
@@ -4335,7 +5000,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 12.5
         )
         self.assertEqual(
-            time_factory.decodeLogicalTimeInterval(lookahead.toByteArray()).getInterval(), 0.25
+            time_factory.decodeLogicalTimeInterval(
+                lookahead.toByteArray()
+            ).getInterval(),
+            0.25,
         )
         base = time_factory.makeLogicalTime(1.0)
         advanced = time_factory.add(base, epsilon)
@@ -4347,11 +5015,16 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         )
         final_time = time_factory.makeFinal()
         before_final = time_factory.subtract(final_time, epsilon)
-        self.assertEqual(before_final.getTime(), math.nextafter(final_time.getTime(), 0.0))
-        self.assertEqual(time_factory.add(before_final, epsilon).getTime(), final_time.getTime())
+        self.assertEqual(
+            before_final.getTime(), math.nextafter(final_time.getTime(), 0.0)
+        )
+        self.assertEqual(
+            time_factory.add(before_final, epsilon).getTime(), final_time.getTime()
+        )
         smallest = time_factory.makeLogicalTime(math.nextafter(0.0, 1.0))
         self.assertEqual(
-            time_factory.add(smallest, epsilon).getTime(), math.nextafter(smallest.getTime(), math.inf)
+            time_factory.add(smallest, epsilon).getTime(),
+            math.nextafter(smallest.getTime(), math.inf),
         )
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.add(final_time, epsilon)
@@ -4544,26 +5217,28 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                         *restore_events,
                     )
                     self.assertEqual(callback.trace.events.count("federationSaved"), 1)
-                    self.assertEqual(callback.trace.events.count("federationRestored"), 1)
+                    self.assertEqual(
+                        callback.trace.events.count("federationRestored"), 1
+                    )
             finally:
                 for ambassador in ambassadors:
-                    try:
+                    with best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
-                    try:
+                    with best_effort_cleanup("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 if created:
                     cleanup = self.factory.getRtiAmbassador()
-                    cleanup.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE)
+                    cleanup.connect(
+                        _RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE
+                    )
                     try:
                         cleanup.destroyFederationExecution(federation_name)
                     finally:
                         cleanup.disconnect()
 
-    def test_provider_neutral_multi_federate_object_and_interaction_matrix(self) -> None:
+    def test_provider_neutral_multi_federate_object_and_interaction_matrix(
+        self,
+    ) -> None:
         """Exercise discover/reflect/receive ordering across provider members.
 
         This is deliberately opt-in for the same reason as the save matrix:
@@ -4657,7 +5332,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                         )
                         subscriber.subscribeInteractionClass(subscriber_interaction)
                         target = subscriber.getTimeFactory().makeLogicalTime(
-                            5.5 if case.time_implementation == HLA_TYPES.FLOAT64_TIME else 5
+                            5.5
+                            if case.time_implementation == HLA_TYPES.FLOAT64_TIME
+                            else 5
                         )
                         getattr(subscriber, case.advance_service)(target)
                         drain(subscriber)
@@ -4697,7 +5374,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                         self.assertEqual(
                             callback.reflections[0][1][attribute], b"matrix-value"
                         )
-                        self.assertEqual(callback.reflections[0][2], b"matrix-update-tag")
+                        self.assertEqual(
+                            callback.reflections[0][2], b"matrix-update-tag"
+                        )
 
                     publisher.sendInteraction(
                         publisher_interaction,
@@ -4720,18 +5399,14 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                         )
                 finally:
                     for subscriber in subscribers:
-                        try:
+                        with best_effort_cleanup(
+                            "subscriber.resignFederationExecution"
+                        ):
                             subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
-                        try:
+                        with best_effort_cleanup("subscriber.disconnect"):
                             subscriber.disconnect()
-                        except Exception:
-                            pass
-                    try:
+                    with best_effort_cleanup("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                     if created:
                         cleanup = self.factory.getRtiAmbassador()
                         cleanup.connect(
@@ -4741,10 +5416,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                             cleanup.destroyFederationExecution(federation_name)
                         finally:
                             cleanup.disconnect()
-                    try:
+                    with best_effort_cleanup("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
 
     def test_provider_neutral_live_save_restore_outcome_matrix(self) -> None:
         """Exercise lifecycle outcomes through a real Java callback proxy.
@@ -4871,7 +5544,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                                     f"restore-{case.save_kind}-{restore_outcome}"
                                 )
                                 before_accepted = [
-                                    len(callback.restore_accepted) for callback in callbacks
+                                    len(callback.restore_accepted)
+                                    for callback in callbacks
                                 ]
                                 before_begun = [
                                     callback.restore_begun for callback in callbacks
@@ -4881,21 +5555,30 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                                     for callback in callbacks
                                 ]
                                 before_completed = [
-                                    callback.restore_completions for callback in callbacks
+                                    callback.restore_completions
+                                    for callback in callbacks
                                 ]
                                 before_failed = [
-                                    len(callback.restore_failures) for callback in callbacks
+                                    len(callback.restore_failures)
+                                    for callback in callbacks
                                 ]
                                 ambassadors[0].requestFederationRestore(restore_label)
                                 for ambassador in ambassadors:
                                     drain(ambassador)
-                                for index, (callback, accepted, begun, initiated) in enumerate(zip(
-                                    callbacks,
-                                    before_accepted,
-                                    before_begun,
-                                    before_initiated,
-                                    strict=True,
-                                )):
+                                for index, (
+                                    callback,
+                                    accepted,
+                                    begun,
+                                    initiated,
+                                ) in enumerate(
+                                    zip(
+                                        callbacks,
+                                        before_accepted,
+                                        before_begun,
+                                        before_initiated,
+                                        strict=True,
+                                    )
+                                ):
                                     self.assertEqual(
                                         len(callback.restore_accepted),
                                         accepted + (1 if index == 0 else 0),
@@ -4940,18 +5623,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                                         )
                     finally:
                         for ambassador in ambassadors:
-                            try:
-                                ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                            except Exception:
-                                pass
-                            try:
+                            with best_effort_cleanup(
+                                "ambassador.resignFederationExecution"
+                            ):
+                                ambassador.resignFederationExecution(
+                                    ResignAction.NO_ACTION
+                                )
+                            with best_effort_cleanup("ambassador.disconnect"):
                                 ambassador.disconnect()
-                            except Exception:
-                                pass
                         if created:
                             cleanup = self.factory.getRtiAmbassador()
                             cleanup.connect(
-                                _RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE
+                                _RecordingFederateAmbassador(),
+                                CallbackModel.HLA_IMMEDIATE,
                             )
                             try:
                                 cleanup.destroyFederationExecution(federation_name)

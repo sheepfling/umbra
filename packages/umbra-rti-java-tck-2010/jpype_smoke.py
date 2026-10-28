@@ -10,34 +10,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
+from collections.abc import Callable, Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Callable
+from typing import Literal, TypedDict
 
 from hla.rti1516e import (
+    FEDERATE_AMBASSADOR_METHODS,
+    FEDERATE_AMBASSADOR_OVERLOAD_COUNTS,
+    RTIAMBASSADOR_METHODS,
+    RTIAMBASSADOR_OVERLOAD_COUNTS,
+    STANDARD_EDITION,
     AttributeRegionAssociation,
     AttributeSetRegionSetPairList,
     CallbackModel,
     DimensionHandleSet,
-    FEDERATE_AMBASSADOR_METHODS,
-    FEDERATE_AMBASSADOR_OVERLOAD_COUNTS,
     NullFederateAmbassador,
     RangeBounds,
     ResignAction,
-    RTIAMBASSADOR_METHODS,
-    RTIAMBASSADOR_OVERLOAD_COUNTS,
-    STANDARD_EDITION,
 )
 from hla.rti1516e.encoding import (
     ByteWrapper,
     DataElementFactory,
     DecoderException,
-    HLAfixedRecord,
     HLAinteger32BE,
-    HLAoctet,
-    HLAunicodeString,
-    HLAvariableArray,
 )
 from hla.rti1516e.exceptions import (
     FederateServiceInvocationsAreBeingReportedViaMOM,
@@ -45,15 +44,47 @@ from hla.rti1516e.exceptions import (
     exceptionForName,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
+
+@contextmanager
+def _best_effort_cleanup(operation: str) -> Iterator[None]:
+    """Keep smoke-test teardown from masking results and retain diagnostics."""
+
+    try:
+        yield
+    except Exception:
+        _LOGGER.debug(
+            "Best-effort 2010 provider smoke cleanup failed during %s",
+            operation,
+            exc_info=True,
+        )
+
+
+CapabilityMode = Literal["run", "unsupported", "not applicable"]
+ScenarioStatus = Literal["pass", "unsupported", "fail", "not applicable"]
+
+
+class ScenarioResult(TypedDict):
+    id: str
+    category: str
+    status: ScenarioStatus
+    message: str
+
 
 def _scenario(
     scenario_id: str,
     category: str,
     action: Callable[[], str | None],
-) -> dict[str, Any]:
+) -> ScenarioResult:
     try:
         message = action() or ""
-        return {"id": scenario_id, "category": category, "status": "pass", "message": message}
+        return {
+            "id": scenario_id,
+            "category": category,
+            "status": "pass",
+            "message": message,
+        }
     except (NotImplementedError, AttributeError) as error:
         # A vendor may expose only the generic LogicalTimeFactory shape. A
         # missing optional convenience operation is visible as unsupported,
@@ -64,7 +95,7 @@ def _scenario(
             "status": "unsupported",
             "message": str(error),
         }
-    except Exception as error:  # pragma: no cover - exercised by a vendor run
+    except Exception as error:  # noqa: BLE001 - vendor failures must become scenario failures
         return {
             "id": scenario_id,
             "category": category,
@@ -73,7 +104,7 @@ def _scenario(
         }
 
 
-def _load_capability_profile(path: Path | None) -> dict[str, str]:
+def _load_capability_profile(path: Path | None) -> dict[str, CapabilityMode]:
     """Load the shared Java-properties capability profile format.
 
     Profiles are deliberately only a gating declaration.  ``run``/``pass``
@@ -101,20 +132,32 @@ def _load_capability_profile(path: Path | None) -> dict[str, str]:
                 for scenario in catalog["scenarios"]
                 if isinstance(scenario, dict) and isinstance(scenario.get("id"), str)
             )
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        except (
+            OSError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+        ) as error:
             raise RuntimeError(
                 f"cannot load the checked-in 2010 scenario catalog {catalog_path}: {error}"
             ) from error
-    profile: dict[str, str] = {}
-    for line_number, raw_line in enumerate(resolved.read_text(encoding="utf-8").splitlines(), 1):
+    profile: dict[str, CapabilityMode] = {}
+    for line_number, raw_line in enumerate(
+        resolved.read_text(encoding="utf-8").splitlines(), 1
+    ):
         line = raw_line.strip()
-        if not line or line.startswith(('#', ';')):
+        if not line or line.startswith(("#", ";")):
             continue
         if "=" not in line:
-            raise ValueError(f"capability profile line {line_number} has no '=': {raw_line!r}")
+            raise ValueError(
+                f"capability profile line {line_number} has no '=': {raw_line!r}"
+            )
         key, value = (part.strip() for part in line.split("=", 1))
         if not key.startswith("scenario.") or not key[len("scenario.") :]:
-            raise ValueError(f"capability profile line {line_number} must use scenario.<id>: {key!r}")
+            raise ValueError(
+                f"capability profile line {line_number} must use scenario.<id>: {key!r}"
+            )
         scenario_id = key[len("scenario.") :]
         if scenario_id in profile:
             raise ValueError(
@@ -125,6 +168,7 @@ def _load_capability_profile(path: Path | None) -> dict[str, str]:
                 f"capability profile line {line_number} names unknown scenario id {scenario_id!r}"
             )
         normalized = value.lower().replace("_", " ").replace("-", " ").strip()
+        mode: CapabilityMode
         if normalized in {"run", "pass"}:
             mode = "run"
         elif normalized in {"unsupported", "skip"}:
@@ -140,11 +184,11 @@ def _load_capability_profile(path: Path | None) -> dict[str, str]:
 
 
 def _profiled_scenario(
-    profile: dict[str, str],
+    profile: Mapping[str, CapabilityMode],
     scenario_id: str,
     category: str,
     action: Callable[[], str | None],
-) -> dict[str, Any]:
+) -> ScenarioResult:
     mode = profile.get(scenario_id, "run")
     if mode in {"unsupported", "not applicable"}:
         return {
@@ -157,8 +201,11 @@ def _profiled_scenario(
 
 
 def _profiled_failure(
-    profile: dict[str, str], scenario_id: str, category: str, error: Exception
-) -> dict[str, Any]:
+    profile: Mapping[str, CapabilityMode],
+    scenario_id: str,
+    category: str,
+    error: Exception,
+) -> ScenarioResult:
     mode = profile.get(scenario_id, "run")
     if mode in {"unsupported", "not applicable"}:
         return {
@@ -167,7 +214,12 @@ def _profiled_failure(
             "status": mode,
             "message": f"{mode} by capability profile; no provider assertion was made",
         }
-    return {"id": scenario_id, "category": category, "status": "fail", "message": str(error)}
+    return {
+        "id": scenario_id,
+        "category": category,
+        "status": "fail",
+        "message": str(error),
+    }
 
 
 def _drain_callbacks(
@@ -267,16 +319,18 @@ def main() -> int:
     args = parser.parse_args()
 
     if not args.native_provider and (args.api_jar is None or args.provider_jar is None):
-        parser.error("--api-jar and --provider-jar are required unless --native-provider is used")
+        parser.error(
+            "--api-jar and --provider-jar are required unless --native-provider is used"
+        )
     if args.native_provider and (
-        args.api_jar is not None
-        or args.provider_jar is not None
-        or args.dependency_jar
+        args.api_jar is not None or args.provider_jar is not None or args.dependency_jar
     ):
-        parser.error("--native-provider cannot be combined with --api-jar or --provider-jar")
+        parser.error(
+            "--native-provider cannot be combined with --api-jar or --provider-jar"
+        )
 
     capability_profile = _load_capability_profile(args.capability_profile)
-    scenarios: list[dict[str, Any]] = []
+    scenarios: list[ScenarioResult] = []
     factory = None
     probe = None
     ambassador = None
@@ -301,7 +355,7 @@ def main() -> int:
                 jvm_options=tuple(args.jvm_option),
             )
             probe = factory.probe()
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - preserve a failed discovery result for evidence
         # There is no provider boundary to exercise if discovery itself fails;
         # retain the full expected result shape for evidence tooling.
         for scenario_id, category in (
@@ -340,8 +394,11 @@ def main() -> int:
             ("python-2010-tck.save-restore", "save-restore"),
             ("python-2010-tck.logical-time-arithmetic", "time"),
         ):
-            scenarios.append(_profiled_failure(capability_profile, scenario_id, category, error))
+            scenarios.append(
+                _profiled_failure(capability_profile, scenario_id, category, error)
+            )
     else:
+
         def factory_discovery() -> str:
             """Exercise the provider-owned 2010 factory/carrier families.
 
@@ -369,7 +426,9 @@ def main() -> int:
             )
             for accessor in handle_factories:
                 handle_factory = getattr(candidate, accessor)()
-                if handle_factory is None or not callable(getattr(handle_factory, "decode", None)):
+                if handle_factory is None or not callable(
+                    getattr(handle_factory, "decode", None)
+                ):
                     raise AssertionError(f"{accessor} did not return a decoder factory")
             collection_factories = (
                 "getAttributeHandleSetFactory",
@@ -382,16 +441,24 @@ def main() -> int:
             )
             for accessor in collection_factories:
                 collection_factory = getattr(candidate, accessor)()
-                if collection_factory is None or not callable(getattr(collection_factory, "create", None)):
-                    raise AssertionError(f"{accessor} did not return a collection factory")
+                if collection_factory is None or not callable(
+                    getattr(collection_factory, "create", None)
+                ):
+                    raise AssertionError(
+                        f"{accessor} did not return a collection factory"
+                    )
                 created = collection_factory.create()
                 if created is None:
                     raise AssertionError(f"{accessor}.create() returned None")
             transportation = candidate.getTransportationTypeHandleFactory()
             if transportation.getHLAdefaultReliable() is None:
-                raise AssertionError("default reliable transportation handle is missing")
+                raise AssertionError(
+                    "default reliable transportation handle is missing"
+                )
             if transportation.getHLAdefaultBestEffort() is None:
-                raise AssertionError("default best-effort transportation handle is missing")
+                raise AssertionError(
+                    "default best-effort transportation handle is missing"
+                )
             time_factory = candidate.getTimeFactory()
             if time_factory is None or not time_factory.getName():
                 raise AssertionError("logical-time factory discovery returned no name")
@@ -410,8 +477,13 @@ def main() -> int:
             encoder = factory.getEncoderFactory()
             integer = encoder.createHLAinteger32BE(0x01020304)
             if not isinstance(integer, HLAinteger32BE):
-                raise AssertionError("adapter did not return hla.rti1516e HLAinteger32BE")
-            if integer.getValue() != 0x01020304 or integer.toByteArray() != b"\x01\x02\x03\x04":
+                raise AssertionError(  # noqa: TRY004 - a smoke assertion must produce a failed result
+                    "adapter did not return hla.rti1516e HLAinteger32BE"
+                )
+            if (
+                integer.getValue() != 0x01020304
+                or integer.toByteArray() != b"\x01\x02\x03\x04"
+            ):
                 raise AssertionError("2010 JPype encoder round-trip failed")
             integer.decode(b"\x04\x03\x02\x01")
             if integer.getValue() != 0x04030201:
@@ -419,7 +491,9 @@ def main() -> int:
             wrapper = ByteWrapper(b"\x00\x04\x03\x02\x01\x00", 1, 4)
             integer.decode(wrapper)
             if integer.getValue() != 0x04030201 or wrapper.getPos() != 5:
-                raise AssertionError("ByteWrapper decode did not preserve the provider cursor")
+                raise AssertionError(
+                    "ByteWrapper decode did not preserve the provider cursor"
+                )
             scalar_values = {
                 "createHLAinteger16BE": 0x1234,
                 "createHLAinteger16LE": 0x1234,
@@ -447,7 +521,9 @@ def main() -> int:
                     raise AssertionError(f"{method_name} round-trip changed its value")
                 default_element = getattr(encoder, method_name)()
                 if default_element.getEncodedLength() <= 0:
-                    raise AssertionError(f"{method_name} no-argument overload returned no encoding")
+                    raise AssertionError(
+                        f"{method_name} no-argument overload returned no encoding"
+                    )
             boolean = encoder.createHLAboolean(True)
             # IEEE 1516.1-2010 HLAboolean is a four-octet big-endian
             # unsigned value (0 for false, 1 for true), matching the
@@ -458,7 +534,9 @@ def main() -> int:
             if boolean.getValue():
                 raise AssertionError("HLAboolean decode failed")
             if encoder.createHLAboolean().getEncodedLength() <= 0:
-                raise AssertionError("createHLAboolean no-argument overload returned no encoding")
+                raise AssertionError(
+                    "createHLAboolean no-argument overload returned no encoding"
+                )
             opaque = encoder.createHLAopaqueData(b"\x01\x02\xff")
             if (
                 opaque.getValue() != b"\x01\x02\xff"
@@ -469,11 +547,21 @@ def main() -> int:
             opaque_wrapper = ByteWrapper(b"\x00" + opaque.toByteArray() + b"\xff", 1, 7)
             decoded_opaque = encoder.createHLAopaqueData()
             decoded_opaque.decode(opaque_wrapper)
-            if decoded_opaque.getValue() != b"\x01\x02\xff" or opaque_wrapper.getPos() != 8:
+            if (
+                decoded_opaque.getValue() != b"\x01\x02\xff"
+                or opaque_wrapper.getPos() != 8
+            ):
                 raise AssertionError("HLAopaqueData ByteWrapper decode failed")
             return "provider-owned standard scalar and opaque encoder family"
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.encoder-round-trip", "encoding", encoder_round_trip))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.encoder-round-trip",
+                "encoding",
+                encoder_round_trip,
+            )
+        )
 
         def malformed_inputs() -> str:
             value = factory.getEncoderFactory().createHLAinteger32BE(0)
@@ -481,9 +569,18 @@ def main() -> int:
                 value.decode(b"\x00")
             except (DecoderException, RTIexception) as error:
                 return f"provider rejected malformed scalar input as {type(error).__name__}"
-            raise AssertionError("provider accepted a truncated HLAinteger32BE encoding")
+            raise AssertionError(
+                "provider accepted a truncated HLAinteger32BE encoding"
+            )
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.malformed-inputs", "malformed-inputs", malformed_inputs))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.malformed-inputs",
+                "malformed-inputs",
+                malformed_inputs,
+            )
+        )
 
         def complex_encoders() -> str:
             encoder = factory.getEncoderFactory()
@@ -497,9 +594,13 @@ def main() -> int:
             if unicode_text.getValue() != "こんにちは":
                 raise AssertionError("HLAunicodeString value did not cross JPype")
             if encoder.createHLAASCIIstring().getEncodedLength() <= 0:
-                raise AssertionError("HLAASCIIstring no-argument overload returned no encoding")
+                raise AssertionError(
+                    "HLAASCIIstring no-argument overload returned no encoding"
+                )
             if encoder.createHLAunicodeString().getEncodedLength() <= 0:
-                raise AssertionError("HLAunicodeString no-argument overload returned no encoding")
+                raise AssertionError(
+                    "HLAunicodeString no-argument overload returned no encoding"
+                )
             opaque = encoder.createHLAopaqueData(b"\x01\x02")
             if opaque.getValue() != b"\x01\x02" or tuple(opaque) != (1, 2):
                 raise AssertionError("HLAopaqueData value did not cross JPype")
@@ -513,7 +614,11 @@ def main() -> int:
             if record.size() != 2 or record.get(1).getValue() != 2:
                 raise AssertionError("HLAfixedRecord shape failed")
             fixed = encoder.createHLAfixedArray(first, second)
-            if fixed.size() != 2 or fixed.get(0).getValue() != 1 or fixed.get(1).getValue() != 2:
+            if (
+                fixed.size() != 2
+                or fixed.get(0).getValue() != 1
+                or fixed.get(1).getValue() != 2
+            ):
                 raise AssertionError("HLAfixedArray variadic shape failed")
 
             class ElementFactory(DataElementFactory):
@@ -526,14 +631,27 @@ def main() -> int:
                 raise AssertionError("HLAvariableArray factory/resize shape failed")
             variant = encoder.createHLAvariantRecord(first)
             variant.setVariant(first, second)
-            if variant.getDiscriminant().getValue() != 1 or variant.getValue().getValue() != 2:
+            if (
+                variant.getDiscriminant().getValue() != 1
+                or variant.getValue().getValue() != 2
+            ):
                 raise AssertionError("HLAvariantRecord shape failed")
             return "provider-owned string, opaque, record, array, and variant encoders"
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.complex-encoders", "encoding", complex_encoders))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.complex-encoders",
+                "encoding",
+                complex_encoders,
+            )
+        )
 
         def api_surface_inventory() -> str:
-            if len(RTIAMBASSADOR_METHODS) != 150 or len(FEDERATE_AMBASSADOR_METHODS) != 51:
+            if (
+                len(RTIAMBASSADOR_METHODS) != 150
+                or len(FEDERATE_AMBASSADOR_METHODS) != 51
+            ):
                 raise AssertionError("unexpected 2010 Python method inventory")
             if sum(RTIAMBASSADOR_OVERLOAD_COUNTS.values()) != 172:
                 raise AssertionError("unexpected 2010 RTI overload inventory")
@@ -542,7 +660,9 @@ def main() -> int:
             if STANDARD_EDITION != "IEEE 1516.1-2010":
                 raise AssertionError("wrong Python standard edition")
             candidate = factory.getRtiAmbassador()
-            missing = [name for name in RTIAMBASSADOR_METHODS if not hasattr(candidate, name)]
+            missing = [
+                name for name in RTIAMBASSADOR_METHODS if not hasattr(candidate, name)
+            ]
             if missing:
                 raise AssertionError(
                     "provider ambassador is missing standard methods: "
@@ -550,7 +670,14 @@ def main() -> int:
                 )
             return "150 RTI methods/172 overloads; 51 callbacks/60 overloads"
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.api-surface-inventory", "api-surface", api_surface_inventory))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.api-surface-inventory",
+                "api-surface",
+                api_surface_inventory,
+            )
+        )
 
         def overloads_and_exceptions() -> str:
             if RTIAMBASSADOR_OVERLOAD_COUNTS["connect"] != 2:
@@ -560,8 +687,12 @@ def main() -> int:
             if RTIAMBASSADOR_OVERLOAD_COUNTS["joinFederationExecution"] != 4:
                 raise AssertionError("joinFederationExecution overload count changed")
             if not issubclass(RTIexception, Exception):
-                raise AssertionError("2010 RTIexception escaped the standard hierarchy")
-            mapped = exceptionForName("hla.rti1516e.exceptions.InconsistentFDD", "bad FDD")
+                raise AssertionError(  # noqa: TRY004 - a smoke assertion must produce a failed result
+                    "2010 RTIexception escaped the standard hierarchy"
+                )
+            mapped = exceptionForName(
+                "hla.rti1516e.exceptions.InconsistentFDD", "bad FDD"
+            )
             if type(mapped).__name__ != "InconsistentFDD":
                 raise AssertionError("standard exception mapping changed")
             return "2/5/4 standard overloads and hla.rti1516e exception identity"
@@ -587,7 +718,14 @@ def main() -> int:
             ambassador = None
             return "standard CallbackModel overload and connection lifecycle"
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.connect-disconnect", "lifecycle", connect_disconnect))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.connect-disconnect",
+                "lifecycle",
+                connect_disconnect,
+            )
+        )
 
         def federation_membership() -> str:
             nonlocal ambassador
@@ -616,15 +754,13 @@ def main() -> int:
                 joined = True
             finally:
                 if joined:
-                    try:
+                    with _best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if connected:
                     try:
                         ambassador.disconnect()
@@ -661,15 +797,22 @@ def main() -> int:
                     fom_path if fom_path is not None else "Umbra-2010-reference-fom",
                 )
                 created = True
-                ambassador.joinFederationExecution("umbra-1516e-python-declaration", federation)
+                ambassador.joinFederationExecution(
+                    "umbra-1516e-python-declaration", federation
+                )
                 joined = True
                 object_class = ambassador.getObjectClassHandle(args.object_class)
-                attribute = ambassador.getAttributeHandle(object_class, args.attribute_name)
+                attribute = ambassador.getAttributeHandle(
+                    object_class, args.attribute_name
+                )
                 attributes = ambassador.getAttributeHandleSetFactory().create()
                 attributes.add(attribute)
                 if ambassador.getObjectClassName(object_class) != args.object_class:
                     raise AssertionError("object-class name did not round-trip")
-                if ambassador.getAttributeName(object_class, attribute) != args.attribute_name:
+                if (
+                    ambassador.getAttributeName(object_class, attribute)
+                    != args.attribute_name
+                ):
                     raise AssertionError("attribute name did not round-trip")
                 ambassador.publishObjectClassAttributes(object_class, attributes)
                 ambassador.subscribeObjectClassAttributes(object_class, attributes)
@@ -677,15 +820,13 @@ def main() -> int:
                 ambassador.unpublishObjectClassAttributes(object_class, attributes)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if connected:
                     try:
                         ambassador.disconnect()
@@ -744,9 +885,13 @@ def main() -> int:
                     fom_path if fom_path is not None else "Umbra-2010-reference-fom",
                 )
                 created = True
-                publisher.joinFederationExecution("umbra-1516e-python-publisher", federation)
+                publisher.joinFederationExecution(
+                    "umbra-1516e-python-publisher", federation
+                )
                 publisher_joined = True
-                subscriber.joinFederationExecution("umbra-1516e-python-subscriber", federation)
+                subscriber.joinFederationExecution(
+                    "umbra-1516e-python-subscriber", federation
+                )
                 subscriber_joined = True
 
                 publisher_class = publisher.getObjectClassHandle(args.object_class)
@@ -759,15 +904,23 @@ def main() -> int:
                 )
                 publisher_attributes = publisher.getAttributeHandleSetFactory().create()
                 publisher_attributes.add(publisher_attribute)
-                subscriber_attributes = subscriber.getAttributeHandleSetFactory().create()
+                subscriber_attributes = (
+                    subscriber.getAttributeHandleSetFactory().create()
+                )
                 subscriber_attributes.add(subscriber_attribute)
-                subscriber.subscribeObjectClassAttributes(subscriber_class, subscriber_attributes)
-                publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+                subscriber.subscribeObjectClassAttributes(
+                    subscriber_class, subscriber_attributes
+                )
+                publisher.publishObjectClassAttributes(
+                    publisher_class, publisher_attributes
+                )
 
                 registered = publisher.registerObjectInstance(publisher_class)
                 _drain_callbacks(subscriber, subscriber_callback.labels)
                 if registered.encodedLength() == 0:
-                    raise AssertionError("registerObjectInstance returned an empty handle")
+                    raise AssertionError(
+                        "registerObjectInstance returned an empty handle"
+                    )
                 if subscriber_callback.discovered is None:
                     raise AssertionError("discoverObjectInstance did not cross JPype")
                 discovered = subscriber_callback.discovered
@@ -786,30 +939,28 @@ def main() -> int:
                     raise AssertionError("reflectAttributeValues did not cross JPype")
                 reflected = subscriber_callback.reflected
                 if reflected[0] != registered or len(reflected[1]) != 1:
-                    raise AssertionError("reflection object/map shape did not round-trip")
+                    raise AssertionError(
+                        "reflection object/map shape did not round-trip"
+                    )
                 if reflected[1][subscriber_attribute] != payload or reflected[2] != tag:
                     raise AssertionError("reflection payload/tag did not round-trip")
             finally:
                 if subscriber_joined:
-                    try:
+                    with _best_effort_cleanup("subscriber.resignFederationExecution"):
                         subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if publisher_joined:
-                    try:
+                    with _best_effort_cleanup("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if subscriber_connected:
-                    try:
+                    with _best_effort_cleanup("subscriber.disconnect"):
                         subscriber.disconnect()
-                    except Exception:
-                        pass
+
                 if publisher_connected:
                     try:
                         publisher.disconnect()
@@ -892,7 +1043,9 @@ def main() -> int:
                 registered = publisher.registerObjectInstance(publisher_class)
                 _drain_callbacks(observer, observer_callback.labels)
                 if "discover" not in observer_callback.labels:
-                    raise AssertionError("ownership fixture did not discover the object")
+                    raise AssertionError(
+                        "ownership fixture did not discover the object"
+                    )
 
                 observer_callback.labels.clear()
                 observer.queryAttributeOwnership(registered, observer_attribute)
@@ -901,9 +1054,13 @@ def main() -> int:
                     raise AssertionError("informAttributeOwnership did not cross JPype")
                 ownership = observer_callback.ownership
                 if ownership[0] != registered or ownership[1] != observer_attribute:
-                    raise AssertionError("ownership object/attribute did not round-trip")
+                    raise AssertionError(
+                        "ownership object/attribute did not round-trip"
+                    )
                 owner = ownership[2]
-                publisher_handle = publisher.getFederateHandle("umbra-1516e-python-owner")
+                publisher_handle = publisher.getFederateHandle(
+                    "umbra-1516e-python-owner"
+                )
                 if owner != publisher_handle:
                     raise AssertionError(
                         "ownership federate handle did not round-trip: "
@@ -915,34 +1072,33 @@ def main() -> int:
                     raise AssertionError(
                         f"ownership federate name did not round-trip: {owner_name!r}"
                     )
-                if not publisher.isAttributeOwnedByFederate(registered, publisher_attribute):
-                    raise AssertionError("publisher did not report owning its attribute")
+                if not publisher.isAttributeOwnedByFederate(
+                    registered, publisher_attribute
+                ):
+                    raise AssertionError(
+                        "publisher did not report owning its attribute"
+                    )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if publisher_joined:
-                    try:
+                    with _best_effort_cleanup("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if publisher_connected:
-                    try:
+                    with _best_effort_cleanup("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
+
             return "query/inform ownership and federate-owner identity"
 
         scenarios.append(
@@ -990,24 +1146,40 @@ def main() -> int:
                     fom_path if fom_path is not None else "Umbra-2010-reference-fom",
                 )
                 created = True
-                publisher.joinFederationExecution("umbra-1516e-python-interaction-publisher", federation)
+                publisher.joinFederationExecution(
+                    "umbra-1516e-python-interaction-publisher", federation
+                )
                 publisher_joined = True
-                subscriber.joinFederationExecution("umbra-1516e-python-interaction-subscriber", federation)
+                subscriber.joinFederationExecution(
+                    "umbra-1516e-python-interaction-subscriber", federation
+                )
                 subscriber_joined = True
 
-                publisher_class = publisher.getInteractionClassHandle(args.interaction_class)
-                subscriber_class = subscriber.getInteractionClassHandle(args.interaction_class)
-                if publisher.getInteractionClassName(publisher_class) != args.interaction_class:
+                publisher_class = publisher.getInteractionClassHandle(
+                    args.interaction_class
+                )
+                subscriber_class = subscriber.getInteractionClassHandle(
+                    args.interaction_class
+                )
+                if (
+                    publisher.getInteractionClassName(publisher_class)
+                    != args.interaction_class
+                ):
                     raise AssertionError("interaction-class name did not round-trip")
                 if subscriber_class != publisher_class:
-                    raise AssertionError("interaction-class handle identity did not round-trip")
+                    raise AssertionError(
+                        "interaction-class handle identity did not round-trip"
+                    )
                 publisher_parameter = publisher.getParameterHandle(
                     publisher_class, args.parameter_name
                 )
                 subscriber_parameter = subscriber.getParameterHandle(
                     subscriber_class, args.parameter_name
                 )
-                if publisher.getParameterName(publisher_class, publisher_parameter) != args.parameter_name:
+                if (
+                    publisher.getParameterName(publisher_class, publisher_parameter)
+                    != args.parameter_name
+                ):
                     raise AssertionError("parameter name did not round-trip")
                 if subscriber_parameter != publisher_parameter:
                     raise AssertionError("parameter handle identity did not round-trip")
@@ -1024,41 +1196,40 @@ def main() -> int:
                     raise AssertionError("receiveInteraction did not cross JPype")
                 received = subscriber_callback.received
                 if received[0] != subscriber_class or len(received[1]) != 1:
-                    raise AssertionError("interaction handle/map shape did not round-trip")
+                    raise AssertionError(
+                        "interaction handle/map shape did not round-trip"
+                    )
                 if received[1][subscriber_parameter] != payload or received[2] != tag:
                     raise AssertionError("interaction payload/tag did not round-trip")
                 if getattr(received[3], "name", None) != "RECEIVE":
                     raise AssertionError("interaction receive order did not round-trip")
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
-                    raise AssertionError("interaction transportation handle did not round-trip")
+                    raise AssertionError(
+                        "interaction transportation handle did not round-trip"
+                    )
                 subscriber.unsubscribeInteractionClass(subscriber_class)
                 publisher.unpublishInteractionClass(publisher_class)
             finally:
                 if subscriber_joined:
-                    try:
+                    with _best_effort_cleanup("subscriber.resignFederationExecution"):
                         subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if publisher_joined:
-                    try:
+                    with _best_effort_cleanup("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if subscriber_connected:
-                    try:
+                    with _best_effort_cleanup("subscriber.disconnect"):
                         subscriber.disconnect()
-                    except Exception:
-                        pass
+
                 if publisher_connected:
-                    try:
+                    with _best_effort_cleanup("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
+
             return "publish/subscribe, parameter lookup, and send/receive interaction callbacks"
 
         scenarios.append(
@@ -1108,9 +1279,13 @@ def main() -> int:
                     fom_path if fom_path is not None else "Umbra-2010-reference-fom",
                 )
                 created = True
-                registrar.joinFederationExecution("umbra-1516e-python-sync-registrar", federation)
+                registrar.joinFederationExecution(
+                    "umbra-1516e-python-sync-registrar", federation
+                )
                 registrar_joined = True
-                observer.joinFederationExecution("umbra-1516e-python-sync-observer", federation)
+                observer.joinFederationExecution(
+                    "umbra-1516e-python-sync-observer", federation
+                )
                 observer_joined = True
                 registrar_callback.registration.clear()
                 observer_callback.announcements.clear()
@@ -1121,35 +1296,34 @@ def main() -> int:
                 _drain_callbacks(registrar, registrar_callback.registration)
                 _drain_callbacks(observer, observer_callback.announcements)
                 if registrar_callback.registration != [label]:
-                    raise AssertionError("registration-success callback did not cross JPype")
+                    raise AssertionError(
+                        "registration-success callback did not cross JPype"
+                    )
                 if observer_callback.announcements != [(label, tag)]:
-                    raise AssertionError("announce-synchronization callback/tag did not cross JPype")
+                    raise AssertionError(
+                        "announce-synchronization callback/tag did not cross JPype"
+                    )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if registrar_joined:
-                    try:
+                    with _best_effort_cleanup("registrar.resignFederationExecution"):
                         registrar.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("registrar.destroyFederationExecution"):
                         registrar.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if registrar_connected:
-                    try:
+                    with _best_effort_cleanup("registrar.disconnect"):
                         registrar.disconnect()
-                    except Exception:
-                        pass
+
             return "standard registration-success and announce callbacks with tag preservation"
 
         scenarios.append(
@@ -1188,11 +1362,17 @@ def main() -> int:
                 if ambassador.getDimensionName(flavor_dimension) != "SodaFlavor":
                     raise AssertionError("SodaFlavor dimension name did not round-trip")
                 if ambassador.getDimensionName(quantity_dimension) != "BarQuantity":
-                    raise AssertionError("BarQuantity dimension name did not round-trip")
+                    raise AssertionError(
+                        "BarQuantity dimension name did not round-trip"
+                    )
                 if ambassador.getDimensionUpperBound(flavor_dimension) != 3:
-                    raise AssertionError("SodaFlavor upper bound did not match the 2010 FOM")
+                    raise AssertionError(
+                        "SodaFlavor upper bound did not match the 2010 FOM"
+                    )
                 if ambassador.getDimensionUpperBound(quantity_dimension) != 25:
-                    raise AssertionError("BarQuantity upper bound did not match the 2010 FOM")
+                    raise AssertionError(
+                        "BarQuantity upper bound did not match the 2010 FOM"
+                    )
 
                 dimensions = ambassador.getDimensionHandleSetFactory().create()
                 dimensions.add(flavor_dimension)
@@ -1212,7 +1392,10 @@ def main() -> int:
                 ambassador.setRangeBounds(region, quantity_dimension, quantity_bounds)
                 if ambassador.getRangeBounds(region, flavor_dimension) != flavor_bounds:
                     raise AssertionError("SodaFlavor range bounds did not round-trip")
-                if ambassador.getRangeBounds(region, quantity_dimension) != quantity_bounds:
+                if (
+                    ambassador.getRangeBounds(region, quantity_dimension)
+                    != quantity_bounds
+                ):
                     raise AssertionError("BarQuantity range bounds did not round-trip")
 
                 regions = ambassador.getRegionHandleSetFactory().create()
@@ -1225,32 +1408,35 @@ def main() -> int:
                 attributes.add(flavor)
                 pairs = ambassador.getAttributeSetRegionSetPairListFactory().create(1)
                 if not isinstance(pairs, AttributeSetRegionSetPairList):
-                    raise AssertionError("pair-list factory did not return the standard Python type")
+                    raise AssertionError(  # noqa: TRY004 - a smoke assertion must produce a failed result
+                        "pair-list factory did not return the standard Python type"
+                    )
                 pairs.append(AttributeRegionAssociation(attributes, regions))
                 ambassador.subscribeObjectClassAttributesWithRegions(soda_class, pairs)
-                ambassador.unsubscribeObjectClassAttributesWithRegions(soda_class, pairs)
+                ambassador.unsubscribeObjectClassAttributesWithRegions(
+                    soda_class, pairs
+                )
             finally:
                 if region is not None:
-                    try:
+                    with _best_effort_cleanup("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
+
                 if joined:
-                    try:
+                    with _best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if connected:
                     try:
                         ambassador.disconnect()
                     finally:
                         ambassador = None
-            return "dimension/region bounds and regional subscription pair-list forwarding"
+            return (
+                "dimension/region bounds and regional subscription pair-list forwarding"
+            )
 
         scenarios.append(
             _profiled_scenario(
@@ -1310,14 +1496,18 @@ def main() -> int:
                 )
                 report_class = observer.getInteractionClassHandle(report_name)
                 if observer.getInteractionClassName(report_class) != report_name:
-                    raise AssertionError("MOM report interaction name did not round-trip")
+                    raise AssertionError(
+                        "MOM report interaction name did not round-trip"
+                    )
                 observer.subscribeInteractionClass(report_class)
 
                 set_reporting = controller.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust."
                     "HLAsetServiceReporting"
                 )
-                target_federate = controller.getParameterHandle(set_reporting, "HLAfederate")
+                target_federate = controller.getParameterHandle(
+                    set_reporting, "HLAfederate"
+                )
                 reporting_state = controller.getParameterHandle(
                     set_reporting, "HLAreportingState"
                 )
@@ -1347,12 +1537,21 @@ def main() -> int:
                     raise AssertionError(
                         "MOM report transportation handle did not round-trip"
                     )
-                serial_number = observer.getParameterHandle(report_class, "HLAserialNumber")
+                serial_number = observer.getParameterHandle(
+                    report_class, "HLAserialNumber"
+                )
                 if bytes(received[1][serial_number]) != b"\x00\x00\x00\x00":
-                    raise AssertionError("MOM service report serial number did not start at zero")
+                    raise AssertionError(
+                        "MOM service report serial number did not start at zero"
+                    )
                 receive_info = received[5]
-                if not receive_info.hasSentRegions() or len(tuple(receive_info.getSentRegions())) != 1:
-                    raise AssertionError("MOM service report did not carry a single update region")
+                if (
+                    not receive_info.hasSentRegions()
+                    or len(tuple(receive_info.getSentRegions())) != 1
+                ):
+                    raise AssertionError(
+                        "MOM service report did not carry a single update region"
+                    )
 
                 controller.getObjectClassHandle("HLAobjectRoot.HLAmanager.HLAfederate")
                 _drain_callbacks(observer, callback.received, expected=2)
@@ -1362,31 +1561,30 @@ def main() -> int:
                         "MOM service report serial number did not increment per invocation"
                     )
                 second_receive_info = second[5]
-                if not second_receive_info.hasSentRegions() or len(tuple(second_receive_info.getSentRegions())) != 1:
+                if (
+                    not second_receive_info.hasSentRegions()
+                    or len(tuple(second_receive_info.getSentRegions())) != 1
+                ):
                     raise AssertionError(
                         "second MOM service report did not carry a single update region"
                     )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if controller_joined:
-                    try:
+                    with _best_effort_cleanup("controller.resignFederationExecution"):
                         controller.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("controller.destroyFederationExecution"):
                         controller.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if controller_connected:
                     try:
                         controller.disconnect()
@@ -1463,13 +1661,17 @@ def main() -> int:
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust."
                     "HLAsetServiceReporting"
                 )
-                target_federate = controller.getParameterHandle(set_reporting, "HLAfederate")
+                target_federate = controller.getParameterHandle(
+                    set_reporting, "HLAfederate"
+                )
                 reporting_state = controller.getParameterHandle(
                     set_reporting, "HLAreportingState"
                 )
                 encoded_controller = bytes(controller_handle.encodedValue)
                 encoded_observer = bytes(observer_handle.encodedValue)
-                enable_controller = controller.getParameterHandleValueMapFactory().create(2)
+                enable_controller = (
+                    controller.getParameterHandleValueMapFactory().create(2)
+                )
                 enable_controller[target_federate] = encoded_controller
                 enable_controller[reporting_state] = b"\x01"
                 controller.sendInteraction(set_reporting, enable_controller, b"")
@@ -1485,7 +1687,9 @@ def main() -> int:
                     )
 
                 callback.received.clear()
-                enable_observer = controller.getParameterHandleValueMapFactory().create(2)
+                enable_observer = controller.getParameterHandleValueMapFactory().create(
+                    2
+                )
                 enable_observer[target_federate] = encoded_observer
                 enable_observer[reporting_state] = b"\x01"
                 controller.sendInteraction(set_reporting, enable_observer, b"")
@@ -1500,7 +1704,9 @@ def main() -> int:
                     )
                 received = mom_report
                 values = received[1]
-                report_federate = observer.getParameterHandle(mom_exception, "HLAfederate")
+                report_federate = observer.getParameterHandle(
+                    mom_exception, "HLAfederate"
+                )
                 service = observer.getParameterHandle(mom_exception, "HLAservice")
                 exception = observer.getParameterHandle(mom_exception, "HLAexception")
                 parameter_error = observer.getParameterHandle(
@@ -1524,7 +1730,9 @@ def main() -> int:
                         "service-reporting interlock service name was not fully qualified"
                     )
                 if not bytes(values[exception]):
-                    raise AssertionError("service-reporting interlock exception text was empty")
+                    raise AssertionError(
+                        "service-reporting interlock exception text was empty"
+                    )
                 if bytes(values[parameter_error]) != b"\x00":
                     raise AssertionError(
                         "service-reporting interlock incorrectly classified a precondition failure as a parameter error"
@@ -1539,25 +1747,21 @@ def main() -> int:
                     )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if controller_joined:
-                    try:
+                    with _best_effort_cleanup("controller.resignFederationExecution"):
                         controller.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("controller.destroyFederationExecution"):
                         controller.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if controller_connected:
                     try:
                         controller.disconnect()
@@ -1616,13 +1820,17 @@ def main() -> int:
                     "umbra-2010-mom-object-owner", federation
                 )
                 registrar_joined = True
-                observer.joinFederationExecution("umbra-2010-mom-object-observer", federation)
+                observer.joinFederationExecution(
+                    "umbra-2010-mom-object-observer", federation
+                )
                 observer_joined = True
 
                 mom_class = observer.getObjectClassHandle(
                     "HLAobjectRoot.HLAmanager.HLAfederate"
                 )
-                federate_name = observer.getAttributeHandle(mom_class, "HLAfederateName")
+                federate_name = observer.getAttributeHandle(
+                    mom_class, "HLAfederateName"
+                )
                 attributes = observer.getAttributeHandleSetFactory().create()
                 attributes.add(federate_name)
                 observer.subscribeObjectClassAttributes(mom_class, attributes)
@@ -1640,7 +1848,7 @@ def main() -> int:
                     if len(values) < 3:
                         continue
                     reflected_values = values[1]
-                    if federate_name in reflected_values and reflected_values[federate_name]:
+                    if reflected_values.get(federate_name):
                         found_name = True
                         break
                 if not found_name:
@@ -1649,25 +1857,21 @@ def main() -> int:
                     )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if registrar_joined:
-                    try:
+                    with _best_effort_cleanup("registrar.resignFederationExecution"):
                         registrar.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("registrar.destroyFederationExecution"):
                         registrar.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if registrar_connected:
                     try:
                         registrar.disconnect()
@@ -1759,12 +1963,12 @@ def main() -> int:
                 _drain_callbacks(requester, callback.received)
 
                 if not callback.received or callback.received[-1][0] != report_class:
-                    raise AssertionError(
-                        "MOM publication report did not cross JPype"
-                    )
+                    raise AssertionError("MOM publication report did not cross JPype")
                 received = callback.received[-1]
                 report_values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 number_of_classes = requester.getParameterHandle(
                     report_class, "HLAnumberOfClasses"
                 )
@@ -1784,16 +1988,26 @@ def main() -> int:
                     raise AssertionError(
                         "MOM publication report did not contain the standard parameters"
                     )
-                if bytes(report_values[report_federate]) != bytes(target_handle.encodedValue):
-                    raise AssertionError("MOM publication report targeted the wrong federate")
+                if bytes(report_values[report_federate]) != bytes(
+                    target_handle.encodedValue
+                ):
+                    raise AssertionError(
+                        "MOM publication report targeted the wrong federate"
+                    )
                 if int.from_bytes(bytes(report_values[number_of_classes]), "big") != 1:
-                    raise AssertionError("MOM publication report class count was not one")
-                if bytes(report_values[reported_object_class]) != bytes(object_class.encodedValue):
+                    raise AssertionError(
+                        "MOM publication report class count was not one"
+                    )
+                if bytes(report_values[reported_object_class]) != bytes(
+                    object_class.encodedValue
+                ):
                     raise AssertionError(
                         "MOM publication report object class did not round-trip"
                     )
                 if not bytes(report_values[reported_attributes]):
-                    raise AssertionError("MOM publication report attribute list was empty")
+                    raise AssertionError(
+                        "MOM publication report attribute list was empty"
+                    )
                 if received[2] != b"":
                     raise AssertionError("MOM publication report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
@@ -1801,12 +2015,17 @@ def main() -> int:
                         "MOM publication report receive order did not round-trip"
                     )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
-                    raise AssertionError("MOM publication report transport did not round-trip")
+                    raise AssertionError(
+                        "MOM publication report transport did not round-trip"
+                    )
 
                 target.unpublishObjectClass(object_class)
                 requester.sendInteraction(request_class, request_values, b"")
                 _drain_callbacks(requester, callback.received)
-                if len(callback.received) < 2 or callback.received[-1][0] != report_class:
+                if (
+                    len(callback.received) < 2
+                    or callback.received[-1][0] != report_class
+                ):
                     raise AssertionError(
                         "MOM publication NULL response did not cross JPype"
                     )
@@ -1822,25 +2041,21 @@ def main() -> int:
                     )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -1935,7 +2150,9 @@ def main() -> int:
                     raise AssertionError("MOM subscription report did not cross JPype")
                 received = callback.received[-1]
                 report_values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 number_of_classes = requester.getParameterHandle(
                     report_class, "HLAnumberOfClasses"
                 )
@@ -1961,22 +2178,34 @@ def main() -> int:
                     raise AssertionError(
                         "MOM subscription report did not contain the standard parameters"
                     )
-                if bytes(report_values[report_federate]) != bytes(target_handle.encodedValue):
-                    raise AssertionError("MOM subscription report targeted the wrong federate")
+                if bytes(report_values[report_federate]) != bytes(
+                    target_handle.encodedValue
+                ):
+                    raise AssertionError(
+                        "MOM subscription report targeted the wrong federate"
+                    )
                 if int.from_bytes(bytes(report_values[number_of_classes]), "big") != 1:
-                    raise AssertionError("MOM subscription report class count was not one")
-                if bytes(report_values[reported_object_class]) != bytes(object_class.encodedValue):
+                    raise AssertionError(
+                        "MOM subscription report class count was not one"
+                    )
+                if bytes(report_values[reported_object_class]) != bytes(
+                    object_class.encodedValue
+                ):
                     raise AssertionError(
                         "MOM subscription report object class did not round-trip"
                     )
                 if bytes(report_values[active]) != b"\x01":
-                    raise AssertionError("MOM subscription report active flag was not true")
+                    raise AssertionError(
+                        "MOM subscription report active flag was not true"
+                    )
                 if not bytes(report_values[max_update_rate]):
                     raise AssertionError(
                         "MOM subscription report maximum update rate was empty"
                     )
                 if not bytes(report_values[reported_attributes]):
-                    raise AssertionError("MOM subscription report attribute list was empty")
+                    raise AssertionError(
+                        "MOM subscription report attribute list was empty"
+                    )
                 if received[2] != b"":
                     raise AssertionError("MOM subscription report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
@@ -1984,13 +2213,20 @@ def main() -> int:
                         "MOM subscription report receive order did not round-trip"
                     )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
-                    raise AssertionError("MOM subscription report transport did not round-trip")
+                    raise AssertionError(
+                        "MOM subscription report transport did not round-trip"
+                    )
 
                 target.unsubscribeObjectClass(object_class)
                 requester.sendInteraction(request_class, request_values, b"")
                 _drain_callbacks(requester, callback.received)
-                if len(callback.received) < 2 or callback.received[-1][0] != report_class:
-                    raise AssertionError("MOM subscription NULL response did not cross JPype")
+                if (
+                    len(callback.received) < 2
+                    or callback.received[-1][0] != report_class
+                ):
+                    raise AssertionError(
+                        "MOM subscription NULL response did not cross JPype"
+                    )
                 null_values = callback.received[-1][1]
                 if (
                     len(null_values) != 2
@@ -2005,25 +2241,21 @@ def main() -> int:
                     )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -2069,27 +2301,41 @@ def main() -> int:
             federation = f"umbra-2010-mom-interaction-pub-sub-{int(time.time() * 1000)}"
 
             def assert_report(
-                received: tuple[object, ...], report_class: object, federate: object,
-                interaction_list: object, encoded_target: bytes, encoded_interaction: bytes | None,
+                received: tuple[object, ...],
+                report_class: object,
+                federate: object,
+                interaction_list: object,
+                encoded_target: bytes,
+                encoded_interaction: bytes | None,
                 label: str,
             ) -> None:
                 if received[0] != report_class:
                     raise AssertionError(f"{label} report class did not round-trip")
                 values = received[1]
-                if len(values) != 2 or federate not in values or interaction_list not in values:
+                if (
+                    len(values) != 2
+                    or federate not in values
+                    or interaction_list not in values
+                ):
                     raise AssertionError(f"{label} report parameters were wrong")
                 if bytes(values[federate]) != encoded_target:
                     raise AssertionError(f"{label} report targeted the wrong federate")
                 encoded_values = bytes(values[interaction_list])
                 if encoded_interaction is None:
                     if encoded_values:
-                        raise AssertionError(f"{label} NULL interaction list was not empty")
+                        raise AssertionError(
+                            f"{label} NULL interaction list was not empty"
+                        )
                 elif encoded_interaction not in encoded_values:
-                    raise AssertionError(f"{label} interaction handle was absent from the list")
+                    raise AssertionError(
+                        f"{label} interaction handle was absent from the list"
+                    )
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -2104,7 +2350,9 @@ def main() -> int:
                     "umbra-2010-mom-interaction-pub-sub-target", federation
                 )
                 target_joined = True
-                requester.joinFederationExecution("umbra-2010-mom-interaction-pub-sub-requester", federation)
+                requester.joinFederationExecution(
+                    "umbra-2010-mom-interaction-pub-sub-requester", federation
+                )
                 requester_joined = True
 
                 target_interaction = target.getInteractionClassHandle(
@@ -2132,8 +2380,12 @@ def main() -> int:
                 subscription_request = requester.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestSubscriptions"
                 )
-                publication_federate = requester.getParameterHandle(publication_request, "HLAfederate")
-                subscription_federate = requester.getParameterHandle(subscription_request, "HLAfederate")
+                publication_federate = requester.getParameterHandle(
+                    publication_request, "HLAfederate"
+                )
+                subscription_federate = requester.getParameterHandle(
+                    subscription_request, "HLAfederate"
+                )
                 publication_report_federate = requester.getParameterHandle(
                     publication_report, "HLAfederate"
                 )
@@ -2152,10 +2404,16 @@ def main() -> int:
                 requester.sendInteraction(publication_request, values, b"")
                 _drain_callbacks(requester, callback.received, expected=1)
                 if len(callback.received) < 1:
-                    raise AssertionError("MOM interaction publication report count was wrong")
+                    raise AssertionError(
+                        "MOM interaction publication report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-1], publication_report, publication_report_federate,
-                    publication_list, encoded_target, encoded_interaction,
+                    callback.received[-1],
+                    publication_report,
+                    publication_report_federate,
+                    publication_list,
+                    encoded_target,
+                    encoded_interaction,
                     "MOM interaction publication report",
                 )
 
@@ -2164,10 +2422,16 @@ def main() -> int:
                 requester.sendInteraction(subscription_request, values, b"")
                 _drain_callbacks(requester, callback.received, expected=2)
                 if len(callback.received) < 2:
-                    raise AssertionError("MOM interaction subscription report count was wrong")
+                    raise AssertionError(
+                        "MOM interaction subscription report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-1], subscription_report, subscription_report_federate,
-                    subscription_list, encoded_target, encoded_interaction,
+                    callback.received[-1],
+                    subscription_report,
+                    subscription_report_federate,
+                    subscription_list,
+                    encoded_target,
+                    encoded_interaction,
                     "MOM interaction subscription report",
                 )
 
@@ -2178,10 +2442,16 @@ def main() -> int:
                 requester.sendInteraction(publication_request, values, b"")
                 _drain_callbacks(requester, callback.received, expected=3)
                 if len(callback.received) < 3:
-                    raise AssertionError("MOM interaction publication NULL report count was wrong")
+                    raise AssertionError(
+                        "MOM interaction publication NULL report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-1], publication_report, publication_report_federate,
-                    publication_list, encoded_target, None,
+                    callback.received[-1],
+                    publication_report,
+                    publication_report_federate,
+                    publication_list,
+                    encoded_target,
+                    None,
                     "MOM interaction publication NULL report",
                 )
 
@@ -2190,33 +2460,35 @@ def main() -> int:
                 requester.sendInteraction(subscription_request, values, b"")
                 _drain_callbacks(requester, callback.received, expected=4)
                 if len(callback.received) < 4:
-                    raise AssertionError("MOM interaction subscription NULL report count was wrong")
+                    raise AssertionError(
+                        "MOM interaction subscription NULL report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-1], subscription_report, subscription_report_federate,
-                    subscription_list, encoded_target, None,
+                    callback.received[-1],
+                    subscription_report,
+                    subscription_report_federate,
+                    subscription_list,
+                    encoded_target,
+                    None,
                     "MOM interaction subscription NULL report",
                 )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -2287,17 +2559,23 @@ def main() -> int:
                     "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport."
                     "HLAreportSynchronizationPoints"
                 )
-                points_parameter = observer.getParameterHandle(points_report, "HLAsyncPoints")
+                points_parameter = observer.getParameterHandle(
+                    points_report, "HLAsyncPoints"
+                )
                 status_request = subject.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest."
                     "HLArequestSynchronizationPointStatus"
                 )
-                status_request_name = subject.getParameterHandle(status_request, "HLAsyncPointName")
+                status_request_name = subject.getParameterHandle(
+                    status_request, "HLAsyncPointName"
+                )
                 status_report = observer.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport."
                     "HLAreportSynchronizationPointStatus"
                 )
-                status_report_name = observer.getParameterHandle(status_report, "HLAsyncPointName")
+                status_report_name = observer.getParameterHandle(
+                    status_report, "HLAsyncPointName"
+                )
                 status_report_federates = observer.getParameterHandle(
                     status_report, "HLAsyncPointFederates"
                 )
@@ -2337,7 +2615,9 @@ def main() -> int:
                             int(encoded_federate.get(index).getValue()) & 0xFF
                             for index in range(encoded_federate.size())
                         )
-                        federate = observer.getFederateHandleFactory().decode(federate_bytes, 0)
+                        federate = observer.getFederateHandleFactory().decode(
+                            federate_bytes, 0
+                        )
                         result[federate] = int(record.get(1).getValue())
                     return result
 
@@ -2355,24 +2635,42 @@ def main() -> int:
                     b"",
                 )
                 _drain_callbacks(observer, callback.received, expected=1)
-                if len(callback.received) != 1 or callback.received[-1][0] != points_report:
-                    raise AssertionError("MOM synchronization-points report did not cross JPype")
+                if (
+                    len(callback.received) != 1
+                    or callback.received[-1][0] != points_report
+                ):
+                    raise AssertionError(
+                        "MOM synchronization-points report did not cross JPype"
+                    )
                 point_values = callback.received[-1][1]
                 if len(point_values) != 1 or points_parameter not in point_values:
-                    raise AssertionError("MOM synchronization-points report parameters were wrong")
+                    raise AssertionError(
+                        "MOM synchronization-points report parameters were wrong"
+                    )
                 if label not in decode_labels(bytes(point_values[points_parameter])):
-                    raise AssertionError("MOM synchronization-points report omitted active label")
-                assert_metadata(callback.received[-1], "MOM synchronization-points report")
+                    raise AssertionError(
+                        "MOM synchronization-points report omitted active label"
+                    )
+                assert_metadata(
+                    callback.received[-1], "MOM synchronization-points report"
+                )
 
-                def request_status(expected: int, requested_label: str) -> dict[object, int]:
+                def request_status(
+                    expected: int, requested_label: str
+                ) -> dict[object, int]:
                     values = subject.getParameterHandleValueMapFactory().create(1)
                     values[status_request_name] = encoder.createHLAunicodeString(
                         requested_label
                     ).toByteArray()
                     subject.sendInteraction(status_request, values, b"")
                     _drain_callbacks(observer, callback.received, expected=expected)
-                    if len(callback.received) < expected or callback.received[-1][0] != status_report:
-                        raise AssertionError("MOM synchronization status report did not cross JPype")
+                    if (
+                        len(callback.received) < expected
+                        or callback.received[-1][0] != status_report
+                    ):
+                        raise AssertionError(
+                            "MOM synchronization status report did not cross JPype"
+                        )
                     received = callback.received[-1]
                     report_values = received[1]
                     if (
@@ -2380,30 +2678,46 @@ def main() -> int:
                         or status_report_name not in report_values
                         or status_report_federates not in report_values
                     ):
-                        raise AssertionError("MOM synchronization status report parameters were wrong")
-                    if str(
-                        encoder.createHLAunicodeString().decode(
-                            bytes(report_values[status_report_name])
-                        ).getValue()
-                    ) != requested_label:
-                        raise AssertionError("MOM synchronization status label did not round-trip")
+                        raise AssertionError(
+                            "MOM synchronization status report parameters were wrong"
+                        )
+                    if (
+                        str(
+                            encoder.createHLAunicodeString()
+                            .decode(bytes(report_values[status_report_name]))
+                            .getValue()
+                        )
+                        != requested_label
+                    ):
+                        raise AssertionError(
+                            "MOM synchronization status label did not round-trip"
+                        )
                     assert_metadata(received, "MOM synchronization status report")
-                    return decode_statuses(bytes(report_values[status_report_federates]))
+                    return decode_statuses(
+                        bytes(report_values[status_report_federates])
+                    )
 
                 before = request_status(2, label)
                 if before.get(subject_handle) != 2 or before.get(observer_handle) != 2:
-                    raise AssertionError("MOM synchronization status did not report both federates moving")
+                    raise AssertionError(
+                        "MOM synchronization status did not report both federates moving"
+                    )
 
                 subject.synchronizationPointAchieved(label)
                 after_subject = request_status(3, label)
-                if after_subject.get(subject_handle) != 3 or after_subject.get(observer_handle) != 2:
+                if (
+                    after_subject.get(subject_handle) != 3
+                    or after_subject.get(observer_handle) != 2
+                ):
                     raise AssertionError(
                         "MOM synchronization status did not preserve per-federate achievement"
                     )
 
                 missing = request_status(4, "missing-python-2010-sync")
                 if missing:
-                    raise AssertionError("MOM missing synchronization status was not an empty list")
+                    raise AssertionError(
+                        "MOM missing synchronization status was not an empty list"
+                    )
 
                 observer.synchronizationPointAchieved(label)
                 callback.received.clear()
@@ -2413,32 +2727,37 @@ def main() -> int:
                     b"",
                 )
                 _drain_callbacks(observer, callback.received, expected=1)
-                if len(callback.received) != 1 or callback.received[-1][0] != points_report:
-                    raise AssertionError("MOM completed synchronization-points report was missing")
+                if (
+                    len(callback.received) != 1
+                    or callback.received[-1][0] != points_report
+                ):
+                    raise AssertionError(
+                        "MOM completed synchronization-points report was missing"
+                    )
                 if decode_labels(bytes(callback.received[-1][1][points_parameter])):
-                    raise AssertionError("MOM completed synchronization point remained active")
-                assert_metadata(callback.received[-1], "MOM completed synchronization-points report")
+                    raise AssertionError(
+                        "MOM completed synchronization point remained active"
+                    )
+                assert_metadata(
+                    callback.received[-1], "MOM completed synchronization-points report"
+                )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if subject_joined:
-                    try:
+                    with _best_effort_cleanup("subject.resignFederationExecution"):
                         subject.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if subject_connected:
                     try:
                         subject.disconnect()
@@ -2539,7 +2858,9 @@ def main() -> int:
                     raise AssertionError("HLAreportException did not cross JPype")
                 received = callback.received[-1]
                 values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 service = requester.getParameterHandle(report_class, "HLAservice")
                 exception = requester.getParameterHandle(report_class, "HLAexception")
                 if (
@@ -2552,8 +2873,13 @@ def main() -> int:
                         "HLAreportException did not contain the standard parameters"
                     )
                 if bytes(values[report_federate]) != bytes(target_handle.encodedValue):
-                    raise AssertionError("HLAreportException targeted the wrong federate")
-                if bytes(values[service]).decode("utf-8") != "RTIambassador.deleteObjectInstance":
+                    raise AssertionError(
+                        "HLAreportException targeted the wrong federate"
+                    )
+                if (
+                    bytes(values[service]).decode("utf-8")
+                    != "RTIambassador.deleteObjectInstance"
+                ):
                     raise AssertionError(
                         "HLAreportException service name did not identify the failing service"
                     )
@@ -2562,30 +2888,30 @@ def main() -> int:
                 if received[2] != b"":
                     raise AssertionError("HLAreportException tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError("HLAreportException receive order did not round-trip")
+                    raise AssertionError(
+                        "HLAreportException receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
-                    raise AssertionError("HLAreportException transport did not round-trip")
+                    raise AssertionError(
+                        "HLAreportException transport did not round-trip"
+                    )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -2669,42 +2995,56 @@ def main() -> int:
                     )
                 reflected_values = callback.reflected[0][1]
                 if federation_name not in reflected_values:
-                    raise AssertionError("MOM HLAfederationName attribute was not reflected")
-                if bytes(reflected_values[federation_name]).decode("utf-8") != federation:
-                    raise AssertionError("MOM HLAfederationName did not identify the federation")
+                    raise AssertionError(
+                        "MOM HLAfederationName attribute was not reflected"
+                    )
+                if (
+                    bytes(reflected_values[federation_name]).decode("utf-8")
+                    != federation
+                ):
+                    raise AssertionError(
+                        "MOM HLAfederationName did not identify the federation"
+                    )
                 if callback.reflected[0][2] != b"":
-                    raise AssertionError("MOM HLAfederation reflection tag was not empty")
+                    raise AssertionError(
+                        "MOM HLAfederation reflection tag was not empty"
+                    )
                 if getattr(callback.reflected[0][3], "name", None) != "RECEIVE":
-                    raise AssertionError("MOM HLAfederation reflection order did not round-trip")
-                if callback.reflected[0][4].encodedValue != b"transport:HLAdefaultReliable":
-                    raise AssertionError("MOM HLAfederation reflection transport did not round-trip")
+                    raise AssertionError(
+                        "MOM HLAfederation reflection order did not round-trip"
+                    )
+                if (
+                    callback.reflected[0][4].encodedValue
+                    != b"transport:HLAdefaultReliable"
+                ):
+                    raise AssertionError(
+                        "MOM HLAfederation reflection transport did not round-trip"
+                    )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_cleanup("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if registrar_joined:
-                    try:
+                    with _best_effort_cleanup("registrar.resignFederationExecution"):
                         registrar.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("registrar.destroyFederationExecution"):
                         registrar.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if observer_connected:
-                    try:
+                    with _best_effort_cleanup("observer.disconnect"):
                         observer.disconnect()
-                    except Exception:
-                        pass
+
                 if registrar_connected:
                     try:
                         registrar.disconnect()
                     finally:
                         ambassador = None
-            return "standard MIM RTI-owned HLAfederation discovery and static reflection"
+            return (
+                "standard MIM RTI-owned HLAfederation discovery and static reflection"
+            )
 
         scenarios.append(
             _profiled_scenario(
@@ -2766,8 +3106,12 @@ def main() -> int:
                 malformed = requester.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
                 )
-                requested_federate = requester.getParameterHandle(malformed, "HLAfederate")
-                malformed_values = requester.getParameterHandleValueMapFactory().create(1)
+                requested_federate = requester.getParameterHandle(
+                    malformed, "HLAfederate"
+                )
+                malformed_values = requester.getParameterHandleValueMapFactory().create(
+                    1
+                )
                 malformed_values[requested_federate] = bytes(target_handle.encodedValue)
                 # Omit HLAreportPeriod deliberately; the MOM exception report
                 # identifies the malformed interaction without raising a
@@ -2778,10 +3122,14 @@ def main() -> int:
                     raise AssertionError("HLAreportMOMexception did not cross JPype")
                 received = callback.received[-1]
                 values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 service = requester.getParameterHandle(report_class, "HLAservice")
                 exception = requester.getParameterHandle(report_class, "HLAexception")
-                parameter_error = requester.getParameterHandle(report_class, "HLAparameterError")
+                parameter_error = requester.getParameterHandle(
+                    report_class, "HLAparameterError"
+                )
                 if (
                     len(values) != 4
                     or report_federate not in values
@@ -2793,7 +3141,9 @@ def main() -> int:
                         "HLAreportMOMexception did not contain the standard parameters"
                     )
                 if bytes(values[report_federate]) != bytes(target_handle.encodedValue):
-                    raise AssertionError("HLAreportMOMexception targeted the wrong federate")
+                    raise AssertionError(
+                        "HLAreportMOMexception targeted the wrong federate"
+                    )
                 if bytes(values[service]).decode("utf-8") != (
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
                 ):
@@ -2801,7 +3151,9 @@ def main() -> int:
                         "HLAreportMOMexception service name was not fully qualified"
                     )
                 if not bytes(values[exception]):
-                    raise AssertionError("HLAreportMOMexception exception text was empty")
+                    raise AssertionError(
+                        "HLAreportMOMexception exception text was empty"
+                    )
                 if bytes(values[parameter_error]) != b"\x01":
                     raise AssertionError(
                         "HLAreportMOMexception parameter-error flag was not true"
@@ -2821,7 +3173,9 @@ def main() -> int:
                 # HLAreportPeriod parameter is present and contains a
                 # non-negative HLAinteger32BE value. A valid control
                 # interaction must not produce another MOM exception.
-                report_period = requester.getParameterHandle(malformed, "HLAreportPeriod")
+                report_period = requester.getParameterHandle(
+                    malformed, "HLAreportPeriod"
+                )
                 malformed_values[report_period] = b"\x00\x00\x00\x05"
                 requester.sendInteraction(malformed, malformed_values, b"")
                 _drain_callbacks(requester, callback.received)
@@ -2831,25 +3185,21 @@ def main() -> int:
                     )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -2910,7 +3260,9 @@ def main() -> int:
                     "python-2010-mom-timing-target", federation
                 )
                 target_joined = True
-                evoked.joinFederationExecution("python-2010-mom-timing-evoked", federation)
+                evoked.joinFederationExecution(
+                    "python-2010-mom-timing-evoked", federation
+                )
                 evoked_joined = True
                 immediate.joinFederationExecution(
                     "python-2010-mom-timing-immediate", federation
@@ -2920,8 +3272,12 @@ def main() -> int:
                 class_name = "HLAobjectRoot.HLAmanager.HLAfederate"
                 evoked_class = evoked.getObjectClassHandle(class_name)
                 immediate_class = immediate.getObjectClassHandle(class_name)
-                evoked_logical_time = evoked.getAttributeHandle(evoked_class, "HLAlogicalTime")
-                evoked_lookahead = evoked.getAttributeHandle(evoked_class, "HLAlookahead")
+                evoked_logical_time = evoked.getAttributeHandle(
+                    evoked_class, "HLAlogicalTime"
+                )
+                evoked_lookahead = evoked.getAttributeHandle(
+                    evoked_class, "HLAlookahead"
+                )
                 immediate_logical_time = immediate.getAttributeHandle(
                     immediate_class, "HLAlogicalTime"
                 )
@@ -2935,7 +3291,9 @@ def main() -> int:
                 immediate_attributes.add(immediate_logical_time)
                 immediate_attributes.add(immediate_lookahead)
                 evoked.subscribeObjectClassAttributes(evoked_class, evoked_attributes)
-                immediate.subscribeObjectClassAttributes(immediate_class, immediate_attributes)
+                immediate.subscribeObjectClassAttributes(
+                    immediate_class, immediate_attributes
+                )
                 # Subscription causes the initial bounded MOM discovery route;
                 # only later entries are periodic evidence.
                 evoked_callback.reflections.clear()
@@ -2950,8 +3308,12 @@ def main() -> int:
                 set_timing = target.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
                 )
-                federate_parameter = target.getParameterHandle(set_timing, "HLAfederate")
-                period_parameter = target.getParameterHandle(set_timing, "HLAreportPeriod")
+                federate_parameter = target.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = target.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
                 timing_values = target.getParameterHandleValueMapFactory().create(2)
                 timing_values[federate_parameter] = bytes(target_handle.encodedValue)
                 timing_values[period_parameter] = b"\x00\x00\x00\x01"
@@ -2975,11 +3337,15 @@ def main() -> int:
                         "periodic MOM reflection omitted HLAlogicalTime/HLAlookahead"
                     )
                 if bytes(immediate_values[immediate_logical_time]) != b"\x00" * 8:
-                    raise AssertionError("periodic HLAlogicalTime did not use the target snapshot")
+                    raise AssertionError(
+                        "periodic HLAlogicalTime did not use the target snapshot"
+                    )
                 if bytes(immediate_values[immediate_lookahead]) != bytes(
                     timing_lookahead.encodedValue
                 ):
-                    raise AssertionError("periodic HLAlookahead did not use the target snapshot")
+                    raise AssertionError(
+                        "periodic HLAlookahead did not use the target snapshot"
+                    )
 
                 evoked.evokeMultipleCallbacks(0.0, 0.25)
                 if not evoked_callback.reflections:
@@ -2998,35 +3364,29 @@ def main() -> int:
                     )
             finally:
                 if immediate_joined:
-                    try:
+                    with _best_effort_cleanup("immediate.resignFederationExecution"):
                         immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if evoked_joined:
-                    try:
+                    with _best_effort_cleanup("evoked.resignFederationExecution"):
                         evoked.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if immediate_connected:
-                    try:
+                    with _best_effort_cleanup("immediate.disconnect"):
                         immediate.disconnect()
-                    except Exception:
-                        pass
+
                 if evoked_connected:
-                    try:
+                    with _best_effort_cleanup("evoked.disconnect"):
                         evoked.disconnect()
-                    except Exception:
-                        pass
+
                 if target_connected:
                     try:
                         target.disconnect()
@@ -3086,7 +3446,9 @@ def main() -> int:
                 )
                 requester_joined = True
 
-                object_class = target.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+                object_class = target.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
                 attribute = target.getAttributeHandle(object_class, "Efficiency")
                 attributes = target.getAttributeHandleSetFactory().create()
                 attributes.add(attribute)
@@ -3121,7 +3483,9 @@ def main() -> int:
                     )
                 received = callback.received[-1]
                 values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 report_object = requester.getParameterHandle(
                     report_class, "HLAobjectInstance"
                 )
@@ -3131,7 +3495,9 @@ def main() -> int:
                 registered_class = requester.getParameterHandle(
                     report_class, "HLAregisteredClass"
                 )
-                known_class = requester.getParameterHandle(report_class, "HLAknownClass")
+                known_class = requester.getParameterHandle(
+                    report_class, "HLAknownClass"
+                )
                 if (
                     len(values) != 5
                     or report_federate not in values
@@ -3164,7 +3530,9 @@ def main() -> int:
                         "MOM object-information known class did not round-trip"
                     )
                 if received[2] != b"":
-                    raise AssertionError("MOM object-information report tag was not empty")
+                    raise AssertionError(
+                        "MOM object-information report tag was not empty"
+                    )
                 if getattr(received[3], "name", None) != "RECEIVE":
                     raise AssertionError(
                         "MOM object-information report receive order did not round-trip"
@@ -3182,14 +3550,18 @@ def main() -> int:
                 request_values[requested_object] = bytes(unknown.encodedValue)
                 requester.sendInteraction(request_class, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=2)
-                if len(callback.received) < 2 or callback.received[-1][0] != report_class:
+                if (
+                    len(callback.received) < 2
+                    or callback.received[-1][0] != report_class
+                ):
                     raise AssertionError(
                         "MOM object-information NULL report did not cross JPype"
                     )
                 null_values = callback.received[-1][1]
                 if (
                     len(null_values) != 3
-                    or bytes(null_values[report_federate]) != bytes(target_handle.encodedValue)
+                    or bytes(null_values[report_federate])
+                    != bytes(target_handle.encodedValue)
                     or bytes(null_values[report_object]) != bytes(unknown.encodedValue)
                     or bytes(null_values[owned_attributes]) != b""
                     or registered_class in null_values
@@ -3200,25 +3572,21 @@ def main() -> int:
                     )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -3278,7 +3646,9 @@ def main() -> int:
                 )
                 requester_joined = True
 
-                object_class = target.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+                object_class = target.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
                 attribute = target.getAttributeHandle(object_class, "Efficiency")
                 attributes = target.getAttributeHandleSetFactory().create()
                 attributes.add(attribute)
@@ -3309,7 +3679,9 @@ def main() -> int:
                     )
                 received = callback.received[-1]
                 values = received[1]
-                report_federate = requester.getParameterHandle(report_class, "HLAfederate")
+                report_federate = requester.getParameterHandle(
+                    report_class, "HLAfederate"
+                )
                 object_counts = requester.getParameterHandle(
                     report_class, "HLAobjectInstanceCounts"
                 )
@@ -3326,12 +3698,17 @@ def main() -> int:
                         "MOM deletable-object report targeted the wrong federate"
                     )
                 counts = bytes(values[object_counts])
-                if bytes(object_class.encodedValue) not in counts or b"\x00\x00\x00\x01" not in counts:
+                if (
+                    bytes(object_class.encodedValue) not in counts
+                    or b"\x00\x00\x00\x01" not in counts
+                ):
                     raise AssertionError(
                         "MOM deletable-object class/count payload did not round-trip"
                     )
                 if received[2] != b"":
-                    raise AssertionError("MOM deletable-object report tag was not empty")
+                    raise AssertionError(
+                        "MOM deletable-object report tag was not empty"
+                    )
                 if getattr(received[3], "name", None) != "RECEIVE":
                     raise AssertionError(
                         "MOM deletable-object report receive order did not round-trip"
@@ -3344,14 +3721,18 @@ def main() -> int:
                 target.deleteObjectInstance(object_handle, b"")
                 requester.sendInteraction(request_class, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=2)
-                if len(callback.received) < 2 or callback.received[-1][0] != report_class:
+                if (
+                    len(callback.received) < 2
+                    or callback.received[-1][0] != report_class
+                ):
                     raise AssertionError(
                         "MOM deletable-object NULL report did not cross JPype"
                     )
                 null_values = callback.received[-1][1]
                 if (
                     len(null_values) != 2
-                    or bytes(null_values[report_federate]) != bytes(target_handle.encodedValue)
+                    or bytes(null_values[report_federate])
+                    != bytes(target_handle.encodedValue)
                     or bytes(null_values[object_counts]) != b""
                 ):
                     raise AssertionError(
@@ -3359,25 +3740,21 @@ def main() -> int:
                     )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -3449,14 +3826,23 @@ def main() -> int:
                     raise AssertionError(f"{label} report targeted the wrong federate")
                 encoded_counts = bytes(values[object_counts])
                 if positive:
-                    if encoded_class not in encoded_counts or b"\x00\x00\x00\x01" not in encoded_counts:
-                        raise AssertionError(f"{label} class/count payload did not round-trip")
+                    if (
+                        encoded_class not in encoded_counts
+                        or b"\x00\x00\x00\x01" not in encoded_counts
+                    ):
+                        raise AssertionError(
+                            f"{label} class/count payload did not round-trip"
+                        )
                 elif encoded_counts:
-                    raise AssertionError(f"{label} NULL response did not use an empty count list")
+                    raise AssertionError(
+                        f"{label} NULL response did not use an empty count list"
+                    )
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -3476,13 +3862,23 @@ def main() -> int:
                 )
                 requester_joined = True
 
-                target_class = target.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+                target_class = target.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
                 target_attribute = target.getAttributeHandle(target_class, "Efficiency")
-                requester_class = requester.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-                requester_attribute = requester.getAttributeHandle(requester_class, "Efficiency")
-                subscribed_attributes = requester.getAttributeHandleSetFactory().create()
+                requester_class = requester.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                requester_attribute = requester.getAttributeHandle(
+                    requester_class, "Efficiency"
+                )
+                subscribed_attributes = (
+                    requester.getAttributeHandleSetFactory().create()
+                )
                 subscribed_attributes.add(requester_attribute)
-                requester.subscribeObjectClassAttributes(requester_class, subscribed_attributes)
+                requester.subscribeObjectClassAttributes(
+                    requester_class, subscribed_attributes
+                )
                 published_attributes = target.getAttributeHandleSetFactory().create()
                 published_attributes.add(target_attribute)
                 target.publishObjectClassAttributes(target_class, published_attributes)
@@ -3597,25 +3993,21 @@ def main() -> int:
                 )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -3677,22 +4069,34 @@ def main() -> int:
                 if received[0] != report_class:
                     raise AssertionError(f"{label} report class did not round-trip")
                 values = received[1]
-                if len(values) != 2 or transportation not in values or counts not in values:
+                if (
+                    len(values) != 2
+                    or transportation not in values
+                    or counts not in values
+                ):
                     raise AssertionError(f"{label} report parameters were wrong")
                 if bytes(values[transportation]) != expected_transport:
-                    raise AssertionError(f"{label} transportation parameter did not round-trip")
+                    raise AssertionError(
+                        f"{label} transportation parameter did not round-trip"
+                    )
                 encoded_counts = bytes(values[counts])
                 if expected_class is None:
                     if encoded_counts:
                         raise AssertionError(f"{label} NULL count list was not empty")
-                elif expected_class not in encoded_counts or expected_count.to_bytes(
-                    4, "big", signed=True
-                ) not in encoded_counts:
-                    raise AssertionError(f"{label} class/count payload did not round-trip")
+                elif (
+                    expected_class not in encoded_counts
+                    or expected_count.to_bytes(4, "big", signed=True)
+                    not in encoded_counts
+                ):
+                    raise AssertionError(
+                        f"{label} class/count payload did not round-trip"
+                    )
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -3712,9 +4116,13 @@ def main() -> int:
                 )
                 requester_joined = True
 
-                server_class = target.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+                server_class = target.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
                 server_attribute = target.getAttributeHandle(server_class, "Efficiency")
-                soda_class = target.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+                soda_class = target.getObjectClassHandle(
+                    "HLAobjectRoot.Food.Drink.Soda"
+                )
                 soda_attribute = target.getAttributeHandle(soda_class, "Flavor")
                 requester_server_class = requester.getObjectClassHandle(
                     "HLAobjectRoot.Employee.Server"
@@ -3728,22 +4136,34 @@ def main() -> int:
                 requester_soda_attribute = requester.getAttributeHandle(
                     requester_soda_class, "Flavor"
                 )
-                subscribed_server_attributes = requester.getAttributeHandleSetFactory().create()
+                subscribed_server_attributes = (
+                    requester.getAttributeHandleSetFactory().create()
+                )
                 subscribed_server_attributes.add(requester_server_attribute)
                 requester.subscribeObjectClassAttributes(
                     requester_server_class, subscribed_server_attributes
                 )
-                subscribed_soda_attributes = requester.getAttributeHandleSetFactory().create()
+                subscribed_soda_attributes = (
+                    requester.getAttributeHandleSetFactory().create()
+                )
                 subscribed_soda_attributes.add(requester_soda_attribute)
                 requester.subscribeObjectClassAttributes(
                     requester_soda_class, subscribed_soda_attributes
                 )
-                published_server_attributes = target.getAttributeHandleSetFactory().create()
+                published_server_attributes = (
+                    target.getAttributeHandleSetFactory().create()
+                )
                 published_server_attributes.add(server_attribute)
-                target.publishObjectClassAttributes(server_class, published_server_attributes)
-                published_soda_attributes = target.getAttributeHandleSetFactory().create()
+                target.publishObjectClassAttributes(
+                    server_class, published_server_attributes
+                )
+                published_soda_attributes = (
+                    target.getAttributeHandleSetFactory().create()
+                )
                 published_soda_attributes.add(soda_attribute)
-                target.publishObjectClassAttributes(soda_class, published_soda_attributes)
+                target.publishObjectClassAttributes(
+                    soda_class, published_soda_attributes
+                )
 
                 server_object = target.registerObjectInstance(
                     server_class, "python-2010-mom-transport-server"
@@ -3791,7 +4211,9 @@ def main() -> int:
                 updates_transportation = requester.getParameterHandle(
                     updates_report, "HLAtransportation"
                 )
-                updates_counts = requester.getParameterHandle(updates_report, "HLAupdateCounts")
+                updates_counts = requester.getParameterHandle(
+                    updates_report, "HLAupdateCounts"
+                )
                 reflections_transportation = requester.getParameterHandle(
                     reflections_report, "HLAtransportation"
                 )
@@ -3802,7 +4224,9 @@ def main() -> int:
                 encoded_requester = bytes(requester_handle.encodedValue)
                 encoded_server_class = bytes(server_class.encodedValue)
                 encoded_soda_class = bytes(soda_class.encodedValue)
-                reliable_bytes = bytes(transportation_factory.getHLAdefaultReliable().encodedValue)
+                reliable_bytes = bytes(
+                    transportation_factory.getHLAdefaultReliable().encodedValue
+                )
                 best_effort_bytes = bytes(best_effort.encodedValue)
                 request_values = requester.getParameterHandleValueMapFactory().create(1)
 
@@ -3812,12 +4236,24 @@ def main() -> int:
                 if len(callback.received) < 2:
                     raise AssertionError("MOM updates-sent report count was wrong")
                 assert_report(
-                    callback.received[-2], updates_report, updates_transportation, updates_counts,
-                    reliable_bytes, encoded_soda_class, 1, "MOM updates reliable"
+                    callback.received[-2],
+                    updates_report,
+                    updates_transportation,
+                    updates_counts,
+                    reliable_bytes,
+                    encoded_soda_class,
+                    1,
+                    "MOM updates reliable",
                 )
                 assert_report(
-                    callback.received[-1], updates_report, updates_transportation, updates_counts,
-                    best_effort_bytes, encoded_server_class, 2, "MOM updates best-effort"
+                    callback.received[-1],
+                    updates_report,
+                    updates_transportation,
+                    updates_counts,
+                    best_effort_bytes,
+                    encoded_server_class,
+                    2,
+                    "MOM updates best-effort",
                 )
 
                 request_values.clear()
@@ -3826,16 +4262,28 @@ def main() -> int:
                 requester.sendInteraction(reflections_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=4)
                 if len(callback.received) < 4:
-                    raise AssertionError("MOM reflections-received report count was wrong")
+                    raise AssertionError(
+                        "MOM reflections-received report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], reflections_report, reflections_transportation,
-                    reflections_counts, reliable_bytes, encoded_soda_class, 1,
-                    "MOM reflections reliable"
+                    callback.received[-2],
+                    reflections_report,
+                    reflections_transportation,
+                    reflections_counts,
+                    reliable_bytes,
+                    encoded_soda_class,
+                    1,
+                    "MOM reflections reliable",
                 )
                 assert_report(
-                    callback.received[-1], reflections_report, reflections_transportation,
-                    reflections_counts, best_effort_bytes, encoded_server_class, 2,
-                    "MOM reflections best-effort"
+                    callback.received[-1],
+                    reflections_report,
+                    reflections_transportation,
+                    reflections_counts,
+                    best_effort_bytes,
+                    encoded_server_class,
+                    2,
+                    "MOM reflections best-effort",
                 )
 
                 request_values.clear()
@@ -3843,14 +4291,28 @@ def main() -> int:
                 requester.sendInteraction(updates_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=6)
                 if len(callback.received) < 6:
-                    raise AssertionError("MOM empty updates-sent report count was wrong")
+                    raise AssertionError(
+                        "MOM empty updates-sent report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], updates_report, updates_transportation, updates_counts,
-                    reliable_bytes, None, 0, "MOM empty updates reliable"
+                    callback.received[-2],
+                    updates_report,
+                    updates_transportation,
+                    updates_counts,
+                    reliable_bytes,
+                    None,
+                    0,
+                    "MOM empty updates reliable",
                 )
                 assert_report(
-                    callback.received[-1], updates_report, updates_transportation, updates_counts,
-                    best_effort_bytes, None, 0, "MOM empty updates best-effort"
+                    callback.received[-1],
+                    updates_report,
+                    updates_transportation,
+                    updates_counts,
+                    best_effort_bytes,
+                    None,
+                    0,
+                    "MOM empty updates best-effort",
                 )
 
                 request_values.clear()
@@ -3860,38 +4322,46 @@ def main() -> int:
                 requester.sendInteraction(reflections_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=8)
                 if len(callback.received) < 8:
-                    raise AssertionError("MOM empty reflections-received report count was wrong")
+                    raise AssertionError(
+                        "MOM empty reflections-received report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], reflections_report, reflections_transportation,
-                    reflections_counts, reliable_bytes, None, 0,
-                    "MOM empty reflections reliable"
+                    callback.received[-2],
+                    reflections_report,
+                    reflections_transportation,
+                    reflections_counts,
+                    reliable_bytes,
+                    None,
+                    0,
+                    "MOM empty reflections reliable",
                 )
                 assert_report(
-                    callback.received[-1], reflections_report, reflections_transportation,
-                    reflections_counts, best_effort_bytes, None, 0,
-                    "MOM empty reflections best-effort"
+                    callback.received[-1],
+                    reflections_report,
+                    reflections_transportation,
+                    reflections_counts,
+                    best_effort_bytes,
+                    None,
+                    0,
+                    "MOM empty reflections best-effort",
                 )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -3949,28 +4419,41 @@ def main() -> int:
                 if received[0] != report_class:
                     raise AssertionError(f"{label} report class did not round-trip")
                 values = received[1]
-                if len(values) != 2 or transportation not in values or counts not in values:
+                if (
+                    len(values) != 2
+                    or transportation not in values
+                    or counts not in values
+                ):
                     raise AssertionError(f"{label} report parameters were wrong")
                 if bytes(values[transportation]) != expected_transport:
-                    raise AssertionError(f"{label} transportation parameter did not round-trip")
+                    raise AssertionError(
+                        f"{label} transportation parameter did not round-trip"
+                    )
                 encoded_counts = bytes(values[counts])
                 if expected_classes is None or expected_counts is None:
                     if encoded_counts:
                         raise AssertionError(f"{label} NULL count list was not empty")
                 else:
-                    for expected_class, expected_count in zip(expected_classes, expected_counts):
+                    for expected_class, expected_count in zip(
+                        expected_classes, expected_counts
+                    ):
                         if expected_class not in encoded_counts:
                             raise AssertionError(
                                 f"{label} interaction class was absent from the count list"
                             )
-                        if expected_count.to_bytes(4, "big", signed=True) not in encoded_counts:
+                        if (
+                            expected_count.to_bytes(4, "big", signed=True)
+                            not in encoded_counts
+                        ):
                             raise AssertionError(
                                 f"{label} interaction count was absent from the count list"
                             )
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -4014,7 +4497,9 @@ def main() -> int:
                     target.getParameterHandleValueMapFactory().create(0),
                     b"",
                 )
-                target.requestInteractionTransportationTypeChange(target_order_taken, best_effort)
+                target.requestInteractionTransportationTypeChange(
+                    target_order_taken, best_effort
+                )
                 for _ in range(2):
                     target.sendInteraction(
                         target_order_taken,
@@ -4044,12 +4529,18 @@ def main() -> int:
                 received_request = requester.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestInteractionsReceived"
                 )
-                sent_request_federate = requester.getParameterHandle(sent_request, "HLAfederate")
+                sent_request_federate = requester.getParameterHandle(
+                    sent_request, "HLAfederate"
+                )
                 received_request_federate = requester.getParameterHandle(
                     received_request, "HLAfederate"
                 )
-                sent_transportation = requester.getParameterHandle(sent_report, "HLAtransportation")
-                sent_counts = requester.getParameterHandle(sent_report, "HLAinteractionCounts")
+                sent_transportation = requester.getParameterHandle(
+                    sent_report, "HLAtransportation"
+                )
+                sent_counts = requester.getParameterHandle(
+                    sent_report, "HLAinteractionCounts"
+                )
                 received_transportation = requester.getParameterHandle(
                     received_report, "HLAtransportation"
                 )
@@ -4060,7 +4551,9 @@ def main() -> int:
                 encoded_requester = bytes(requester_handle.encodedValue)
                 encoded_order_taken = bytes(requester_order_taken.encodedValue)
                 encoded_customer_seated = bytes(requester_customer_seated.encodedValue)
-                reliable_bytes = bytes(transportation_factory.getHLAdefaultReliable().encodedValue)
+                reliable_bytes = bytes(
+                    transportation_factory.getHLAdefaultReliable().encodedValue
+                )
                 best_effort_bytes = bytes(best_effort.encodedValue)
                 request_values = requester.getParameterHandleValueMapFactory().create(1)
 
@@ -4070,13 +4563,23 @@ def main() -> int:
                 if len(callback.received) < 2:
                     raise AssertionError("MOM interactions-sent report count was wrong")
                 assert_report(
-                    callback.received[-2], sent_report, sent_transportation, sent_counts,
-                    reliable_bytes, [encoded_order_taken, encoded_customer_seated], [1, 1],
+                    callback.received[-2],
+                    sent_report,
+                    sent_transportation,
+                    sent_counts,
+                    reliable_bytes,
+                    [encoded_order_taken, encoded_customer_seated],
+                    [1, 1],
                     "MOM interactions sent reliable",
                 )
                 assert_report(
-                    callback.received[-1], sent_report, sent_transportation, sent_counts,
-                    best_effort_bytes, [encoded_order_taken], [2],
+                    callback.received[-1],
+                    sent_report,
+                    sent_transportation,
+                    sent_counts,
+                    best_effort_bytes,
+                    [encoded_order_taken],
+                    [2],
                     "MOM interactions sent best-effort",
                 )
 
@@ -4085,15 +4588,27 @@ def main() -> int:
                 requester.sendInteraction(received_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=4)
                 if len(callback.received) < 4:
-                    raise AssertionError("MOM interactions-received report count was wrong")
+                    raise AssertionError(
+                        "MOM interactions-received report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], received_report, received_transportation, received_counts,
-                    reliable_bytes, [encoded_order_taken, encoded_customer_seated], [1, 1],
+                    callback.received[-2],
+                    received_report,
+                    received_transportation,
+                    received_counts,
+                    reliable_bytes,
+                    [encoded_order_taken, encoded_customer_seated],
+                    [1, 1],
                     "MOM interactions received reliable",
                 )
                 assert_report(
-                    callback.received[-1], received_report, received_transportation, received_counts,
-                    best_effort_bytes, [encoded_order_taken], [2],
+                    callback.received[-1],
+                    received_report,
+                    received_transportation,
+                    received_counts,
+                    best_effort_bytes,
+                    [encoded_order_taken],
+                    [2],
                     "MOM interactions received best-effort",
                 )
 
@@ -4102,14 +4617,28 @@ def main() -> int:
                 requester.sendInteraction(sent_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=6)
                 if len(callback.received) < 6:
-                    raise AssertionError("MOM empty interactions-sent report count was wrong")
+                    raise AssertionError(
+                        "MOM empty interactions-sent report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], sent_report, sent_transportation, sent_counts,
-                    reliable_bytes, None, None, "MOM empty interactions sent reliable",
+                    callback.received[-2],
+                    sent_report,
+                    sent_transportation,
+                    sent_counts,
+                    reliable_bytes,
+                    None,
+                    None,
+                    "MOM empty interactions sent reliable",
                 )
                 assert_report(
-                    callback.received[-1], sent_report, sent_transportation, sent_counts,
-                    best_effort_bytes, None, None, "MOM empty interactions sent best-effort",
+                    callback.received[-1],
+                    sent_report,
+                    sent_transportation,
+                    sent_counts,
+                    best_effort_bytes,
+                    None,
+                    None,
+                    "MOM empty interactions sent best-effort",
                 )
 
                 request_values.clear()
@@ -4117,36 +4646,46 @@ def main() -> int:
                 requester.sendInteraction(received_request, request_values, b"")
                 _drain_callbacks(requester, callback.received, expected=8)
                 if len(callback.received) < 8:
-                    raise AssertionError("MOM empty interactions-received report count was wrong")
+                    raise AssertionError(
+                        "MOM empty interactions-received report count was wrong"
+                    )
                 assert_report(
-                    callback.received[-2], received_report, received_transportation, received_counts,
-                    reliable_bytes, None, None, "MOM empty interactions received reliable",
+                    callback.received[-2],
+                    received_report,
+                    received_transportation,
+                    received_counts,
+                    reliable_bytes,
+                    None,
+                    None,
+                    "MOM empty interactions received reliable",
                 )
                 assert_report(
-                    callback.received[-1], received_report, received_transportation, received_counts,
-                    best_effort_bytes, None, None, "MOM empty interactions received best-effort",
+                    callback.received[-1],
+                    received_report,
+                    received_transportation,
+                    received_counts,
+                    best_effort_bytes,
+                    None,
+                    None,
+                    "MOM empty interactions received best-effort",
                 )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -4214,7 +4753,9 @@ def main() -> int:
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -4235,7 +4776,9 @@ def main() -> int:
                 if received[2] != b"":
                     raise AssertionError(f"{label} report tag was not empty")
                 if getattr(received[3], "name", None) != "RECEIVE":
-                    raise AssertionError(f"{label} report receive order did not round-trip")
+                    raise AssertionError(
+                        f"{label} report receive order did not round-trip"
+                    )
                 if received[4].encodedValue != b"transport:HLAdefaultReliable":
                     raise AssertionError(f"{label} report transport did not round-trip")
 
@@ -4250,7 +4793,9 @@ def main() -> int:
                     "umbra-2010-mom-fom-mim-target", federation
                 )
                 target_joined = True
-                requester.joinFederationExecution("umbra-2010-mom-fom-mim-requester", federation)
+                requester.joinFederationExecution(
+                    "umbra-2010-mom-fom-mim-requester", federation
+                )
                 requester_joined = True
 
                 federate_fom_report = requester.getInteractionClassHandle(
@@ -4275,7 +4820,9 @@ def main() -> int:
                 mim_request = requester.getInteractionClassHandle(
                     "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestMIMdata"
                 )
-                federate_fom_target = requester.getParameterHandle(federate_fom_request, "HLAfederate")
+                federate_fom_target = requester.getParameterHandle(
+                    federate_fom_request, "HLAfederate"
+                )
                 federate_fom_indicator = requester.getParameterHandle(
                     federate_fom_request, "HLAFOMmoduleIndicator"
                 )
@@ -4306,8 +4853,13 @@ def main() -> int:
                 if len(callback.received) < 1:
                     raise AssertionError("federate FOM report count was wrong")
                 assert_module_report(
-                    callback.received[-1], federate_fom_report, federate_fom_report_indicator,
-                    federate_fom_report_data, zero, expected_fom, "federate FOM module report",
+                    callback.received[-1],
+                    federate_fom_report,
+                    federate_fom_report_indicator,
+                    federate_fom_report_data,
+                    zero,
+                    expected_fom,
+                    "federate FOM module report",
                 )
 
                 values = requester.getParameterHandleValueMapFactory().create(1)
@@ -4317,9 +4869,13 @@ def main() -> int:
                 if len(callback.received) < 2:
                     raise AssertionError("federation FOM report count was wrong")
                 assert_module_report(
-                    callback.received[-1], federation_fom_report,
-                    federation_fom_report_indicator, federation_fom_report_data,
-                    zero, expected_fom, "federation FOM module report",
+                    callback.received[-1],
+                    federation_fom_report,
+                    federation_fom_report_indicator,
+                    federation_fom_report_data,
+                    zero,
+                    expected_fom,
+                    "federation FOM module report",
                 )
 
                 values = requester.getParameterHandleValueMapFactory().create(0)
@@ -4328,30 +4884,29 @@ def main() -> int:
                 if len(callback.received) < 3:
                     raise AssertionError("federation MIM report count was wrong")
                 assert_mim_report(
-                    callback.received[-1], mim_report, mim_report_data, expected_mim,
+                    callback.received[-1],
+                    mim_report,
+                    mim_report_data,
+                    expected_mim,
                     "federation MIM report",
                 )
             finally:
                 if requester_joined:
-                    try:
+                    with _best_effort_cleanup("requester.resignFederationExecution"):
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if target_joined:
-                    try:
+                    with _best_effort_cleanup("target.resignFederationExecution"):
                         target.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if target_connected:
-                    try:
+                    with _best_effort_cleanup("target.disconnect"):
                         target.disconnect()
-                    except Exception:
-                        pass
+
                 if requester_connected:
                     try:
                         requester.disconnect()
@@ -4402,21 +4957,27 @@ def main() -> int:
                 connected = True
                 ambassador.createFederationExecution(federation, fom_path)
                 created = True
-                ambassador.joinFederationExecution("umbra-1516e-python-time", federation)
+                ambassador.joinFederationExecution(
+                    "umbra-1516e-python-time", federation
+                )
                 joined = True
 
                 time_factory = ambassador.getTimeFactory()
                 initial = time_factory.makeInitial()
                 lookahead = time_factory.makeEpsilon()
                 if lookahead.getInterval() <= 0:
-                    raise AssertionError("provider returned a non-positive time epsilon")
+                    raise AssertionError(
+                        "provider returned a non-positive time epsilon"
+                    )
 
                 ambassador.enableTimeRegulation(lookahead)
                 _drain_callbacks(ambassador, callback.regulation)
                 if len(callback.regulation) != 1:
                     raise AssertionError("timeRegulationEnabled did not cross JPype")
                 if callback.regulation[0].getTime() != initial.getTime():
-                    raise AssertionError("time-regulation callback time did not round-trip")
+                    raise AssertionError(
+                        "time-regulation callback time did not round-trip"
+                    )
                 if ambassador.queryLookahead().getInterval() != lookahead.getInterval():
                     raise AssertionError("lookahead interval did not round-trip")
 
@@ -4425,7 +4986,9 @@ def main() -> int:
                 if len(callback.constrained) != 1:
                     raise AssertionError("timeConstrainedEnabled did not cross JPype")
                 if callback.constrained[0].getTime() != initial.getTime():
-                    raise AssertionError("time-constrained callback time did not round-trip")
+                    raise AssertionError(
+                        "time-constrained callback time did not round-trip"
+                    )
 
                 requested = time_factory.makeTime(5)
                 ambassador.timeAdvanceRequest(requested)
@@ -4442,35 +5005,42 @@ def main() -> int:
                 # convenience and is not in the 2010 Java interface.
                 next_lookahead = time_factory.makeEpsilon()
                 ambassador.modifyLookahead(next_lookahead)
-                if ambassador.queryLookahead().getInterval() != next_lookahead.getInterval():
+                if (
+                    ambassador.queryLookahead().getInterval()
+                    != next_lookahead.getInterval()
+                ):
                     raise AssertionError("modified lookahead did not round-trip")
                 next_requested = time_factory.makeTime(6)
                 ambassador.timeAdvanceRequestAvailable(next_requested)
                 _drain_callbacks(ambassador, callback.grants, expected=2)
                 if len(callback.grants) != 2:
-                    raise AssertionError("timeAdvanceRequestAvailable grant did not cross JPype")
+                    raise AssertionError(
+                        "timeAdvanceRequestAvailable grant did not cross JPype"
+                    )
                 if callback.grants[-1].getTime() != next_requested.getTime():
-                    raise AssertionError("available time-advance grant time did not round-trip")
+                    raise AssertionError(
+                        "available time-advance grant time did not round-trip"
+                    )
 
                 ambassador.disableTimeConstrained()
                 ambassador.disableTimeRegulation()
             finally:
                 if joined:
-                    try:
+                    with _best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if connected:
                     try:
                         ambassador.disconnect()
                     finally:
                         ambassador = None
-            return "time roles, advance/grant callbacks, lookahead, and logical-time query"
+            return (
+                "time roles, advance/grant callbacks, lookahead, and logical-time query"
+            )
 
         scenarios.append(
             _profiled_scenario(
@@ -4528,7 +5098,9 @@ def main() -> int:
                 connected = True
                 ambassador.createFederationExecution(federation, fom_path)
                 created = True
-                ambassador.joinFederationExecution("umbra-1516e-python-save", federation)
+                ambassador.joinFederationExecution(
+                    "umbra-1516e-python-save", federation
+                )
                 joined = True
 
                 ambassador.requestFederationSave(label)
@@ -4547,9 +5119,13 @@ def main() -> int:
                 ambassador.requestFederationRestore(label)
                 _drain_callbacks(ambassador, callback.restore_successes)
                 if callback.restore_successes != [label]:
-                    raise AssertionError("requestFederationRestoreSucceeded did not cross JPype")
+                    raise AssertionError(
+                        "requestFederationRestoreSucceeded did not cross JPype"
+                    )
                 if callback.restore_begun != 1 or callback.restore_labels != [label]:
-                    raise AssertionError("restore initiation callbacks did not cross JPype")
+                    raise AssertionError(
+                        "restore initiation callbacks did not cross JPype"
+                    )
                 ambassador.federateRestoreComplete()
                 deadline = time.monotonic() + 0.25
                 while callback.restored < 1 and time.monotonic() < deadline:
@@ -4559,21 +5135,21 @@ def main() -> int:
                     raise AssertionError("federationRestored did not cross JPype")
             finally:
                 if joined:
-                    try:
+                    with _best_effort_cleanup("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
+
                 if created:
-                    try:
+                    with _best_effort_cleanup("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation)
-                    except Exception:
-                        pass
+
                 if connected:
                     try:
                         ambassador.disconnect()
                     finally:
                         ambassador = None
-            return "save initiation/completion and restore initiation/completion callbacks"
+            return (
+                "save initiation/completion and restore initiation/completion callbacks"
+            )
 
         scenarios.append(
             _profiled_scenario(
@@ -4612,9 +5188,7 @@ def main() -> int:
                 if (
                     abs(float_time.add(float_interval).getTime() - 3.75) > 1e-12
                     or abs(
-                        float_factory.makeTime(3.75)
-                        .subtract(float_interval)
-                        .getTime()
+                        float_factory.makeTime(3.75).subtract(float_interval).getTime()
                         - 1.25
                     )
                     > 1e-12
@@ -4629,19 +5203,28 @@ def main() -> int:
                 representations.append(float_factory.getName())
             return f"provider-owned {', '.join(representations)} arithmetic"
 
-        scenarios.append(_profiled_scenario(capability_profile, "python-2010-tck.logical-time-arithmetic", "time", logical_time_arithmetic))
+        scenarios.append(
+            _profiled_scenario(
+                capability_profile,
+                "python-2010-tck.logical-time-arithmetic",
+                "time",
+                logical_time_arithmetic,
+            )
+        )
 
     if ambassador is not None:
-        try:
+        with _best_effort_cleanup("ambassador.disconnect"):
             ambassador.disconnect()
-        except Exception:
-            pass
 
     result = {
         "standard": STANDARD_EDITION,
         "transport": "python-native" if args.native_provider else "python-jpype",
-        "capability_profile": str(args.capability_profile.resolve()) if args.capability_profile else "default",
-        "status": "pass" if not any(item["status"] == "fail" for item in scenarios) else "fail",
+        "capability_profile": str(args.capability_profile.resolve())
+        if args.capability_profile
+        else "default",
+        "status": "pass"
+        if not any(item["status"] == "fail" for item in scenarios)
+        else "fail",
         "rti_name": probe.rti_name if probe is not None else "",
         "rti_version": probe.rti_version if probe is not None else "",
         "scenarios": scenarios,

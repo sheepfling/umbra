@@ -14,14 +14,12 @@ import json
 import tempfile
 from pathlib import Path
 
-
 SCRIPT_ROOT = Path(__file__).resolve().parent
 import sys
 
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-import requirements_lab  # noqa: E402  (repository tool import after path setup)
-
+import requirements_lab
 
 DOCUMENT_ID = "hla-1516.1-2025"
 COLLECTIONS = (
@@ -34,25 +32,30 @@ COLLECTIONS = (
 )
 
 
-def _bundle_from_records(records: list[dict[str, object]]) -> dict[str, object]:
-    document: dict[str, object] = {"document_id": DOCUMENT_ID}
-    document.update({collection: [] for collection in COLLECTIONS})
+def _bundle_from_records(
+    records: list[requirements_lab.JsonObject],
+) -> requirements_lab.JsonObject:
+    document: requirements_lab.JsonObject = {"document_id": DOCUMENT_ID}
+    for collection in COLLECTIONS:
+        document[collection] = []
     document["requirements"] = records
     return {"bundle_id": "resync-regression", "documents": [document]}
 
 
-def _bundle(record: dict[str, object]) -> dict[str, object]:
+def _bundle(record: requirements_lab.JsonObject) -> requirements_lab.JsonObject:
     return _bundle_from_records([record])
 
 
-def _write_bundle(directory: Path, name: str, value: dict[str, object]) -> Path:
+def _write_bundle(
+    directory: Path, name: str, value: requirements_lab.JsonObject
+) -> Path:
     path = directory / name
     path.write_text(json.dumps(value), encoding="utf-8")
     return path
 
 
 def main() -> int:
-    baseline_record: dict[str, object] = {
+    baseline_record: requirements_lab.JsonObject = {
         "id": "requirement.example",
         "ordinal": 1,
         "clause": "10.1",
@@ -73,12 +76,21 @@ def main() -> int:
         )
         document = report["documents"][0]
         delta = document["collections"]["requirements"]
-        if report["changed_documents"] != 1 or document["status"] != "content-or-id-drift":
-            raise AssertionError(f"ordinal-only move did not mark the document as changed: {report}")
+        if (
+            report["changed_documents"] != 1
+            or document["status"] != "content-or-id-drift"
+        ):
+            raise AssertionError(
+                f"ordinal-only move did not mark the document as changed: {report}"
+            )
         if not requirements_lab.resync_has_numbering_drift(report):
-            raise AssertionError("ordinal-only move did not trip the numbering-drift predicate")
+            raise AssertionError(
+                "ordinal-only move did not trip the numbering-drift predicate"
+            )
         if delta["missing_content"] or delta["added_content"] or delta["renumbered"]:
-            raise AssertionError(f"ordinal-only move was misclassified as content/ID drift: {delta}")
+            raise AssertionError(
+                f"ordinal-only move was misclassified as content/ID drift: {delta}"
+            )
         expected_ordinal = {
             "baseline_id": "requirement.example",
             "candidate_id": "requirement.example",
@@ -87,9 +99,12 @@ def main() -> int:
         }
         observed_ordinal = delta["ordinal_drift"]
         if len(observed_ordinal) != 1 or any(
-            observed_ordinal[0].get(key) != value for key, value in expected_ordinal.items()
+            observed_ordinal[0].get(key) != value
+            for key, value in expected_ordinal.items()
         ):
-            raise AssertionError(f"ordinal-only move was not reported precisely: {observed_ordinal}")
+            raise AssertionError(
+                f"ordinal-only move was not reported precisely: {observed_ordinal}"
+            )
 
         changed_text = copy.deepcopy(baseline_record)
         changed_text["ordinal"] = 4
@@ -101,7 +116,9 @@ def main() -> int:
         )
         delta = report["documents"][0]["collections"]["requirements"]
         if not delta["missing_content"] or not delta["added_content"]:
-            raise AssertionError(f"text change was not retained as semantic drift: {delta}")
+            raise AssertionError(
+                f"text change was not retained as semantic drift: {delta}"
+            )
         if len(delta["ordinal_drift"]) != 1:
             raise AssertionError(
                 "an ordinal move on a retained ID disappeared alongside text drift: "
@@ -118,17 +135,25 @@ def main() -> int:
         )
         delta = report["documents"][0]["collections"]["requirements"]
         if len(delta["renumbered"]) != 1 or len(delta["ordinal_drift"]) != 1:
-            raise AssertionError(f"combined ID/ordinal drift was not separated: {delta}")
+            raise AssertionError(
+                f"combined ID/ordinal drift was not separated: {delta}"
+            )
         if not requirements_lab.resync_has_numbering_drift(report):
-            raise AssertionError("combined ID/ordinal move did not trip the numbering-drift predicate")
+            raise AssertionError(
+                "combined ID/ordinal move did not trip the numbering-drift predicate"
+            )
 
         clean_report = requirements_lab.resync_bundles(
             baseline_path,
-            _write_bundle(root, "unchanged.json", _bundle(copy.deepcopy(baseline_record))),
+            _write_bundle(
+                root, "unchanged.json", _bundle(copy.deepcopy(baseline_record))
+            ),
             edition="2025",
         )
         if requirements_lab.resync_has_numbering_drift(clean_report):
-            raise AssertionError("unchanged bundle incorrectly tripped the numbering-drift predicate")
+            raise AssertionError(
+                "unchanged bundle incorrectly tripped the numbering-drift predicate"
+            )
 
         valid_pair = copy.deepcopy(baseline_record)
         valid_pair["id"] = "requirement.second"
@@ -144,7 +169,10 @@ def main() -> int:
             malformed,
             edition="2025",
         )
-        if not any("duplicate requirement ordinal 1" in finding for finding in integrity_findings):
+        if not any(
+            "duplicate requirement ordinal 1" in finding
+            for finding in integrity_findings
+        ):
             raise AssertionError(
                 "duplicate requirement ordinals were not rejected: "
                 + "; ".join(integrity_findings)

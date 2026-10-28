@@ -18,7 +18,7 @@
     {
       "id": "umbra-omt-annex-c-variant-record-range-overlap-preflight",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1",
-      "clause_id": "clause-7",
+      "clause_id": "clause-C.3",
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateVariantRecordDiscriminantEnumeratorAssignments",
       "tests": [

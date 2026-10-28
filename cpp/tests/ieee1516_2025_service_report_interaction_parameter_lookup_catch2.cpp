@@ -34,6 +34,7 @@ TEST_CASE(
       L"lookup-success-interaction-subject", L"subject", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"lookup-success-interaction-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   auto const reportClass = observer->getInteractionClassHandle(
       standard_hla::mom::report_service_invocation);

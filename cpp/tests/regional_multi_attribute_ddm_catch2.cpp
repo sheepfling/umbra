@@ -117,6 +117,7 @@ TEST_CASE(
     "Embedded two-dimensional regional object updates filter independent attribute sources",
     "[integration][development-profile][object-management][ddm]"
     "[ddm-regional-multi-attribute]"
+    "[lane.ddm-regional-multi-attribute]"
     "[rti.service.create-federation-execution]"
     "[rti.service.join-federation-execution]"
     "[rti.service.create-region][rti.service.set-range-bounds]"
@@ -292,17 +293,19 @@ TEST_CASE(
           std::vector<unsigned char>{'o', 'r', 'g', 'a', 'n', 'i', 'c', '-', 'i', 'n', 'i', 't', 'i', 'a', 'l'});
   REQUIRE(flavorReports.attributeReflectionReports.back().sentRegionsSupplied);
   REQUIRE(organicReports.attributeReflectionReports.back().sentRegionsSupplied);
-  REQUIRE(flavorReports.attributeReflectionReports.back().sentRegions ==
-          RegionHandleSet{sourceFlavor});
-  REQUIRE(organicReports.attributeReflectionReports.back().sentRegions ==
-          RegionHandleSet{sourceOrganic});
+  // Sent-region designators are receiver-visible callback-scoped handles,
+  // not the publisher's opaque handles. The dedicated designator tests cover
+  // querying their copied ranges; this routing matrix checks one per callback.
+  REQUIRE(flavorReports.attributeReflectionReports.back().sentRegions.size() == 1U);
+  REQUIRE(organicReports.attributeReflectionReports.back().sentRegions.size() == 1U);
 
-  // Moving only Flavor outside X overlap must not suppress Organic, whose
-  // independent source still overlaps in both dimensions.
+  // Move Flavor's X interval to [2,4), which only touches the subscriber's
+  // [0,2) interval at the upper endpoint. Semi-open DDM ranges do not overlap
+  // at that boundary, while Organic's independent source remains overlapping.
   REQUIRE_NOTHROW(publisher->setRangeBounds(
       sourceFlavor,
       publisherX,
-      RangeBounds(8UL, 9UL)));
+      RangeBounds(2UL, 4UL)));
   REQUIRE_NOTHROW(publisher->commitRegionModifications(
       RegionHandleSet{sourceFlavor}));
   auto const flavorCountAfterInitial = flavorReports.attributeReflectionReports.size();
@@ -345,10 +348,8 @@ TEST_CASE(
   sendValues("flavor-restored", "organic-restored", "restored");
   REQUIRE(flavorReports.attributeReflectionReports.size() == flavorCountBeforeRestore + 1U);
   REQUIRE(organicReports.attributeReflectionReports.size() == organicCountBeforeRestore + 1U);
-  REQUIRE(flavorReports.attributeReflectionReports.back().sentRegions ==
-          RegionHandleSet{sourceFlavor});
-  REQUIRE(organicReports.attributeReflectionReports.back().sentRegions ==
-          RegionHandleSet{sourceOrganic});
+  REQUIRE(flavorReports.attributeReflectionReports.back().sentRegions.size() == 1U);
+  REQUIRE(organicReports.attributeReflectionReports.back().sentRegions.size() == 1U);
 
   REQUIRE_NOTHROW(flavorSubscriber->unsubscribeObjectClassAttributesWithRegions(
       flavorClass,

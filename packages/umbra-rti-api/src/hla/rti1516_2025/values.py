@@ -68,7 +68,9 @@ class SaveFailureReason(Enum):
 
 class RestoreFailureReason(Enum):
     RTI_UNABLE_TO_RESTORE = "RTI_UNABLE_TO_RESTORE"
-    FEDERATE_REPORTED_FAILURE_DURING_RESTORE = "FEDERATE_REPORTED_FAILURE_DURING_RESTORE"
+    FEDERATE_REPORTED_FAILURE_DURING_RESTORE = (
+        "FEDERATE_REPORTED_FAILURE_DURING_RESTORE"
+    )
     FEDERATE_RESIGNED_DURING_RESTORE = "FEDERATE_RESIGNED_DURING_RESTORE"
     RTI_DETECTED_FAILURE_DURING_RESTORE = "RTI_DETECTED_FAILURE_DURING_RESTORE"
     RESTORE_ABORTED = "RESTORE_ABORTED"
@@ -80,7 +82,10 @@ class RestoreStatus(Enum):
     FEDERATE_WAITING_FOR_RESTORE_TO_BEGIN = "FEDERATE_WAITING_FOR_RESTORE_TO_BEGIN"
     FEDERATE_PREPARED_TO_RESTORE = "FEDERATE_PREPARED_TO_RESTORE"
     FEDERATE_RESTORING = "FEDERATE_RESTORING"
-    FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE = "FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE"
+    FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE = (
+        "FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE"
+    )
+
 
 @dataclass(frozen=True, slots=True)
 class ConfigurationResult:
@@ -124,7 +129,9 @@ class FederationExecutionMemberInformation:
     federateType: str
 
 
-class FederationExecutionMemberInformationSet(frozenset[FederationExecutionMemberInformation]):
+class FederationExecutionMemberInformationSet(
+    frozenset[FederationExecutionMemberInformation]
+):
     """Immutable Python callback snapshot of the Java member-information set."""
 
 
@@ -142,14 +149,18 @@ class EncodedHandle:
     encodedValue: BytesLike
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def encodedLength(self) -> int:
         return len(self.encodedValue)
 
     def encode(self, buffer: WritableBytes, offset: int = 0) -> None:
         if offset < 0 or offset + len(self.encodedValue) > len(buffer):
-            raise ValueError(f"buffer does not have room for this {type(self).__name__}")
+            raise ValueError(
+                f"buffer does not have room for this {type(self).__name__}"
+            )
         buffer[offset : offset + len(self.encodedValue)] = self.encodedValue
 
 
@@ -221,7 +232,9 @@ class _MutableHandleSet(MutableSet[_HandleT]):
 
     def add(self, value: _HandleT) -> None:
         if not isinstance(value, self._handle_type):
-            raise TypeError(f"{type(self).__name__} values must be {self._handle_type.__name__}")
+            raise TypeError(
+                f"{type(self).__name__} values must be {self._handle_type.__name__}"
+            )
         self._values.add(value)
 
     def discard(self, value: object) -> None:
@@ -275,7 +288,9 @@ class _MutableHandleValueMap(MutableMapping[_HandleT, bytes]):
 
     def __setitem__(self, handle: _HandleT, value: BytesLike) -> None:
         if not isinstance(handle, self._handle_type):
-            raise TypeError(f"{type(self).__name__} keys must be {self._handle_type.__name__}")
+            raise TypeError(
+                f"{type(self).__name__} keys must be {self._handle_type.__name__}"
+            )
         self._values[handle] = bytes(value)
 
     def __delitem__(self, handle: _HandleT) -> None:
@@ -366,7 +381,9 @@ class AttributeRegionAssociation:
         return self.rhset
 
 
-_AttributeSetRegionSetPairListValue = AttributeSetRegionSetPair | AttributeRegionAssociation
+_AttributeSetRegionSetPairListValue = (
+    AttributeSetRegionSetPair | AttributeRegionAssociation
+)
 
 
 class AttributeSetRegionSetPairList(tuple[_AttributeSetRegionSetPairListValue, ...]):
@@ -378,7 +395,9 @@ class AttributeSetRegionSetPairList(tuple[_AttributeSetRegionSetPairListValue, .
     ) -> Self:
         copied = tuple(values)
         for value in copied:
-            if not isinstance(value, (AttributeSetRegionSetPair, AttributeRegionAssociation)):
+            if not isinstance(
+                value, (AttributeSetRegionSetPair, AttributeRegionAssociation)
+            ):
                 raise TypeError(
                     "pair list values must be AttributeSetRegionSetPair or AttributeRegionAssociation"
                 )
@@ -387,9 +406,7 @@ class AttributeSetRegionSetPairList(tuple[_AttributeSetRegionSetPairListValue, .
         return cast(Self, tuple.__new__(cls, copied))
 
 
-class MutableAttributeSetRegionSetPairList(
-    list[_AttributeSetRegionSetPairListValue]
-):
+class MutableAttributeSetRegionSetPairList(list[_AttributeSetRegionSetPairListValue]):
     """Mutable list returned by ``AttributeSetRegionSetPairListFactory``.
 
     The Java factory's integer argument is a capacity hint, not an initial
@@ -411,7 +428,9 @@ class MutableAttributeSetRegionSetPairList(
             self.add(value)
 
     def add(self, value: _AttributeSetRegionSetPairListValue) -> None:
-        if not isinstance(value, (AttributeSetRegionSetPair, AttributeRegionAssociation)):
+        if not isinstance(
+            value, (AttributeSetRegionSetPair, AttributeRegionAssociation)
+        ):
             raise TypeError(
                 "pair list values must be AttributeSetRegionSetPair or AttributeRegionAssociation"
             )
@@ -457,7 +476,9 @@ class LogicalTime:
     text: str = ""
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def encodedLength(self) -> int:
         return len(self.encodedValue)
@@ -506,7 +527,9 @@ class LogicalTimeInterval:
     text: str = ""
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue"))
+        object.__setattr__(
+            self, "encodedValue", copy_bytes(self.encodedValue, name="encodedValue")
+        )
 
     def encodedLength(self) -> int:
         return len(self.encodedValue)
@@ -562,7 +585,9 @@ class AttributeHandleValueMap(Mapping[AttributeHandle, bytes]):
         copied: dict[AttributeHandle, bytes] = {}
         for attribute, value in dict(values).items():
             if not isinstance(attribute, AttributeHandle):
-                raise TypeError("AttributeHandleValueMap keys must be AttributeHandle values")
+                raise TypeError(
+                    "AttributeHandleValueMap keys must be AttributeHandle values"
+                )
             copied[attribute] = bytes(value)
         self._values = copied
 
@@ -599,7 +624,9 @@ class ParameterHandleValueMap(Mapping[ParameterHandle, bytes]):
         copied: dict[ParameterHandle, bytes] = {}
         for parameter, value in dict(values).items():
             if not isinstance(parameter, ParameterHandle):
-                raise TypeError("ParameterHandleValueMap keys must be ParameterHandle values")
+                raise TypeError(
+                    "ParameterHandleValueMap keys must be ParameterHandle values"
+                )
             copied[parameter] = bytes(value)
         self._values = copied
 
@@ -678,61 +705,61 @@ class RtiConfiguration:
 
 __all__ = [
     "AdditionalSettingsResultCode",
+    "AttributeHandle",
+    "AttributeHandleSet",
+    "AttributeHandleSetRegionHandleSetPair",
+    "AttributeHandleSetRegionHandleSetPairVector",
+    "AttributeHandleValueMap",
+    "AttributeRegionAssociation",
+    "AttributeSetRegionSetPair",
+    "AttributeSetRegionSetPairList",
     "CallbackModel",
-    "OrderType",
-    "ServiceGroup",
-    "ResignAction",
-    "SynchronizationPointFailureReason",
-    "SaveStatus",
-    "SaveFailureReason",
-    "RestoreFailureReason",
-    "RestoreStatus",
     "ConfigurationResult",
-    "TimeQueryResult",
+    "DimensionHandle",
+    "DimensionHandleSet",
+    "EncodedHandle",
+    "FederateHandle",
+    "FederateHandleSaveStatusPair",
+    "FederateHandleSet",
+    "FederateRestoreStatus",
     "FederationExecutionInformation",
     "FederationExecutionInformationSet",
     "FederationExecutionMemberInformation",
     "FederationExecutionMemberInformationSet",
-    "EncodedHandle",
-    "FederateHandle",
-    "ObjectClassHandle",
-    "ObjectInstanceHandle",
-    "AttributeHandle",
+    "HLAfloat64Interval",
+    "HLAfloat64Time",
+    "HLAinteger64Interval",
+    "HLAinteger64Time",
     "InteractionClassHandle",
-    "ParameterHandle",
-    "TransportationTypeHandle",
-    "DimensionHandle",
-    "RegionHandle",
+    "InteractionClassHandleSet",
+    "LogicalTime",
+    "LogicalTimeInterval",
     "MessageRetractionHandle",
     "MutableAttributeHandleSet",
+    "MutableAttributeHandleValueMap",
+    "MutableAttributeSetRegionSetPairList",
     "MutableDimensionHandleSet",
     "MutableFederateHandleSet",
-    "MutableRegionHandleSet",
-    "MutableAttributeHandleValueMap",
-    "MutableParameterHandleValueMap",
-    "DimensionHandleSet",
-    "RegionHandleSet",
-    "InteractionClassHandleSet",
     "MutableInteractionClassHandleSet",
+    "MutableParameterHandleValueMap",
+    "MutableRegionHandleSet",
+    "ObjectClassHandle",
+    "ObjectInstanceHandle",
     "ObjectInstanceNameSet",
-    "AttributeSetRegionSetPair",
-    "AttributeRegionAssociation",
-    "AttributeSetRegionSetPairList",
-    "MutableAttributeSetRegionSetPairList",
-    "AttributeHandleSetRegionHandleSetPair",
-    "AttributeHandleSetRegionHandleSetPairVector",
-    "RangeBounds",
-    "LogicalTime",
-    "HLAinteger64Time",
-    "HLAfloat64Time",
-    "LogicalTimeInterval",
-    "HLAinteger64Interval",
-    "HLAfloat64Interval",
-    "AttributeHandleSet",
-    "AttributeHandleValueMap",
+    "OrderType",
+    "ParameterHandle",
     "ParameterHandleValueMap",
-    "FederateHandleSet",
-    "FederateHandleSaveStatusPair",
-    "FederateRestoreStatus",
+    "RangeBounds",
+    "RegionHandle",
+    "RegionHandleSet",
+    "ResignAction",
+    "RestoreFailureReason",
+    "RestoreStatus",
     "RtiConfiguration",
+    "SaveFailureReason",
+    "SaveStatus",
+    "ServiceGroup",
+    "SynchronizationPointFailureReason",
+    "TimeQueryResult",
+    "TransportationTypeHandle",
 ]

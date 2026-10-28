@@ -13,15 +13,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 SCRIPT_ROOT = Path(__file__).resolve().parent
 REPOSITORY_ROOT = SCRIPT_ROOT.parent
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-import requirements_lab  # noqa: E402  (repository tool import after path setup)
+import requirements_lab
 
-
-OBSERVATIONS_PATH = REPOSITORY_ROOT / "docs" / "testing" / "REQUIREMENTS-LAB-OBSERVATIONS.md"
+OBSERVATIONS_PATH = (
+    REPOSITORY_ROOT / "docs" / "testing" / "REQUIREMENTS-LAB-OBSERVATIONS.md"
+)
 BASELINE_PATH = (
     REPOSITORY_ROOT
     / "compliance"
@@ -46,7 +46,9 @@ def _with_appended_observation(
 
 def _check_text(text: str) -> tuple[str, ...]:
     """Run the production checker against a temporary, untracked ledger."""
-    with tempfile.TemporaryDirectory(prefix="umbra-observation-regression-") as directory:
+    with tempfile.TemporaryDirectory(
+        prefix="umbra-observation-regression-"
+    ) as directory:
         path = Path(directory) / "observations.md"
         path.write_text(text, encoding="utf-8")
         return requirements_lab._check_observations(path, baseline_path=BASELINE_PATH)
@@ -59,7 +61,9 @@ def main() -> int:
         OBSERVATIONS_PATH, baseline_path=BASELINE_PATH
     )
     if findings:
-        raise AssertionError("live observation ledger is not valid: " + "; ".join(findings))
+        raise AssertionError(
+            "live observation ledger is not valid: " + "; ".join(findings)
+        )
 
     next_identifier = requirements_lab._next_post_cutoff_identifier(text)
     cited_recurrence = _with_appended_observation(
@@ -92,9 +96,7 @@ def main() -> int:
         "but this synthetic reproduction intentionally omits its earlier RL citation.",
     )
     findings = _check_text(uncited_recurrence)
-    expected_uncited = (
-        f"post-RL-157 recurrence {next_identifier} must cite an earlier RL-### observation"
-    )
+    expected_uncited = f"post-RL-157 recurrence {next_identifier} must cite an earlier RL-### observation"
     if expected_uncited not in findings:
         raise AssertionError(
             "an uncited post-RL-157 unresolved reproduction was not rejected: "
@@ -131,7 +133,9 @@ def main() -> int:
         identifier=f"RL-{int(next_identifier[3:]) + 1:03d}",
     )
     findings = _check_text(skipped_identifier)
-    if not any("must use each next RL-### identifier" in finding for finding in findings):
+    if not any(
+        "must use each next RL-### identifier" in finding for finding in findings
+    ):
         raise AssertionError(
             "a skipped post-RL-157 identifier was not rejected: " + "; ".join(findings)
         )
@@ -142,7 +146,10 @@ def main() -> int:
         1,
     )
     findings = _check_text(historical_edit)
-    if not any("historical RL-001..RL-157 observation content/order differs" in finding for finding in findings):
+    if not any(
+        "historical RL-001..RL-157 observation content/order differs" in finding
+        for finding in findings
+    ):
         raise AssertionError(
             "a historical observation edit was not rejected: " + "; ".join(findings)
         )

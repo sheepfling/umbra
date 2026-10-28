@@ -13,8 +13,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
-
+from typing import TypedDict
 
 SCOPE_TAGS = frozenset(("unit", "integration"))
 DOMAIN_TAGS = frozenset(
@@ -36,6 +35,13 @@ DOMAIN_TAGS = frozenset(
 )
 
 
+class _Catch2Test(TypedDict):
+    name: str
+    tags: list[str]
+    filename: str
+    line: int | str
+
+
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Verify the required execution-scope and domain tags on Catch2 tests."
@@ -49,11 +55,54 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def test_location(test: dict[str, Any]) -> str:
-    location = test.get("source-location", {})
-    filename = location.get("filename", "<unknown source>")
-    line = location.get("line", "?")
-    return f"{filename}:{line}"
+def _test_rows(report: object) -> list[_Catch2Test]:
+    if not isinstance(report, dict):
+        raise TypeError("root must be an object")
+    listings = report.get("listings")
+    if not isinstance(listings, dict):
+        raise TypeError("listings must be an object")
+    tests = listings.get("tests")
+    if not isinstance(tests, list):
+        raise TypeError("listings.tests must be an array")
+
+    rows: list[_Catch2Test] = []
+    for index, value in enumerate(tests):
+        if not isinstance(value, dict):
+            raise TypeError(f"listings.tests[{index}] must be an object")
+        name = value.get("name", "<unnamed test>")
+        tags = value.get("tags", [])
+        location = value.get("source-location", {})
+        if not isinstance(name, str):
+            raise TypeError(f"listings.tests[{index}].name must be a string")
+        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+            raise TypeError(f"listings.tests[{index}].tags must be a string array")
+        if not isinstance(location, dict):
+            raise TypeError(
+                f"listings.tests[{index}].source-location must be an object"
+            )
+        filename = location.get("filename", "<unknown source>")
+        line = location.get("line", "?")
+        if (
+            not isinstance(filename, str)
+            or not isinstance(line, (int, str))
+            or isinstance(line, bool)
+        ):
+            raise TypeError(
+                f"listings.tests[{index}].source-location has invalid filename or line"
+            )
+        rows.append(
+            {
+                "name": name,
+                "tags": tags,
+                "filename": filename,
+                "line": line,
+            }
+        )
+    return rows
+
+
+def test_location(test: _Catch2Test) -> str:
+    return f"{test['filename']}:{test['line']}"
 
 
 def main() -> int:
@@ -78,15 +127,15 @@ def main() -> int:
         return result.returncode
 
     try:
-        report = json.loads(result.stdout)
-        tests = report["listings"]["tests"]
-    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        report: object = json.loads(result.stdout)
+        tests = _test_rows(report)
+    except (json.JSONDecodeError, TypeError) as error:
         print(f"Could not read the Catch2 JSON test listing: {error}", file=sys.stderr)
         return 2
 
     violations: list[str] = []
     for test in tests:
-        tags = frozenset(test.get("tags", ()))
+        tags = frozenset(test["tags"])
         scopes = tags & SCOPE_TAGS
         domains = tags & DOMAIN_TAGS
         problems: list[str] = []
@@ -97,11 +146,11 @@ def main() -> int:
             )
         if not domains:
             problems.append(
-                "expected at least one domain tag from " f"{sorted(DOMAIN_TAGS)}"
+                f"expected at least one domain tag from {sorted(DOMAIN_TAGS)}"
             )
         if problems:
             violations.append(
-                f"  {test_location(test)}: {test.get('name', '<unnamed test>')}\n"
+                f"  {test_location(test)}: {test['name']}\n"
                 f"    tags: {sorted(tags)}\n"
                 f"    {'; '.join(problems)}"
             )

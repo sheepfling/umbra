@@ -147,6 +147,7 @@ TEST_CASE(
     "[integration][development-profile][object-management][time-management]"
     "[timestamped-attribute-update][tso][re-enable][regulation-disable][changed-lookahead]"
     "[timestamped-attribute-update-regulation-reenable-changed-lookahead]"
+    "[lane.timestamped-attribute-update-regulation-reenable-changed-lookahead]"
     "[rti.service.update-attribute-values][rti.service.enable-time-regulation]"
     "[rti.service.disable-time-regulation][rti.service.query-lookahead]"
     "[rti.service.time-advance-request][rti.service.enable-time-constrained]"
@@ -232,15 +233,15 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->queryLookahead(changedLookahead));
   REQUIRE(changedLookahead.getInterval() == 3);
 
-  // With current time zero and lookahead three, the producer's advance to two
-  // raises GALT to the queued timestamp five. Reflection must precede the
-  // receiver's matching grant and preserve the original designator.
+  // With lookahead three, advancing the producer to three raises GALT to six,
+  // strictly beyond the receiver's requested grant at five. Reflection must
+  // precede the receiver's grant and preserve the original designator.
   receiverReports.callbackOrder.clear();
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.attributeReflectionReports.empty());
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(2)));
+      rti1516_2025::HLAinteger64Time(3)));
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);

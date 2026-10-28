@@ -14,7 +14,7 @@
 #include <RTI/Exception.h>
 #include <RTI/FederateAmbassador.h>
 #include <RTI/VariableLengthData.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 #include <RTI/time/LogicalTime.h>
 
 #include <algorithm>
@@ -32,7 +32,7 @@ std::unique_ptr<rti1516_2025::LogicalTime> decodeEventTimestamp(
     throw ProcessFederationCallbackBridgeError(
         "A process callback timestamp requires a logical-time implementation name.");
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       timestamp.implementationName);
   if (!factory || factory->getName() != timestamp.implementationName) {
     throw ProcessFederationCallbackBridgeError(
@@ -63,7 +63,7 @@ std::unique_ptr<rti1516_2025::LogicalTime> decodeRoleEnableTime(
     throw ProcessFederationCallbackBridgeError(
         "A process role-enable callback requires a logical-time implementation name.");
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       value.implementationName);
   if (!factory || factory->getName() != value.implementationName) {
     throw ProcessFederationCallbackBridgeError(

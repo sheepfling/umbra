@@ -32,6 +32,8 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
                     "undefined-GALT initial logical time");
   auto const messageTime = timeAfter(*requesterTime.factory, *requesterTime.initial,
                                      *requesterTime.epsilon, 5U);
+  auto const laterMessageTime = timeAfter(*requesterTime.factory, *requesterTime.initial,
+                                          *requesterTime.epsilon, 7U);
   auto const requestTime = timeAfter(*requesterTime.factory, *requesterTime.initial,
                                      *requesterTime.epsilon, 10U);
   requester.rtiAmbassador().enableTimeConstrained();
@@ -64,7 +66,10 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
     rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
     auto const retraction = producer.rtiAmbassador().sendInteraction(
         *interaction, values, tag, *messageTime);
-    require(retraction.isValid(), "queued interaction lacks a retraction handle");
+    auto const laterRetraction = producer.rtiAmbassador().sendInteraction(
+        *interaction, values, tag, *laterMessageTime);
+    require(retraction.isValid() && laterRetraction.isValid(),
+            "queued interactions lack retraction handles");
     producer.rtiAmbassador().disableTimeRegulation();
     producer.pump();
   }
@@ -77,7 +82,7 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
   waitFor(requester,
           [&] {
             return requester.recorder().flushQueueGrants().size() == 1U &&
-                (!queued || requester.recorder().timedInteractions().size() == 1U);
+              requester.recorder().timedInteractions().size() == (queued ? 2U : 0U);
           }, options, "undefined-GALT Flush Queue Grant");
   auto const grants = requester.recorder().flushQueueGrants();
   auto const expectedOptimistic = queued ? messageTime.get() : requestTime.get();
@@ -87,25 +92,28 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
               grants.front().optimisticTime == encodeTime(*expectedOptimistic),
           "undefined-GALT FQG actual or optimistic time disagreed with the NRG switch");
   require(requester.recorder().callbackOrder() ==
-              (queued ? std::vector<std::string>{"interaction", "flush-grant"}
+              (queued ? std::vector<std::string>{"interaction", "interaction", "flush-grant"}
                       : std::vector<std::string>{"flush-grant"}),
           "undefined-GALT FQR callback order differed from delivered message order");
   auto const delivered = requester.recorder().timedInteractions();
-  require(delivered.size() == (queued ? 1U : 0U),
+  require(delivered.size() == (queued ? 2U : 0U),
           "undefined-GALT FQR delivered the wrong number of interactions");
   if (queued) {
-    require(delivered.front().interaction == *interaction &&
-                delivered.front().parameters.size() == 1U &&
-                delivered.front().parameters.count(*parameter) == 1U &&
-                copyBytes(delivered.front().parameters.at(*parameter)) ==
-                    std::vector<std::uint8_t>(payload.begin(), payload.end()) &&
-                delivered.front().tag ==
-                    std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()) &&
-                delivered.front().time == encodeTime(*messageTime) &&
-                delivered.front().producer == producer.federateHandle() &&
-                delivered.front().sentOrder == rti::TIMESTAMP &&
-                delivered.front().receivedOrder == rti::TIMESTAMP,
-            "undefined-GALT FQR changed the delivered interaction fields");
+    for (std::size_t index = 0U; index < delivered.size(); ++index) {
+      auto const& expectedTime = index == 0U ? *messageTime : *laterMessageTime;
+      require(delivered[index].interaction == *interaction &&
+                  delivered[index].parameters.size() == 1U &&
+                  delivered[index].parameters.count(*parameter) == 1U &&
+                  copyBytes(delivered[index].parameters.at(*parameter)) ==
+                      std::vector<std::uint8_t>(payload.begin(), payload.end()) &&
+                  delivered[index].tag ==
+                      std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()) &&
+                  delivered[index].time == encodeTime(expectedTime) &&
+                  delivered[index].producer == producer.federateHandle() &&
+                  delivered[index].sentOrder == rti::TIMESTAMP &&
+                  delivered[index].receivedOrder == rti::TIMESTAMP,
+              "undefined-GALT FQR changed a delivered interaction or its order");
+    }
   }
   require(!requester.rtiAmbassador().queryGALT(*galt),
           "undefined-GALT FQR fabricated a GALT after its grant");

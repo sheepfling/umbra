@@ -288,7 +288,7 @@ TEST_CASE(
       parameterMapValue,
       regionSetValue,
       "\"4\"",
-      "InvalidLogicalTime: A timestamped service is earlier than the sender\\'s current logical time plus lookahead.");
+      "InvalidLogicalTime: A timestamped service is earlier than the sender\\'s applicable logical-time-plus-lookahead floor.");
   REQUIRE_THROWS_AS(
       publisher->sendInteractionWithRegions(
           interactionClass,

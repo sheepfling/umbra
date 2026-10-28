@@ -1,5 +1,7 @@
 {
   "include": ["src"],
+  "venvPath": "../../out",
+  "venv": "alphus-env",
   "typeCheckingMode": "standard",
   "executionEnvironments": [
     {

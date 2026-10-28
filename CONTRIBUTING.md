@@ -79,12 +79,15 @@ also follow the traceability guidance in
 
 ## Choose a build profile
 
-| Goal | Profile | Dependency behavior |
-| --- | --- | --- |
-| Core build, headers, contracts, and package smoke | native | No dependency download by default. |
-| Native Catch2 behavior tests | native-catch2 | Fetches pinned Catch2 if unavailable. |
-| XML/XSD and FOM validation | native-fom | Fetches pinned Catch2 and libxml2 if unavailable. |
-| Embedded federation-management development profile | native-fom-services | Extends the FOM profile; it is non-installable. |
+| Goal                                               | Profile             | Dependency behavior                               |
+| -------------------------------------------------- | ------------------- | ------------------------------------------------- |
+| Core build, headers, contracts, and package smoke  | native              | No dependency download by default.                |
+| Native Catch2 behavior tests                       | native-catch2       | Fetches pinned Catch2 if unavailable.             |
+| XML/XSD and FOM validation                         | native-fom          | Fetches pinned Catch2 and libxml2 if unavailable. |
+| Embedded federation-management development profile | native-fom-services | Extends the FOM profile; it is non-installable.   |
+
+For a Windows MinGW build and the Python/JNI binding routes, follow the
+[first-build guide](docs/development/FIRST-BUILD-WINDOWS-MINGW.md).
 
 Run any profile locally or from any CI service that provides Python, CMake, the
 Visual Studio C++ toolchain, and a Windows SDK. For example:
@@ -97,6 +100,9 @@ Python package metadata requires Python 3.11 or newer. Start with the package
 README and keep applications on the provider-neutral hla-rti-api contract.
 Use the bundled or a local Python 3.11+ interpreter; Python 3.10 cannot import
 the current API contract.
+
+For the edit, test, lint, and full-profile cadence, follow the
+[Python development workflow](docs/python/PYTHON-DEVELOPMENT-WORKFLOW.md).
 
 Java/JNI work is optional. Start with
 [the Java TCK guide](docs/testing/JAVA-RTI-CONFORMANCE-TCK.md) or the relevant

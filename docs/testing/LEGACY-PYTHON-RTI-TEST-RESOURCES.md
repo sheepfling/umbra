@@ -10,17 +10,17 @@ next.
 
 - Inspected source revision: `7d92a5e24563ad996d2ec7ea5c1840c7c4a9c9bc`
   on 2026-08-16.
-- The sibling worktree was not clean at inspection time.  Re-check its revision
+- The sibling worktree was not clean at inspection time. Re-check its revision
   and status before using a later reading or importing any third-party asset.
-- These are scenario designs, fixtures, and test-oracle ideas.  They are not
+- These are scenario designs, fixtures, and test-oracle ideas. They are not
   imported Python code, Umbra API design, Requirements-Lab mappings, test
   results, or portable conformance evidence.
 - The sibling's direct Python and hosted-transport bounded proofs remain claims
-  for its own runtime lanes.  Umbra must create independent Catch2 evidence.
+  for its own runtime lanes. Umbra must create independent Catch2 evidence.
 
 For every selected item, first identify the pertinent IEEE 1516.1/1516.2-2025
 source in the Requirements Lab, state the Umbra runtime boundary, and write a
-fresh C++ expectation.  Do not inherit a pytest marker, helper algorithm, or
+fresh C++ expectation. Do not inherit a pytest marker, helper algorithm, or
 vendor-specific transport outcome as a standard rule.
 
 ## Harvested resource register
@@ -47,7 +47,7 @@ vendor-specific transport outcome as a standard rule.
 
 ## Extraction order
 
-The source tree is deliberately broader than Umbra's present runtime.  To keep
+The source tree is deliberately broader than Umbra's present runtime. To keep
 the harvest useful rather than sprawling, apply the resources in this order:
 
 1. Finish the current no-TSO time matrix (`SB-TIME-003`) and private FOM
@@ -68,12 +68,12 @@ the harvest useful rather than sprawling, apply the resources in this order:
 ## Umbra-specific test work not supplied by the source corpus
 
 The adjacent corpus is valuable, but it cannot supply the tests that protect
-Umbra's core C++ contract.  Add these as Umbra-native work rather than trying
+Umbra's core C++ contract. Add these as Umbra-native work rather than trying
 to translate Python tests:
 
 1. Compile/install tests that build small federate clients against the exact
    vendored official headers and the installed SDK, including exception and
-   overload use.  The official headers, not a locally frozen API snapshot,
+   overload use. The official headers, not a locally frozen API snapshot,
    are the oracle.
 2. Property-based and fuzz testing for XML/FOM parsing, hostile entity/schema
    inputs, datatype graphs, and encoded buffers; record each minimized corpus
@@ -82,7 +82,7 @@ to translate Python tests:
    callback re-entrancy, cancellation, teardown, and all state transitions;
    run suitable targets under platform sanitizers as the C++ runtime grows.
 4. Black-box cross-process and external-RTI interoperability tests, with
-   separately pinned versions, topology, timeouts, and artifacts.  A local
+   separately pinned versions, topology, timeouts, and artifacts. A local
    embedded pass must never stand in for this evidence.
 
 ## Evidence discipline

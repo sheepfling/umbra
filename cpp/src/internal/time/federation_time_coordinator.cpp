@@ -216,7 +216,50 @@ TsoMessageRetractionResult FederationTimeCoordinator::retractTsoMessage(
 
 TsoMessageRetractionResult FederationTimeCoordinator::retractPendingTsoMessage(
     std::uint64_t messageId) {
-  return tsoQueue_.retractPending(messageId);
+  bool hasUnacknowledgedInTransitEntry = false;
+  for (auto const& [recipientFederateId, messages] : inTransitTsoMessages_) {
+    static_cast<void>(recipientFederateId);
+    if (std::any_of(
+            messages.begin(), messages.end(), [messageId](TsoQueuedMessage const& message) {
+              return message.messageId == messageId;
+            })) {
+      hasUnacknowledgedInTransitEntry = true;
+      break;
+    }
+  }
+
+  auto result = tsoQueue_.retractPending(
+      messageId, hasUnacknowledgedInTransitEntry);
+  if (result.status != TsoMessageQueueStatus::applied) {
+    return result;
+  }
+
+  // In-transit only means that a transport or callback route has taken
+  // ownership; it does not mean the federate callback has begun. Until the
+  // callback acknowledgement moves an entry to delivered state, Retract must
+  // withdraw it from GALT/LITS safety calculations as well. Keep a retired
+  // identity so a late acknowledgement is still accepted without restoring
+  // the withdrawn timestamp as a frontier.
+  for (auto recipient = inTransitTsoMessages_.begin();
+       recipient != inTransitTsoMessages_.end();) {
+    auto& messages = recipient->second;
+    auto message = messages.begin();
+    while (message != messages.end()) {
+      if (message->messageId == messageId) {
+        retiredInTransitTsoMessages_.push_back(*message);
+        message = messages.erase(message);
+        ++result.removedCount;
+      } else {
+        ++message;
+      }
+    }
+    if (messages.empty()) {
+      recipient = inTransitTsoMessages_.erase(recipient);
+    } else {
+      ++recipient;
+    }
+  }
+  return result;
 }
 
 std::vector<TsoQueuedMessage> FederationTimeCoordinator::retireTsoMessagesBefore(

@@ -16,7 +16,8 @@ publication/subscription, named and unnamed object registration and discovery,
 single and multiple name-reservation callbacks, released-name reuse after object
 deletion, instance- and class-scoped attribute value update requests, attribute
 update/reflection, object deletion and removal callbacks,
-ordinary and timestamped interaction delivery (including the RO-positive/TSO-gated asynchronous-delivery boundary), support lookups, negative cases, relevance
+ordinary and timestamped interaction delivery (including the RO-positive/TSO-gated asynchronous-delivery boundary),
+support lookups, negative cases, relevance
 advisories, directed interactions, derived-target subscription eligibility,
 and transportation/order controls. The
 `java-tck.federate-application-multiple-executions` case creates two

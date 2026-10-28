@@ -11,13 +11,13 @@ checks.
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import json
-from pathlib import Path
 import re
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Literal, TypedDict
 from zipfile import BadZipFile, ZipFile
-
 
 SERVICE_PATH = "META-INF/services/hla.rti1516e.RtiFactory"
 SERVICE_2025_PATH = "META-INF/services/hla.rti1516_2025.RtiFactory"
@@ -28,20 +28,36 @@ REQUIRED_API_ENTRIES = (
     "hla/rti1516e/FederateAmbassador.class",
     "hla/rti1516e/encoding/EncoderFactory.class",
 )
-_JAVA_CLASS_NAME = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$")
+_JAVA_CLASS_NAME = re.compile(
+    r"^[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$"
+)
+
+JarKind = Literal["provider", "dependency", "api"]
+PreflightStatus = Literal["pass", "fail"]
+
+
+class JarPreflightReport(TypedDict):
+    path: str
+    kind: JarKind
+    status: PreflightStatus
+    service_path: str
+    service_entries: list[str]
+    has_2010_api: bool
+    has_2025_namespace: bool
+    findings: list[str]
 
 
 @dataclass(frozen=True, slots=True)
 class JarPreflight:
     path: str
-    kind: str
-    status: str
+    kind: JarKind
+    status: PreflightStatus
     service_entries: tuple[str, ...]
     has_2010_api: bool
     has_2025_namespace: bool
     findings: tuple[str, ...]
 
-    def as_dict(self) -> dict[str, object]:
+    def as_dict(self) -> JarPreflightReport:
         return {
             "path": self.path,
             "kind": self.kind,
@@ -68,7 +84,7 @@ def _service_entries(archive: ZipFile) -> tuple[str, ...]:
 def _preflight(
     path: Path,
     *,
-    kind: str,
+    kind: JarKind,
     require_service: bool,
     classpath_entries: set[str] | None = None,
 ) -> JarPreflight:
@@ -79,9 +95,8 @@ def _preflight(
             names = set(archive.namelist())
             service_entries = _service_entries(archive)
             has_2010_api = all(entry in names for entry in REQUIRED_API_ENTRIES)
-            has_2025_namespace = (
-                SERVICE_2025_PATH in names
-                or any(name.startswith("hla/rti1516_2025/") for name in names)
+            has_2025_namespace = SERVICE_2025_PATH in names or any(
+                name.startswith("hla/rti1516_2025/") for name in names
             )
             if require_service and not service_entries:
                 findings.append(
@@ -107,7 +122,9 @@ def _preflight(
                     "provider artifacts separate"
                 )
             if kind == "api" and not has_2010_api:
-                missing = [entry for entry in REQUIRED_API_ENTRIES if entry not in names]
+                missing = [
+                    entry for entry in REQUIRED_API_ENTRIES if entry not in names
+                ]
                 findings.append("API JAR is missing: " + ", ".join(missing))
     except FileNotFoundError:
         has_2010_api = False
@@ -183,7 +200,9 @@ def main() -> int:
         default=[],
         help="optional provider dependency JAR; repeat as needed",
     )
-    parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    parser.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     args = parser.parse_args()
     results = verify(args.provider_jar, args.api_jar, args.dependency_jar)
     payload = {

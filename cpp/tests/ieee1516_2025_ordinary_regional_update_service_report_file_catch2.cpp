@@ -1,6 +1,9 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <exception>
+#include <optional>
+
 namespace {
 TEST_CASE(
     "Embedded service reporting records regional Update Attribute Values before reflection callback",
@@ -110,8 +113,21 @@ TEST_CASE(
       R"(":"AQI="}},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"cmVn"},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":true,"HLAexception":null})"};
   REQUIRE(readTextFile(reportFile) == initialText + expectedRecord);
   bool durableAtCallback = false;
+  std::optional<RangeBounds> conveyedRegionBounds;
+  std::exception_ptr conveyedRegionQueryFailure;
   receiverReports.onAttributeReflection = [&] {
     durableAtCallback = readTextFile(reportFile) == initialText + expectedRecord;
+    auto const& callbackRegions =
+        receiverReports.attributeReflectionReports.back().sentRegions;
+    if (callbackRegions.size() == 1U) {
+      try {
+        conveyedRegionBounds = receiver->getRangeBounds(
+            *callbackRegions.begin(),
+            sodaFlavor);
+      } catch (...) {
+        conveyedRegionQueryFailure = std::current_exception();
+      }
+    }
   };
 
   REQUIRE_FALSE(receiver->evokeMultipleCallbacks(0.0, 0.0));
@@ -125,7 +141,11 @@ TEST_CASE(
   REQUIRE(variableLengthDataBytes(reflection.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(conveyedRegionQueryFailure == nullptr);
+  REQUIRE(conveyedRegionBounds.has_value());
+  REQUIRE(conveyedRegionBounds->getLowerBound() == 0UL);
+  REQUIRE(conveyedRegionBounds->getUpperBound() == 2UL);
   REQUIRE(reflection.sentOrderType == RECEIVE);
   REQUIRE(reflection.receivedOrderType == RECEIVE);
   REQUIRE_FALSE(reflection.retractionSupplied);

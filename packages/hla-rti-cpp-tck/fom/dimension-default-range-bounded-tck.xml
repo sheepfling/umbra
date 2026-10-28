@@ -3,6 +3,29 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
   <modelIdentification><name>TCK Dimension Default Range Preflight</name><type>FOM</type></modelIdentification>
+  <objects>
+    <objectClass>
+      <name>HLAobjectRoot</name>
+      <sharing>Neither</sharing>
+      <objectClass>
+        <name>TckBoundedDefaultObject</name>
+        <sharing>PublishSubscribe</sharing>
+        <dimensions><dimension>TckBoundedDefaultDimension</dimension></dimensions>
+        <attribute>
+          <name>Value</name>
+          <dataType>HLAbyte</dataType>
+          <updateType>Conditional</updateType>
+          <updateCondition>On change.</updateCondition>
+          <valueRequired>false</valueRequired>
+          <ownership>DivestAcquire</ownership>
+          <sharing>PublishSubscribe</sharing>
+          <transportation>HLAreliable</transportation>
+          <order>Receive</order>
+          <semantics>Value used to verify half-open DDM interval routing.</semantics>
+        </attribute>
+      </objectClass>
+    </objectClass>
+  </objects>
   <dimensions><dimension>
     <name>TckBoundedDefaultDimension</name>
     <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>

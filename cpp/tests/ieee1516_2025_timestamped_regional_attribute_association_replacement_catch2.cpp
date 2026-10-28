@@ -158,7 +158,7 @@ TEST_CASE(
   REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
   REQUIRE(report.sentRegionsSupplied);
   REQUIRE(report.sentRegions.size() == 1U);
-  REQUIRE(report.sentRegions.contains(sourceRegionB));
+  REQUIRE(report.sentRegions.begin()->isValid());
   REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
           std::vector<unsigned char>(secondTagBytes, secondTagBytes + sizeof(secondTagBytes)));
   REQUIRE(receiverReports.requestRetractionReports.empty());

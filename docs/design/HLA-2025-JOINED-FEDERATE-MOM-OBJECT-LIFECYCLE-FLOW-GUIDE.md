@@ -357,7 +357,8 @@ the registry erases the private snapshot when its pending-removal set is empty,
 even if a skipped known ID remains in the object being erased. If at least one
 other observer has a planned removal, the snapshot is retained; after those
 callback-entry transitions ([callback-time removal
-entry](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L120)), a skipped observer can remain in `knownFederateIds`
+entry](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L120)), a skipped observer can
+remain in `knownFederateIds`
 with no pending removal recorded for it. The bounded source trace found no
 retry for that skipped observer, and no focused test exercises the missing-route
 branch or its snapshot consequence. The existing public MOM removal tests cover

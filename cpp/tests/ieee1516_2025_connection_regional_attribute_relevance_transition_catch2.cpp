@@ -1,7 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -49,20 +52,42 @@ TEST_CASE(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes,
           std::wstring const& updateRateDesignator) override {
+        std::lock_guard lock(mutex);
         ++turnedOnCount;
         turnedOnObjectInstance = objectInstance;
         turnedOnAttributes = attributes;
         turnedOnUpdateRateDesignator = updateRateDesignator;
+        callbacksChanged.notify_all();
       }
 
       void turnUpdatesOffForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
+        std::lock_guard lock(mutex);
         ++turnedOffCount;
         turnedOffObjectInstance = objectInstance;
         turnedOffAttributes = attributes;
+        callbacksChanged.notify_all();
       }
 
+      void waitForTurnedOnCount(std::size_t expected) {
+        std::unique_lock lock(mutex);
+        REQUIRE(callbacksChanged.wait_for(
+            lock,
+            std::chrono::seconds(2),
+            [this, expected] { return turnedOnCount >= expected; }));
+      }
+
+      void waitForTurnedOffCount(std::size_t expected) {
+        std::unique_lock lock(mutex);
+        REQUIRE(callbacksChanged.wait_for(
+            lock,
+            std::chrono::seconds(2),
+            [this, expected] { return turnedOffCount >= expected; }));
+      }
+
+      std::mutex mutex;
+      std::condition_variable callbacksChanged;
       std::size_t turnedOnCount = 0U;
       rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
       rti1516_2025::AttributeHandleSet turnedOnAttributes;
@@ -336,16 +361,20 @@ TEST_CASE(
       if (callbackModel == HLA_EVOKED) {
         static_cast<void>(ownerRti->evokeCallback(0.0));
       }
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
-              std::optional<std::wstring>{L"High"});
-      ownerFederate.turnedOnCount = 0U;
-      ownerFederate.turnedOnObjectInstance = {};
-      ownerFederate.turnedOnAttributes.clear();
-      ownerFederate.turnedOnUpdateRateDesignator.reset();
+      ownerFederate.waitForTurnedOnCount(1U);
+      {
+        std::lock_guard lock(ownerFederate.mutex);
+        REQUIRE(ownerFederate.turnedOffCount == 0U);
+        REQUIRE(ownerFederate.turnedOnCount == 1U);
+        REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
+                std::optional<std::wstring>{L"High"});
+        ownerFederate.turnedOnCount = 0U;
+        ownerFederate.turnedOnObjectInstance = {};
+        ownerFederate.turnedOnAttributes.clear();
+        ownerFederate.turnedOnUpdateRateDesignator.reset();
+      }
 
       // A disjoint association does not change effective relevance while the
       // original overlap remains active.
@@ -355,8 +384,11 @@ TEST_CASE(
               ownerAttributes,
               rti1516_2025::RegionHandleSet{disjointOwnerRegion},
           }}));
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
-      REQUIRE(ownerFederate.turnedOnCount == 0U);
+      {
+        std::lock_guard lock(ownerFederate.mutex);
+        REQUIRE(ownerFederate.turnedOffCount == 0U);
+        REQUIRE(ownerFederate.turnedOnCount == 0U);
+      }
 
       // Removing the last overlapping association crosses the edge to Off.
       REQUIRE_NOTHROW(ownerRti->unassociateRegionsForUpdates(
@@ -368,10 +400,14 @@ TEST_CASE(
       if (callbackModel == HLA_EVOKED) {
         static_cast<void>(ownerRti->evokeCallback(0.0));
       }
-      REQUIRE(ownerFederate.turnedOffCount == 1U);
-      REQUIRE(ownerFederate.turnedOffObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOffAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnCount == 0U);
+      ownerFederate.waitForTurnedOffCount(1U);
+      {
+        std::lock_guard lock(ownerFederate.mutex);
+        REQUIRE(ownerFederate.turnedOffCount == 1U);
+        REQUIRE(ownerFederate.turnedOffObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOffAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnCount == 0U);
+      }
 
       // Restoring the overlap crosses the edge to On and retains High.
       REQUIRE_NOTHROW(ownerRti->associateRegionsForUpdates(
@@ -383,11 +419,15 @@ TEST_CASE(
       if (callbackModel == HLA_EVOKED) {
         static_cast<void>(ownerRti->evokeCallback(0.0));
       }
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
-              std::optional<std::wstring>{L"High"});
+      ownerFederate.waitForTurnedOnCount(1U);
+      {
+        std::lock_guard lock(ownerFederate.mutex);
+        REQUIRE(ownerFederate.turnedOnCount == 1U);
+        REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
+                std::optional<std::wstring>{L"High"});
+      }
 
       ownerRti->resignFederationExecution(DELETE_OBJECTS);
       ownerJoined = false;

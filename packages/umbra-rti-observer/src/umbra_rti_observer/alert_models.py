@@ -25,18 +25,29 @@ from .schemas import (
     PositiveInt,
 )
 
-AlertText = Annotated[str, StringConstraints(min_length=1, max_length=512, pattern=r"\S")]
-RuleText = Annotated[str, StringConstraints(min_length=1, max_length=128, pattern=r"\S")]
-AgeThreshold = Annotated[float, Field(ge=.1, le=86400, allow_inf_nan=False)]
+AlertText = Annotated[
+    str, StringConstraints(min_length=1, max_length=512, pattern=r"\S")
+]
+RuleText = Annotated[
+    str, StringConstraints(min_length=1, max_length=128, pattern=r"\S")
+]
+AgeThreshold = Annotated[float, Field(ge=0.1, le=86400, allow_inf_nan=False)]
 CountThreshold = Annotated[int, Field(ge=1, le=1000000000)]
-FiniteMetric: TypeAlias = Annotated[int, Field(ge=0)] | Annotated[float, Field(ge=0, allow_inf_nan=False)]
+FiniteMetric: TypeAlias = (
+    Annotated[int, Field(ge=0)] | Annotated[float, Field(ge=0, allow_inf_nan=False)]
+)
 
 
 class AlertScopeModel(ObserverModel):
     source: AlertText | None = None
     federation: AlertText | None = None
     federate: AlertText | None = None
-    session_id: Annotated[JsonText, StringConstraints(min_length=1, max_length=512, pattern=r"\S")] | None = None
+    session_id: (
+        Annotated[
+            JsonText, StringConstraints(min_length=1, max_length=512, pattern=r"\S")
+        ]
+        | None
+    ) = None
     perspective: ParticipantPerspectiveResponse | None = None
 
     @model_validator(mode="after")
@@ -46,7 +57,13 @@ class AlertScopeModel(ObserverModel):
         return self
 
     def spec(self) -> AlertScope:
-        return AlertScope(self.source, self.federation, self.federate, self.session_id, self.perspective.spec() if self.perspective else None)
+        return AlertScope(
+            self.source,
+            self.federation,
+            self.federate,
+            self.session_id,
+            self.perspective.spec() if self.perspective else None,
+        )
 
 
 class RuleBase(ObserverModel):
@@ -62,7 +79,15 @@ class StaleObservationRule(RuleBase):
     threshold_seconds: AgeThreshold
 
     def spec(self) -> AlertRuleSpec:
-        return AlertRuleSpec(self.rule_id, self.name, self.kind, self.severity, self.enabled, self.scope.spec(), threshold_seconds=self.threshold_seconds)
+        return AlertRuleSpec(
+            self.rule_id,
+            self.name,
+            self.kind,
+            self.severity,
+            self.enabled,
+            self.scope.spec(),
+            threshold_seconds=self.threshold_seconds,
+        )
 
 
 class ErrorCountRule(RuleBase):
@@ -72,7 +97,16 @@ class ErrorCountRule(RuleBase):
     window_seconds: Annotated[float, Field(ge=1, le=3600, allow_inf_nan=False)] = 300.0
 
     def spec(self) -> AlertRuleSpec:
-        return AlertRuleSpec(self.rule_id, self.name, self.kind, self.severity, self.enabled, self.scope.spec(), threshold_count=self.threshold_count, window_seconds=self.window_seconds)
+        return AlertRuleSpec(
+            self.rule_id,
+            self.name,
+            self.kind,
+            self.severity,
+            self.enabled,
+            self.scope.spec(),
+            threshold_count=self.threshold_count,
+            window_seconds=self.window_seconds,
+        )
 
 
 class DroppedHistoryRule(RuleBase):
@@ -80,7 +114,14 @@ class DroppedHistoryRule(RuleBase):
     threshold_count: CountThreshold
 
     def spec(self) -> AlertRuleSpec:
-        return AlertRuleSpec(self.rule_id, self.name, self.kind, self.severity, self.enabled, threshold_count=self.threshold_count)
+        return AlertRuleSpec(
+            self.rule_id,
+            self.name,
+            self.kind,
+            self.severity,
+            self.enabled,
+            threshold_count=self.threshold_count,
+        )
 
 
 class PendingCommandRule(RuleBase):
@@ -89,10 +130,21 @@ class PendingCommandRule(RuleBase):
     threshold_seconds: AgeThreshold
 
     def spec(self) -> AlertRuleSpec:
-        return AlertRuleSpec(self.rule_id, self.name, self.kind, self.severity, self.enabled, threshold_seconds=self.threshold_seconds, target_id=self.target_id)
+        return AlertRuleSpec(
+            self.rule_id,
+            self.name,
+            self.kind,
+            self.severity,
+            self.enabled,
+            threshold_seconds=self.threshold_seconds,
+            target_id=self.target_id,
+        )
 
 
-AlertRule: TypeAlias = Annotated[StaleObservationRule | ErrorCountRule | DroppedHistoryRule | PendingCommandRule, Field(discriminator="kind")]
+AlertRule: TypeAlias = Annotated[
+    StaleObservationRule | ErrorCountRule | DroppedHistoryRule | PendingCommandRule,
+    Field(discriminator="kind"),
+]
 
 
 class AlertConfiguration(ObserverModel):
@@ -103,7 +155,18 @@ class AlertConfiguration(ObserverModel):
     def bounded_configuration(self) -> AlertConfiguration:
         if len({row.rule_id for row in self.rules}) != len(self.rules):
             raise ValueError("alert rule IDs must be unique")
-        if len(json.dumps({"configuration_version": self.configuration_version, "rules": [row.model_dump(mode="json") for row in self.rules]}, ensure_ascii=False).encode()) > 65536:
+        if (
+            len(
+                json.dumps(
+                    {
+                        "configuration_version": self.configuration_version,
+                        "rules": [row.model_dump(mode="json") for row in self.rules],
+                    },
+                    ensure_ascii=False,
+                ).encode()
+            )
+            > 65536
+        ):
             raise ValueError("alert configuration exceeds 64 KiB")
         return self
 
@@ -155,24 +218,70 @@ class AlertResultModel(ObserverModel):
 
     @model_validator(mode="after")
     def consistent_result(self) -> AlertResultModel:
-        if (self.metric is None) != (self.metric_upper is None) or self.metric is not None and self.metric_upper is not None and self.metric > self.metric_upper:
+        if (
+            (self.metric is None) != (self.metric_upper is None)
+            or self.metric is not None
+            and self.metric_upper is not None
+            and self.metric > self.metric_upper
+        ):
             raise ValueError("alert metric bounds must agree")
-        if self.state == "firing" and (self.metric is None or self.metric < self.threshold):
+        if self.state == "firing" and (
+            self.metric is None or self.metric < self.threshold
+        ):
             raise ValueError("a firing alert requires explicit threshold evidence")
-        if self.state == "clear" and (self.metric_upper is None or self.metric_upper >= self.threshold):
+        if self.state == "clear" and (
+            self.metric_upper is None or self.metric_upper >= self.threshold
+        ):
             raise ValueError("a clear alert requires an upper bound below threshold")
-        if self.state == "ended" and (self.reason not in {"explicit-disconnect", "explicit-resignation"} or self.last_sequence is None):
+        if self.state == "ended" and (
+            self.reason not in {"explicit-disconnect", "explicit-resignation"}
+            or self.last_sequence is None
+        ):
             raise ValueError("ended alerts need explicit lifecycle evidence")
-        reasons = {"firing": {"observations-idle", "errors-threshold", "history-loss-threshold", "pending-threshold"},
-                   "clear": {"observations-current", "errors-below-threshold", "history-below-threshold", "pending-below-threshold"},
-                   "unknown": {"not-observed", "clock-unusable", "error-window-incomplete", "commands-unavailable", "target-unavailable"},
-                   "ended": {"explicit-disconnect", "explicit-resignation"}, "disabled": {"disabled"}}
-        if self.reason not in reasons[self.state] or self.coverage in {"unavailable", "not-observed"} and self.metric is not None:
-            raise ValueError("alert status/reason/coverage must describe the same evidence")
-        if self.history_loss is not None and (self.history_loss.current < self.history_loss.baseline or self.metric != self.history_loss.current - self.history_loss.baseline):
+        reasons = {
+            "firing": {
+                "observations-idle",
+                "errors-threshold",
+                "history-loss-threshold",
+                "pending-threshold",
+            },
+            "clear": {
+                "observations-current",
+                "errors-below-threshold",
+                "history-below-threshold",
+                "pending-below-threshold",
+            },
+            "unknown": {
+                "not-observed",
+                "clock-unusable",
+                "error-window-incomplete",
+                "commands-unavailable",
+                "target-unavailable",
+            },
+            "ended": {"explicit-disconnect", "explicit-resignation"},
+            "disabled": {"disabled"},
+        }
+        if (
+            self.reason not in reasons[self.state]
+            or self.coverage in {"unavailable", "not-observed"}
+            and self.metric is not None
+        ):
+            raise ValueError(
+                "alert status/reason/coverage must describe the same evidence"
+            )
+        if self.history_loss is not None and (
+            self.history_loss.current < self.history_loss.baseline
+            or self.metric != self.history_loss.current - self.history_loss.baseline
+        ):
             raise ValueError("history-loss proof must match its exact baseline delta")
-        if self.command is not None and (self.pending_count is None or self.pending_count < 1 or self.command.age_seconds != self.metric):
-            raise ValueError("pending-command proof must identify the measured oldest cached request")
+        if self.command is not None and (
+            self.pending_count is None
+            or self.pending_count < 1
+            or self.command.age_seconds != self.metric
+        ):
+            raise ValueError(
+                "pending-command proof must identify the measured oldest cached request"
+            )
         if self.pending_count == 0 and (self.command is not None or self.metric != 0):
             raise ValueError("an empty pending cache must report an explicit zero")
         return self
@@ -181,16 +290,34 @@ class AlertResultModel(ObserverModel):
 def _check_rule_result(rule: AlertRule, row: AlertResultModel) -> None:
     age_rule = isinstance(rule, (StaleObservationRule, PendingCommandRule))
     threshold = rule.threshold_seconds if age_rule else rule.threshold_count
-    if rule.rule_id != row.rule_id or row.threshold != threshold or row.unit != ("seconds" if age_rule else "observations") or (not rule.enabled) != (row.state == "disabled"):
-        raise ValueError("alert evaluation must use its actual rule, threshold, unit and enabled state")
-    if row.state == "ended" and (not isinstance(rule, StaleObservationRule) or rule.scope.perspective is None and (rule.scope.source is None or rule.scope.session_id is None)):
+    if (
+        rule.rule_id != row.rule_id
+        or row.threshold != threshold
+        or row.unit != ("seconds" if age_rule else "observations")
+        or (not rule.enabled) != (row.state == "disabled")
+    ):
+        raise ValueError(
+            "alert evaluation must use its actual rule, threshold, unit and enabled state"
+        )
+    if row.state == "ended" and (
+        not isinstance(rule, StaleObservationRule)
+        or rule.scope.perspective is None
+        and (rule.scope.source is None or rule.scope.session_id is None)
+    ):
         raise ValueError("a reported end requires an exact source/session filter")
     measured = row.state in {"clear", "firing"}
     if measured and isinstance(rule, DroppedHistoryRule) and row.history_loss is None:
         raise ValueError("a history-loss evaluation needs its baseline counter proof")
     if measured and isinstance(rule, PendingCommandRule) and row.pending_count is None:
-        raise ValueError("a pending-command evaluation needs explicit cached work coverage")
-    if not isinstance(rule, DroppedHistoryRule) and row.history_loss is not None or not isinstance(rule, PendingCommandRule) and (row.command is not None or row.pending_count is not None):
+        raise ValueError(
+            "a pending-command evaluation needs explicit cached work coverage"
+        )
+    if (
+        not isinstance(rule, DroppedHistoryRule)
+        and row.history_loss is not None
+        or not isinstance(rule, PendingCommandRule)
+        and (row.command is not None or row.pending_count is not None)
+    ):
         raise ValueError("alert evidence must apply to its rule kind")
 
 
@@ -224,7 +351,11 @@ class AlertReport(AlertConfiguration):
     @model_validator(mode="after")
     def exact_rule_results(self) -> AlertReport:
         ids = [row.rule_id for row in self.results]
-        if len(set(ids)) != len(ids) or set(ids) != {row.rule_id for row in self.rules} or any(row.rule_generation > self.revision for row in self.results):
+        if (
+            len(set(ids)) != len(ids)
+            or set(ids) != {row.rule_id for row in self.rules}
+            or any(row.rule_generation > self.revision for row in self.results)
+        ):
             raise ValueError("alert results must cover each configured rule exactly")
         by_id = {row.rule_id: row for row in self.results}
         for rule in self.rules:

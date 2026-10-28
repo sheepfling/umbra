@@ -17,7 +17,7 @@ enum class FomStandardEdition {
   ieee1516_2025,
 };
 
-inline constexpr std::string_view fomNamespace(FomStandardEdition edition) noexcept {
+constexpr std::string_view fomNamespace(FomStandardEdition edition) noexcept {
   switch (edition) {
     case FomStandardEdition::ieee1516_2010:
       return "http://standards.ieee.org/IEEE1516-2010";
@@ -27,7 +27,7 @@ inline constexpr std::string_view fomNamespace(FomStandardEdition edition) noexc
   return {};
 }
 
-inline constexpr std::wstring_view fomDifSchemaDesignator(
+constexpr std::wstring_view fomDifSchemaDesignator(
     FomStandardEdition edition) noexcept {
   switch (edition) {
     case FomStandardEdition::ieee1516_2010:
@@ -38,7 +38,7 @@ inline constexpr std::wstring_view fomDifSchemaDesignator(
   return {};
 }
 
-inline constexpr std::wstring_view fomFddSchemaDesignator(
+constexpr std::wstring_view fomFddSchemaDesignator(
     FomStandardEdition edition) noexcept {
   switch (edition) {
     case FomStandardEdition::ieee1516_2010:

@@ -49,8 +49,17 @@ federate invoking the explicit request service. The callback names attributes
 to provide; it does not carry their values. A provider response is a separate
 Update Attribute Values call (§6.10), whose tag is supplied by the provider.
 
-* **Auto Provide:** The pinned API exposes [Get Auto Provide Switch (§10.52)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2218). In the current embedded profile, the RTI plans the request after discovery and invokes [`provideAttributeValueUpdate` (§6.22)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L350) with the eligible attribute subset and an empty tag.
-* **Explicit Request Attribute Value Update:** A federate invokes the object-instance [`requestAttributeValueUpdate` overload (§6.21)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L876) or its object-class [overload (§6.21)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L891); the provider later receives the same [`provideAttributeValueUpdate` callback (§6.22)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L350) with its selected attribute subset and, in the current embedded object-request path, the caller's request tag.
+- **Auto Provide:** The pinned API exposes
+  [Get Auto Provide Switch (§10.52)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2218). In the
+  current embedded profile, the RTI plans the request after discovery and invokes
+  [`provideAttributeValueUpdate` (§6.22)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L350) with
+  the eligible attribute subset and an empty tag.
+- **Explicit Request Attribute Value Update:** A federate invokes the object-instance
+  [`requestAttributeValueUpdate` overload (§6.21)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L876)
+  or its object-class [overload (§6.21)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L891); the
+  provider later receives the same
+  [`provideAttributeValueUpdate` callback (§6.22)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L350)
+  with its selected attribute subset and, in the current embedded object-request path, the caller's request tag.
 
 For either path, any values are supplied later through the provider's
 [`updateAttributeValues` call (§6.10)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L727)

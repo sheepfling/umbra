@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK checks the aggregate reply rule for one HLA_EVOKED Cancel Attribute Ownership Acquisition invocation. It requests three attributes; the owner transfers one, denies one, and leaves one pending. The requester must observe an acquisition notification, an unavailable reply, and a cancellation confirmation for the respective disjoint subsets, covering exactly the requested set. The scenario uses only the official IEEE 1516.1 C++ API and the C++ standard library. It does not claim HLA_IMMEDIATE, Java parity, independent-provider testing, or general conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-acquisition-cancellation-mixed-replies",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, attributeOwnershipDivestitureIfWanted, attributeOwnershipReleaseDenied, and cancelAttributeOwnershipAcquisition with three standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp::scenarioOwnershipAcquisitionCancellationMixedRepliesContract"
+      ]
+    }
+  ]
+}

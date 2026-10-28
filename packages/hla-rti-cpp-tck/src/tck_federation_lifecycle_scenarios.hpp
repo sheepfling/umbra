@@ -10,6 +10,10 @@ void scenarioFederateLookupLifecycle(Options const&, rti::CallbackModel);
 void scenarioFederateLookupLifecycleContract(Options const&, rti::CallbackModel);
 void scenarioFederationLifecycle(Options const&, rti::CallbackModel);
 void scenarioFederationLifecycleContract(Options const&, rti::CallbackModel);
+void scenarioApplicationMultipleFederatesAcrossExecutions(
+    Options const&, rti::CallbackModel);
+void scenarioApplicationMultipleFederatesAcrossExecutionsContract(
+    Options const&, rti::CallbackModel);
 void scenarioConnectBeforeFederationAndDisconnectAfterResign(
     Options const&, rti::CallbackModel);
 void scenarioFederationManagementRequiresConnection(Options const&, rti::CallbackModel);

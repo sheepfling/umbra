@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 §9.1.3.3 region-context boundary and clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. The focused context case rejects committed regions whose dimensions are outside a class's available object dimensions across regional registration, update association, regional subscription, and regional Request Attribute Value Update; it does not claim the full regional request/response behavior. Registration-established associations, additive/idempotent association, empty-region no-op behavior, active-overlap-filtered no-time updates, additive/idempotent per-(object-class, attribute, region) active/passive subscriptions, mode replacement, and regional unsubscription are covered by real Catch2 scenarios. Passive triples remain declared and retain their region lifecycle fence but cannot arrange discovery, scope, or reflection. The standard-wide passive-subscription delivery predicate is source-level evidence on page 30 rather than an immutable candidate; the Clause 9.8 candidate IDs pin the triple state and replacement language (RL-029). A separate direct-source Relaxed DDM regression proves the documented exact-boundary policy through regional registration, discovery, and reflection; RL-030 records that the corresponding §9.1.4/§9.1.8 policy prose has no immutable Lab candidate. Focused filesystem service-report coverage now records the type-36 object-class, type-4 AttributeRegionAssociationList/AttributeSetRegionSetPairList alias, type-6 passive indicator, and type-53/type-34 update-rate slots for §9.8, plus the type-36/type-4 §9.9 shape; composite callback/report returns remain deferred under RL-042. A bounded explicit-source timestamped object-update composition case now proves that an overlap-qualified passel retains its source RegionHandle and callback ordering across a Time Constrained disable/re-enable transition; broader timestamped/retraction behavior remains outside this regional contract. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 \u00a79.1.3.3 region-context boundary and clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. The focused context case rejects committed regions whose dimensions are outside a class's available object dimensions across regional registration, update association, regional subscription, and regional Request Attribute Value Update; it does not claim the full regional request/response behavior. Registration-established associations, additive/idempotent association, empty-region no-op behavior, active-overlap-filtered no-time updates, additive/idempotent per-(object-class, attribute, region) active/passive subscriptions, mode replacement, and regional unsubscription are covered by real Catch2 scenarios. Passive triples remain declared and retain their region lifecycle fence but cannot arrange discovery, scope, or reflection. The standard-wide passive-subscription delivery predicate is source-level evidence on page 30 rather than an immutable candidate; the Clause 9.8 candidate IDs pin the triple state and replacement language (RL-029). A separate direct-source Relaxed DDM regression proves the documented exact-boundary policy through regional registration, discovery, and reflection; RL-030 records that the corresponding \u00a79.1.4/\u00a79.1.8 policy prose has no immutable Lab candidate. Focused filesystem service-report coverage now records the type-36 object-class, type-4 AttributeRegionAssociationList/AttributeSetRegionSetPairList alias, type-6 passive indicator, and type-53/type-34 update-rate slots for \u00a79.8, plus the type-36/type-4 \u00a79.9 shape; composite callback/report returns remain deferred under RL-042. A bounded explicit-source timestamped object-update composition case now proves that an overlap-qualified passel retains its source RegionHandle and callback ordering across a Time Constrained disable/re-enable transition; broader timestamped/retraction behavior remains outside this regional contract. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-object-regional-deferred-association-cancelled-before-acquisition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_update_region_associations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-object-regional-deferred-association-before-acquisition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_update_region_associations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges",
       "tests": [
@@ -29,7 +29,7 @@
     {
       "id": "umbra-object-regional-deferred-association-promotes-on-acquisition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l41-13",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::promoteDeferredUpdateRegionAssociation",
       "tests": [
@@ -40,7 +40,7 @@
     {
       "id": "umbra-object-regional-region-context-subset",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l8-2",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
       "tests": [
@@ -50,7 +50,7 @@
     {
       "id": "umbra-object-regional-region-context-realizations",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l11-3",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
       "tests": [
@@ -60,7 +60,7 @@
     {
       "id": "umbra-object-regional-region-context-update-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
       "tests": [
@@ -70,7 +70,7 @@
     {
       "id": "umbra-object-class-regional-region-context-subset",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
       "tests": [
@@ -80,7 +80,7 @@
     {
       "id": "umbra-object-class-regional-region-context-realizations",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
-      "clause_id": "clause-9.1.3.3",
+      "clause_id": "clause-9.1.3.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
       "tests": [
@@ -307,5 +307,67 @@
         "cpp/tests/ieee1516_2025_federation_management_ddm_service_reporting_catch2.cpp::Embedded service reporting records regional object-class subscription arguments"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-deferred-association-cancelled-before-acquisition",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-deferred-association-before-acquisition",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-deferred-association-promotes-on-acquisition",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l41-13",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-region-context-subset",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l8-2",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-region-context-realizations",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l11-3",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-regional-region-context-update-boundary",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-class-regional-region-context-subset",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      },
+      {
+        "contract": "object-attribute-region-requirements-contract.json",
+        "owned_id": "umbra-object-class-regional-region-context-realizations",
+        "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+        "previous_clause_id": "clause-9.1.3.3",
+        "reviewed_clause_id": "clause-9.1.3.2"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

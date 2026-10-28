@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from hla.rti1516_2025.exceptions import RTIinternalError
+
 from ._runtime import JavaRuntime
 from .config import JavaProviderConfiguration
 from .provider import JavaRtiFactory
@@ -47,7 +48,9 @@ class UmbraJniRtiFactory(JavaRtiFactory):
     ) -> None:
         configured_directory = artifact_directory
         if configured_directory is None:
-            configured_directory = os.getenv(self.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE)
+            configured_directory = os.getenv(
+                self.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE
+            )
         directory = Path(configured_directory) if configured_directory else None
 
         selected_api = self._selected_path(
@@ -71,9 +74,12 @@ class UmbraJniRtiFactory(JavaRtiFactory):
         self._native_library = selected_native
         options = tuple(jvm_options)
         native_option_prefix = "-Dumbra.rti.jni.library="
-        if not any(option.startswith(native_option_prefix) for option in options):
-            if selected_native is not None:
-                options += (native_option_prefix + Path(selected_native).resolve().as_posix(),)
+        if selected_native is not None and not any(
+            option.startswith(native_option_prefix) for option in options
+        ):
+            options += (
+                native_option_prefix + Path(selected_native).resolve().as_posix(),
+            )
 
         super().__init__(
             JavaProviderConfiguration(
@@ -109,7 +115,11 @@ class UmbraJniRtiFactory(JavaRtiFactory):
     def _native_library_from_directory(cls, directory: Path | None) -> Path | None:
         if directory is None:
             return None
-        for name in ("umbra_rti_jni.dll", "libumbra_rti_jni.so", "libumbra_rti_jni.dylib"):
+        for name in (
+            "umbra_rti_jni.dll",
+            "libumbra_rti_jni.so",
+            "libumbra_rti_jni.dylib",
+        ):
             candidate = directory / name
             if candidate.is_file():
                 return candidate

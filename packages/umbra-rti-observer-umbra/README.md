@@ -68,12 +68,14 @@ from umbra_rti_observer_umbra.commands import create_umbra_command_session
 
 store = ObserverStore()
 commands = CommandDispatcher(sink=store.publish)
-commands.register(create_umbra_command_session(
-    lambda: UmbraRtiFactory().getRtiAmbassador(),
-    target_id="umbra-observer-session",
-    federations=("ExampleFederation",),
-    sink=store.publish,
-))
+commands.register(
+    create_umbra_command_session(
+        lambda: UmbraRtiFactory().getRtiAmbassador(),
+        target_id="umbra-observer-session",
+        federations=("ExampleFederation",),
+        sink=store.publish,
+    )
+)
 app = create_app(store, commands=commands)
 ```
 

@@ -6,6 +6,7 @@ import unittest
 from collections import Counter
 from importlib.metadata import EntryPoint
 from pathlib import Path
+from typing import TypeAlias
 from unittest.mock import patch
 
 from hla.rti1516e import (
@@ -86,13 +87,26 @@ from umbra_rti_test_support import (
     assert_callback_delivery_parity,
     assert_event_order,
     iter_callback_provenance_matrix,
-    iter_vendor_data_element_encode_matrix,
-    iter_vendor_data_element_wire_matrix,
     iter_logical_time_arithmetic_matrix,
     iter_logical_time_wire_matrix,
     iter_save_restore_matrix,
     iter_surface_matrix,
+    iter_vendor_data_element_encode_matrix,
+    iter_vendor_data_element_wire_matrix,
     iter_vendor_time_arithmetic_matrix,
+)
+
+_HandleMatrixValue: TypeAlias = (
+    AttributeHandle
+    | DimensionHandle
+    | FederateHandle
+    | InteractionClassHandle
+    | MessageRetractionHandle
+    | ObjectClassHandle
+    | ObjectInstanceHandle
+    | ParameterHandle
+    | TransportationTypeHandle
+    | RegionHandle
 )
 
 
@@ -1095,7 +1109,12 @@ class Java2010ProviderTests(unittest.TestCase):
                 value.encode(destination, 1)
                 self.assertEqual(bytes(destination), b"\xaa" + wire + b"\xbb")
 
-        malformed_time = (b"", time_wire[:-1], b"WRNG" + time_wire[4:], time_wire + b"\x00")
+        malformed_time = (
+            b"",
+            time_wire[:-1],
+            b"WRNG" + time_wire[4:],
+            time_wire + b"\x00",
+        )
         malformed_interval = (
             b"",
             interval_wire[:-1],
@@ -1103,13 +1122,17 @@ class Java2010ProviderTests(unittest.TestCase):
             interval_wire + b"\x00",
         )
         for encoded in malformed_time:
-            with self.subTest(carrier="time", length=len(encoded)):
-                with self.assertRaises(CouldNotDecode):
-                    factory.decodeTime(encoded)
+            with (
+                self.subTest(carrier="time", length=len(encoded)),
+                self.assertRaises(CouldNotDecode),
+            ):
+                factory.decodeTime(encoded)
         for encoded in malformed_interval:
-            with self.subTest(carrier="interval", length=len(encoded)):
-                with self.assertRaises(CouldNotDecode):
-                    factory.decodeInterval(encoded)
+            with (
+                self.subTest(carrier="interval", length=len(encoded)),
+                self.assertRaises(CouldNotDecode),
+            ):
+                factory.decodeInterval(encoded)
 
         class SentinelOnlyFactory(_FakeWideVendorTimeFactory):
             # The generic 2010 interface does not require concrete numeric
@@ -1169,11 +1192,17 @@ class Java2010ProviderTests(unittest.TestCase):
         ambassador.timeAdvanceRequest(raw_time)
         ambassador.modifyLookahead(raw_interval)
         self.assertIsInstance(
-            next(args for name, args in implementation.calls if name == "timeAdvanceRequest")[0],
+            next(
+                args
+                for name, args in implementation.calls
+                if name == "timeAdvanceRequest"
+            )[0],
             _FakeWideVendorTime,
         )
         self.assertIsInstance(
-            next(args for name, args in implementation.calls if name == "modifyLookahead")[0],
+            next(
+                args for name, args in implementation.calls if name == "modifyLookahead"
+            )[0],
             _FakeWideVendorInterval,
         )
 
@@ -1188,9 +1217,7 @@ class Java2010ProviderTests(unittest.TestCase):
         for value in (-1.0, math.inf, math.nan):
             with self.subTest(value=value):
                 with self.assertRaises(InvalidLogicalTime):
-                    factory.from_java_value(
-                        _FakeJavaFloatTime(value), "LogicalTime"
-                    )
+                    factory.from_java_value(_FakeJavaFloatTime(value), "LogicalTime")
                 with self.assertRaises(InvalidLogicalTimeInterval):
                     factory.from_java_value(
                         _FakeJavaFloatInterval(value), "LogicalTimeInterval"
@@ -1215,7 +1242,7 @@ class Java2010ProviderTests(unittest.TestCase):
 
     @staticmethod
     def _matrix_argument(expected_type: str) -> object:
-        handles: dict[str, object] = {
+        handles: dict[str, _HandleMatrixValue] = {
             "AttributeHandle": AttributeHandle(b"attribute"),
             "DimensionHandle": DimensionHandle(b"dimension"),
             "FederateHandle": FederateHandle(b"federate"),
@@ -1281,12 +1308,10 @@ class Java2010ProviderTests(unittest.TestCase):
         runtime = _FakeRuntime()
         implementation = _RecordingJavaAmbassador()
         ambassador = Java2010RTIambassador(implementation, runtime)
-        raw_region = object()
-        ambassador._raw_handles[(RegionHandle, b"region")] = raw_region
-        raw_retraction = object()
-        ambassador._raw_handles[(MessageRetractionHandle, b"retraction")] = (
-            raw_retraction
-        )
+        raw_region = type("RawRegion", (), {"encoded": b"region"})()
+        ambassador._remember_raw_handle(RegionHandle, raw_region)
+        raw_retraction = type("RawRetraction", (), {"encoded": b"retraction"})()
+        ambassador._remember_raw_handle(MessageRetractionHandle, raw_retraction)
         factory_accessors = {
             "getAttributeHandleFactory",
             "getAttributeHandleSetFactory",
@@ -1392,7 +1417,7 @@ class Java2010ProviderTests(unittest.TestCase):
                 self.name = name
 
         class _RawTime:
-            def __init__(self, value: int | float, implementation: str) -> None:
+            def __init__(self, value: float, implementation: str) -> None:
                 self.value = value
                 self.implementation = implementation
                 self.encoded = (
@@ -1433,7 +1458,7 @@ class Java2010ProviderTests(unittest.TestCase):
                 encoded = getattr(value, "encoded", None)
                 if encoded is not None:
                     return bytes(encoded)
-                return bytes(getattr(value, "encodedValue"))
+                return bytes(value.encodedValue)
 
         class _Callback(NullFederateAmbassador):
             def __init__(self) -> None:
@@ -1465,16 +1490,15 @@ class Java2010ProviderTests(unittest.TestCase):
                     self.assertEqual(result[0].encodedValue, vector.object_instance)
                     self.assertEqual(result[1].encodedValue, vector.object_class)
                     self.assertEqual(result[2], vector.instance_name)
-                    self.assertEqual(
-                        result[3].encodedValue, vector.producing_federate
-                    )
+                    self.assertEqual(result[3].encodedValue, vector.producing_federate)
                     continue
 
                 raw_map = _RawMap(
                     _RawEntry(vector.payload_handle, vector.payload)  # type: ignore[arg-type]
                 )
                 raw_supplement = _RawSupplement(
-                    vector.producing_federate, vector.sent_region  # type: ignore[arg-type]
+                    vector.producing_federate,
+                    vector.sent_region,  # type: ignore[arg-type]
                 )
                 common = (
                     _RawHandle(vector.object_instance)
@@ -1484,9 +1508,7 @@ class Java2010ProviderTests(unittest.TestCase):
                     vector.tag,
                 )
                 order = _RawEnum(
-                    vector.received_order
-                    if not vector.timed
-                    else vector.sent_order  # type: ignore[arg-type]
+                    vector.received_order if not vector.timed else vector.sent_order  # type: ignore[arg-type]
                 )
                 if vector.callback == "reflectAttributeValues":
                     if vector.timed:
@@ -1605,7 +1627,7 @@ class Java2010ProviderTests(unittest.TestCase):
                 self.name = name
 
         class _RawTime:
-            def __init__(self, value: int | float, implementation: str) -> None:
+            def __init__(self, value: float, implementation: str) -> None:
                 self.value = value
                 self.implementation = implementation
                 self.encoded = (
@@ -1646,7 +1668,7 @@ class Java2010ProviderTests(unittest.TestCase):
                 encoded = getattr(value, "encoded", None)
                 if encoded is not None:
                     return bytes(encoded)
-                return bytes(getattr(value, "encodedValue"))
+                return bytes(value.encodedValue)
 
         class _Callback(NullFederateAmbassador):
             def __init__(self) -> None:
@@ -1697,7 +1719,8 @@ class Java2010ProviderTests(unittest.TestCase):
                         _RawEntry(vector.payload_handle, vector.payload)  # type: ignore[arg-type]
                     )
                     supplement = _RawSupplement(
-                        vector.producing_federate, vector.sent_region  # type: ignore[arg-type]
+                        vector.producing_federate,
+                        vector.sent_region,  # type: ignore[arg-type]
                     )
                     common = (
                         _RawHandle(vector.object_instance)
@@ -1707,9 +1730,7 @@ class Java2010ProviderTests(unittest.TestCase):
                         vector.tag,
                     )
                     order = _RawEnum(
-                        vector.received_order
-                        if not vector.timed
-                        else vector.sent_order  # type: ignore[arg-type]
+                        vector.received_order if not vector.timed else vector.sent_order  # type: ignore[arg-type]
                     )
                     arguments = common + (
                         order,
@@ -1753,7 +1774,9 @@ class Java2010ProviderTests(unittest.TestCase):
                             payload=result[1][payload_key],
                             tag=result[2],  # type: ignore[arg-type]
                             transportation=bytes(result[4].encodedValue),  # type: ignore[attr-defined]
-                            producing_federate=bytes(info.getProducingFederate().encodedValue),  # type: ignore[attr-defined]
+                            producing_federate=bytes(
+                                info.getProducingFederate().encodedValue
+                            ),  # type: ignore[attr-defined]
                             sent_region=(
                                 bytes(next(iter(info.getSentRegions())).encodedValue)
                                 if info.hasSentRegions()
@@ -1764,7 +1787,11 @@ class Java2010ProviderTests(unittest.TestCase):
                             ),
                             time_value=(result[5].getTime() if vector.timed else None),
                             sent_order=(result[3].name if vector.timed else None),
-                            received_order=(result[6].name if vector.timed else vector.received_order),
+                            received_order=(
+                                result[6].name
+                                if vector.timed
+                                else vector.received_order
+                            ),
                             retraction=(
                                 bytes(result[7].encodedValue)
                                 if vector.timed and result[7] is not None
@@ -1952,7 +1979,7 @@ class Java2010ProviderTests(unittest.TestCase):
             "vendor.jar", runtime=runtime
         ).getRtiAmbassador()
         raw = type("RawRegion", (), {"encoded": b"region"})()
-        ambassador._raw_handles[(type(RegionHandle(b"")), b"region")] = raw
+        ambassador._remember_raw_handle(RegionHandle, raw)
         converted = ambassador._convert_argument(
             RegionHandleSet((RegionHandle(b"region"),)), "RegionHandleSet"
         )

@@ -252,7 +252,7 @@ TEST_CASE(
       fixture_hla::fom::parameter_fixture_child_interaction);
   REQUIRE(interactionClass.isValid());
   auto const parameter = sender->getParameterHandle(
-      interactionClass, L"Identifier");
+      interactionClass, umbra::test::hla::wide::fixture::identifier);
   REQUIRE(parameter.isValid());
   REQUIRE_NOTHROW(sender->publishInteractionClass(interactionClass));
   REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));

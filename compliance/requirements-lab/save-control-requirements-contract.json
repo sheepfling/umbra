@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract selects the 2025 Requirements Lab save-control requirements exercised by Umbra's embedded development profile. It covers an untimed initiation baseline, one-outstanding-save invariant, the valid optional-timestamp admission boundary, per-federate begin/complete/failure control, federation completion/failure, abort, status response, and resignation failure boundary. For an untimed save, every constrained member must have an accepted pending TAR before the save starts, because §8.8.3 makes TAR unavailable once a save is in progress. Each receives Initiate Federate Save while Time Advancing and before any later grant in the tested above-GALT cases; §4.19.6 gates the non-time-constrained group until all constrained members are eligible. The embedded and process-endpoint Catch2 cases plus portable C++ TCK cover this bounded behavior. It is limited to stable membership/role state and non-Flush-Queue grant dispatch; the paired timed-save contract separately traces bounded TAR/TARA/NMR/NMRA and strict-actual-FQR callback timing. The paired restore-control path now adds a process-local pending-advance rollback: paired single-federate Non-Regulated-Grant TAR and FQR cases cover HLA_EVOKED and HLA_IMMEDIATE, and a six-scenario single-federate TARA/NMR/NMRA matrix covers both callback models. Each saved Time Advancing state is reconstituted with a fresh callback-gated grant after Federation Restored. Paired restore-control regressions also save a live TSO interaction and its retraction record before proving state rollback, save a terminal retraction tombstone before proving its classification survives restore, save a logical-time/actual-lookahead window before proving post-save changes are discarded, and preserve one deferred lookahead-decrease target; those narrow restore behaviors are traced separately.",
+  "notes": "This contract selects the 2025 Requirements Lab save-control requirements exercised by Umbra's embedded development profile. It covers an untimed initiation baseline, one-outstanding-save invariant, the valid optional-timestamp admission boundary, per-federate begin/complete/failure control, federation completion/failure, abort, status response, and resignation failure boundary. For an untimed save, every constrained member must have an accepted pending TAR before the save starts, because \u00a78.8.3 makes TAR unavailable once a save is in progress. Each receives Initiate Federate Save while Time Advancing and before any later grant in the tested above-GALT cases; \u00a74.19.6 gates the non-time-constrained group until all constrained members are eligible. The embedded and process-endpoint Catch2 cases plus portable C++ TCK cover this bounded behavior. It is limited to stable membership/role state and non-Flush-Queue grant dispatch; the paired timed-save contract separately traces bounded TAR/TARA/NMR/NMRA and strict-actual-FQR callback timing. The paired restore-control path now adds a process-local pending-advance rollback: paired single-federate Non-Regulated-Grant TAR and FQR cases cover HLA_EVOKED and HLA_IMMEDIATE, and a six-scenario single-federate TARA/NMR/NMRA matrix covers both callback models. Each saved Time Advancing state is reconstituted with a fresh callback-gated grant after Federation Restored. Paired restore-control regressions also save a live TSO interaction and its retraction record before proving state rollback, save a terminal retraction tombstone before proving its classification survives restore, save a logical-time/actual-lookahead window before proving post-save changes are discarded, and preserve one deferred lookahead-decrease target; those narrow restore behaviors are traced separately. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-save-request-instructs-all-members",
@@ -56,10 +56,10 @@
     {
       "id": "umbra-queued-initiate-save-preserves-the-recipient-label",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
-      "clause_id": "clause-4.21.1",
+      "clause_id": "clause-4.20",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp",
       "source_symbol": "submitAmbassadorFederationSaveNotifications",
-      "notes": "The immutable Lab candidate is the §4.20 source statement that the Request Federation Save label shall be supplied to the joined federate, but its exported clause_id is clause-4.21.1. RL-082 records the verified ownership mismatch; this contract retains the exported value for checker drift detection while the implementation and test plan identify the official §4.20 service.",
+      "notes": "The immutable Lab candidate is the \u00a74.20 source statement that the Request Federation Save label shall be supplied to the joined federate, but its exported clause_id is clause-4.21.1. RL-082 records the verified ownership mismatch; this contract retains the exported value for checker drift detection while the implementation and test plan identify the official \u00a74.20 service.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files preserve Initiate Federate Save timestamp forms",
         "cpp/tests/ieee1516_2025_service_report_file_initiate_federate_save_integration_catch2.cpp::Embedded service reporting records Initiate Federate Save at recipient files"
@@ -136,7 +136,7 @@
       "clause_id": "clause-4.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp",
       "source_symbol": "submitAmbassadorFederationSaveNotifications",
-      "notes": "This immutable Lab candidate is the §4.23 recipient rule, but the checker-required clause_id is the trailing clause-4.23.2 due to the coalesced-page ownership defect recorded in RL-078. The implementation preserves the actual §4.23 association and appends the selected recipient's result record before its callback is queued.",
+      "notes": "This immutable Lab candidate is the \u00a74.23 recipient rule, but the checker-required clause_id is the trailing clause-4.23.2 due to the coalesced-page ownership defect recorded in RL-078. The implementation preserves the actual \u00a74.23 association and appends the selected recipient's result record before its callback is queued.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files preserve Federation Saved result forms",
         "cpp/tests/ieee1516_2025_service_report_file_federation_saved_integration_catch2.cpp::Embedded service reporting records Federation Saved at recipient files"
@@ -170,7 +170,7 @@
       "clause_id": "clause-4.26",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp",
       "source_symbol": "submitAmbassadorFederationSaveNotifications",
-      "notes": "The immutable source candidate is §4.26 Federation Save Status Response prose, but its checker-required clause_id is the following §4.27.2 due to the coalesced-page ownership defect recorded in RL-078. This entry retains that exported value while identifying the actual callback service.",
+      "notes": "The immutable source candidate is \u00a74.26 Federation Save Status Response prose, but its checker-required clause_id is the following \u00a74.27.2 due to the coalesced-page ownership defect recorded in RL-078. This entry retains that exported value while identifying the actual callback service.",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_service_report_file_query_federation_save_status_integration_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
@@ -182,7 +182,7 @@
       "clause_id": "clause-4.26",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp",
       "source_symbol": "submitAmbassadorFederationSaveNotifications",
-      "notes": "The source is §4.26's requirement to supply the joined-federate save-status list. The Lab currently attaches this direct source span to clause-4.27.2; RL-078 records the checker-stable ownership mismatch. The implementation formats the official C++ vector as Table 5's type-17 FederateHandleSaveStatusPairSet before callback delivery.",
+      "notes": "The source is \u00a74.26's requirement to supply the joined-federate save-status list. The Lab currently attaches this direct source span to clause-4.27.2; RL-078 records the checker-stable ownership mismatch. The implementation formats the official C++ vector as Table 5's type-17 FederateHandleSaveStatusPairSet before callback delivery.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Federation Save Status Response status-pair form",
         "cpp/tests/ieee1516_2025_service_report_file_query_federation_save_status_integration_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
@@ -198,5 +198,18 @@
         "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded federation resignation fails an outstanding save for remaining participants"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "save-control-requirements-contract.json",
+        "owned_id": "umbra-queued-initiate-save-preserves-the-recipient-label",
+        "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
+        "previous_clause_id": "clause-4.21.1",
+        "reviewed_clause_id": "clause-4.20"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

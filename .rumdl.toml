@@ -1,0 +1,49 @@
+# UMBRA uses GitHub-flavored Markdown and keeps line wraps readable in review.
+flavor = "gfm"
+line-length = 120
+cache = false
+
+[MD013]
+line-length = 120
+code-blocks = false
+code-spans = false
+headings = false
+tables = false
+reflow = false
+
+[MD033]
+allowed-elements = ["a", "code", "details", "summary"]
+
+[MD051]
+# GitHub source links use #L123 anchors; Markdown heading anchors remain checked.
+ignored-pattern = "^L[0-9]+$"
+
+[per-file-ignores]
+# This requirement-to-case scaffold keeps each long evidence record intact.
+"docs/testing/JAVA-TCK-REQUIREMENT-SCAFFOLD.md" = ["MD013"]
+
+# These large planning pages use valid four-space list continuation throughout.
+"docs/planning/ROADMAP.md" = ["MD077", "MD046"]
+"docs/development/FILE-SIZE-AND-SPLITTING.md" = ["MD077"]
+"docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md" = ["MD077"]
+
+# Append-only review history can repeat dated subjects; preserve each record.
+"docs/design/HLA-BEHAVIOR-FLOW-GUIDES-INTERACTION-ROUTING-REVIEW-LEDGER.md" = ["MD024"]
+"docs/design/HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md" = ["MD024"]
+"docs/design/HLA-BEHAVIOR-FLOW-GUIDES-PROGRESS-LOG.md" = ["MD024"]
+
+# Bold lead-ins and equations in these guides are prose labels, not section headings.
+"docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md" = ["MD036"]
+"docs/design/HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md" = ["MD036"]
+"docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md" = ["MD036"]
+"docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md" = ["MD036"]
+
+# The historical observation log embeds Markdown examples with nested fence styles.
+"docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md" = ["MD048", "MD046"]
+
+# These guides mix concise indented commands with longer fenced examples by design.
+"docs/planning/IMPLEMENTATION-PLAN.md" = ["MD046"]
+"packages/README.md" = ["MD046"]
+"packages/umbra-rti-api/README.md" = ["MD046"]
+"README.md" = ["MD046"]
+"packages/umbra-rti-jpype/README.md" = ["MD046"]

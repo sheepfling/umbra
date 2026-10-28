@@ -1040,7 +1040,7 @@ The normal [pull denial test](../../cpp/tests/attribute_ownership_acquisition_ca
 and [push denial test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1126)
 do not include cancellation. The [buffered-release cancellation test](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L434)
 blocks the owner inside a different callback; the requester cancels while that
-callback is blocked [here](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L640),
+callback is blocked [while the requester waits](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L640),
 and the release event is buffered before owner-release callback entry,
 cancellation is confirmed, and the later
 release callback is suppressed. It does not test Release Denied after owner
@@ -1282,7 +1282,11 @@ acquisition work. The process service then projects the returned acquisition
 work before the assumption recipients. These are registry and endpoint
 boundaries, not a callback-order, fairness, or cross-profile guarantee.
 
-The source sequence is explicit in the [pending-request exclusion scan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L82), [candidate preselection](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L114), and [unowned transition plus pending-work replan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L198).
+The source sequence is explicit in the
+[pending-request exclusion scan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L82),
+[candidate preselection](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L114),
+and
+[unowned transition plus pending-work replan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L198).
 
 The 2025 embedded divestiture test queues regular and If-Available requests
 before divestiture and observes each request's own acquisition notification;

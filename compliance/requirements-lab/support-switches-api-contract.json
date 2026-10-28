@@ -45,7 +45,7 @@
         "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/ieee1516_2025_service_report_file_convey_region_switch_integration_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Convey Region Designator Sets Switch",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request enforces the optimistic-time send bound for timestamped regional interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"

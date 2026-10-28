@@ -6,39 +6,76 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import TypeAlias, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = (
     ROOT / "compliance" / "catalogs" / "ieee1516e-2010-jni-type-roundtrip-catalog.json"
 )
 
-EXPECTED_DATA_ELEMENTS = {
-    "HLAASCIIchar",
-    "HLAASCIIstring",
-    "HLAboolean",
-    "HLAbyte",
-    "HLAfloat32BE",
-    "HLAfloat32LE",
-    "HLAfloat64BE",
-    "HLAfloat64LE",
-    "HLAinteger16BE",
-    "HLAinteger16LE",
-    "HLAinteger32BE",
-    "HLAinteger32LE",
-    "HLAinteger64BE",
-    "HLAinteger64LE",
-    "HLAoctet",
-    "HLAoctetPairBE",
-    "HLAoctetPairLE",
-    "HLAunicodeChar",
-    "HLAunicodeString",
-    "HLAopaqueData",
-    "HLAvariableArray",
-    "HLAfixedArray",
-    "HLAfixedRecord",
-    "HLAvariantRecord",
-}
+JsonValue: TypeAlias = (
+    str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
+)
+JsonObject: TypeAlias = dict[str, object]
+
+
+class _CarrierEvidenceRow(TypedDict):
+    category: str
+    probe: str
+    status: str
+
+
+def _load_catalog(path: Path) -> JsonObject:
+    with path.open(encoding="utf-8") as stream:
+        decoded: object = json.load(stream)
+    if not isinstance(decoded, dict) or not all(
+        isinstance(key, str) for key in decoded
+    ):
+        raise ValueError(f"{path} must contain a JSON object")
+    return cast(JsonObject, decoded)
+
+
+def _string_list(value: JsonValue, field_name: str) -> list[str]:
+    if not isinstance(value, list) or any(
+        not isinstance(item, str) or not item for item in value
+    ):
+        raise ValueError(f"{field_name} must be a string array")
+    return cast(list[str], value)
+
+
+def _string_set(value: JsonValue, field_name: str) -> set[str]:
+    return set(_string_list(value, field_name))
+
+
+EXPECTED_DATA_ELEMENTS = frozenset(
+    {
+        "HLAASCIIchar",
+        "HLAASCIIstring",
+        "HLAboolean",
+        "HLAbyte",
+        "HLAfloat32BE",
+        "HLAfloat32LE",
+        "HLAfloat64BE",
+        "HLAfloat64LE",
+        "HLAinteger16BE",
+        "HLAinteger16LE",
+        "HLAinteger32BE",
+        "HLAinteger32LE",
+        "HLAinteger64BE",
+        "HLAinteger64LE",
+        "HLAoctet",
+        "HLAoctetPairBE",
+        "HLAoctetPairLE",
+        "HLAunicodeChar",
+        "HLAunicodeString",
+        "HLAopaqueData",
+        "HLAvariableArray",
+        "HLAfixedArray",
+        "HLAfixedRecord",
+        "HLAvariantRecord",
+    }
+)
 EXPECTED_BASIC_DATA_ELEMENTS = EXPECTED_DATA_ELEMENTS - {
     "HLAvariableArray",
     "HLAfixedArray",
@@ -46,71 +83,87 @@ EXPECTED_BASIC_DATA_ELEMENTS = EXPECTED_DATA_ELEMENTS - {
     "HLAvariantRecord",
 }
 EXPECTED_BASIC_VALUE_MATRIX_COUNT = 79
-EXPECTED_HANDLES = {
-    "FederateHandle",
-    "ObjectClassHandle",
-    "InteractionClassHandle",
-    "ObjectInstanceHandle",
-    "AttributeHandle",
-    "ParameterHandle",
-    "DimensionHandle",
-    "MessageRetractionHandle",
-    "RegionHandle",
-}
-EXPECTED_TIMES = {
-    "HLAinteger64Time",
-    "HLAinteger64Interval",
-    "HLAfloat64Time",
-    "HLAfloat64Interval",
-}
-EXPECTED_JAVA_ONLY_HANDLES = {"TransportationTypeHandle"}
-EXPECTED_LOGICAL_TIME_FACTORIES = {"HLAinteger64TimeFactory", "HLAfloat64TimeFactory"}
-EXPECTED_HANDLE_FACTORIES = {
-    "FederateHandleFactory",
-    "ObjectClassHandleFactory",
-    "InteractionClassHandleFactory",
-    "ObjectInstanceHandleFactory",
-    "AttributeHandleFactory",
-    "ParameterHandleFactory",
-    "DimensionHandleFactory",
-    "TransportationTypeHandleFactory",
-}
-EXPECTED_COLLECTION_KINDS = {
-    "AttributeHandleSet",
-    "DimensionHandleSet",
-    "FederateHandleSet",
-    "RegionHandleSet",
-    "FederationExecutionInformationSet",
-    "AttributeHandleValueMap",
-    "ParameterHandleValueMap",
-    "AttributeSetRegionSetPairList",
-}
-EXPECTED_COLLECTION_FACTORIES = {
-    "AttributeHandleSetFactory",
-    "DimensionHandleSetFactory",
-    "FederateHandleSetFactory",
-    "RegionHandleSetFactory",
-    "AttributeHandleValueMapFactory",
-    "ParameterHandleValueMapFactory",
-    "AttributeSetRegionSetPairListFactory",
-}
-EXPECTED_DATA_ELEMENT_FACTORY_KINDS = {
-    "HLAoctet",
-    "HLAinteger32BE",
-    "HLAASCIIstring",
-    "HLAopaqueData",
-    "HLAvariableArray",
-    "HLAfixedArray",
-    "HLAfixedRecord",
-    "HLAvariantRecord",
-}
-EXPECTED_MALFORMED_LENGTH_PREFIX_KINDS = {
-    "HLAASCIIstring",
-    "HLAunicodeString",
-    "HLAopaqueData",
-    "HLAvariableArray",
-}
-EXPECTED_DATA_ELEMENT_DECODE_OVERLOADS = {"byte[]", "ByteWrapper"}
+EXPECTED_HANDLES = frozenset(
+    {
+        "FederateHandle",
+        "ObjectClassHandle",
+        "InteractionClassHandle",
+        "ObjectInstanceHandle",
+        "AttributeHandle",
+        "ParameterHandle",
+        "DimensionHandle",
+        "MessageRetractionHandle",
+        "RegionHandle",
+    }
+)
+EXPECTED_TIMES = frozenset(
+    {
+        "HLAinteger64Time",
+        "HLAinteger64Interval",
+        "HLAfloat64Time",
+        "HLAfloat64Interval",
+    }
+)
+EXPECTED_JAVA_ONLY_HANDLES = frozenset({"TransportationTypeHandle"})
+EXPECTED_LOGICAL_TIME_FACTORIES = frozenset(
+    {"HLAinteger64TimeFactory", "HLAfloat64TimeFactory"}
+)
+EXPECTED_HANDLE_FACTORIES = frozenset(
+    {
+        "FederateHandleFactory",
+        "ObjectClassHandleFactory",
+        "InteractionClassHandleFactory",
+        "ObjectInstanceHandleFactory",
+        "AttributeHandleFactory",
+        "ParameterHandleFactory",
+        "DimensionHandleFactory",
+        "TransportationTypeHandleFactory",
+    }
+)
+EXPECTED_COLLECTION_KINDS = frozenset(
+    {
+        "AttributeHandleSet",
+        "DimensionHandleSet",
+        "FederateHandleSet",
+        "RegionHandleSet",
+        "FederationExecutionInformationSet",
+        "AttributeHandleValueMap",
+        "ParameterHandleValueMap",
+        "AttributeSetRegionSetPairList",
+    }
+)
+EXPECTED_COLLECTION_FACTORIES = frozenset(
+    {
+        "AttributeHandleSetFactory",
+        "DimensionHandleSetFactory",
+        "FederateHandleSetFactory",
+        "RegionHandleSetFactory",
+        "AttributeHandleValueMapFactory",
+        "ParameterHandleValueMapFactory",
+        "AttributeSetRegionSetPairListFactory",
+    }
+)
+EXPECTED_DATA_ELEMENT_FACTORY_KINDS = frozenset(
+    {
+        "HLAoctet",
+        "HLAinteger32BE",
+        "HLAASCIIstring",
+        "HLAopaqueData",
+        "HLAvariableArray",
+        "HLAfixedArray",
+        "HLAfixedRecord",
+        "HLAvariantRecord",
+    }
+)
+EXPECTED_MALFORMED_LENGTH_PREFIX_KINDS = frozenset(
+    {
+        "HLAASCIIstring",
+        "HLAunicodeString",
+        "HLAopaqueData",
+        "HLAvariableArray",
+    }
+)
+EXPECTED_DATA_ELEMENT_DECODE_OVERLOADS = frozenset({"byte[]", "ByteWrapper"})
 EXPECTED_PYTHON_ENCODER_FACADE = "umbra._java.rti1516e.encoding.JavaEncoderFactory"
 EXPECTED_ENCODER_CREATOR_COUNT = 24
 EXPECTED_ENCODER_CREATOR_JAVA_TEST = "requireEncoderFactorySurface"
@@ -129,57 +182,61 @@ EXPECTED_LOGICAL_TIME_WIRE_TEST = (
     "test_python_logical_time_wire_matrix_round_trips_through_jni"
 )
 EXPECTED_VENDOR_TIME_ARITHMETIC_VECTOR_COUNT = 7
-EXPECTED_VENDOR_TIME_ARITHMETIC_SUPPORT = (
-    "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py"
-)
+EXPECTED_VENDOR_TIME_ARITHMETIC_SUPPORT = "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py"
 EXPECTED_VENDOR_TIME_ARITHMETIC_TEST = (
     "test_python_logical_time_operation_surface_is_callable_through_jni"
 )
 EXPECTED_VENDOR_DATA_ELEMENT_VECTOR_COUNT = 4
-EXPECTED_VENDOR_DATA_ELEMENT_SUPPORT = (
-    "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py"
-)
+EXPECTED_VENDOR_DATA_ELEMENT_SUPPORT = "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py"
 EXPECTED_VENDOR_DATA_ELEMENT_TEST = (
     "test_python_unknown_vendor_data_element_preserves_jni_carrier"
 )
 EXPECTED_PYTHON_CARRIER_FACADE_TEST = (
     "test_python_handle_and_collection_facades_round_trip_through_jni"
 )
-EXPECTED_PYTHON_CARRIER_FACADE_HANDLES = {
-    "FederateHandle",
-    "ObjectClassHandle",
-    "ObjectInstanceHandle",
-    "AttributeHandle",
-    "InteractionClassHandle",
-    "ParameterHandle",
-    "TransportationTypeHandle",
-    "DimensionHandle",
-    "MessageRetractionHandle",
-    "RegionHandle",
-}
-EXPECTED_PYTHON_CARRIER_FACADE_COLLECTIONS = {
-    "AttributeHandleSet",
-    "DimensionHandleSet",
-    "FederateHandleSet",
-    "RegionHandleSet",
-    "FederationExecutionInformationSet",
-    "AttributeHandleValueMap",
-    "ParameterHandleValueMap",
-    "AttributeSetRegionSetPairList",
-}
-EXPECTED_PYTHON_CARRIER_FACADE_RECORDS = {
-    "RangeBounds",
-    "FederationExecutionInformation",
-    "FederateHandleSaveStatusPair",
-    "FederateRestoreStatus",
-    "MessageRetractionReturn",
-    "TimeQueryReturn",
-}
-EXPECTED_PYTHON_CARRIER_FACADE_CALLBACKS = {
-    "SupplementalReflectInfo",
-    "SupplementalReceiveInfo",
-    "SupplementalRemoveInfo",
-}
+EXPECTED_PYTHON_CARRIER_FACADE_HANDLES = frozenset(
+    {
+        "FederateHandle",
+        "ObjectClassHandle",
+        "ObjectInstanceHandle",
+        "AttributeHandle",
+        "InteractionClassHandle",
+        "ParameterHandle",
+        "TransportationTypeHandle",
+        "DimensionHandle",
+        "MessageRetractionHandle",
+        "RegionHandle",
+    }
+)
+EXPECTED_PYTHON_CARRIER_FACADE_COLLECTIONS = frozenset(
+    {
+        "AttributeHandleSet",
+        "DimensionHandleSet",
+        "FederateHandleSet",
+        "RegionHandleSet",
+        "FederationExecutionInformationSet",
+        "AttributeHandleValueMap",
+        "ParameterHandleValueMap",
+        "AttributeSetRegionSetPairList",
+    }
+)
+EXPECTED_PYTHON_CARRIER_FACADE_RECORDS = frozenset(
+    {
+        "RangeBounds",
+        "FederationExecutionInformation",
+        "FederateHandleSaveStatusPair",
+        "FederateRestoreStatus",
+        "MessageRetractionReturn",
+        "TimeQueryReturn",
+    }
+)
+EXPECTED_PYTHON_CARRIER_FACADE_CALLBACKS = frozenset(
+    {
+        "SupplementalReflectInfo",
+        "SupplementalReceiveInfo",
+        "SupplementalRemoveInfo",
+    }
+)
 EXPECTED_PYTHON_CARRIER_RECORD_TEST = (
     "test_python_callback_and_record_carriers_round_trip_through_jni"
 )
@@ -189,12 +246,14 @@ EXPECTED_PYTHON_CALLBACK_OVERLOAD_TEST = (
 EXPECTED_PYTHON_RETURN_HANDLE_TEST = (
     "test_python_returned_retraction_handle_can_round_trip_back_to_jni"
 )
-EXPECTED_PYTHON_RETURN_SERVICES = {
-    "updateAttributeValues",
-    "sendInteraction",
-    "deleteObjectInstance",
-    "sendInteractionWithRegions",
-}
+EXPECTED_PYTHON_RETURN_SERVICES = frozenset(
+    {
+        "updateAttributeValues",
+        "sendInteraction",
+        "deleteObjectInstance",
+        "sendInteractionWithRegions",
+    }
+)
 EXPECTED_PYTHON_RETURN_SURFACE_TEST = (
     "test_python_rti_return_surface_matrix_round_trips_jni_carriers"
 )
@@ -213,74 +272,101 @@ EXPECTED_PYTHON_SERVICE_ARGUMENT_TEST = (
     "test_python_jni_service_arguments_reach_standard_null_surface"
 )
 EXPECTED_PYTHON_SERVICE_ARGUMENT_OVERLOAD_COUNT = 169
-EXPECTED_REQUIREMENT_REFS = {
-    "logical_time_wire_matrix": {
-        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
-        "compliance/requirements-lab/float-time-requirements-contract.json",
-        "compliance/requirements-lab/reference-time-requirements-contract.json",
-    },
-    "python_carrier_facade_matrix": {
-        "compliance/requirements-lab/handle-encoding-requirements-contract.json",
-        "compliance/requirements-lab/handle-decoding-api-contract.json",
-        "compliance/requirements-lab/connection-callback-api-contract.json",
-        "compliance/requirements-lab/save-control-requirements-contract.json",
-        "compliance/requirements-lab/restore-control-requirements-contract.json",
-        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
-    },
-    "basic_value_matrix": {
-        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
-    },
-    "malformed_wire_matrix": {
-        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
-        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
-    },
-    "byte_wrapper_cursor_matrix": {
-        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
-    },
-    "python_encoder_facade_matrix": {
-        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
-    },
-    "callback_surface_matrix": {
-        "compliance/requirements-lab/connection-callback-api-contract.json",
-    },
-    "python_return_surface_matrix": {
-        "compliance/requirements-lab/handle-encoding-requirements-contract.json",
-        "compliance/requirements-lab/handle-decoding-api-contract.json",
-        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
-        "compliance/requirements-lab/connection-callback-api-contract.json",
-    },
-    "python_factory_surface_matrix": {
-        "compliance/requirements-lab/connection-callback-api-contract.json",
-    },
-    "python_service_argument_matrix": {
-        "compliance/requirements-lab/connection-callback-api-contract.json",
-        "compliance/requirements-lab/handle-encoding-requirements-contract.json",
-        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
-    },
-}
-EXPECTED_AUXILIARY = {
-    "factory": {
-        "encoderFactoryCarrier",
-        "dataElementFactoryCarrier",
-        "logicalTimeFactoryCarrier",
-        "handleFactoryCarrier",
-        "collectionFactoryCarrier",
-    },
-    "collection": {
-        "roundTripHandleCollection",
-        "roundTripByteMatrix",
-        "collectionCarrier",
-    },
-    "enum": {"roundTripEnum"},
-    "record": {"roundTripObject"},
-    "callback": {"roundTripObject"},
-    "exception": {"roundTripObject", "roundTripDataElement"},
-}
+EXPECTED_REQUIREMENT_REFS = MappingProxyType(
+    {
+        "logical_time_wire_matrix": frozenset(
+            {
+                "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+                "compliance/requirements-lab/float-time-requirements-contract.json",
+                "compliance/requirements-lab/reference-time-requirements-contract.json",
+            }
+        ),
+        "python_carrier_facade_matrix": frozenset(
+            {
+                "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+                "compliance/requirements-lab/handle-decoding-api-contract.json",
+                "compliance/requirements-lab/connection-callback-api-contract.json",
+                "compliance/requirements-lab/save-control-requirements-contract.json",
+                "compliance/requirements-lab/restore-control-requirements-contract.json",
+                "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+            }
+        ),
+        "basic_value_matrix": frozenset(
+            {
+                "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+            }
+        ),
+        "malformed_wire_matrix": frozenset(
+            {
+                "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+                "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+            }
+        ),
+        "byte_wrapper_cursor_matrix": frozenset(
+            {
+                "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+            }
+        ),
+        "python_encoder_facade_matrix": frozenset(
+            {
+                "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+            }
+        ),
+        "callback_surface_matrix": frozenset(
+            {
+                "compliance/requirements-lab/connection-callback-api-contract.json",
+            }
+        ),
+        "python_return_surface_matrix": frozenset(
+            {
+                "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+                "compliance/requirements-lab/handle-decoding-api-contract.json",
+                "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+                "compliance/requirements-lab/connection-callback-api-contract.json",
+            }
+        ),
+        "python_factory_surface_matrix": frozenset(
+            {
+                "compliance/requirements-lab/connection-callback-api-contract.json",
+            }
+        ),
+        "python_service_argument_matrix": frozenset(
+            {
+                "compliance/requirements-lab/connection-callback-api-contract.json",
+                "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+                "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+            }
+        ),
+    }
+)
+EXPECTED_AUXILIARY = MappingProxyType(
+    {
+        "factory": frozenset(
+            {
+                "encoderFactoryCarrier",
+                "dataElementFactoryCarrier",
+                "logicalTimeFactoryCarrier",
+                "handleFactoryCarrier",
+                "collectionFactoryCarrier",
+            }
+        ),
+        "collection": frozenset(
+            {
+                "roundTripHandleCollection",
+                "roundTripByteMatrix",
+                "collectionCarrier",
+            }
+        ),
+        "enum": frozenset({"roundTripEnum"}),
+        "record": frozenset({"roundTripObject"}),
+        "callback": frozenset({"roundTripObject"}),
+        "exception": frozenset({"roundTripObject", "roundTripDataElement"}),
+    }
+)
 
 
 def verify(path: Path) -> list[str]:
-    with path.open(encoding="utf-8") as stream:
-        catalog: dict[str, Any] = json.load(stream)
+    catalog = _load_catalog(path)
     findings: list[str] = []
     if catalog.get("standard") != "IEEE 1516.1-2010":
         findings.append("catalog standard must be IEEE 1516.1-2010")
@@ -289,7 +375,31 @@ def verify(path: Path) -> list[str]:
     carriers = catalog.get("carriers")
     if not isinstance(carriers, list) or not carriers:
         return findings + ["carriers must be a non-empty array"]
-    probes = {item.get("probe") for item in carriers if isinstance(item, dict)}
+    probes: set[str] = set()
+    by_category: dict[str, set[str]] = {}
+    for item in carriers:
+        if not isinstance(item, dict):
+            findings.append("carrier entries must be objects")
+            continue
+        category = item.get("category")
+        probe = item.get("probe")
+        status = item.get("status")
+        if (
+            not isinstance(category, str)
+            or not category
+            or not isinstance(probe, str)
+            or not probe
+            or not isinstance(status, str)
+        ):
+            findings.append("each carrier requires category, probe, and status strings")
+            continue
+        row = cast(_CarrierEvidenceRow, item)
+        probes.add(row["probe"])
+        by_category.setdefault(row["category"], set()).add(row["probe"])
+        if row["status"] != "implemented":
+            findings.append(
+                f"implemented matrix carrier is not marked implemented: {row['probe']}"
+            )
     inventories = catalog.get("carrier_inventories")
     if not isinstance(inventories, dict):
         findings.append("carrier_inventories must be an object")
@@ -306,7 +416,10 @@ def verify(path: Path) -> list[str]:
             "collection_factories": EXPECTED_COLLECTION_FACTORIES,
         }
         for name, expected in inventory_expectations.items():
-            actual = set(inventories.get(name, []))
+            actual = _string_set(
+                cast(JsonValue, inventories.get(name)),
+                f"carrier inventory {name}",
+            )
             if expected - actual:
                 findings.append(
                     f"carrier inventory {name} is missing: "
@@ -382,7 +495,9 @@ def verify(path: Path) -> list[str]:
         findings.append("vendor_time_arithmetic_surface must be an object")
     else:
         if vendor_time_matrix.get("support") != EXPECTED_VENDOR_TIME_ARITHMETIC_SUPPORT:
-            findings.append("vendor time arithmetic matrix shared support path is incorrect")
+            findings.append(
+                "vendor time arithmetic matrix shared support path is incorrect"
+            )
         if vendor_time_matrix.get("vector_count") != (
             EXPECTED_VENDOR_TIME_ARITHMETIC_VECTOR_COUNT
         ):
@@ -404,7 +519,9 @@ def verify(path: Path) -> list[str]:
         )
         python_test = vendor_time_matrix.get("python_test_method")
         if python_test != EXPECTED_VENDOR_TIME_ARITHMETIC_TEST:
-            findings.append("vendor time arithmetic matrix Python test method is incorrect")
+            findings.append(
+                "vendor time arithmetic matrix Python test method is incorrect"
+            )
         elif not python_path.is_file() or python_test not in python_path.read_text(
             encoding="utf-8"
         ):
@@ -416,7 +533,9 @@ def verify(path: Path) -> list[str]:
         findings.append("vendor_data_element_surface must be an object")
     else:
         if vendor_data_matrix.get("support") != EXPECTED_VENDOR_DATA_ELEMENT_SUPPORT:
-            findings.append("vendor data-element matrix shared support path is incorrect")
+            findings.append(
+                "vendor data-element matrix shared support path is incorrect"
+            )
         if vendor_data_matrix.get("vector_count") != (
             EXPECTED_VENDOR_DATA_ELEMENT_VECTOR_COUNT
         ):
@@ -438,7 +557,9 @@ def verify(path: Path) -> list[str]:
         )
         python_test = vendor_data_matrix.get("python_test_method")
         if python_test != EXPECTED_VENDOR_DATA_ELEMENT_TEST:
-            findings.append("vendor data-element matrix Python test method is incorrect")
+            findings.append(
+                "vendor data-element matrix Python test method is incorrect"
+            )
         elif not python_path.is_file() or python_test not in python_path.read_text(
             encoding="utf-8"
         ):
@@ -449,23 +570,27 @@ def verify(path: Path) -> list[str]:
     if not isinstance(carrier_matrix, dict):
         findings.append("python_carrier_facade_matrix must be an object")
     else:
-        if set(carrier_matrix.get("handle_families", [])) != (
-            EXPECTED_PYTHON_CARRIER_FACADE_HANDLES
-        ):
+        if _string_set(
+            cast(JsonValue, carrier_matrix.get("handle_families")),
+            "python_carrier_facade_matrix.handle_families",
+        ) != (EXPECTED_PYTHON_CARRIER_FACADE_HANDLES):
             findings.append(
                 "Python carrier façade matrix must cover every standard handle family"
             )
-        if set(carrier_matrix.get("collections", [])) != (
-            EXPECTED_PYTHON_CARRIER_FACADE_COLLECTIONS
-        ):
+        if _string_set(
+            cast(JsonValue, carrier_matrix.get("collections")),
+            "python_carrier_facade_matrix.collections",
+        ) != (EXPECTED_PYTHON_CARRIER_FACADE_COLLECTIONS):
             findings.append("Python carrier façade matrix collection set is incomplete")
-        if set(carrier_matrix.get("record_carriers", [])) != (
-            EXPECTED_PYTHON_CARRIER_FACADE_RECORDS
-        ):
+        if _string_set(
+            cast(JsonValue, carrier_matrix.get("record_carriers")),
+            "python_carrier_facade_matrix.record_carriers",
+        ) != (EXPECTED_PYTHON_CARRIER_FACADE_RECORDS):
             findings.append("Python carrier façade matrix record set is incomplete")
-        if set(carrier_matrix.get("callback_carriers", [])) != (
-            EXPECTED_PYTHON_CARRIER_FACADE_CALLBACKS
-        ):
+        if _string_set(
+            cast(JsonValue, carrier_matrix.get("callback_carriers")),
+            "python_carrier_facade_matrix.callback_carriers",
+        ) != (EXPECTED_PYTHON_CARRIER_FACADE_CALLBACKS):
             findings.append("Python carrier façade matrix callback set is incomplete")
         if carrier_matrix.get("round_trip_direction") != (
             "Python -> standard Java carrier -> JNI -> C++ -> JNI -> standard Java carrier -> Python"
@@ -519,16 +644,18 @@ def verify(path: Path) -> list[str]:
             findings.append(
                 "Python carrier façade matrix returned-handle test method is incorrect"
             )
-        elif not python_path.is_file() or return_handle_test not in python_path.read_text(
-            encoding="utf-8"
+        elif (
+            not python_path.is_file()
+            or return_handle_test not in python_path.read_text(encoding="utf-8")
         ):
             findings.append(
                 "Python carrier façade matrix returned-handle test method is missing: "
                 + str(return_handle_test)
             )
-        if set(carrier_matrix.get("return_services", [])) != (
-            EXPECTED_PYTHON_RETURN_SERVICES
-        ):
+        if _string_set(
+            cast(JsonValue, carrier_matrix.get("return_services")),
+            "python_carrier_facade_matrix.return_services",
+        ) != (EXPECTED_PYTHON_RETURN_SERVICES):
             findings.append(
                 "Python carrier façade matrix must cover every standard retraction-return service"
             )
@@ -537,13 +664,9 @@ def verify(path: Path) -> list[str]:
         findings.append("callback_surface_matrix must be an object")
     else:
         if callback_matrix.get("method_count") != EXPECTED_CALLBACK_METHOD_COUNT:
-            findings.append(
-                "callback surface matrix method count must remain 51"
-            )
+            findings.append("callback surface matrix method count must remain 51")
         if callback_matrix.get("overload_count") != EXPECTED_CALLBACK_OVERLOAD_COUNT:
-            findings.append(
-                "callback surface matrix overload count must remain 60"
-            )
+            findings.append("callback surface matrix overload count must remain 60")
         if callback_matrix.get("time_implementations") != [
             "HLAinteger64Time",
             "HLAfloat64Time",
@@ -554,9 +677,7 @@ def verify(path: Path) -> list[str]:
         if callback_matrix.get("round_trip_direction") != (
             "JNI-produced standard Java callback carriers -> JPype callback proxy -> Python callback arguments"
         ):
-            findings.append(
-                "callback surface matrix round-trip direction is incorrect"
-            )
+            findings.append("callback surface matrix round-trip direction is incorrect")
         python_path = (
             ROOT
             / "packages"
@@ -623,7 +744,9 @@ def verify(path: Path) -> list[str]:
         if factory_matrix.get("factory_name") != "Umbra JNI IEEE 1516e Null RTI":
             findings.append("Python factory surface matrix provider name is incorrect")
         if factory_matrix.get("factory_version") != "0.1.0-null":
-            findings.append("Python factory surface matrix provider version is incorrect")
+            findings.append(
+                "Python factory surface matrix provider version is incorrect"
+            )
         if factory_matrix.get("discovery") != (
             "standard hla.rti1516e.RtiFactoryFactory / ServiceLoader"
         ):
@@ -631,7 +754,9 @@ def verify(path: Path) -> list[str]:
         if factory_matrix.get("rtiambassador_method_count") != (
             EXPECTED_RTIAMBASSADOR_METHOD_COUNT
         ):
-            findings.append("Python factory surface matrix method count must remain 150")
+            findings.append(
+                "Python factory surface matrix method count must remain 150"
+            )
         if factory_matrix.get("rtiambassador_overload_count") != (
             EXPECTED_RTIAMBASSADOR_OVERLOAD_COUNT
         ):
@@ -645,7 +770,9 @@ def verify(path: Path) -> list[str]:
         if factory_matrix.get("encoder_factory") != (
             "standard hla.rti1516e.encoding.EncoderFactory"
         ):
-            findings.append("Python factory surface matrix encoder factory is incorrect")
+            findings.append(
+                "Python factory surface matrix encoder factory is incorrect"
+            )
         if factory_matrix.get("round_trip_direction") != (
             "Python Java2010RtiFactory -> standard Java RtiFactory -> Java RTIambassador proxy -> JPype -> Python façade"
         ):
@@ -661,7 +788,9 @@ def verify(path: Path) -> list[str]:
         )
         python_test = factory_matrix.get("python_test_method")
         if python_test != EXPECTED_PYTHON_FACTORY_SURFACE_TEST:
-            findings.append("Python factory surface matrix Python test method is incorrect")
+            findings.append(
+                "Python factory surface matrix Python test method is incorrect"
+            )
         elif not python_path.is_file() or python_test not in python_path.read_text(
             encoding="utf-8"
         ):
@@ -737,7 +866,13 @@ def verify(path: Path) -> list[str]:
     else:
         if value_matrix.get("edition") != "2010":
             findings.append("basic value matrix must target IEEE 1516e-2010")
-        if set(value_matrix.get("data_elements", [])) != EXPECTED_BASIC_DATA_ELEMENTS:
+        if (
+            _string_set(
+                cast(JsonValue, value_matrix.get("data_elements")),
+                "basic_value_matrix.data_elements",
+            )
+            != EXPECTED_BASIC_DATA_ELEMENTS
+        ):
             findings.append(
                 "basic value matrix must cover every standard 2010 basic data element"
             )
@@ -757,7 +892,10 @@ def verify(path: Path) -> list[str]:
             support_path.relative_to(ROOT)
         ).replace("\\", "/"):
             findings.append("basic value matrix shared support path is incorrect")
-        methods = value_matrix.get("python_test_methods")
+        methods = _string_list(
+            cast(JsonValue, value_matrix.get("python_test_methods")),
+            "basic_value_matrix.python_test_methods",
+        )
         native_path = (
             ROOT / "packages" / "umbra-rti-native" / "tests" / "test_native_2010.py"
         )
@@ -768,7 +906,7 @@ def verify(path: Path) -> list[str]:
             / "tests"
             / "test_jpype_2010_jni_type_roundtrip.py"
         )
-        if not isinstance(methods, list) or len(methods) != 2:
+        if len(methods) != 2:
             findings.append(
                 "basic value matrix requires native and JNI Python test methods"
             )
@@ -789,12 +927,18 @@ def verify(path: Path) -> list[str]:
     if not isinstance(malformed_matrix, dict):
         findings.append("malformed_wire_matrix must be an object")
     else:
-        truncated = set(malformed_matrix.get("truncated_data_elements", []))
+        truncated = _string_set(
+            cast(JsonValue, malformed_matrix.get("truncated_data_elements")),
+            "malformed_wire_matrix.truncated_data_elements",
+        )
         if truncated != EXPECTED_DATA_ELEMENTS:
             findings.append(
                 "malformed truncated matrix must cover every standard data element"
             )
-        overrun = set(malformed_matrix.get("declared_length_overrun", []))
+        overrun = _string_set(
+            cast(JsonValue, malformed_matrix.get("declared_length_overrun")),
+            "malformed_wire_matrix.declared_length_overrun",
+        )
         if overrun != EXPECTED_MALFORMED_LENGTH_PREFIX_KINDS:
             findings.append(
                 "malformed declared-length matrix must cover every length-prefixed carrier"
@@ -825,13 +969,20 @@ def verify(path: Path) -> list[str]:
     if not isinstance(cursor_matrix, dict):
         findings.append("byte_wrapper_cursor_matrix must be an object")
     else:
-        if set(cursor_matrix.get("data_elements", [])) != EXPECTED_DATA_ELEMENTS:
+        if (
+            _string_set(
+                cast(JsonValue, cursor_matrix.get("data_elements")),
+                "byte_wrapper_cursor_matrix.data_elements",
+            )
+            != EXPECTED_DATA_ELEMENTS
+        ):
             findings.append(
                 "ByteWrapper cursor matrix must cover every standard data element"
             )
-        if set(cursor_matrix.get("decode_overloads", [])) != (
-            EXPECTED_DATA_ELEMENT_DECODE_OVERLOADS
-        ):
+        if _string_set(
+            cast(JsonValue, cursor_matrix.get("decode_overloads")),
+            "byte_wrapper_cursor_matrix.decode_overloads",
+        ) != (EXPECTED_DATA_ELEMENT_DECODE_OVERLOADS):
             findings.append(
                 "ByteWrapper cursor matrix must declare both decode overloads"
             )
@@ -859,7 +1010,13 @@ def verify(path: Path) -> list[str]:
     if not isinstance(facade_matrix, dict):
         findings.append("python_encoder_facade_matrix must be an object")
     else:
-        if set(facade_matrix.get("data_elements", [])) != EXPECTED_DATA_ELEMENTS:
+        if (
+            _string_set(
+                cast(JsonValue, facade_matrix.get("data_elements")),
+                "python_encoder_facade_matrix.data_elements",
+            )
+            != EXPECTED_DATA_ELEMENTS
+        ):
             findings.append(
                 "Python encoder façade matrix must cover every standard data element"
             )
@@ -869,7 +1026,9 @@ def verify(path: Path) -> list[str]:
             )
         creator_surface = facade_matrix.get("creator_surface")
         if not isinstance(creator_surface, dict):
-            findings.append("Python encoder façade matrix creator_surface must be an object")
+            findings.append(
+                "Python encoder façade matrix creator_surface must be an object"
+            )
         else:
             if creator_surface.get("creator_count") != EXPECTED_ENCODER_CREATOR_COUNT:
                 findings.append(
@@ -899,10 +1058,12 @@ def verify(path: Path) -> list[str]:
                 ),
             ):
                 method = creator_surface.get(field)
-                if method != expected:
+                if not isinstance(method, str) or method != expected:
                     findings.append(f"2010 EncoderFactory {field} is incorrect")
                 elif method not in java_source:
-                    findings.append(f"2010 EncoderFactory Java test method is missing: {method}")
+                    findings.append(
+                        f"2010 EncoderFactory Java test method is missing: {method}"
+                    )
             python_creator_path = (
                 ROOT
                 / "packages"
@@ -923,7 +1084,7 @@ def verify(path: Path) -> list[str]:
                 ),
             ):
                 method = creator_surface.get(field)
-                if method != expected:
+                if not isinstance(method, str) or method != expected:
                     findings.append(f"2010 EncoderFactory {field} is incorrect")
                 elif method not in python_creator_source:
                     findings.append(
@@ -947,22 +1108,6 @@ def verify(path: Path) -> list[str]:
             findings.append(
                 f"Python encoder façade test method is missing: {python_test}"
             )
-    by_category: dict[str, set[str]] = {}
-    for item in carriers:
-        if not isinstance(item, dict):
-            findings.append("carrier entries must be objects")
-            continue
-        category = item.get("category")
-        probe = item.get("probe")
-        status = item.get("status")
-        if not isinstance(category, str) or not isinstance(probe, str):
-            findings.append("each carrier requires category and probe")
-            continue
-        if status != "implemented":
-            findings.append(
-                f"implemented matrix carrier is not marked implemented: {probe}"
-            )
-        by_category.setdefault(category, set()).add(probe)
     if EXPECTED_DATA_ELEMENTS - by_category.get("encoding", set()):
         findings.append(
             "missing data-element probes: "

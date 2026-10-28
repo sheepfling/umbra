@@ -51,7 +51,6 @@ from hla.rti1516e.encoding import (
 
 from . import _native_2010
 
-
 _Result = TypeVar("_Result")
 
 
@@ -64,15 +63,16 @@ def _call_native(
         return function(*args)
     except _native_2010.Native2010RtiError as error:
         name, separator, message = str(error).partition(": ")
-        if encoding_error is not None and name in {"EncoderException", "DecoderException"}:
+        if encoding_error is not None and name in {
+            "EncoderException",
+            "DecoderException",
+        }:
             raise encoding_error(message if separator else name) from error
         # The native extension uses the same standard exception names as the
         # provider-neutral API for lifecycle failures.
         from hla.rti1516e.exceptions import exceptionForName
 
-        raise exceptionForName(
-            name, message if separator else name, error
-        ) from error
+        raise exceptionForName(name, message if separator else name, error) from error
 
 
 def _signed(value: int, bits: int) -> int:
@@ -245,7 +245,9 @@ class _NativeHLAvariableArray(_NativeDataElement, HLAvariableArray):
         while self.size() < newSize:
             self.addElement(self._factory.createElement(self.size()))
         if self.size() > newSize:
-            raise NotImplementedError("native 2010 variable-array shrinking is not supported")
+            raise NotImplementedError(
+                "native 2010 variable-array shrinking is not supported"
+            )
 
     def size(self) -> int:
         return int(_call_native(self._implementation.size))
@@ -255,7 +257,9 @@ class _NativeHLAvariableArray(_NativeDataElement, HLAvariableArray):
             raise IndexError("data-element index is outside the variable-array range")
         element = self._factory.createElement(index)
         if not isinstance(element, type(self._prototype)):
-            raise TypeError("factory returned an element that does not match the prototype")
+            raise TypeError(
+                "factory returned an element that does not match the prototype"
+            )
         element.decode(
             bytes(
                 _call_native(
@@ -305,10 +309,14 @@ class _NativeHLAfixedArray(_NativeDataElement, HLAfixedArray):
             element = self._elements[index]
         else:
             if self._factory is None:
-                raise EncoderException("native fixed-array element factory is unavailable")
+                raise EncoderException(
+                    "native fixed-array element factory is unavailable"
+                )
             element = self._factory.createElement(index)
             if not isinstance(element, type(self._prototype)):
-                raise TypeError("factory returned an element that does not match the prototype")
+                raise TypeError(
+                    "factory returned an element that does not match the prototype"
+                )
         element.decode(
             bytes(
                 _call_native(
@@ -368,7 +376,9 @@ class _NativeHLAfixedRecord(_NativeDataElement, HLAfixedRecord):
         if index >= len(self._elements):
             raise EncoderException("native fixed record component state is unavailable")
         if not isinstance(dataElement, type(self._elements[index])):
-            raise TypeError("dataElement does not match the fixed-record component type")
+            raise TypeError(
+                "dataElement does not match the fixed-record component type"
+            )
         if not isinstance(dataElement, _NativeDataElement):
             raise TypeError("native fixed records require native DataElements")
         _call_native(
@@ -401,7 +411,11 @@ class _NativeHLAvariantRecord(_NativeDataElement, HLAvariantRecord):
         existing = self._variants.get(key)
         if existing is not None and not isinstance(dataElement, type(existing)):
             raise TypeError("dataElement does not match the mapped variant type")
-        method = self._implementation.set_variant if existing is not None else self._implementation.add_variant
+        method = (
+            self._implementation.set_variant
+            if existing is not None
+            else self._implementation.add_variant
+        )
         _call_native(
             method,
             self._discriminant._implementation,
@@ -471,22 +485,46 @@ def _make_scalar_wrapper(
 
 
 _SCALAR_WRAPPERS: dict[str, type[_NativeDataElement]] = {
-    "HLAinteger16BE": _make_scalar_wrapper(HLAinteger16BE, lambda value: _signed(int(value), 16), int),
-    "HLAinteger16LE": _make_scalar_wrapper(HLAinteger16LE, lambda value: _signed(int(value), 16), int),
-    "HLAinteger32BE": _make_scalar_wrapper(HLAinteger32BE, lambda value: _signed(int(value), 32), int),
-    "HLAinteger32LE": _make_scalar_wrapper(HLAinteger32LE, lambda value: _signed(int(value), 32), int),
-    "HLAinteger64BE": _make_scalar_wrapper(HLAinteger64BE, lambda value: _signed(int(value), 64), int),
-    "HLAinteger64LE": _make_scalar_wrapper(HLAinteger64LE, lambda value: _signed(int(value), 64), int),
+    "HLAinteger16BE": _make_scalar_wrapper(
+        HLAinteger16BE, lambda value: _signed(int(value), 16), int
+    ),
+    "HLAinteger16LE": _make_scalar_wrapper(
+        HLAinteger16LE, lambda value: _signed(int(value), 16), int
+    ),
+    "HLAinteger32BE": _make_scalar_wrapper(
+        HLAinteger32BE, lambda value: _signed(int(value), 32), int
+    ),
+    "HLAinteger32LE": _make_scalar_wrapper(
+        HLAinteger32LE, lambda value: _signed(int(value), 32), int
+    ),
+    "HLAinteger64BE": _make_scalar_wrapper(
+        HLAinteger64BE, lambda value: _signed(int(value), 64), int
+    ),
+    "HLAinteger64LE": _make_scalar_wrapper(
+        HLAinteger64LE, lambda value: _signed(int(value), 64), int
+    ),
     "HLAfloat32BE": _make_scalar_wrapper(HLAfloat32BE, float, float),
     "HLAfloat32LE": _make_scalar_wrapper(HLAfloat32LE, float, float),
     "HLAfloat64BE": _make_scalar_wrapper(HLAfloat64BE, float, float),
     "HLAfloat64LE": _make_scalar_wrapper(HLAfloat64LE, float, float),
-    "HLAbyte": _make_scalar_wrapper(HLAbyte, _octet_bits, lambda value: _signed(int(value), 8)),
-    "HLAoctet": _make_scalar_wrapper(HLAoctet, _octet_bits, lambda value: _signed(int(value), 8)),
-    "HLAASCIIchar": _make_scalar_wrapper(HLAASCIIchar, _ascii_char, lambda value: _signed(int(value), 8)),
-    "HLAunicodeChar": _make_scalar_wrapper(HLAunicodeChar, _unicode_char, lambda value: _signed(int(value), 16)),
-    "HLAoctetPairBE": _make_scalar_wrapper(HLAoctetPairBE, _octet_pair, lambda value: _signed(int(value), 16)),
-    "HLAoctetPairLE": _make_scalar_wrapper(HLAoctetPairLE, _octet_pair, lambda value: _signed(int(value), 16)),
+    "HLAbyte": _make_scalar_wrapper(
+        HLAbyte, _octet_bits, lambda value: _signed(int(value), 8)
+    ),
+    "HLAoctet": _make_scalar_wrapper(
+        HLAoctet, _octet_bits, lambda value: _signed(int(value), 8)
+    ),
+    "HLAASCIIchar": _make_scalar_wrapper(
+        HLAASCIIchar, _ascii_char, lambda value: _signed(int(value), 8)
+    ),
+    "HLAunicodeChar": _make_scalar_wrapper(
+        HLAunicodeChar, _unicode_char, lambda value: _signed(int(value), 16)
+    ),
+    "HLAoctetPairBE": _make_scalar_wrapper(
+        HLAoctetPairBE, _octet_pair, lambda value: _signed(int(value), 16)
+    ),
+    "HLAoctetPairLE": _make_scalar_wrapper(
+        HLAoctetPairLE, _octet_pair, lambda value: _signed(int(value), 16)
+    ),
     "HLAboolean": _make_scalar_wrapper(HLAboolean, bool, bool),
     "HLAASCIIstring": _make_scalar_wrapper(HLAASCIIstring, _ascii_string, str),
     "HLAunicodeString": _make_scalar_wrapper(HLAunicodeString, str, str),
@@ -536,6 +574,7 @@ for _method_name, _type_name, _converter in (
     ("createHLAASCIIstring", "HLAASCIIstring", _ascii_string),
     ("createHLAunicodeString", "HLAunicodeString", str),
 ):
+
     def _create_scalar(
         self: Native2010EncoderFactory,
         value: object | None = None,
@@ -550,7 +589,9 @@ for _method_name, _type_name, _converter in (
     setattr(Native2010EncoderFactory, _method_name, _create_scalar)
 
 
-def _native_factory_for(factory: DataElementFactory, name: str) -> tuple[DataElementFactory, DataElement]:
+def _native_factory_for(
+    factory: DataElementFactory, name: str
+) -> tuple[DataElementFactory, DataElement]:
     if not isinstance(factory, DataElementFactory):
         raise TypeError("factory must be a DataElementFactory")
     prototype = factory.createElement(0)
@@ -565,7 +606,9 @@ def _create_variable_array(
     *elements: DataElement,
 ) -> HLAvariableArray:
     factory, prototype = _native_factory_for(factory, "variable arrays")
-    implementation = _call_native(_native_2010.NativeHLAvariableArray, prototype._implementation)
+    implementation = _call_native(
+        _native_2010.NativeHLAvariableArray, prototype._implementation
+    )
     result = _NativeHLAvariableArray(implementation, factory, prototype)
     for element in elements:
         result.addElement(element)
@@ -593,7 +636,9 @@ def _create_fixed_array(
 
     elements = [factory_or_element, *elements_or_size]
     elements = [element for element in elements if element is not None]
-    if not elements or any(not isinstance(element, _NativeDataElement) for element in elements):
+    if not elements or any(
+        not isinstance(element, _NativeDataElement) for element in elements
+    ):
         raise TypeError("variadic fixed arrays require native DataElements")
     prototype = elements[0]
     if any(not isinstance(element, type(prototype)) for element in elements):
@@ -618,7 +663,9 @@ def _create_variant_record(
     discriminantPrototype: DataElement,
 ) -> HLAvariantRecord:
     if not isinstance(discriminantPrototype, _NativeDataElement):
-        raise TypeError("native variant records require a native discriminant prototype")
+        raise TypeError(
+            "native variant records require a native discriminant prototype"
+        )
     implementation = _call_native(
         _native_2010.NativeHLAvariantRecord,
         discriminantPrototype._implementation,
@@ -633,7 +680,9 @@ Native2010EncoderFactory.createHLAvariantRecord = _create_variant_record  # type
 
 
 def _unsupported_factory_service(name: str):
-    def invoke(self: Native2010EncoderFactory, *args: object, **kwargs: object) -> object:
+    def invoke(
+        self: Native2010EncoderFactory, *args: object, **kwargs: object
+    ) -> object:
         raise NotImplementedError(
             f"IEEE 1516.1-2010 native encoder factory has not implemented {name}"
         )

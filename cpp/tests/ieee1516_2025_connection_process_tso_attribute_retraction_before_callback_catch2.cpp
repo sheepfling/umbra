@@ -423,6 +423,11 @@ TEST_CASE(
       ++timeConstrainedEnabledCount;
     }
 
+    void requestRetraction(
+        rti1516_2025::MessageRetractionHandle const&) override {
+      callbackOrder.push_back('R');
+    }
+
     void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
       ++timeAdvanceGrantCount;
       callbackOrder.push_back('G');
@@ -606,16 +611,17 @@ TEST_CASE(
           TransportServiceOperation::retract,
           "The process attribute-retraction server lost Retract.");
       serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::acknowledge_tso_delivery,
+          "The process attribute-retraction server lost the suppressed-delivery acknowledgement.");
+      serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process attribute-retraction server lost sender TAR.");
       umbra::test::serveExpectedSuccessfulVoidInvocationReport(
           serveExpected, sender, senderHandler);
-      // Retract happened before the TSO payload crossed the receiver's
-      // process callback boundary. The pending grant is pushed to the
-      // receiver when the sender reaches time 5; it requires no receive poll
-      // or acknowledgement frame for the retracted message.
       serveExpected(
           sender,
           senderHandler,
@@ -704,7 +710,7 @@ TEST_CASE(
     auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
     REQUIRE(objectInstance.isValid());
     REQUIRE_FALSE(receiverFederate.discovered);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(1.0));
     REQUIRE(receiverFederate.discovered);
     REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
 
@@ -744,9 +750,15 @@ TEST_CASE(
     REQUIRE(senderFederate.timeAdvanceGrantCount == 2U);
     REQUIRE(senderFederate.timeAdvanceGrantValue == 5);
 
-    // Evoke Callback returns whether another callback remains queued after
-    // this invocation; the grant is the receiver's final callback here.
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    // The retracted TSO callback wrapper can occupy one evoked slot without
+    // reaching user code, leaving the grant queued for the next Evoke.
+    bool receiverCallbacksRemain = receiverRti->evokeCallback(1.0);
+    for (unsigned drained = 0U;
+         receiverCallbacksRemain && drained < 4U;
+         ++drained) {
+      receiverCallbacksRemain = receiverRti->evokeCallback(0.0);
+    }
+    REQUIRE_FALSE(receiverCallbacksRemain);
     REQUIRE(receiverFederate.reflectedCount == 0U);
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);

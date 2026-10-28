@@ -794,7 +794,7 @@ service has the same transaction or rollback semantics. See the two focused
 [subscription case](../../cpp/tests/mixed_region_interaction_validation_catch2.cpp#L229)).
 No process-profile or 2010 parity is inferred.
 
-#### What the embedded 2025 source does before these outcomes
+### What the embedded 2025 source does before these outcomes
 
 This is implementation evidence, not a universal HLA algorithm. The
 receive-order send planner checks each supplied region against the interaction

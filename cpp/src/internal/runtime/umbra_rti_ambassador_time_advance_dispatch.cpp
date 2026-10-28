@@ -19,7 +19,7 @@
 #include "internal/time/reference_time_selection.hpp"
 
 #include <RTI/FederateAmbassador.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -222,7 +222,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                   L"The embedded Flush Queue Request has incomplete temporal state.");
             }
 
-            auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+            auto factory = umbra::detail::makeFederationLogicalTimeFactory(
                 pendingSnapshot.implementationName);
             if (!factory || factory->getName() != pendingSnapshot.implementationName) {
               throw RTIinternalError(

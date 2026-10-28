@@ -1,7 +1,7 @@
 #include "internal/time/federate_time_state.hpp"
 
 #include <RTI/Exception.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <limits>
 #include <chrono>
@@ -18,7 +18,7 @@ std::shared_ptr<rti1516_2025::LogicalTime> cloneLogicalTime(
   if (!source) {
     return nullptr;
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw rti1516_2025::RTIinternalError(
@@ -38,7 +38,7 @@ std::shared_ptr<rti1516_2025::LogicalTimeInterval> cloneLogicalTimeInterval(
   if (!source) {
     return nullptr;
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       implementationName);
   if (!factory || factory->getName() != implementationName) {
     throw rti1516_2025::RTIinternalError(
@@ -223,28 +223,29 @@ void FederateTimeState::invalidateCallbacksForRestore() noexcept {
 FederateTimeSnapshot FederateTimeState::snapshot() const {
   std::scoped_lock lock(mutex_);
   return {
-      implementationName_,
-      active_,
-      timeRegulating_,
-      timeConstrained_,
-      asynchronousDeliveryEnabled_,
-      pendingTime_ != nullptr,
-      pendingGeneration_,
-      advanceMode_,
-      pendingTimeRegulationGeneration_ != 0,
-      pendingTimeConstrainedGeneration_ != 0,
-      pendingTimeRegulationGeneration_,
-      pendingTimeConstrainedGeneration_,
-      nextGeneration_,
-      minimumTimestampIsExclusive_,
-      allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_,
-      currentTime_,
-      optimisticTime_,
-      pendingTime_,
-      pendingAdvanceRequestTime_,
-      lookahead_,
-      pendingLookahead_,
-      pendingModifiedLookahead_,
+      .implementationName = implementationName_,
+      .active = active_,
+      .timeRegulating = timeRegulating_,
+      .timeConstrained = timeConstrained_,
+      .asynchronousDeliveryEnabled = asynchronousDeliveryEnabled_,
+      .timeAdvancePending = pendingTime_ != nullptr,
+      .pendingTimeAdvanceGeneration = pendingGeneration_,
+      .advanceMode = advanceMode_,
+      .timeRegulationPending = pendingTimeRegulationGeneration_ != 0,
+      .timeConstrainedPending = pendingTimeConstrainedGeneration_ != 0,
+      .pendingTimeRegulationGeneration = pendingTimeRegulationGeneration_,
+      .pendingTimeConstrainedGeneration = pendingTimeConstrainedGeneration_,
+      .nextGeneration = nextGeneration_,
+      .minimumTimestampIsExclusive = minimumTimestampIsExclusive_,
+      .allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant =
+          allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_,
+      .currentTime = currentTime_,
+      .optimisticTime = optimisticTime_,
+      .requestedTime = pendingTime_,
+      .advanceRequestTime = pendingAdvanceRequestTime_,
+      .lookahead = lookahead_,
+      .requestedLookahead = pendingLookahead_,
+      .pendingModifiedLookahead = pendingModifiedLookahead_,
   };
 }
 
@@ -433,7 +434,7 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
   bool appliesZeroLookaheadAtForwardGrant = false;
   if (pendingModifiedLookahead_ && lookahead_ && currentTime_) {
     try {
-      auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      auto factory = umbra::detail::makeFederationLogicalTimeFactory(
           implementationName_);
       if (!factory || factory->getName() != implementationName_) {
         return nullptr;

@@ -1,4 +1,5 @@
 #include <atomic>
+#include "hla_test_names.hpp"
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -130,10 +131,10 @@ TEST_CASE(
         L"scope-subscriber", L"scope-subscriber", federationName));
 
     auto const objectClass = owner->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    auto const providerA = owner->getAttributeHandle(objectClass, L"ProviderAValue");
-    auto const providerB = owner->getAttributeHandle(objectClass, L"ProviderBValue");
-    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    auto const providerA = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    auto const providerB = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_b_value);
+    auto const dimension = owner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     REQUIRE(objectClass.isValid());
     REQUIRE(providerA.isValid());
     REQUIRE(providerB.isValid());
@@ -390,9 +391,9 @@ TEST_CASE(
         L"continuous-scope-subscriber", L"scope-subscriber", federationName));
 
     auto const objectClass = owner->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
-    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    auto const attribute = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    auto const dimension = owner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     REQUIRE(objectClass.isValid());
     REQUIRE(attribute.isValid());
     REQUIRE(dimension.isValid());
@@ -575,9 +576,9 @@ TEST_CASE(
         L"stale-association-subscriber", L"stale-association-subscriber", federationName));
 
     auto const objectClass = owner->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
-    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    auto const attribute = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    auto const dimension = owner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     REQUIRE(objectClass.isValid());
     REQUIRE(attribute.isValid());
     REQUIRE(dimension.isValid());
@@ -684,9 +685,9 @@ TEST_CASE(
         L"duplicate-association-subscriber", L"duplicate-association-subscriber", federationName));
 
     auto const objectClass = owner->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
-    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
-    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+        umbra::test::hla::wide::fom::regional_ownership_fanout);
+    auto const attribute = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::provider_a_value);
+    auto const dimension = owner->getDimensionHandle(umbra::test::hla::wide::fixture::umbra_region_x);
     REQUIRE(objectClass.isValid());
     REQUIRE(attribute.isValid());
     REQUIRE(dimension.isValid());

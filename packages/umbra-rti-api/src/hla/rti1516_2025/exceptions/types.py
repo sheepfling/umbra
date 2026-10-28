@@ -143,7 +143,9 @@ _EXCEPTION_TYPES: dict[str, type[RTIexception]] = {
     "UnsupportedCallbackModel": UnsupportedCallbackModel,
 }
 for _exception_name in _STANDARD_EXCEPTION_NAMES:
-    _exception_type = type(_exception_name, (RTIexception,), {"__module__": __package__})
+    _exception_type = type(
+        _exception_name, (RTIexception,), {"__module__": __package__}
+    )
     globals()[_exception_name] = _exception_type
     _EXCEPTION_TYPES[_exception_name] = _exception_type
 
@@ -154,7 +156,5 @@ def exceptionForName(name: str, message: str) -> RTIexception:
     return _EXCEPTION_TYPES.get(name, RTIexception)(message)
 
 
-__all__ = [
-    "RTIexception",
-    *sorted(_EXCEPTION_TYPES),
-]
+# The generated classes and their exports both derive from the canonical registry.
+__all__ = ["RTIexception", *sorted(_EXCEPTION_TYPES)]  # noqa: PLE0604

@@ -459,9 +459,42 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind) {
+  auto const unregulatedTimestamp =
+      requestKind == RegionalInteractionAdvance::unregulated_timestamp;
   class RecordingRegionalCallbackFederateAmbassador final
       : public NullFederateAmbassador {
    public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      callbackOrder.push_back('I');
+      receivedInteractionClass = interactionClass;
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedParameterCount = parameterValues.size();
+      hasOptionalSentRegions = optionalSentRegions != nullptr;
+      sentRegionCount = optionalSentRegions == nullptr
+          ? 0U
+          : optionalSentRegions->size();
+      hasOptionalRetraction = false;
+      retractionIsValid = false;
+      sentOrderType = rti1516_2025::RECEIVE;
+      receivedOrderType = rti1516_2025::RECEIVE;
+      receivedTimestampImplementation.clear();
+      receivedTimestampValue = -1;
+      receivedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* data =
+            static_cast<std::uint8_t const*>(userSuppliedTag.data());
+        receivedTag.assign(data, data + userSuppliedTag.size());
+      }
+    }
+
     void receiveInteraction(
         rti1516_2025::InteractionClassHandle const& interactionClass,
         rti1516_2025::ParameterHandleValueMap const& parameterValues,
@@ -562,6 +595,7 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
   std::atomic_uint64_t expectedParameter{0U};
   std::atomic_uint64_t expectedDimension{0U};
   std::atomic_uint64_t recipientCount{0U};
+  std::atomic_bool receivePollReturnedInteraction{false};
   std::exception_ptr serverError;
   std::shared_ptr<ProcessTransportConnection> serverSenderConnection;
   std::shared_ptr<ProcessTransportConnection> serverReceiverConnection;
@@ -701,6 +735,13 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
           senderHandler,
           TransportServiceOperation::publish_interaction_class,
           "The regional callback-gating server lost Publish.");
+      if (unregulatedTimestamp) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::change_interaction_order_type,
+            "The regional interaction server lost Change Interaction Order Type.");
+      }
       serveExpected(
           receiver,
           receiverHandler,
@@ -721,28 +762,30 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
           receiverHandler,
           TransportServiceOperation::subscribe_interaction_class_with_regions,
           "The regional callback-gating server lost regional Subscribe.");
-      umbra::test::serveExpectedProcessSuccessfulVoidService(
-          serveExpected, sender, senderHandler,
-          TransportServiceOperation::enable_time_regulation,
-          "The regional interaction server lost Enable Time Regulation.");
-      umbra::test::serveExpectedProcessSuccessfulVoidService(
-          serveExpected, receiver, receiverHandler,
-          TransportServiceOperation::enable_time_constrained,
-          "The regional interaction server lost Enable Time Constrained.");
-      auto const receiverAdvanceOperation =
-          requestKind == RegionalInteractionAdvance::nmra
-              ? TransportServiceOperation::next_message_request_available
-              : requestKind == RegionalInteractionAdvance::nmr
-                    ? TransportServiceOperation::next_message_request
-                    : TransportServiceOperation::time_advance_request;
-      umbra::test::serveExpectedProcessSuccessfulVoidService(
-          serveExpected, receiver, receiverHandler, receiverAdvanceOperation,
-          "The regional interaction server lost the receiver time request.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The regional callback-gating server lost receiver pre-send poll.");
+      if (!unregulatedTimestamp) {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::enable_time_regulation,
+            "The regional interaction server lost Enable Time Regulation.");
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::enable_time_constrained,
+            "The regional interaction server lost Enable Time Constrained.");
+        auto const receiverAdvanceOperation =
+            requestKind == RegionalInteractionAdvance::nmra
+                ? TransportServiceOperation::next_message_request_available
+                : requestKind == RegionalInteractionAdvance::nmr
+                      ? TransportServiceOperation::next_message_request
+                      : TransportServiceOperation::time_advance_request;
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler, receiverAdvanceOperation,
+            "The regional interaction server lost the receiver time request.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional callback-gating server lost receiver pre-send poll.");
+      }
 
       if (!umbra::test::servePrimaryProcessRequest(
               sender, senderHandler,
@@ -766,17 +809,43 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
         throw std::runtime_error(
             "The regional callback-gating server lost Send Interaction With Regions.");
       }
-      umbra::test::serveExpectedProcessSuccessfulVoidService(
-          serveExpected, sender, senderHandler,
-          TransportServiceOperation::time_advance_request,
-          "The regional interaction server lost sender TAR.");
-      // The interaction is pushed while callbacks are disabled; reopening
-      // callbacks acknowledges that delivery without a receive poll.
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::acknowledge_tso_delivery,
-          "The regional callback-gating server lost TSO acknowledgement.");
+      if (!unregulatedTimestamp) {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The regional interaction server lost sender TAR.");
+        // The interaction is pushed while callbacks are disabled; reopening
+        // callbacks acknowledges that delivery without a receive poll.
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The regional callback-gating server lost TSO acknowledgement.");
+      } else {
+        if (!umbra::test::servePrimaryProcessRequest(
+                receiver, receiverHandler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation !=
+                      TransportServiceOperation::receive_interaction) {
+                    throw std::runtime_error(
+                        "The regional interaction server lost receive-order callback poll.");
+                  }
+                  auto response = receiverHandler(request);
+                  if (response.status != TransportServiceStatus::ok) {
+                    throw std::runtime_error(
+                        "The regional interaction server rejected receive-order callback poll.");
+                  }
+                  auto const result =
+                      umbra::detail::decodeProcessFederationReceiveInteractionResult(
+                          response.payload);
+                  receivePollReturnedInteraction.store(
+                      result.event.has_value(), std::memory_order_release);
+                  return response;
+                })) {
+          throw std::runtime_error(
+              "The regional interaction server lost receive-order callback poll.");
+        }
+      }
       serveExpected(
           receiver,
           receiverHandler,
@@ -885,6 +954,10 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
     REQUIRE_NOTHROW(receiverRti->commitRegionModifications(
         rti1516_2025::RegionHandleSet{receiverRegion}));
     REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
+    if (unregulatedTimestamp) {
+      REQUIRE_NOTHROW(senderRti->changeInteractionOrderType(
+          senderInteraction, rti1516_2025::TIMESTAMP));
+    }
     REQUIRE_FALSE(receiverRti->getConveyRegionDesignatorSetsSwitch());
     REQUIRE_NOTHROW(receiverRti->setConveyRegionDesignatorSetsSwitch(true));
     REQUIRE(receiverRti->getConveyRegionDesignatorSetsSwitch());
@@ -893,29 +966,31 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
         rti1516_2025::RegionHandleSet{receiverRegion},
         true));
 
-    REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-    REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+    if (!unregulatedTimestamp) {
+      REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(1)));
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
 
-    if (requestKind == RegionalInteractionAdvance::nmr) {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
-          rti1516_2025::HLAinteger64Time(10)));
-    } else if (requestKind == RegionalInteractionAdvance::nmra) {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
-          rti1516_2025::HLAinteger64Time(10)));
-    } else {
-      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-          rti1516_2025::HLAinteger64Time(5)));
-    }
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
+      if (requestKind == RegionalInteractionAdvance::nmr) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else if (requestKind == RegionalInteractionAdvance::nmra) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else {
+        REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+            rti1516_2025::HLAinteger64Time(5)));
+      }
+      REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      static_cast<void>(receiverRti->evokeCallback(0.0));
 
-    if (requestKind != RegionalInteractionAdvance::nmr) {
-      REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+      if (requestKind != RegionalInteractionAdvance::nmr) {
+        REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+      }
     }
     std::array<std::uint8_t, 2U> const parameterBytes{0x01U, 0x00U};
     rti1516_2025::ParameterHandleValueMap parameterValues;
@@ -930,52 +1005,75 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
         rti1516_2025::RegionHandleSet{senderRegion},
         rti1516_2025::VariableLengthData(tagBytes.data(), tagBytes.size()),
         rti1516_2025::HLAinteger64Time(5));
-    REQUIRE(retraction.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
-
-    REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    // The event and its matching grant are already queued at the process
-    // boundary, but the official callback switch keeps both out of the
-    // federate ambassador until it is explicitly reopened.
-    if (requestKind == RegionalInteractionAdvance::nmr) {
+    if (unregulatedTimestamp) {
+      REQUIRE_FALSE(retraction.isValid());
       static_cast<void>(receiverRti->evokeCallback(0.0));
+      REQUIRE(receivePollReturnedInteraction.load(std::memory_order_acquire));
       REQUIRE(receiverFederate.receivedInteractionCount == 1U);
       REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
       REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
+      REQUIRE(receiverFederate.receivedInteractionClass == expectedClass);
+      REQUIRE(receiverFederate.receivedTransportationType.isValid());
+      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+      REQUIRE(receiverFederate.receivedParameterCount == 1U);
+      REQUIRE(receiverFederate.receivedTag ==
+              std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
+      REQUIRE(receiverFederate.hasOptionalSentRegions);
+      REQUIRE(receiverFederate.sentRegionCount == 1U);
+      REQUIRE_FALSE(receiverFederate.hasOptionalRetraction);
+      REQUIRE_FALSE(receiverFederate.retractionIsValid);
+      REQUIRE(receiverFederate.receivedTimestampImplementation ==
+              L"HLAinteger64Time");
+      REQUIRE(receiverFederate.receivedTimestampValue == 5);
+      REQUIRE(receiverFederate.sentOrderType == rti1516_2025::RECEIVE);
+      REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::RECEIVE);
     } else {
-      REQUIRE(receiverRti->evokeCallback(0.0));
+      REQUIRE(retraction.isValid());
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
       REQUIRE(receiverFederate.receivedInteractionCount == 0U);
       REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      // The event and its matching grant are already queued at the process
+      // boundary, but the official callback switch keeps both out of the
+      // federate ambassador until it is explicitly reopened.
+      if (requestKind == RegionalInteractionAdvance::nmr) {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+        REQUIRE(receiverFederate.receivedInteractionCount == 1U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+        REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
+      } else {
+        REQUIRE(receiverRti->evokeCallback(0.0));
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
 
-      REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+        REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
+      REQUIRE(receiverFederate.receivedInteractionCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
       static_cast<void>(receiverRti->evokeCallback(0.0));
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
+      REQUIRE(receiverFederate.receivedInteractionClass == expectedClass);
+      REQUIRE(receiverFederate.receivedTransportationType.isValid());
+      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+      REQUIRE(receiverFederate.receivedParameterCount == 1U);
+      REQUIRE(receiverFederate.receivedTag ==
+              std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
+      REQUIRE(receiverFederate.hasOptionalSentRegions);
+      REQUIRE(receiverFederate.sentRegionCount == 1U);
+      REQUIRE(receiverFederate.hasOptionalRetraction);
+      REQUIRE(receiverFederate.retractionIsValid);
+      REQUIRE(receiverFederate.receivedTimestampImplementation ==
+              L"HLAinteger64Time");
+      REQUIRE(receiverFederate.receivedTimestampValue == 5);
+      REQUIRE(receiverFederate.sentOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
     }
-    REQUIRE(receiverFederate.receivedInteractionCount == 1U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
-    REQUIRE(receiverFederate.receivedInteractionClass == expectedClass);
-    REQUIRE(receiverFederate.receivedTransportationType.isValid());
-    REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
-    REQUIRE(receiverFederate.receivedParameterCount == 1U);
-    REQUIRE(receiverFederate.receivedTag ==
-            std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
-    REQUIRE(receiverFederate.hasOptionalSentRegions);
-    REQUIRE(receiverFederate.sentRegionCount == 1U);
-    REQUIRE(receiverFederate.hasOptionalRetraction);
-    REQUIRE(receiverFederate.retractionIsValid);
-    REQUIRE(receiverFederate.receivedTimestampImplementation ==
-            L"HLAinteger64Time");
-    REQUIRE(receiverFederate.receivedTimestampValue == 5);
-    REQUIRE(receiverFederate.sentOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
 
     REQUIRE_NOTHROW(receiverRti->unsubscribeInteractionClassWithRegions(
         receiverInteraction,

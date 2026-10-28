@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
+#include "hla_test_names.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 #include <array>
@@ -351,7 +352,7 @@ TEST_CASE(
   auto const reliable = rti->getAttributeHandle(
       objectClass, fixture_hla::fixture::reliable_base_a);
   auto const privilegeToDelete = rti->getAttributeHandle(
-      objectClass, L"HLAprivilegeToDeleteObject");
+      objectClass, umbra::test::hla::wide::standard::privilege_to_delete_object);
   REQUIRE(objectClass.isValid());
   REQUIRE(reliable.isValid());
   REQUIRE(privilegeToDelete.isValid());

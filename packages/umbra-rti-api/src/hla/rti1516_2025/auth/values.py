@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..byte_types import BytesLike, copy_bytes
 
+
 class Credentials:
     """Immutable Python representation of the Java ``Credentials`` value."""
 

@@ -3,19 +3,19 @@
 ## Current bounded foundation
 
 Umbra implements the official C++ `RTI/auth/HLAplainTextPassword.h` value
-class.  Its constructor sets the predefined `HLAplainTextPassword` type and
+class. Its constructor sets the predefined `HLAplainTextPassword` type and
 stores the supplied string in the exact `HLAunicodeString` representation:
 a four-octet big-endian UTF-16 code-unit count followed by UTF-16BE code
-units.  Decode delegates to the same standard helper, including malformed
+units. Decode delegates to the same standard helper, including malformed
 length, trailing-data, and UTF-16 validation.
 
 Umbra also supplies the standard reference-library shape: an
 `HLAauthorizer`, an `AuthorizerFactory` that creates it, and
-`HLAauthorizerFactoryFactory::getAuthorizerFactory`.  The separate static
+`HLAauthorizerFactoryFactory::getAuthorizerFactory`. The separate static
 `umbra::authorizer` target implements the library-level
 `AuthorizerFactoryFactory::getAuthorizerFactory` entry point and forwards a
-standard-name request to the built-in factory.  An unknown name produces no
-factory.  This preserves the C++ API/library seam without inventing custom
+standard-name request to the built-in factory. An unknown name produces no
+factory. This preserves the C++ API/library seam without inventing custom
 authorizer discovery before the required runtime configuration exists.
 
 The embedded profile loads authorization configuration during Connect. Its
@@ -107,12 +107,12 @@ interoperability, or conformance requirements.
 ## Traceability and tests
 
 `compliance/requirements-lab/authorization-requirements-contract.json` is a source/test
-traceability contract only.  It references the 2025 Requirements Lab's
+traceability contract only. It references the 2025 Requirements Lab's
 immutable candidates for the predefined password constructor, disabled
 authorization behavior, reference authorizer, and authorizer-library
-forwarding boundary.  The reconstructed source is §§12.5-12.6 plus the C++
+forwarding boundary. The reconstructed source is §§12.5-12.6 plus the C++
 library discussion; the exported candidates retain inaccurate Annex/§12.8
-metadata for the authorization material, logged as RL-056.  RL-057 records a
+metadata for the authorization material, logged as RL-056. RL-057 records a
 source/header spelling discrepancy for the library factory method.
 
 Catch2 tests prove exact safe vectors, a non-ASCII BMP string, copy/assignment,

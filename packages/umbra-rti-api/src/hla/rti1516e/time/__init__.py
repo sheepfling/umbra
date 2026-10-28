@@ -48,7 +48,9 @@ class HLAinteger64TimeFactory(LogicalTimeFactory):
     def decodeTime(self, buffer: BytesLike, offset: int = 0) -> HLAinteger64Time:
         raise NotImplementedError
 
-    def decodeInterval(self, buffer: BytesLike, offset: int = 0) -> HLAinteger64Interval:
+    def decodeInterval(
+        self, buffer: BytesLike, offset: int = 0
+    ) -> HLAinteger64Interval:
         raise NotImplementedError
 
     def makeInitial(self) -> HLAinteger64Time:
@@ -71,6 +73,10 @@ class HLAinteger64TimeFactory(LogicalTimeFactory):
 
 
 __all__ = [
-    "HLAfloat64Time", "HLAfloat64Interval", "HLAinteger64Time", "HLAinteger64Interval",
-    "HLAfloat64TimeFactory", "HLAinteger64TimeFactory",
+    "HLAfloat64Interval",
+    "HLAfloat64Time",
+    "HLAfloat64TimeFactory",
+    "HLAinteger64Interval",
+    "HLAinteger64Time",
+    "HLAinteger64TimeFactory",
 ]

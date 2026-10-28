@@ -1245,6 +1245,55 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Independent RTI client processes return a timestamped class-request provider response before TAR grant through one authoritative coordinator",
+    "[integration][foundation][object-management][time-management][time-advance]"
+    "[transport][process-boundary][public-endpoint]"
+    "[process-class-request-tso-response-independent-processes]"
+    "[rti.service.request-attribute-value-update]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.time-advance-request][rti.service.update-attribute-values]"
+    "[rti.service.retract][rti.service.change-default-attribute-order-type]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.provide-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]"
+    "[federate.callback.time-regulation-enabled]"
+    "[federate.callback.time-constrained-enabled]"
+    "[requirement:hla-1516.1-2025:clause-6.21]"
+    "[requirement:hla-1516.1-2025:clause-6.21.5]"
+    "[requirement:hla-1516.1-2025:clause-6.22]"
+    "[requirement:hla-1516.1-2025:clause-8.1.5]"
+    "[requirement:hla-1516.1-2025:clause-8.1.6]"
+    "[requirement:hla-1516.1-2025:clause-8.22.3]"
+    "[inherited-attribute-default-order][2025]") {
+  TemporaryDirectory directory;
+  std::filesystem::path const serviceProbe(
+      UMBRA_PROCESS_SERVICE_PROBE_PATH);
+  ProxyProcess authority(
+      serviceProbe, directory.path(), "class-attribute-response-authority", true);
+  ProxyProcess provider(
+      serviceProbe, directory.path(), "class-attribute-response-provider", true);
+  ProxyProcess requester(
+      serviceProbe, directory.path(), "class-attribute-response-requester", true);
+
+  auto const requesterEvidence = waitForProcessMarker(
+      directory.path(),
+      "class-attribute-response-requester.completed",
+      "class-attribute-response-requester");
+  auto const providerEvidence = waitForProcessMarker(
+      directory.path(),
+      "class-attribute-response-provider.completed",
+      "class-attribute-response-provider");
+  REQUIRE(requesterEvidence == "class-response-reflected-before-tar-grant-2");
+  REQUIRE(providerEvidence ==
+          "two-provider-callbacks-response-before-grant-retract-rejected");
+
+  requester.stop();
+  provider.stop();
+  authority.stop();
+}
+
+TEST_CASE(
     "Process RTIambassadors route queued TSO through receive order after Disable Time Constrained",
     "[integration][foundation][interaction-management][time-management]"
     "[lane.tcd-transition-tso-to-ro][time-constrained-disable-tso-to-ro]"

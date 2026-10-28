@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <time>
+        <logicalTime>
+            <dataType>HLAfloat64Time</dataType>
+            <semantics>Logical-time representation for the portable float64 support test.</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>HLAfloat64Time</dataType>
+            <semantics>Logical-time interval representation for the portable float64 support test.</semantics>
+        </logicalTimeInterval>
+    </time>
+</objectModel>

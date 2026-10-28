@@ -1832,7 +1832,7 @@ void runProcessConfirmDivestitureServiceReportScenario(
         L"observer",
         federationName));
     auto const reportClass = observer->getInteractionClassHandle(
-        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+        umbra::test::hla::wide::standard::service_invocation);
     REQUIRE(reportClass.isValid());
     std::vector<ParameterHandle> reportParameters;
     for (auto const* name : {
@@ -1843,7 +1843,7 @@ void runProcessConfirmDivestitureServiceReportScenario(
              L"HLAreturnedArgument",
              L"HLAexception",
              L"HLAserialNumber",
-             L"HLAfederate"}) {
+             umbra::test::hla::wide::standard::federate}) {
       auto const parameter = observer->getParameterHandle(reportClass, name);
       REQUIRE(parameter.isValid());
       reportParameters.push_back(parameter);
@@ -1958,7 +1958,7 @@ void runProcessConfirmDivestitureServiceReportScenario(
       }
       REQUIRE(observerReports.interactionReports.size() == 1U);
       REQUIRE(observer->getInteractionClassHandle(
-                  L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation") ==
+                  umbra::test::hla::wide::standard::service_invocation) ==
               reportClass);
       auto const& report = observerReports.interactionReports.front();
       REQUIRE(report.interactionClass == reportClass);

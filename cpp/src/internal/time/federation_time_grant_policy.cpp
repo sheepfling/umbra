@@ -1,7 +1,7 @@
 #include "internal/time/federation_time_grant_policy.hpp"
 
 #include <RTI/Exception.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 
@@ -147,7 +147,7 @@ FederationFlushQueueGrantCalculator::calculateImpl(
     return result;
   }
 
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       time.implementationName);
   if (!factory || factory->getName() != time.implementationName) {
     result.status = FederationFlushQueueGrantStatus::factory_unavailable;

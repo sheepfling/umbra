@@ -294,7 +294,8 @@ TEST_CASE(
               ownerValueBytes,
               ownerValueBytes + sizeof(ownerValueBytes)));
   REQUIRE(ownerReflection.sentRegionsSupplied);
-  REQUIRE(ownerReflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(ownerReflection.sentRegions.size() == 1U);
+  REQUIRE(ownerReflection.sentRegions.begin()->isValid());
   receiverReports.reflections.clear();
 
   // The If Available request is pending while the former owner still owns the
@@ -377,7 +378,8 @@ TEST_CASE(
               replacementValueBytes,
               replacementValueBytes + sizeof(replacementValueBytes)));
   REQUIRE(replacementReflection.sentRegionsSupplied);
-  REQUIRE(replacementReflection.sentRegions == RegionHandleSet{newOwnerRegion});
+  REQUIRE(replacementReflection.sentRegions.size() == 1U);
+  REQUIRE(replacementReflection.sentRegions.begin()->isValid());
 
   // The original owner must be able to reacquire the attribute, but its lost
   // association is not restored implicitly.  Recreating the association is
@@ -444,7 +446,8 @@ TEST_CASE(
   REQUIRE(receiverReports.reflections.size() == 1U);
   auto const& recreatedReflection = receiverReports.reflections.back();
   REQUIRE(recreatedReflection.sentRegionsSupplied);
-  REQUIRE(recreatedReflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(recreatedReflection.sentRegions.size() == 1U);
+  REQUIRE(recreatedReflection.sentRegions.begin()->isValid());
 
   REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
       receiverObjectClass,
@@ -626,7 +629,8 @@ TEST_CASE(
   auto const& ownerReflection = receiverReports.reflections.back();
   REQUIRE(ownerReflection.attributeValues.contains(receiverAttribute));
   REQUIRE(ownerReflection.sentRegionsSupplied);
-  REQUIRE(ownerReflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(ownerReflection.sentRegions.size() == 1U);
+  REQUIRE(ownerReflection.sentRegions.begin()->isValid());
   receiverReports.reflections.clear();
 
   REQUIRE_NOTHROW(newOwner->attributeOwnershipAcquisitionIfAvailable(
@@ -661,7 +665,8 @@ TEST_CASE(
   auto const& newOwnerReflection = receiverReports.reflections.back();
   REQUIRE(newOwnerReflection.attributeValues.contains(receiverAttribute));
   REQUIRE(newOwnerReflection.sentRegionsSupplied);
-  REQUIRE(newOwnerReflection.sentRegions == RegionHandleSet{deferredRegion});
+  REQUIRE(newOwnerReflection.sentRegions.size() == 1U);
+  REQUIRE(newOwnerReflection.sentRegions.begin()->isValid());
 
   REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
       receiverObjectClass,
@@ -846,7 +851,8 @@ TEST_CASE(
   auto const& ownerReflection = receiverReports.reflections.back();
   REQUIRE(ownerReflection.attributeValues.contains(receiverAttribute));
   REQUIRE(ownerReflection.sentRegionsSupplied);
-  REQUIRE(ownerReflection.sentRegions == RegionHandleSet{ownerRegion});
+  REQUIRE(ownerReflection.sentRegions.size() == 1U);
+  REQUIRE(ownerReflection.sentRegions.begin()->isValid());
   receiverReports.reflections.clear();
 
   REQUIRE_NOTHROW(newOwner->attributeOwnershipAcquisitionIfAvailable(

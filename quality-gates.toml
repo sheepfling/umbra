@@ -1,0 +1,152 @@
+# Alphus coordinates the full local Python and C++ review profile.
+# Every step remains provisional while the initial findings are calibrated.
+# This profile is intentionally not wired into GitHub CI.
+schema_version = 1
+tools = ["rumdl", "mdrepo"]
+
+[files]
+include = [
+  "*.md", "**/*.md", "*.markdown", "**/*.markdown",
+  "**/*.py",
+  "**/*.c", "**/*.cc", "**/*.cpp", "**/*.cxx",
+  "**/*.h", "**/*.hh", "**/*.hpp", "**/*.hxx",
+  "**/*.inc", "**/*.inl", "**/*.ipp", "**/*.tpp",
+]
+exclude = [
+  "**/__pycache__/**", "**/.cache/**", "**/.codex_pydeps/**",
+  "**/.pybind-build-deps/**", "**/.venv*/**", "**/venv/**",
+  "**/build/**", "**/out/**", "**/node_modules/**",
+]
+
+[checks.python_style]
+extensions = [".py"]
+exclude = []
+opaque_boundary_marker_prefix = "# opaque-boundary: "
+opaque_boundary_min_reason_chars = 12
+opaque_boundary_paths = [
+  "tools/summarize_alphus_cpp_quality.py",
+  "tools/run_alphus_profile.py",
+  "packages/umbra-rti-observer/src/umbra_rti_observer/*.py",
+  "packages/umbra-rti-observer-umbra/src/umbra_rti_observer_umbra/adapter.py",
+]
+
+[checks.file_size]
+code_extensions = [".py"]
+code_limit = 3000
+hard_limit = 10000
+initializer_name = "__init__.py"
+initializer_limit = 100
+exclude = []
+
+[orchestration]
+default_profile = "lint"
+failure_threshold = "error"
+
+[[orchestration.steps]]
+kind = "command"
+name = "Python lint all files"
+argv = [
+  "{python}", "-m", "ruff", "check", "--output-format", "json",
+  "--output-file", "{root}/out/quality/alphus-python-ruff.json", "{files}",
+]
+files = { include = ["**/*.py"], exclude = [
+  "**/__pycache__/**", "**/.cache/**", "**/.codex_pydeps/**",
+  "**/.pybind-build-deps/**", "**/.venv*/**", "**/venv/**",
+  "**/build/**", "**/out/**", "**/node_modules/**",
+] }
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "command"
+name = "Python formatting check all files"
+argv = [
+  "{python}", "-m", "ruff", "format", "--check", "--output-format", "concise", "{files}",
+]
+files = { include = ["**/*.py"], exclude = [
+  "**/__pycache__/**", "**/.cache/**", "**/.codex_pydeps/**",
+  "**/.pybind-build-deps/**", "**/.venv*/**", "**/venv/**",
+  "**/build/**", "**/out/**", "**/node_modules/**",
+] }
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "rule"
+name = "Python structure candidates"
+rule = "python-style"
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "rule"
+name = "Python file-size candidates"
+rule = "file-size"
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "command"
+name = "C++ source ownership and size"
+argv = [
+  "{python}", "-m", "alphus.gates.cpp.cpp_common_quality", "source", "{root}",
+  "--config", "{root}/cpp-common-quality.json",
+  "--output", "{root}/out/quality/alphus-cpp-source.json",
+]
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "command"
+name = "C++ style candidates"
+argv = [
+  "{python}", "-m", "alphus.gates.cpp.cpp_advisory_quality", "style", "{root}",
+  "--exclude", "**/.cache/**",
+  "--exclude", "**/.codex_pydeps/**",
+  "--exclude", "**/.pybind-build-deps/**",
+  "--exclude", "**/.venv*/**",
+  "--exclude", "**/node_modules/**",
+  "--max-file-lines", "20000",
+  "--max-findings", "2000",
+  "--output", "{root}/out/quality/alphus-cpp-style.json",
+]
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "command"
+name = "C++ cyclomatic complexity candidates (Lizard)"
+argv = [
+  "{python}", "-m", "lizard", "--languages", "cpp",
+  "--CCN", "50", "--ignore_warnings", "0", "--warnings_only",
+  "--output_file", "{root}/out/quality/alphus-cpp-complexity.txt",
+  "--working_threads", "4",
+  "--exclude", "**/.cache/**",
+  "--exclude", "**/.codex_pydeps/**",
+  "--exclude", "**/.pybind-build-deps/**",
+  "--exclude", "**/.venv*/**",
+  "--exclude", "**/venv/**",
+  "--exclude", "**/build/**",
+  "--exclude", "**/out/**",
+  "--exclude", "**/node_modules/**",
+  "--exclude", "**/third_party/**",
+  "{root}",
+]
+rollout = "provisional"
+
+[[orchestration.steps]]
+kind = "command"
+name = "C++ statistics summary and local history"
+argv = [
+  "{python}", "{root}/tools/summarize_alphus_cpp_quality.py", "--root", "{root}",
+]
+rollout = "provisional"
+
+[[orchestration.profiles]]
+name = "lint"
+steps = [
+  "Markdown style",
+  "Markdown links and graph",
+  "Python lint all files",
+  "Python formatting check all files",
+  "Python structure candidates",
+  "Python file-size candidates",
+  "C++ source ownership and size",
+  "C++ style candidates",
+  "C++ cyclomatic complexity candidates (Lizard)",
+  "C++ statistics summary and local history",
+]

@@ -369,7 +369,8 @@ public final class MockEncoderFactory implements EncoderFactory {
       hla.rti1516_2025.LogicalTimeInterval value) { return unsupported(); }
 
    @Override
-   public hla.rti1516_2025.encoding.HLAextendableVariantRecord createHLAextendableVariantRecord(
+   public hla.rti1516_2025.encoding.HLAextendableVariantRecord<
+         hla.rti1516_2025.encoding.DataElement> createHLAextendableVariantRecord(
       DataElement discriminantPrototype) { return unsupported(); }
 
    private static <T> T unsupported() {

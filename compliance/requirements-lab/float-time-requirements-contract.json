@@ -3,17 +3,30 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This focused contract binds the embedded development profile's public HLAfloat64Time lifecycle and time-advance path to the same IEEE 1516.1-2025 time-advance requirement used by the integer reference-time slice. It verifies representation selection, initial time, callback-gated regulation/lookahead, and grant-time logical-time mutation; it is not a production, JUnit, protected-review, or conformance claim.",
+  "notes": "This focused contract binds the embedded development profile's public HLAfloat64Time lifecycle and time-advance path to the same IEEE 1516.1-2025 time-advance requirement used by the integer reference-time slice. It verifies representation selection, initial time, callback-gated regulation/lookahead, and grant-time logical-time mutation; it is not a production, JUnit, protected-review, or conformance claim. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-embedded-float64-time-advance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
         "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp::Embedded public time management preserves the official HLAfloat64Time representation"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "float-time-requirements-contract.json",
+        "owned_id": "umbra-embedded-float64-time-advance",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

@@ -16,24 +16,78 @@ except ImportError:
     import run_cpp_tck
 
 
+def _resolved_inputs(root: Path) -> run_cpp_tck.ResolvedInputs:
+    return {
+        "package_prefix": root,
+        "build_directory": root,
+        "service_report_directory": root,
+        "fom": root,
+        "model_fom": root,
+        "rate_fom": root,
+        "ddm_fom": root,
+        "multi_attribute_fom": root,
+        "three_dimensional_fom": root,
+        "mim_fom": root,
+        "switches_fom": root,
+        "auto_provide_fom": root,
+        "data_type_merge_consumer_fom": root,
+        "data_type_merge_provider_fom": root,
+        "data_type_merge_conflicting_provider_fom": root,
+        "variant_alternative_base_fom": root,
+        "variant_alternative_disjoint_fom": root,
+        "variant_alternative_overlap_fom": root,
+        "interaction_parameter_base_fom": root,
+        "interaction_parameter_disjoint_fom": root,
+        "interaction_parameter_conflict_fom": root,
+        "object_attribute_base_fom": root,
+        "object_attribute_disjoint_fom": root,
+        "object_attribute_conflict_fom": root,
+        "known_class_fom": root,
+        "known_class_disabled_fom": root,
+        "ownership_extension_fom": root,
+        "ddm_dimensions": [],
+        "three_dimensions": [],
+        "additional_fom": [],
+        "invalid_fom": [],
+        "standard_invalid_fom": [],
+        "scenario_foms": [],
+    }
+
+
+def _scenario(scenario_id: str) -> run_cpp_tck.CppTckScenario:
+    return {
+        "id": scenario_id,
+        "runner_id": scenario_id,
+        "default_status": "run",
+        "promotion": "promoted",
+    }
+
+
 def verify_portable_dispatch_direct_evidence() -> None:
     scenario_id = "cpp-tck.pending-negotiated-ownership-package-filesystem-restore"
-    with tempfile.TemporaryDirectory(prefix="cpp-tck-portable-dispatch-regression-") as directory:
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-portable-dispatch-regression-"
+    ) as directory:
         root = Path(directory)
         results = root / "results.json"
         junit = root / "junit.xml"
-        scenario = {"id": scenario_id, "runner_id": scenario_id}
+        scenario = _scenario(scenario_id)
         attempted: list[str] = []
+        expected_environment = run_cpp_tck.direct_run_environment(
+            _resolved_inputs(root)
+        )
 
         def direct_arguments(
             arguments: argparse.Namespace,
-            _inputs: dict[str, object],
-            selected: list[dict[str, str]],
+            _inputs: run_cpp_tck.ResolvedInputs,
+            selected: list[run_cpp_tck.CppTckScenario],
             result_path: Path | None,
             junit_path: Path | None,
         ) -> list[str]:
             if result_path is not None or junit_path is not None:
-                raise AssertionError("portable dispatch forwarded unsupported result switches")
+                raise AssertionError(
+                    "portable dispatch forwarded unsupported result switches"
+                )
             return [
                 "--scenario",
                 selected[0]["runner_id"],
@@ -45,12 +99,19 @@ def verify_portable_dispatch_direct_evidence() -> None:
             command: list[str],
             *,
             cwd: Path,
+            env: dict[str, str],
             text: bool,
             capture_output: bool,
             check: bool,
         ) -> subprocess.CompletedProcess[str]:
             if cwd != run_cpp_tck.ROOT or not text or not capture_output or check:
-                raise AssertionError("portable dispatch did not capture the child result")
+                raise AssertionError(
+                    "portable dispatch did not capture the child result"
+                )
+            if env != expected_environment:
+                raise AssertionError(
+                    "portable dispatch did not pass the package runtime environment"
+                )
             model = command[command.index("--callback-model") + 1]
             attempted.append(model)
             return subprocess.CompletedProcess(
@@ -61,13 +122,15 @@ def verify_portable_dispatch_direct_evidence() -> None:
             )
 
         with (
-            patch.object(run_cpp_tck, "is_portable_dispatch_scenario", return_value=True),
+            patch.object(
+                run_cpp_tck, "is_portable_dispatch_scenario", return_value=True
+            ),
             patch.object(run_cpp_tck, "direct_arguments", direct_arguments),
             patch.object(run_cpp_tck.subprocess, "run", fake_run),
         ):
             run_cpp_tck.run_executable_direct(
                 argparse.Namespace(callback_model="both"),
-                {"build_directory": root},
+                _resolved_inputs(root),
                 root / "provider.exe",
                 [scenario],
                 results,
@@ -75,7 +138,9 @@ def verify_portable_dispatch_direct_evidence() -> None:
             )
 
         if attempted != ["evoked", "immediate"]:
-            raise AssertionError(f"portable dispatch callback matrix was wrong: {attempted}")
+            raise AssertionError(
+                f"portable dispatch callback matrix was wrong: {attempted}"
+            )
         payload = json.loads(results.read_text(encoding="utf-8"))
         if payload.get("kind") != "hla-rti-cpp-tck-evidence":
             raise AssertionError("portable dispatch JSON evidence has the wrong kind")
@@ -88,10 +153,17 @@ def verify_portable_dispatch_direct_evidence() -> None:
             (scenario_id, "immediate", "passed"),
         }
         if result_pairs != expected_pairs:
-            raise AssertionError(f"portable dispatch JSON evidence was incomplete: {result_pairs}")
+            raise AssertionError(
+                f"portable dispatch JSON evidence was incomplete: {result_pairs}"
+            )
         junit_root = ET.parse(junit).getroot()
-        if junit_root.attrib.get("tests") != "2" or junit_root.attrib.get("failures") != "0":
-            raise AssertionError("portable dispatch JUnit did not preserve both passing models")
+        if (
+            junit_root.attrib.get("tests") != "2"
+            or junit_root.attrib.get("failures") != "0"
+        ):
+            raise AssertionError(
+                "portable dispatch JUnit did not preserve both passing models"
+            )
         if len(junit_root.findall("testcase")) != 2:
             raise AssertionError("portable dispatch JUnit omitted callback-model cases")
 
@@ -106,11 +178,14 @@ def main() -> int:
         results = root / "combined.json"
         junit = root / "combined.xml"
         attempted: list[str] = []
+        expected_environment = run_cpp_tck.direct_run_environment(
+            _resolved_inputs(root)
+        )
 
         def direct_arguments(
             _arguments: object,
-            _inputs: dict[str, object],
-            selected: list[dict[str, str]],
+            _inputs: run_cpp_tck.ResolvedInputs,
+            selected: list[run_cpp_tck.CppTckScenario],
             chunk_results: Path | None,
             chunk_junit: Path | None,
         ) -> list[str]:
@@ -125,8 +200,13 @@ def main() -> int:
                 str(chunk_junit),
             ]
 
-        def fake_run_command(command: list[str], *, cwd: Path) -> None:
-            del cwd
+        def fake_run_command(
+            command: list[str], *, cwd: Path, env: dict[str, str]
+        ) -> None:
+            if cwd != run_cpp_tck.ROOT or env != expected_environment:
+                raise AssertionError(
+                    "direct runner omitted its working directory or runtime environment"
+                )
             scenario_id = command[2]
             chunk_results = Path(command[4])
             chunk_junit = Path(command[6])
@@ -135,9 +215,7 @@ def main() -> int:
                 json.dumps(
                     {
                         "callback_model": "evoked",
-                        "results": [
-                            {"id": scenario_id, "callback_model": "evoked"}
-                        ],
+                        "results": [{"id": scenario_id, "callback_model": "evoked"}],
                     }
                 ),
                 encoding="utf-8",
@@ -164,15 +242,15 @@ def main() -> int:
             if failure_count:
                 raise subprocess.CalledProcessError(1, command)
 
-        selected = [{"id": scenario_id} for scenario_id in scenario_ids]
+        selected = [_scenario(scenario_id) for scenario_id in scenario_ids]
         try:
             with (
                 patch.object(run_cpp_tck, "direct_arguments", direct_arguments),
                 patch.object(run_cpp_tck, "run_command", fake_run_command),
             ):
                 run_cpp_tck.run_executable_direct(
-                    object(),
-                    {"build_directory": root},
+                    argparse.Namespace(callback_model="both"),
+                    _resolved_inputs(root),
                     root / "provider.exe",
                     selected,
                     results,
@@ -197,13 +275,12 @@ def main() -> int:
         testcase_ids = [
             testcase.attrib["name"] for testcase in junit_root.findall("testcase")
         ]
-        if (
-            testcase_ids != scenario_ids
-            or junit_root.attrib.get("failures") != "1"
-        ):
+        if testcase_ids != scenario_ids or junit_root.attrib.get("failures") != "1":
             raise AssertionError("merged JUnit did not preserve all pass/failure cases")
         if failed_scenario not in message or str(results) not in message:
-            raise AssertionError(f"failure summary omitted scenario/evidence paths: {message}")
+            raise AssertionError(
+                f"failure summary omitted scenario/evidence paths: {message}"
+            )
 
     print("cpp-tck: direct multi-scenario failure evidence regression passed")
     return 0

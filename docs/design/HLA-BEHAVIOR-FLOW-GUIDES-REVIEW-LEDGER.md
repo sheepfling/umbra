@@ -1868,7 +1868,6 @@ represented by the topic guides. Reuse the service-family map and existing
 evidence; do not add a diagram merely to grow the inventory. Preserve
 edition/profile boundaries and do not run C++ builds, tests, or CI.
 
-
 ### 2025 name, handle, and model-catalog lookup review — 2026-10-10
 
 A bounded review of the existing 2025 name/handle guide found that its encoding
@@ -3187,7 +3186,11 @@ parse/render review. GitHub rendering and the full §4.2 check remain pending.
 No C++ build, test, CI, or Requirements Lab work occurred.
 
 Next handoff: visually review the sequence “One regional update, three
-available-advance choices” in the [2025 DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#one-regional-update-three-available-advance-choices). Check that the receiver-specific choices and shared grant result are legible without implying the services are equivalent. Preserve its 2025 embedded test boundary; do not run C++ builds, tests, or CI. Keep 2010 separate and check GitHub rendering after publication.
+available-advance choices” in the
+[2025 DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#one-regional-update-three-available-advance-choices).
+Check that the receiver-specific choices and shared grant result are legible without implying the services are
+equivalent. Preserve its 2025 embedded test boundary; do not run C++ builds, tests, or CI. Keep 2010 separate and check
+GitHub rendering after publication.
 
 ### 2025 DDM: regional eligibility stays separate from three advance gates — 2026-10-11
 
@@ -3294,7 +3297,6 @@ index so its completion checklist can stay reader-centered. They preserve
 historical snapshots, not the current queue; use the guide index and roadmap for
 current counts and the next handoff.
 
-
 The local VS Code installation is 1.141.0; its built-in Markdown preview
 renders Mermaid fenced blocks (available since 1.121). Open a guide's preview
 with `Ctrl+Shift+V`; see the [official Markdown preview documentation](https://code.visualstudio.com/docs/languages/markdown)
@@ -3344,7 +3346,10 @@ partial-achievement late-join and multi-member partial-save/restore paths
 remain explicitly source-derived rather than end-to-end test-backed. The new
 FederationSynchronized dispatch flow in the callback guide adds one locally
 reviewed diagram, bringing the set to 65; its exact service-specific
-IMMEDIATE-before-return timing remains unasserted. The 2010 DataElement companion's two diagrams, the source-only 2010 synchronization callback-retry sequence, and the new source-only 2010 callback-dispatch/failure-boundary flow were rendered and screenshot-reviewed independently of the 2025 guides. The locally reviewed/revised count is now 66. No chart in that
+IMMEDIATE-before-return timing remains unasserted. The 2010 DataElement companion's two diagrams, the source-only 2010
+synchronization callback-retry sequence, and the new source-only 2010 callback-dispatch/failure-boundary flow were
+rendered and screenshot-reviewed independently of the 2025 guides. The locally reviewed/revised count is now 66. No
+chart in that
 earlier render-review backlog remained pending.
 After that 66-diagram checkpoint, the callback exception and process-Resign
 charts were added, parsed, and screenshot-reviewed locally; the current
@@ -3407,7 +3412,6 @@ checkpoint is superseded by the verified 2026-10-11 inventory above. The
 earlier tally of 71 locally reviewed charts belongs to a prior checkpoint and
 has not been reconciled to the current set.
 
-
 ### 2025 cross-cutting outcomes: service contract versus commit point — 2026-10-11
 
 Reader review found that the generic “batch or composite HLA request” entry
@@ -3447,7 +3451,6 @@ notes; the third has no render-review record and remains open. Together with
 the support-switch and contract/outcome maps, five targeted diagrams need
 fresh local parsing and visual review. The inventory remains 209. No C++
 build, test rerun, CI, Requirements Lab edit, or 2010 change occurred.
-
 
 The guide index's completion section is now a concise HLA-first authoring
 checklist: lead with the portable service contract and state/eligibility/
@@ -8879,6 +8882,7 @@ delivery/time-advance gate, and the inspected tests do not establish its
 Time-Granted eligibility. Keep that process timing question open; do not infer
 profile parity or 2010 behavior. The added process diagram passed a
 syntax-only Mermaid parse, but has no render or visual verdict.
+
 ## 2025 per-recipient interaction order conversion — 2026-10-16
 
 Added a reader-facing sequence to the 2025 Order and Transportation guide for
@@ -9445,6 +9449,7 @@ race source-only. Leave the process regional-attribute DDM sequence first in
 the visual-review queue and pause renderer retries until launch access changes.
 
 ---
+
 ### 2025 process regional-scope post-enqueue eligibility audit — 2026-10-16
 
 The process service rechecks current eligibility before routing each planned
@@ -9473,6 +9478,7 @@ interleaving source-only if no test directly covers it. Preserve the
 2025-only scope and the pending process DDM visual-review priority.
 
 ---
+
 ### 2025 synchronization partial-achievement/late-Join audit — 2026-10-16
 
 The shared registry records `lateJoinExpansionAllowed` for omitted-set
@@ -9510,6 +9516,7 @@ switch-off as the sole suppressor of an otherwise-reportable transition.
 Keep any confounded test as an evidence gap and preserve the 2025-only scope.
 
 ---
+
 ### 2025 Attribute Scope Advisory switch-off coverage audit — 2026-10-16
 
 The embedded path checks the receiver switch before scheduling a scope

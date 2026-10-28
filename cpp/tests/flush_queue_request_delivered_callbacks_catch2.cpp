@@ -140,7 +140,7 @@ void verifyDeliveredFqrTimes(
   REQUIRE(receiver->getNonRegulatedGrantSwitch());
 
   auto const baseClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase");
+      umbra::test::hla::wide::fom::parameter_fixture_base);
   auto const childClass = publisher->getInteractionClassHandle(
       fixture_hla::fom::parameter_fixture_child_interaction);
   auto const baseParameter = publisher->getParameterHandle(

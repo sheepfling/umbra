@@ -115,8 +115,12 @@ class _UmbraSessionDriver:
 
     def inspect(self) -> SessionStateObservation:
         if self._inspection is None:
-            raise CommandUnavailable("No authoritative inspection is configured for this Umbra binding.")
-        return SessionStateObservation.model_validate(self._inspection(self._rti).model_dump(mode="python"))
+            raise CommandUnavailable(
+                "No authoritative inspection is configured for this Umbra binding."
+            )
+        return SessionStateObservation.model_validate(
+            self._inspection(self._rti).model_dump(mode="python")
+        )
 
 
 def create_umbra_command_session(

@@ -1070,6 +1070,7 @@ search:
 python tools/query_rti_work.py lane package-process-connection-loss-delete-objects --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss-delete-objects --output-on-failure
 ```
+
 The indexed handle points back to
 `umbra-cpp-connection-lost-automatic-delete-integration` for its five
 Requirements-Lab ids and five canonical 2025 section keys; the package lane
@@ -1082,6 +1083,7 @@ search:
 python tools/query_rti_work.py lane package-process-federation-save-restore --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore --output-on-failure
 ```
+
 Its indexed handle points to the native process restore-success case and its six
 Requirements-Lab requirement/section mappings; it remains installed-process
 foundation evidence.
@@ -1093,6 +1095,7 @@ catalog search:
 python tools/query_rti_work.py lane package-process-federation-save-restore-failure --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-failure --output-on-failure
 ```
+
 It is mapped to the native restore-failure case and verifies the official
 `FEDERATE_REPORTED_FAILURE_DURING_RESTORE` reason.
 
@@ -1103,6 +1106,7 @@ search:
 python tools/query_rti_work.py lane package-process-federation-save-restore-abort --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-abort --output-on-failure
 ```
+
 It is mapped to the native restore-abort case and verifies `RESTORE_ABORTED`.
 
 The focused federation restore-status process lane is selected without a
@@ -1112,6 +1116,7 @@ catalog search:
 python tools/query_rti_work.py lane package-process-federation-save-restore-status --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-status --output-on-failure
 ```
+
 It is mapped to the native restore-status case and verifies the in-progress
 `FEDERATE_RESTORING` status response before restore completion.
 

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include "internal/fom/hla_names.hpp"
 #include <RTI/NullFederateAmbassador.h>
@@ -141,12 +142,12 @@ TEST_CASE(
       standard_hla::mom::report_service_invocation);
   auto const wrongReportClass = wrongServiceGroupObserver->getInteractionClassHandle(
       standard_hla::mom::report_service_invocation);
-  auto const federateDimension = matchingObserver->getDimensionHandle(L"HLAfederate");
-  auto const serviceGroupDimension = matchingObserver->getDimensionHandle(L"HLAserviceGroup");
+  auto const federateDimension = matchingObserver->getDimensionHandle(umbra::test::hla::wide::standard::federate);
+  auto const serviceGroupDimension = matchingObserver->getDimensionHandle(umbra::test::hla::wide::standard::service_group);
   auto const wrongFederateDimension =
-      wrongServiceGroupObserver->getDimensionHandle(L"HLAfederate");
+      wrongServiceGroupObserver->getDimensionHandle(umbra::test::hla::wide::standard::federate);
   auto const wrongServiceGroupDimension =
-      wrongServiceGroupObserver->getDimensionHandle(L"HLAserviceGroup");
+      wrongServiceGroupObserver->getDimensionHandle(umbra::test::hla::wide::standard::service_group);
   REQUIRE(reportClass.isValid());
   REQUIRE(wrongReportClass.isValid());
   REQUIRE(federateDimension.isValid());
@@ -208,12 +209,12 @@ TEST_CASE(
   REQUIRE(matchingCallbacks.sentRegionCount == 1U);
   REQUIRE_FALSE(matchingCallbacks.regionInspectionFailed);
   CHECK((matchingCallbacks.sentRegionDimensionNames ==
-         std::set<std::wstring>{L"HLAfederate", L"HLAserviceGroup"}));
+         std::set<std::wstring>{umbra::test::hla::wide::standard::federate, umbra::test::hla::wide::standard::service_group}));
   CHECK(matchingCallbacks.sentRegionBounds.size() == 2U);
-  CHECK((matchingCallbacks.sentRegionBounds.at(L"HLAfederate") ==
+  CHECK((matchingCallbacks.sentRegionBounds.at(umbra::test::hla::wide::standard::federate) ==
          std::pair<unsigned long, unsigned long>{
              normalizedFederate, normalizedFederate + 1UL}));
-  CHECK((matchingCallbacks.sentRegionBounds.at(L"HLAserviceGroup") ==
+  CHECK((matchingCallbacks.sentRegionBounds.at(umbra::test::hla::wide::standard::service_group) ==
          std::pair<unsigned long, unsigned long>{
              supportServicesGroup, supportServicesGroup + 1UL}));
   REQUIRE(wrongServiceGroupCallbacks.interactions.empty());

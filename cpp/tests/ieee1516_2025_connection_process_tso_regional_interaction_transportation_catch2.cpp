@@ -1044,7 +1044,7 @@ TEST_CASE(
           rti1516_2025::RegionHandleSet{receiverRegion},
           true));
       REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-          rti1516_2025::HLAinteger64Interval(0)));
+          rti1516_2025::HLAinteger64Interval(1)));
       if (callbackModel == HLA_EVOKED) {
         static_cast<void>(senderRti->evokeCallback(0.0));
       }

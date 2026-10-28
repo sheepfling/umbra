@@ -217,7 +217,6 @@ performance/conformance evidence.
 
 ## Historical snapshot checkpoint: 19 October 2026
 
-
 These serial runs used Windows 11, CPython 3.14.6, Pydantic 2.14.1 and the
 32-logical-CPU AMD host identified in each report. All six have the same source
 fingerprint (`1c0509664bf0…`) and report no source changes during measurement.

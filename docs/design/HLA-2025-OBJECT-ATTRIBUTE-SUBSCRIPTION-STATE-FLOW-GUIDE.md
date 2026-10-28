@@ -774,4 +774,3 @@ pass did not execute it; the already-known-object/value-only case and normative
 conformance finding, or 2010 behavior. For service-report projection, see [service invocation
 reporting](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md); for class-level
 declaration callbacks, see [relevance advisories](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md).
-

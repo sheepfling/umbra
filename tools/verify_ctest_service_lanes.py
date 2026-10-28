@@ -14,13 +14,16 @@ import argparse
 import json
 import subprocess
 import sys
-from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
-
+from typing import TypedDict
 
 CATCH2_TEST_MARKER = ".catch2."
 REQUIRED_LABELS = ("requirements-lab", "api-contract")
+
+
+class _CtestTest(TypedDict):
+    name: str
+    labels: list[str]
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -56,20 +59,31 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def labels_for(test: dict[str, Any]) -> frozenset[str]:
-    properties = test.get("properties", ())
-    if not isinstance(properties, Iterable):
-        return frozenset()
-    for property_value in properties:
-        if not isinstance(property_value, dict) or property_value.get("name") != "LABELS":
+def _labels_from_properties(value: object) -> list[str]:
+    if not isinstance(value, list):
+        raise TypeError("test properties must be an array")
+    for index, property_value in enumerate(value):
+        if not isinstance(property_value, dict):
+            raise TypeError(f"test properties[{index}] must be an object")
+        name = property_value.get("name")
+        if not isinstance(name, str):
+            raise TypeError(f"test properties[{index}].name must be a string")
+        if name != "LABELS":
             continue
-        labels = property_value.get("value", ())
-        if isinstance(labels, list):
-            return frozenset(label for label in labels if isinstance(label, str))
-    return frozenset()
+        labels = property_value.get("value", [])
+        if not isinstance(labels, list) or any(
+            not isinstance(label, str) for label in labels
+        ):
+            raise TypeError(f"test properties[{index}].value must be a string array")
+        return labels
+    return []
 
 
-def load_catalog(arguments: argparse.Namespace) -> list[dict[str, Any]]:
+def labels_for(test: _CtestTest) -> frozenset[str]:
+    return frozenset(test["labels"])
+
+
+def load_catalog(arguments: argparse.Namespace) -> list[_CtestTest]:
     command = [
         str(arguments.ctest),
         "--test-dir",
@@ -92,15 +106,35 @@ def load_catalog(arguments: argparse.Namespace) -> list[dict[str, Any]]:
             print(result.stderr.rstrip(), file=sys.stderr)
         return []
     try:
-        catalog = json.loads(result.stdout)
-        tests = catalog["tests"]
-    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        catalog: object = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
         print(f"Could not read the CTest JSON test catalog: {error}", file=sys.stderr)
         return []
+    if not isinstance(catalog, dict):
+        print("CTest JSON test catalog root must be an object.", file=sys.stderr)
+        return []
+    tests = catalog.get("tests")
     if not isinstance(tests, list):
         print("CTest JSON test catalog has no test list.", file=sys.stderr)
         return []
-    return [test for test in tests if isinstance(test, dict)]
+    parsed_tests: list[_CtestTest] = []
+    try:
+        for index, test in enumerate(tests):
+            if not isinstance(test, dict):
+                raise TypeError(f"tests[{index}] must be an object")
+            name = test.get("name")
+            if not isinstance(name, str) or not name:
+                raise TypeError(f"tests[{index}].name must be a non-empty string")
+            parsed_tests.append(
+                {
+                    "name": name,
+                    "labels": _labels_from_properties(test.get("properties", [])),
+                }
+            )
+    except (TypeError, ValueError) as error:
+        print(f"Could not read the CTest JSON test catalog: {error}", file=sys.stderr)
+        return []
+    return parsed_tests
 
 
 def main() -> int:
@@ -109,7 +143,10 @@ def main() -> int:
         print(f"CTest executable does not exist: {arguments.ctest}", file=sys.stderr)
         return 2
     if not arguments.test_dir.is_dir():
-        print(f"CTest test directory does not exist: {arguments.test_dir}", file=sys.stderr)
+        print(
+            f"CTest test directory does not exist: {arguments.test_dir}",
+            file=sys.stderr,
+        )
         return 2
 
     tests = load_catalog(arguments)
@@ -120,12 +157,7 @@ def main() -> int:
     summaries: list[str] = []
     for lane in arguments.lane:
         selected = [test for test in tests if lane in labels_for(test)]
-        catch2_count = sum(
-            1
-            for test in selected
-            if isinstance(test.get("name"), str)
-            and CATCH2_TEST_MARKER in test["name"]
-        )
+        catch2_count = sum(1 for test in selected if CATCH2_TEST_MARKER in test["name"])
         requirements_count = sum(
             1 for test in selected if "requirements-lab" in labels_for(test)
         )

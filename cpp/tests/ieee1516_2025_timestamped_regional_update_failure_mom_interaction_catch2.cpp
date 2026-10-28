@@ -172,7 +172,7 @@ void runTimestampedRegionalUpdateFailureMomInteractionScenario() {
       rti1516_2025::AttributeNotDefined);
   verifyReport(1U, objectValue, invalidMapValue, L"6", invalidAttributeException);
   auto const invalidTimeException =
-      L"InvalidLogicalTime: A timestamped service is earlier than the sender's current logical time plus lookahead.";
+      L"InvalidLogicalTime: A timestamped service is earlier than the sender's applicable logical-time-plus-lookahead floor.";
   REQUIRE_THROWS_AS(
       publisher->updateAttributeValues(
           objectInstance,

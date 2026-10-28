@@ -179,7 +179,7 @@ TEST_CASE(
       rti1516_2025::InteractionParameterNotDefined);
   verifyReport(2U, interactionValue, targetValue, invalidMapValue, L"6", invalidParameterException);
   auto const invalidTimeException =
-      L"InvalidLogicalTime: A timestamped service is earlier than the sender's current logical time plus lookahead.";
+      L"InvalidLogicalTime: A timestamped service is earlier than the sender's applicable logical-time-plus-lookahead floor.";
   REQUIRE_THROWS_AS(
       publisher->sendDirectedInteraction(
           interactionClass, target, values, tag, rti1516_2025::HLAinteger64Time(4)),

@@ -18,6 +18,8 @@
 
 #include <umbra/embedded_profile_configuration.hpp>
 
+#include "hla_test_names.hpp"
+
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The timestamped Delete Object Instance service-report tests require the Umbra source directory."
 #endif
@@ -148,6 +150,10 @@ class ReportingFederateAmbassador final
     bool retractionValid = false;
   };
 
+  void timeRegulationEnabled(rti1516_2025::LogicalTime const& time) override {
+    timeRegulationEnabledTime = time.toString();
+  }
+
   void discoverObjectInstance(
       ObjectInstanceHandle const& objectInstance,
       ObjectClassHandle const& objectClass,
@@ -185,6 +191,7 @@ class ReportingFederateAmbassador final
 
   std::vector<ObjectInstanceHandle> objectDiscoveryReports;
   std::vector<ObjectRemovalReport> objectRemovalReports;
+  std::wstring timeRegulationEnabledTime;
   std::function<void()> onTimestampedObjectRemoval;
 };
 
@@ -243,6 +250,20 @@ TEST_CASE(
   REQUIRE_FALSE(receiver->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
 
+  auto const privilegeToDelete = publisher->getAttributeHandle(
+      server, umbra::test::hla::wide::standard::privilege_to_delete_object);
+  REQUIRE(privilegeToDelete.isValid());
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      objectInstance,
+      AttributeHandleSet{privilegeToDelete},
+      TIMESTAMP));
+
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(0)));
+  while (publisher->evokeMultipleCallbacks(0.0, 0.0)) {
+  }
+  REQUIRE(publisherReports.timeRegulationEnabledTime == L"0");
+
   auto const files = serviceReportFiles(directory.path());
   REQUIRE(files.size() == 1U);
   auto const reportFile = files.front();
@@ -256,7 +277,7 @@ TEST_CASE(
   auto const objectInstanceValue = asAscii(objectInstance.toString());
   auto const timestampValue = asAscii(timestamp.toString());
   auto const expectedRecord = std::string{
-      R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentName":"","HLAargumentValue":null}],"HLAservice":"DeleteObjectInstance","HLAsuppliedArguments":[{"HLAargumentType":37,"HLAargumentName":"Object instance designator","HLAargumentValue":")" +
+      R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":33,"HLAargumentName":"Message retraction designator","HLAargumentValue":"MessageRetractionHandle<1>"}],"HLAservice":"DeleteObjectInstance","HLAsuppliedArguments":[{"HLAargumentType":37,"HLAargumentName":"Object instance designator","HLAargumentValue":")" +
       objectInstanceValue +
       R"("},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"dHNv"},{"HLAargumentType":31,"HLAargumentName":"Optional timestamp","HLAargumentValue":")" +
       timestampValue + R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
@@ -279,8 +300,8 @@ TEST_CASE(
   REQUIRE(removal.timeValue == timestamp.toString());
   REQUIRE(removal.sentOrderType == TIMESTAMP);
   REQUIRE(removal.receivedOrderType == RECEIVE);
-  REQUIRE_FALSE(removal.retractionSupplied);
-  REQUIRE_FALSE(removal.retractionValid);
+  REQUIRE(removal.retractionSupplied);
+  REQUIRE(removal.retractionValid);
   REQUIRE(readTextFile(reportFile) == initialText + expectedRecord);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));

@@ -145,6 +145,35 @@ TEST_CASE(
 
   REQUIRE(coordinator.clearDeliveredTsoMessages(1) == 1);
   REQUIRE(coordinator.tsoSnapshotFor(1).deliveredSinceLastAdvance.empty());
+
+  // Retraction remains legal until the receiving callback acknowledges the
+  // in-transit record. Withdraw that record from temporal-frontier state, but
+  // accept a late completion acknowledgement for the retired identity.
+  auto const retractedInTransitId = coordinator.allocateTsoMessageId();
+  REQUIRE(coordinator.enqueueTsoMessage(
+              retractedInTransitId, 1, std::make_shared<HLAinteger64Time>(6))
+              .status == umbra::detail::TsoMessageQueueStatus::applied);
+  auto const unacknowledgedDelivery = coordinator.beginTsoDelivery(
+      1, HLAinteger64Time(6), true);
+  REQUIRE(unacknowledgedDelivery.status ==
+          umbra::detail::FederationTsoDeliveryStatus::applied);
+  REQUIRE(unacknowledgedDelivery.messages.size() == 1U);
+  REQUIRE(coordinator.tsoSnapshotFor(1).inTransit.size() == 1U);
+
+  auto const pendingRetraction =
+      coordinator.retractPendingTsoMessage(retractedInTransitId);
+  REQUIRE(pendingRetraction.status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(pendingRetraction.removedCount == 1U);
+  auto const retractedSnapshot = coordinator.tsoSnapshotFor(1);
+  REQUIRE(retractedSnapshot.queued.empty());
+  REQUIRE(retractedSnapshot.inTransit.empty());
+  REQUIRE(coordinator.completeTsoDeliveryFor(1, retractedInTransitId) ==
+          umbra::detail::FederationTsoDeliveryStatus::message_already_completed);
+  REQUIRE(coordinator.enqueueTsoMessage(
+              retractedInTransitId, 2, std::make_shared<HLAinteger64Time>(6))
+              .status ==
+          umbra::detail::TsoMessageQueueStatus::message_already_retracted);
 }
 
 TEST_CASE(

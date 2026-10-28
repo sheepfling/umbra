@@ -4,8 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import hla.rti1516e as rti
-from hla.rti1516e import contracts
-from hla.rti1516e import exceptions
+from hla.rti1516e import contracts, exceptions
 from hla.rti1516e.encoding import (
     ByteWrapper,
     EncoderFactory,
@@ -50,17 +49,25 @@ class _AliasEntryPoint:
 class Contract2010Tests(unittest.TestCase):
     def test_authoritative_method_counts_and_names_are_recorded(self) -> None:
         self.assertEqual(sum(contracts.RTIAMBASSADOR_OVERLOAD_COUNTS.values()), 172)
-        self.assertEqual(sum(contracts.FEDERATE_AMBASSADOR_OVERLOAD_COUNTS.values()), 60)
+        self.assertEqual(
+            sum(contracts.FEDERATE_AMBASSADOR_OVERLOAD_COUNTS.values()), 60
+        )
         self.assertEqual(
             contracts.RTIAMBASSADOR_PARAMETER_TYPES["connect"][0],
             ("FederateAmbassador", "CallbackModel", "String"),
         )
         self.assertEqual(
-            contracts.FEDERATE_AMBASSADOR_PARAMETER_TYPES["reflectAttributeValues"][0][-1],
+            contracts.FEDERATE_AMBASSADOR_PARAMETER_TYPES["reflectAttributeValues"][0][
+                -1
+            ],
             "SupplementalReflectInfo",
         )
-        self.assertEqual(contracts.RTIAMBASSADOR_RETURN_TYPES["queryGALT"], ("TimeQueryReturn",))
-        self.assertEqual(contracts.RTIAMBASSADOR_RETURN_TYPES["getOrderType"], ("OrderType",))
+        self.assertEqual(
+            contracts.RTIAMBASSADOR_RETURN_TYPES["queryGALT"], ("TimeQueryReturn",)
+        )
+        self.assertEqual(
+            contracts.RTIAMBASSADOR_RETURN_TYPES["getOrderType"], ("OrderType",)
+        )
         self.assertEqual(
             set(contracts.RTIAMBASSADOR_PARAMETER_TYPES),
             set(contracts.RTIAMBASSADOR_OVERLOAD_COUNTS),
@@ -170,11 +177,19 @@ class Contract2010Tests(unittest.TestCase):
         self.assertEqual(handle.hashCode(), hash(handle))
 
     def test_nested_callback_records_mirror_the_official_java_lookup(self) -> None:
-        self.assertIs(rti.FederateAmbassador.SupplementalReflectInfo, rti.SupplementalReflectInfo)
-        self.assertIs(rti.FederateAmbassador.SupplementalReceiveInfo, rti.SupplementalReceiveInfo)
-        self.assertIs(rti.FederateAmbassador.SupplementalRemoveInfo, rti.SupplementalRemoveInfo)
+        self.assertIs(
+            rti.FederateAmbassador.SupplementalReflectInfo, rti.SupplementalReflectInfo
+        )
+        self.assertIs(
+            rti.FederateAmbassador.SupplementalReceiveInfo, rti.SupplementalReceiveInfo
+        )
+        self.assertIs(
+            rti.FederateAmbassador.SupplementalRemoveInfo, rti.SupplementalRemoveInfo
+        )
 
-    def test_parameter_value_map_has_both_standard_value_reference_overloads(self) -> None:
+    def test_parameter_value_map_has_both_standard_value_reference_overloads(
+        self,
+    ) -> None:
         handle = rti.ParameterHandle(b"p")
         values = rti.ParameterHandleValueMap({handle: b"payload"})
         self.assertEqual(values.getValueReference(handle), b"payload")
@@ -193,16 +208,20 @@ class Contract2010Tests(unittest.TestCase):
         with patch("hla.rti1516e.core.entry_points", return_value=[_EntryPoint()]):
             factory = rti.RtiFactoryFactory.getRtiFactory()
         self.assertEqual(factory.rtiName(), "test-2010")
-        self.assertEqual(rti.RtiFactoryFactory._ENTRY_POINT_GROUP, "hla.rti1516e.factories")
+        self.assertEqual(
+            rti.RtiFactoryFactory._ENTRY_POINT_GROUP, "hla.rti1516e.factories"
+        )
 
         with patch("hla.rti1516e.core.entry_points", return_value=[_AliasEntryPoint()]):
             self.assertEqual(
                 rti.RtiFactoryFactory.getRtiFactory("java-2010").rtiName(), "test-2010"
             )
 
-        with patch("hla.rti1516e.core.entry_points", return_value=[]):
-            with self.assertRaises(RTIinternalError):
-                rti.RtiFactoryFactory.getRtiFactory()
+        with (
+            patch("hla.rti1516e.core.entry_points", return_value=[]),
+            self.assertRaises(RTIinternalError),
+        ):
+            rti.RtiFactoryFactory.getRtiFactory()
 
     def test_logical_time_factory_discovery_keeps_the_java_class_overload(self) -> None:
         class TimeFactory(rti.LogicalTimeFactory):
@@ -290,23 +309,34 @@ class Contract2010Tests(unittest.TestCase):
                 return Provider
 
         def entries(*, group: str):
-            return [] if group == rti.LogicalTimeFactoryFactory._ENTRY_POINT_GROUP else [ProviderEntryPoint()]
+            return (
+                []
+                if group == rti.LogicalTimeFactoryFactory._ENTRY_POINT_GROUP
+                else [ProviderEntryPoint()]
+            )
 
         with patch("hla.rti1516e.core.entry_points", side_effect=entries):
             available = rti.LogicalTimeFactoryFactory.getAvailableLogicalTimeFactories()
             default = rti.LogicalTimeFactoryFactory.getLogicalTimeFactory()
-        self.assertEqual({factory.getName() for factory in available}, {"HLAinteger64Time", "HLAfloat64Time"})
+        self.assertEqual(
+            {factory.getName() for factory in available},
+            {"HLAinteger64Time", "HLAfloat64Time"},
+        )
         self.assertIsNotNone(default)
         self.assertEqual(default.getName(), "HLAfloat64Time")
 
-    def test_exception_names_are_constructible_and_unknowns_are_internal_errors(self) -> None:
+    def test_exception_names_are_constructible_and_unknowns_are_internal_errors(
+        self,
+    ) -> None:
         failure = exceptionForName("hla.rti1516e.exceptions.InconsistentFDD", "bad FDD")
         self.assertEqual(type(failure).__name__, "InconsistentFDD")
         self.assertEqual(str(failure), "bad FDD")
         unknown = exceptionForName("vendor.Unknown", "unknown")
         self.assertIsInstance(unknown, RTIinternalError)
 
-    def test_every_standard_exception_name_round_trips_with_message_and_cause(self) -> None:
+    def test_every_standard_exception_name_round_trips_with_message_and_cause(
+        self,
+    ) -> None:
         cause = ValueError("provider detail")
         self.assertEqual(len(exceptions._STANDARD_EXCEPTION_NAMES), 110)
         for name in sorted(exceptions._STANDARD_EXCEPTION_NAMES):

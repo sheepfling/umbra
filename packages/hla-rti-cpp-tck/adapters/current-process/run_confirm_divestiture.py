@@ -5,17 +5,25 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from pathlib import Path
 
+from tck_evidence import (
+    TckEvidencePayload,
+    combine_tck_evidence,
+    empty_tck_evidence,
+    load_tck_evidence,
+)
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_FOM = ROOT / "packages" / "hla-rti-cpp-tck" / "fom" / "ddm-multi-attribute-tck.xml"
+DEFAULT_FOM = (
+    ROOT / "packages" / "hla-rti-cpp-tck" / "fom" / "ddm-multi-attribute-tck.xml"
+)
 DEFAULT_MIM = (
     ROOT
     / "third_party"
@@ -74,7 +82,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--member-name", default="package-process-member")
     parser.add_argument("--federate-type", default="package-process-type")
     parser.add_argument("--owner-configuration-name", default="package-process-sender")
-    parser.add_argument("--member-configuration-name", default="package-process-receiver")
+    parser.add_argument(
+        "--member-configuration-name", default="package-process-receiver"
+    )
     parser.add_argument("--configuration-name", default="")
     parser.add_argument("--additional-settings", default="")
     parser.add_argument(
@@ -190,7 +200,7 @@ def run_case(
     scenario: str,
     callback_model: str,
     root: Path,
-) -> tuple[int, dict[str, object], ET.Element]:
+) -> tuple[int, TckEvidencePayload, ET.Element]:
     directory = root / (scenario.replace(".", "-") + "-" + callback_model)
     directory.mkdir()
     result_path = directory / "results.json"
@@ -234,9 +244,9 @@ def run_case(
                     fixture.kill()
                     fixture.wait()
             payload = (
-                json.loads(result_path.read_text(encoding="utf-8"))
+                load_tck_evidence(result_path)
                 if result_path.is_file()
-                else {}
+                else empty_tck_evidence()
             )
             junit_root = (
                 ET.parse(junit_path).getroot()
@@ -252,9 +262,9 @@ def run_case(
                 + (f": {detail}" if detail else "")
             )
         payload = (
-            json.loads(result_path.read_text(encoding="utf-8"))
+            load_tck_evidence(result_path)
             if result_path.is_file()
-            else {}
+            else empty_tck_evidence()
         )
         junit_root = (
             ET.parse(junit_path).getroot()
@@ -274,15 +284,11 @@ def run_case(
 
 def write_combined_evidence(
     arguments: argparse.Namespace,
-    payloads: list[dict[str, object]],
-    junit_roots: list[ET.Element],
+    payloads: Sequence[TckEvidencePayload],
+    junit_roots: Sequence[ET.Element],
 ) -> None:
     if arguments.results is not None and payloads:
-        combined = dict(payloads[0])
-        combined["callback_model"] = arguments.callback_model
-        combined["results"] = [
-            result for payload in payloads for result in payload.get("results", [])
-        ]
+        combined = combine_tck_evidence(payloads, arguments.callback_model)
         arguments.results.parent.mkdir(parents=True, exist_ok=True)
         arguments.results.write_text(
             json.dumps(combined, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -318,9 +324,11 @@ def run(arguments: argparse.Namespace) -> int:
         else (arguments.callback_model,)
     )
     exit_code = 0
-    payloads: list[dict[str, object]] = []
+    payloads: list[TckEvidencePayload] = []
     junit_roots: list[ET.Element] = []
-    with tempfile.TemporaryDirectory(prefix="hla-rti-cpp-tck-ownership-service-report-") as temporary:
+    with tempfile.TemporaryDirectory(
+        prefix="hla-rti-cpp-tck-ownership-service-report-"
+    ) as temporary:
         root = Path(temporary)
         for callback_model in models:
             for scenario in scenarios:
@@ -328,7 +336,7 @@ def run(arguments: argparse.Namespace) -> int:
                     arguments, scenario, callback_model, root
                 )
                 exit_code = exit_code or code
-                if payload:
+                if payload.document:
                     payloads.append(payload)
                 junit_roots.append(junit_root)
     write_combined_evidence(arguments, payloads, junit_roots)
@@ -338,8 +346,16 @@ def run(arguments: argparse.Namespace) -> int:
 def main() -> int:
     try:
         return run(parse_arguments())
-    except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
-        print(f"Ownership service-report process adapter failed: {error}", file=sys.stderr)
+    except (
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as error:
+        print(
+            f"Ownership service-report process adapter failed: {error}", file=sys.stderr
+        )
         return 1
 
 

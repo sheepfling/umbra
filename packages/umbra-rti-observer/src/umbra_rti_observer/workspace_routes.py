@@ -19,5 +19,15 @@ def add_workspace_routes(app: FastAPI) -> None:
     def validate_workspace(payload: WorkspaceDocument) -> WorkspaceDocument:
         return payload
 
-    app.add_api_route("/api/workspaces/defaults", defaults, methods=["GET"], response_model=WorkspaceDefaultsResponse)
-    app.add_api_route("/api/workspaces/validate", validate_workspace, methods=["POST"], response_model=WorkspaceDocument)
+    app.add_api_route(
+        "/api/workspaces/defaults",
+        defaults,
+        methods=["GET"],
+        response_model=WorkspaceDefaultsResponse,
+    )
+    app.add_api_route(
+        "/api/workspaces/validate",
+        validate_workspace,
+        methods=["POST"],
+        response_model=WorkspaceDocument,
+    )

@@ -3,26 +3,13 @@
 #include "internal/fom/fom_catalog.hpp"
 #include "internal/runtime/utf8_string.hpp"
 
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <array>
 #include <string_view>
 
 namespace umbra::detail {
 namespace {
-
-constexpr std::wstring_view kInteger64TimeName = L"HLAinteger64Time";
-constexpr std::wstring_view kFloat64TimeName = L"HLAfloat64Time";
-
-std::string_view documentedTimeDataType(std::wstring_view implementationName) {
-  if (implementationName == kInteger64TimeName) {
-    return "HLAinteger64Time";
-  }
-  if (implementationName == kFloat64TimeName) {
-    return "HLAfloat64Time";
-  }
-  return {};
-}
 
 bool isUnspecified(std::string const& dataType) {
   // IEEE 1516.2 permits NA when timestamp or lookahead information is not
@@ -37,7 +24,7 @@ std::string describeMismatch(
     std::string_view expected) {
   return "The composed FDD documents " + std::string(column) + " data type " +
          quoteDiagnosticString(actual) +
-         ", which is incompatible with Umbra's selected reference implementation " +
+         ", which is incompatible with Umbra's selected logical-time factory " +
          quoteDiagnosticString(expected) + ".";
 }
 
@@ -49,26 +36,28 @@ ReferenceLogicalTimeSelection ReferenceLogicalTimeSelector::select(
   ReferenceLogicalTimeSelection selection;
   selection.requestedImplementationName = requestedImplementationName;
 
-  // This is the official reference factory selector. An empty input resolves
-  // to HLAfloat64Time, exactly as the Create Federation Execution signature
-  // prescribes; no Umbra-specific default is introduced here.
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  // The federation's official fedtime factory-factory chooses its concrete
+  // time classes from the Create Federation Execution implementation name.
+  auto factory = makeFederationLogicalTimeFactory(
       requestedImplementationName);
   if (!factory) {
-    selection.diagnostics =
-        "Umbra currently provides only the IEEE reference logical-time implementations "
-        "HLAinteger64Time and HLAfloat64Time.";
+    selection.diagnostics = "The federation's fedtime library does not provide the requested "
+                            "logical-time implementation.";
     return selection;
   }
 
   selection.selectedImplementationName = factory->getName();
-  std::string_view const expectedDataType = documentedTimeDataType(selection.selectedImplementationName);
-  if (expectedDataType.empty()) {
-    // Do not silently accept a third-party implementation merely because a
-    // factory happened to be linked. Its encoding-to-FDD relationship must be
-    // defined in a future provider contract.
-    selection.diagnostics =
-        "Umbra has no reviewed FDD data-type contract for the selected logical-time implementation.";
+  if (selection.selectedImplementationName.empty() ||
+      (!requestedImplementationName.empty() &&
+       selection.selectedImplementationName != requestedImplementationName)) {
+    selection.diagnostics = "The federation's fedtime library returned a factory with an "
+                            "unexpected implementation name.";
+    return selection;
+  }
+  auto expectedDataType = utf8FromWide(selection.selectedImplementationName);
+  if (!expectedDataType || expectedDataType->empty()) {
+    selection.diagnostics = "The selected logical-time implementation name cannot be represented "
+                            "in the FDD's UTF-8 data-type field.";
     return selection;
   }
 
@@ -78,9 +67,9 @@ ReferenceLogicalTimeSelection ReferenceLogicalTimeSelector::select(
       {"logical time interval", &time.logicalTimeIntervalDataType},
   }};
   for (auto const& [column, documentedDataType] : documentedTypes) {
-    if (!isUnspecified(*documentedDataType) && *documentedDataType != expectedDataType) {
+    if (!isUnspecified(*documentedDataType) && *documentedDataType != *expectedDataType) {
       selection.status = ReferenceLogicalTimeSelectionStatus::inconsistent_fdd_time_representation;
-      selection.diagnostics = describeMismatch(column, *documentedDataType, expectedDataType);
+      selection.diagnostics = describeMismatch(column, *documentedDataType, *expectedDataType);
       return selection;
     }
   }

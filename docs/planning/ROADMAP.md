@@ -1005,7 +1005,9 @@ source-backed and green at 78 HLA_EVOKED assertions, with the exact restored
 source-region, reflection-before-grant, and post-restore retraction evidence
 indexed separately from the broader aggregate federation-management file. The
 first member-identity restore slice is implemented for member control/telemetry,
-temporal state, and one route-free ordinary interaction declaration. A live federate can restore the saved state of any federate of the same type when per-type membership counts match; the focused public positive case changes
+temporal state, and one route-free ordinary interaction declaration.
+A live federate can restore the saved state of any federate of the same type
+when per-type membership counts match; the focused public positive case changes
 both live names and handles across a fresh-registry restore, checks the
 saved-name/current-handle callback pairing, and verifies saved logical time
 4/lookahead 2 after changing the live lookahead to 5. A second public case
@@ -1195,13 +1197,13 @@ three, the type-27/type-40/type-43/type-63/type-31 supplied forms, the type-34
 Null return, false indicators, exact exception text, and no application
 callback. Query and run both with the separate failure lane:
 
-~~~powershell
+```powershell
 python tools/query_rti_work.py focus timestamped-regional-interaction-failure --summary --compact
 python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations" --summary --compact
 python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
 python tools/query_rti_work.py check --lane timestamped-regional-interaction-failure --summary --compact
 ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations|Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction)$" --output-on-failure
-~~~
+```
 
 The ordinary regional Send Interaction With Regions failure-file companion is
 now source-backed and green at
@@ -1583,9 +1585,10 @@ path. GitHub issues #1–#3 are complete in their focused lanes: timestamped
 deletion producer knowledge, FQR/undefined-GALT NRG, and delivered-callback
 FQG frontier. GitHub #4's process pull-path interaction-retraction case passes
 53 assertions for retraction before polling, before callback entry, after
-callback entry, and mixed constrained/unconstrained fanout. GitHub #5's public
-Resign coverage now includes interaction, timestamped attribute reflection, and
-object removal (53- and 34-assertion cases); later Retract produces no stale
+callback entry, and mixed constrained/unconstrained fanout.
+GitHub #5's public Resign coverage now includes interaction, timestamped
+attribute reflection, and object removal (53- and 34-assertion cases); later
+Retract produces no stale
 callback for the resigned recipient. GitHub #6 is resolved as a tested policy
 difference, not a normative parity requirement: the same HLA_EVOKED scenario
 reports embedded actual/OLT 5/9 with timestamp 9 delivered, versus process
@@ -1823,7 +1826,7 @@ the official `discoverObjectInstance`/`reflectAttributeValues` callbacks.
 The focused process-boundary lane also proves reservation callbacks,
 reservation-consuming named registration, duplicate-name `ObjectInstanceNameInUse`,
 and invalid-name `IllegalName` mapping. The installed named-registration
-	consumer is green as a separate public-surface lane. The public process
+    consumer is green as a separate public-surface lane. The public process
 regional lifecycle/regional-registration, remote regional subscription/update,
 timestamped regional update/reflect, regional unsubscription scope notification,
 and disjoint regional suppression cases are green as separate mapped slices.
@@ -2001,7 +2004,9 @@ subsections (`9.1.8`, `9.10`, `9.11.2`, `9.12`, `9.12.5`, `10.44`, and `11.5`),
 and thirteen official C++ API surfaces. It joins one sender and two disjoint
 regional recipients, filters each send by overlap, conveys the send-time
 source-region set through the receiver switch, and excludes the sender. Query
-it with `focus process-multi-recipient-regional-interaction`, `trace m108.embedded-process-multi-recipient-regional-interaction`, `matrix`, `test`, `check --lane`, or the exact CTest title; timestamped/retraction, directed,
+it with `focus process-multi-recipient-regional-interaction`,
+`trace m108.embedded-process-multi-recipient-regional-interaction`, `matrix`, `test`, `check --lane`, or the exact CTest
+title; timestamped/retraction, directed,
 relaxed-DDM, callback-disable, package/JUnit, review, validation,
 interoperability, and conformance remain separate slices.
 The preceding process DDM metadata slice is independently indexed at
@@ -2023,7 +2028,7 @@ unindexed lane fails fast. It emits
 the indexed process names plus JUnit failure/error counts in the same handoff.
 The remaining gate is
 protected review and broader interoperability. The
-Requirements Lab remains unchanged.
+Requirements Lab remains unchanged. The human-readable Requirements Lab issue ledger is complete and queryable.
 
 ```powershell
 python tools/query_rti_work.py recent --summary --compact --limit 20
@@ -2161,7 +2166,24 @@ recipient-specific queue entries, and immutable filesystem report-file
 identity. The regional timestamped-attribute-update DDM companion is green
 under both callback models (375 assertions), preserving source-region
 snapshots, recipient-specific delivery, valid retraction metadata, and
-filesystem report-file identity. The eligible directed-TSO delivery/retraction companion is green under both callback models (220 assertions), and the timestamped object-deletion save/restore and delivered-retraction companions are green at 321 and 242 assertions. The mixed interaction-declaration, committed interaction transportation-type override, mixed interaction override, and directed-interaction declaration companions are now green under HLA_EVOKED and HLA_IMMEDIATE (146, 186, 176, and 172 assertions respectively). The directed target-routing, ownership-handoff, directed TSO ownership-callback, and regional multi-source Auto Provide companions are also green under both callback models (216, 264, 282, and 144 assertions). The pending regular ownership-release callback companion is now green under both callback models (178 assertions), the pending If Available ownership-callback companion is green under both callback models (193 assertions), the pending negotiated owner-confirmation, pending negotiated If Available owner-confirmation, mixed negotiated ownership, delivered negotiated owner-confirmation, delivered negotiated If Available, mixed delivered negotiated-confirmation, asymmetric mixed negotiated-confirmation, and reverse asymmetric mixed negotiated-confirmation companions are green under both callback models (223, 207, 242, 228, 223, 273, 274, and 274 assertions). The pending attribute-transportation-type-change and pending interaction-transportation-type-change companions are now also green under both callback models (220 and 196 assertions). All three pending Query Attribute Ownership companions are now green under both callback models (136, 150, and 142 assertions). The latest object/time/transport/regional-DDM slices are recorded by `python tools/query_rti_work.py recent --summary --compact`; the next bounded slice is the indexed regional Auto Provide multi-provider fan-out. Restore its exact C++ declaration from the indexed test query, keeping switch mutation, timestamped, and relaxed-DDM variants separate.
+filesystem report-file identity. The eligible directed-TSO delivery/retraction companion is green under both callback
+models (220 assertions), and the timestamped object-deletion save/restore and delivered-retraction companions are green
+at 321 and 242 assertions. The mixed interaction-declaration, committed interaction transportation-type override, mixed
+interaction override, and directed-interaction declaration companions are now green under HLA_EVOKED and HLA_IMMEDIATE
+(146, 186, 176, and 172 assertions respectively). The directed target-routing, ownership-handoff, directed TSO
+ownership-callback, and regional multi-source Auto Provide companions are also green under both callback models (216,
+264, 282, and 144 assertions). The pending regular ownership-release callback companion is now green under both callback
+models (178 assertions), the pending If Available ownership-callback companion is green under both callback models (193
+assertions), the pending negotiated owner-confirmation, pending negotiated If Available owner-confirmation, mixed
+negotiated ownership, delivered negotiated owner-confirmation, delivered negotiated If Available, mixed delivered
+negotiated-confirmation, asymmetric mixed negotiated-confirmation, and reverse asymmetric mixed negotiated-confirmation
+companions are green under both callback models (223, 207, 242, 228, 223, 273, 274, and 274 assertions). The pending
+attribute-transportation-type-change and pending interaction-transportation-type-change companions are now also green
+under both callback models (220 and 196 assertions). All three pending Query Attribute Ownership companions are now
+green under both callback models (136, 150, and 142 assertions). The latest object/time/transport/regional-DDM slices
+are recorded by `python tools/query_rti_work.py recent --summary --compact`; the next bounded slice is the indexed
+regional Auto Provide multi-provider fan-out. Restore its exact C++ declaration from the indexed test query, keeping
+switch mutation, timestamped, and relaxed-DDM variants separate.
 The machine-readable index is authoritative for the active next slice. The
 preceding paragraph is historical; use `python tools/query_rti_work.py
 next --summary` (and then its exact lane/test handles) rather than that
@@ -2840,7 +2862,7 @@ Umbra-owned replacement public API.
       serialization, general timed/remote restore, all-service save interlocks,
       transport, protected evidence, and
       conformance remain future work.
- - [x] Bind the timestamped 2025 `Request Federation Save(label, LogicalTime)`
+- [x] Bind the timestamped 2025 `Request Federation Save(label, LogicalTime)`
        overload and matching timestamped `FederateAmbassador::initiateFederateSave`
        callback in the embedded profile. The official logical-time
       implementation is cloned and validated; one pending request may be
@@ -2891,7 +2913,8 @@ Umbra-owned replacement public API.
       and object-class attribute publication/subscription/update-rate/default
       transport/default order declarations
       while preserving
-      unsupported live-only pending work; the remaining pending application request-ledger serialization, disk-only rehydration, timed restore,
+      unsupported live-only pending work; the remaining pending application request-ledger serialization, disk-only
+      rehydration, timed restore,
       complete save interlocks,
       transport, protected evidence, and conformance remain open.
 - [x] Bind the bounded untimed 2025 federation-restore path in the embedded
@@ -3804,7 +3827,7 @@ Umbra-owned replacement public API.
        `focus`, `trace`, `matrix`, and `check --lane` handles for this bounded
        case; alternate resignation, pending ownership, passive/relaxed DDM,
        transport, package/JUnit, and conformance remain open.
- - [ ] Extend timestamped public delivery to the remaining 2025 object,
+- [ ] Extend timestamped public delivery to the remaining 2025 object,
       interaction, ownership, and federation service families only after their
       payload, callback-order, eligibility, and retraction semantics receive
       separate Requirements Lab contracts and real Catch2 scenarios. This
@@ -3931,7 +3954,7 @@ Umbra-owned replacement public API.
        the supplied-empty callback region marker. This is additional focused
        lifecycle coverage, not a recurrence or conformance evidence; the r12
        Requirements Lab resync remains unchanged and consumes no RL-176 entry.
- - [x] Record selected time-management and FOM stress scenarios from the legacy
+- [x] Record selected time-management and FOM stress scenarios from the legacy
       Python RTI in a revision-pinned, non-normative
       [backlog](../testing/LEGACY-PYTHON-RTI-TEST-BACKLOG.md),
       [resource register](../testing/LEGACY-PYTHON-RTI-TEST-RESOURCES.md), and
@@ -3939,7 +3962,7 @@ Umbra-owned replacement public API.
       importing its code, FOMs, or evidence claims.
 - [x] Adjudicate the sibling's pending-advance lower-bound split against the
       Requirements Lab: a time-advancing regulator's requested time plus
-      lookahead supplies the outgoing-TSO lower bound.  Preserve it with a
+      lookahead supplies the outgoing-TSO lower bound. Preserve it with a
       direct no-TSO Catch2 regression; it is not a complete GALT claim.
 - [x] Port the sibling-inspired three-federate GALT minimum and regulator-resign
       scenario through the official C++ API in the embedded no-TSO profile.
@@ -5328,7 +5351,7 @@ Umbra-owned replacement public API.
       six official C++ API surfaces. Use the exact
       `cancel-negotiated-attribute-ownership-divestiture-service-report-interaction`
       lane handles in the query card rather than reopening the aggregate.
- - [x] Exercise the object-class `Request Attribute Value Update` overload and
+- [x] Exercise the object-class `Request Attribute Value Update` overload and
       matching `Provide Attribute Value Update` callback in the embedded
       development profile. The private registry validates selected-class
       attributes, expands a base-class request across all current registered
@@ -6483,7 +6506,7 @@ Umbra-owned replacement public API.
        own grant. This tightens per-federate isolation evidence within the
        existing mapping; it does not claim durable, distributed, or cross-process
        restore ordering.
- - [ ] Promote accepted Requirements-Lab evidence only after protected review.
+- [ ] Promote accepted Requirements-Lab evidence only after protected review.
 
 ## Remaining RTI capability groups
 
@@ -6511,7 +6534,8 @@ Umbra-owned replacement public API.
       Focused lane anchor: Acknowledged callbacks are not pending-message GALT constraints.
       Focused lane anchor: A queued timestamp below pending TARA must be delivered before its grant.
       Focused lane anchor: Asynchronous delivery must not bypass the timestamp-order time gate.
-      Focused lane anchor: Re-enabling asynchronous delivery releases receive-order but keeps timestamp-order gated until advance.
+      Focused lane anchor: Re-enabling asynchronous delivery releases receive-order but keeps timestamp-order gated
+      until advance.
       Focused lane anchor: A Send Message transition preserves the joined-federate time state.
       Focused lane anchor: An eligible joined federate can receive outstanding receive-order messages.
       Focused lane anchor: Send Message conversion honors preferred order and timestamp presence.
@@ -6546,6 +6570,7 @@ Umbra-owned replacement public API.
       Focused lane anchor: Process-boundary Disable Time Constrained drains queued TSO through receive order.
       Focused lane anchor: Disable Time Constrained converts a queued timestamped attribute update to untimed reflection.
       Focused lane anchor: Disable Time Constrained converts a queued timestamped directed interaction to receive order.
+      Focused lane anchor: Enable Time Constrained preserves a queued timestamped object deletion until its grant.
       Focused lane anchor: Disable Time Constrained converts a queued timestamped object deletion to untimed removal.
       Focused lane anchor: Retracting a mixed-order attribute update after its receive-order passel.
       Focused lane anchor: Select the smallest feasible time when regulation is enabled.

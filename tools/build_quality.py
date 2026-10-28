@@ -9,17 +9,139 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TypedDict, cast
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if __package__:
+    from quality_gates.bin.cpp_artifact_quality import ArtifactTotals, scan_directory
     from tools.check_source_file_sizes import DEFAULT_CONFIG, _load_config, _scan
-    from tools.report_compile_times import collect
+    from tools.report_compile_times import (
+        CompileRecord,
+        HeaderFanout,
+        LinkRecord,
+        TargetTotal,
+        collect,
+    )
 else:
     from check_source_file_sizes import DEFAULT_CONFIG, _load_config, _scan
-    from report_compile_times import collect
+
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+    from report_compile_times import (
+        CompileRecord,
+        HeaderFanout,
+        LinkRecord,
+        TargetTotal,
+        collect,
+    )
+
+    from quality_gates.bin.cpp_artifact_quality import ArtifactTotals, scan_directory
 
 DEFAULT_HISTORY = REPOSITORY_ROOT / "out" / "build-metrics" / "history.jsonl"
+
+
+class TraceabilitySummary(TypedDict):
+    roadmap_complete: int
+    roadmap_open: int
+    catch2_cases: int
+    catch2_mapped: int
+    catch2_unmapped: int
+    catch2_unclassified: int
+    cpp_source_without_plan_row: int
+    actionable_unlocated_cases: int
+    source_health: str
+    index_matches_live: bool
+
+
+class MappingCheckSummary(TypedDict):
+    ok: bool
+    error_count: int
+    warning_count: int
+    mapped_test_count: int
+    repository_test_count: int
+    unclassified_count: int
+    tests_without_source_location: int
+    unlocated_test_ids: list[str]
+    error_samples: list[str]
+    warning_samples: list[str]
+
+
+class BuildEnvironment(TypedDict):
+    machine: str
+    generator: str
+    build_type: str
+    compiler: str
+    compiler_version: str
+    cxx_flags: str
+    cxx_flags_debug: str
+
+
+class ExecutableSize(TypedDict):
+    path: str
+    bytes: int
+
+
+class SourceSizeFinding(TypedDict):
+    path: str
+    lines: int
+    kind: str
+    physical_lines: int
+    included_fragments: int
+    soft: int
+    hard: int
+
+
+class _BuildMetricsOptional(TypedDict, total=False):
+    artifact_totals: ArtifactTotals
+    largest_executables: list[ExecutableSize]
+
+
+class BuildMetrics(_BuildMetricsOptional):
+    translation_units: int
+    unmeasured_compile_commands: int
+    compiler_time_ms: int
+    first_party_include_edges: int
+    bundled_include_edges: int
+    external_include_edges: int
+    first_party_header_count: int
+    records: list[CompileRecord]
+    header_fanout: list[HeaderFanout]
+    bundled_header_fanout: list[HeaderFanout]
+    target_totals: list[TargetTotal]
+    link_actions: list[LinkRecord]
+
+
+class _QualityMetricsOptional(TypedDict, total=False):
+    mapping_check: MappingCheckSummary
+
+
+class QualityMetrics(_QualityMetricsOptional):
+    source_size_soft_findings: int
+    source_size_blocking_errors: int
+    source_size_findings: list[SourceSizeFinding]
+    source_size_errors: list[str]
+    traceability: TraceabilitySummary
+
+
+class _BuildQualityEntryOptional(TypedDict, total=False):
+    build_status: str
+    run_id: str | None
+    quality_status: str
+    overall_passed: bool
+    note: str | None
+    build_dir: str
+    environment: BuildEnvironment
+
+
+class BuildQualityEntry(_BuildQualityEntryOptional):
+    schema: int
+    id: str
+    recorded_at_utc: str
+    label: str
+    branch: str
+    commit: str
+    working_tree_dirty: bool
+    build: BuildMetrics
+    quality: QualityMetrics
 
 
 def _git_value(*arguments: str) -> str:
@@ -33,7 +155,7 @@ def _git_value(*arguments: str) -> str:
     return result.stdout.strip() if result.returncode == 0 else "unknown"
 
 
-def _traceability_summary() -> dict[str, Any]:
+def _traceability_summary() -> TraceabilitySummary:
     result = subprocess.run(
         [
             sys.executable,
@@ -53,21 +175,24 @@ def _traceability_summary() -> dict[str, Any]:
     payload = json.loads(result.stdout)
     mapping = payload["mapping_counts"]
     plans = payload["plan_counts"]
-    return {
-        "roadmap_complete": payload["roadmap_counts"]["complete"],
-        "roadmap_open": payload["roadmap_counts"]["open"],
-        "catch2_cases": mapping["catch2_plan_cases"],
-        "catch2_mapped": plans["mapped_cases"],
-        "catch2_unmapped": mapping["catch2_cases_without_lab_requirement_mapping"],
-        "catch2_unclassified": mapping["catch2_unmapped_unclassified"],
-        "cpp_source_without_plan_row": mapping["cpp_source_cases_without_plan_row"],
-        "actionable_unlocated_cases": plans["source_unlocated_actionable_cases"],
-        "source_health": payload["source_health"]["status"],
-        "index_matches_live": payload["index_snapshot"]["matches_live"],
-    }
+    return cast(
+        TraceabilitySummary,
+        {
+            "roadmap_complete": payload["roadmap_counts"]["complete"],
+            "roadmap_open": payload["roadmap_counts"]["open"],
+            "catch2_cases": mapping["catch2_plan_cases"],
+            "catch2_mapped": plans["mapped_cases"],
+            "catch2_unmapped": mapping["catch2_cases_without_lab_requirement_mapping"],
+            "catch2_unclassified": mapping["catch2_unmapped_unclassified"],
+            "cpp_source_without_plan_row": mapping["cpp_source_cases_without_plan_row"],
+            "actionable_unlocated_cases": plans["source_unlocated_actionable_cases"],
+            "source_health": payload["source_health"]["status"],
+            "index_matches_live": payload["index_snapshot"]["matches_live"],
+        },
+    )
 
 
-def _mapping_check_summary() -> dict[str, Any]:
+def _mapping_check_summary() -> MappingCheckSummary:
     result = subprocess.run(
         [
             sys.executable,
@@ -90,23 +215,26 @@ def _mapping_check_summary() -> dict[str, Any]:
         ) from error
     errors = payload.get("errors", [])
     warnings = payload.get("warnings", [])
-    return {
-        "ok": bool(payload.get("ok", result.returncode == 0)),
-        "error_count": len(errors),
-        "warning_count": len(warnings),
-        "mapped_test_count": payload.get("mapped_test_count", 0),
-        "repository_test_count": payload.get("repository_test_count", 0),
-        "unclassified_count": payload.get("unclassified_count", 0),
-        "tests_without_source_location": payload.get(
-            "tests_without_source_location", 0
-        ),
-        "unlocated_test_ids": payload.get("unlocated_test_ids", [])[:10],
-        "error_samples": errors[:10],
-        "warning_samples": warnings[:10],
-    }
+    return cast(
+        MappingCheckSummary,
+        {
+            "ok": bool(payload.get("ok", result.returncode == 0)),
+            "error_count": len(errors),
+            "warning_count": len(warnings),
+            "mapped_test_count": payload.get("mapped_test_count", 0),
+            "repository_test_count": payload.get("repository_test_count", 0),
+            "unclassified_count": payload.get("unclassified_count", 0),
+            "tests_without_source_location": payload.get(
+                "tests_without_source_location", 0
+            ),
+            "unlocated_test_ids": payload.get("unlocated_test_ids", [])[:10],
+            "error_samples": errors[:10],
+            "warning_samples": warnings[:10],
+        },
+    )
 
 
-def _build_environment(build_dir: Path) -> dict[str, str]:
+def _build_environment(build_dir: Path) -> BuildEnvironment:
     cache_path = build_dir / "CMakeCache.txt"
     cache: dict[str, str] = {}
     if cache_path.is_file():
@@ -146,15 +274,34 @@ def _capture(
     ninja: str,
     build_status: str,
     note: str | None,
-) -> dict[str, Any]:
+    run_id: str | None = None,
+) -> BuildQualityEntry:
     build_dir = build_dir.resolve(strict=False)
     if not build_dir.is_dir():
         raise FileNotFoundError(f"build directory not found: {build_dir}")
     records, headers, bundled_headers, targets, links, unmatched = collect(
         build_dir, ninja
     )
+    artifact_report = scan_directory(build_dir, measure_sections=False)
+    largest_executables: list[ExecutableSize] = sorted(
+        (
+            cast(ExecutableSize, {"path": item["path"], "bytes": item["bytes"]})
+            for item in artifact_report["artifacts"]
+            if item["kind"] == "executable"
+        ),
+        key=lambda item: item["bytes"],
+        reverse=True,
+    )[:10]
     policies, baseline = _load_config(DEFAULT_CONFIG)
     findings, errors = _scan(policies, baseline)
+    mapping_check = _mapping_check_summary()
+    traceability = _traceability_summary()
+    quality_passed = (
+        not errors
+        and mapping_check["ok"]
+        and traceability["source_health"] == "ok"
+        and traceability["index_matches_live"]
+    )
     now = datetime.now(timezone.utc)
     commit = _git_value("rev-parse", "HEAD")
     status = _git_value("status", "--porcelain")
@@ -164,6 +311,9 @@ def _capture(
         "recorded_at_utc": now.isoformat(timespec="seconds"),
         "label": label,
         "build_status": build_status,
+        "run_id": run_id,
+        "quality_status": "passed" if quality_passed else "failed",
+        "overall_passed": build_status == "passed" and quality_passed,
         "note": note,
         "branch": _git_value("branch", "--show-current"),
         "commit": commit,
@@ -189,22 +339,24 @@ def _capture(
             "bundled_header_fanout": bundled_headers,
             "target_totals": targets,
             "link_actions": links,
+            "artifact_totals": artifact_report["totals"],
+            "largest_executables": largest_executables,
         },
         "quality": {
             "source_size_soft_findings": len(findings),
             "source_size_blocking_errors": len(errors),
-            "source_size_findings": findings,
+            "source_size_findings": cast(list[SourceSizeFinding], findings),
             "source_size_errors": errors,
-            "traceability": _traceability_summary(),
-            "mapping_check": _mapping_check_summary(),
+            "traceability": traceability,
+            "mapping_check": mapping_check,
         },
     }
 
 
-def _read_history(path: Path) -> list[dict[str, Any]]:
+def _read_history(path: Path) -> list[BuildQualityEntry]:
     if not path.is_file():
         return []
-    entries = []
+    entries: list[BuildQualityEntry] = []
     for line_number, line in enumerate(
         path.read_text(encoding="utf-8").splitlines(), start=1
     ):
@@ -214,20 +366,20 @@ def _read_history(path: Path) -> list[dict[str, Any]]:
             entry = json.loads(line)
         except json.JSONDecodeError as error:
             raise ValueError(f"invalid history JSON at {path}:{line_number}: {error}")
-        if entry.get("schema") not in {1, 2}:
+        if not isinstance(entry, dict) or entry.get("schema") not in {1, 2}:
             raise ValueError(f"unsupported history schema at {path}:{line_number}")
-        entries.append(entry)
+        entries.append(cast(BuildQualityEntry, entry))
     return entries
 
 
-def _append_history(path: Path, entry: dict[str, Any]) -> None:
+def _append_history(path: Path, entry: BuildQualityEntry) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(entry, separators=(",", ":")) + "\n")
 
 
 def _show_history(
-    entries: list[dict[str, Any]],
+    entries: list[BuildQualityEntry],
     limit: int,
     label: str | None,
     status: str | None = None,
@@ -243,8 +395,8 @@ def _show_history(
         print("No matching build-quality snapshots.")
         return
     print(
-        "recorded UTC              label             status   commit    TUs  compile CPU  "
-        "1st-party  size warn/block  map errors  unclassified  index-current"
+        "recorded UTC              label             build    quality  commit    TUs  compile CPU  "
+        "1st-party  size warn/block  map errors  unclassified  index-current  exes  exe GiB"
     )
     for entry in entries:
         build = entry["build"]
@@ -254,9 +406,19 @@ def _show_history(
         mapping_error_count = (
             str(mapping_check["error_count"]) if mapping_check else "n/a"
         )
+        artifact_totals = build.get("artifact_totals")
+        executable_count = (
+            str(artifact_totals["executable_count"]) if artifact_totals else "n/a"
+        )
+        executable_gib = (
+            f"{artifact_totals['executable_bytes'] / 2**30:.2f}"
+            if artifact_totals
+            else "n/a"
+        )
         print(
             f"{entry['recorded_at_utc']:<24} {entry['label']:<17} "
             f"{entry.get('build_status', 'unknown'):<8} "
+            f"{entry.get('quality_status', 'n/a'):<8} "
             f"{entry['commit'][:8]:<8} {build['translation_units']:>4}  "
             f"{build['compiler_time_ms'] / 1000:>8.1f}s  "
             f"{build['first_party_include_edges']:>9}  "
@@ -264,12 +426,13 @@ def _show_history(
             f"{quality['source_size_blocking_errors']:<4}  "
             f"{mapping_error_count:>10}  "
             f"{traceability['catch2_unclassified']:>12}  "
-            f"{traceability['index_matches_live']!s:>13}"
+            f"{traceability['index_matches_live']!s:>13}  "
+            f"{executable_count:>4}  {executable_gib:>7}"
         )
 
 
 def _show_details(
-    entry: dict[str, Any],
+    entry: BuildQualityEntry,
     top: int,
     source_filter: str | None = None,
     header_filter: str | None = None,
@@ -280,10 +443,12 @@ def _show_details(
     print(
         f"{entry['id']}  {entry['label']}  {entry['branch']}@{entry['commit'][:8]}  "
         f"status={entry.get('build_status', 'unknown')}  "
+        f"quality={entry.get('quality_status', 'n/a')}  "
         f"dirty={entry['working_tree_dirty']}"
     )
-    if entry.get("note"):
-        print(f"Note: {entry['note']}")
+    note = entry.get("note")
+    if note:
+        print(f"Note: {note}")
     environment = entry.get("environment")
     if environment:
         print(
@@ -301,6 +466,15 @@ def _show_details(
         f"{build['bundled_include_edges']} bundled/generated, "
         f"{build['external_include_edges']} external dependency edges"
     )
+    artifact_totals = build.get("artifact_totals")
+    if artifact_totals:
+        print(
+            f"Artifacts: {artifact_totals['executable_count']} executables, "
+            f"{artifact_totals['executable_bytes'] / 2**30:.2f} GiB executable bytes, "
+            f"{artifact_totals['bytes'] / 2**30:.2f} GiB total bytes"
+        )
+        for item in build.get("largest_executables", [])[: max(0, min(top, 5))]:
+            print(f"  {item['bytes'] / 2**20:8.1f} MiB  {item['path']}")
     source_rows = build["records"]
     if source_filter:
         source_rows = [
@@ -387,7 +561,7 @@ def _show_details(
         print(f"BLOCKER: {error}")
 
 
-def _show_comparison(current: dict[str, Any], previous: dict[str, Any]) -> None:
+def _show_comparison(current: BuildQualityEntry, previous: BuildQualityEntry) -> None:
     current_build = current["build"]
     previous_build = previous["build"]
     print(
@@ -396,6 +570,15 @@ def _show_comparison(current: dict[str, Any], previous: dict[str, Any]) -> None:
         f"first-party include edges "
         f"{current_build['first_party_include_edges'] - previous_build['first_party_include_edges']:+}"
     )
+    current_artifacts = current_build.get("artifact_totals")
+    previous_artifacts = previous_build.get("artifact_totals")
+    if current_artifacts and previous_artifacts:
+        print(
+            "Artifact change: "
+            f"executables {current_artifacts['executable_count'] - previous_artifacts['executable_count']:+}; "
+            f"executable bytes {current_artifacts['executable_bytes'] - previous_artifacts['executable_bytes']:+}; "
+            f"all artifact bytes {current_artifacts['bytes'] - previous_artifacts['bytes']:+}"
+        )
 
     old_sources = {
         item["source"]: item["elapsed_ms"] for item in previous_build["records"]
@@ -432,11 +615,11 @@ def _show_comparison(current: dict[str, Any], previous: dict[str, Any]) -> None:
 
     current_trace = current["quality"]["traceability"]
     previous_trace = previous["quality"]["traceability"]
-    current_mapping_errors = current["quality"].get("mapping_check", {}).get(
-        "error_count", 0
+    current_mapping_errors = (
+        current["quality"].get("mapping_check", {}).get("error_count", 0)
     )
-    previous_mapping_errors = previous["quality"].get("mapping_check", {}).get(
-        "error_count", 0
+    previous_mapping_errors = (
+        previous["quality"].get("mapping_check", {}).get("error_count", 0)
     )
     print(
         "Quality-count change: "
@@ -469,6 +652,12 @@ def main(argv: list[str] | None = None) -> int:
         help="outcome of the build/test run represented by this snapshot",
     )
     capture.add_argument("--note", help="short context, such as a failing target")
+    capture.add_argument(
+        "--run-id", help="CI/build run identifier for gate aggregation"
+    )
+    capture.add_argument(
+        "--snapshot-output", type=Path, help="also write this capture as one JSON file"
+    )
     history = subparsers.add_parser("history", help="query recent build snapshots")
     history.add_argument("--history", type=Path, default=DEFAULT_HISTORY)
     history.add_argument("--limit", type=int, default=20)
@@ -497,8 +686,14 @@ def main(argv: list[str] | None = None) -> int:
                 arguments.ninja,
                 arguments.status,
                 arguments.note,
+                arguments.run_id,
             )
             _append_history(arguments.history, entry)
+            if arguments.snapshot_output:
+                arguments.snapshot_output.parent.mkdir(parents=True, exist_ok=True)
+                arguments.snapshot_output.write_text(
+                    json.dumps(entry, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                )
             previous = [
                 item
                 for item in _read_history(arguments.history)[:-1]
@@ -508,7 +703,7 @@ def main(argv: list[str] | None = None) -> int:
             if previous:
                 _show_comparison(entry, previous[-1])
             print(f"History: {arguments.history}")
-            return 0 if entry["quality"]["source_size_blocking_errors"] == 0 else 1
+            return 0 if entry.get("quality_status") == "passed" else 1
 
         entries = _read_history(arguments.history)
         if arguments.command == "history":

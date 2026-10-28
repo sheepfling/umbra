@@ -246,6 +246,12 @@ class ProcessFederationService final {
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleDestroy(
       TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleListFederationExecutionMembers(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleListFederationExecutions(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleJoin(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);

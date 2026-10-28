@@ -185,10 +185,22 @@ class SessionController:
                 True,
                 (),
             ),
-            ("session.inspect", "Inspect session", "Read the owned driver's connection and membership without restoring control.",
-             EmptyParameters, False, ()),
-            ("session.recover", "Reconcile session", "Inspect the owned driver and restore only actions justified by complete current facts. No failed operation is replayed.",
-             EmptyParameters, True, ()),
+            (
+                "session.inspect",
+                "Inspect session",
+                "Read the owned driver's connection and membership without restoring control.",
+                EmptyParameters,
+                False,
+                (),
+            ),
+            (
+                "session.recover",
+                "Reconcile session",
+                "Inspect the owned driver and restore only actions justified by complete current facts. No failed operation is replayed.",
+                EmptyParameters,
+                True,
+                (),
+            ),
         )
         return tuple(
             CommandDefinition(
@@ -202,10 +214,13 @@ class SessionController:
                     model.model_json_schema()
                 ).root,
                 fields=fields,
-                completion="inspection-result" if action in {"session.inspect", "session.recover"} else "service-return",
+                completion="inspection-result"
+                if action in {"session.inspect", "session.recover"}
+                else "service-return",
             )
             for action, title, description, model, confirmation, fields in specs
-            if self._inspection_supported or action not in {"session.inspect", "session.recover"}
+            if self._inspection_supported
+            or action not in {"session.inspect", "session.recover"}
         ) + coordination_definitions(self._coordination_actions)
 
     def describe(self) -> CommandTarget:
@@ -254,10 +269,17 @@ class SessionController:
 
     def execute(self, request: CommandRequest) -> CommandOutcome:
         descriptor = next(
-            (item for item in self.describe().commands if item.action == request.action), None
+            (
+                item
+                for item in self.describe().commands
+                if item.action == request.action
+            ),
+            None,
         )
         if descriptor is None:
-            raise CommandUnavailable("This owned session does not offer the requested action.")
+            raise CommandUnavailable(
+                "This owned session does not offer the requested action."
+            )
         if request.target_id != self._target_id or descriptor.state != "available":
             raise CommandUnavailable(
                 descriptor.reason or "Command target does not match this session."
@@ -283,10 +305,14 @@ class SessionController:
                 raise CommandUnavailable("Session has no driver.")
             if isinstance(request, COORDINATION_REQUEST_TYPES):
                 if not isinstance(driver, CoordinatingSessionDriver):
-                    raise CommandUnavailable("This owned driver does not implement coordination services.")
+                    raise CommandUnavailable(
+                        "This owned driver does not implement coordination services."
+                    )
                 return driver.coordinate(request)
             if request.action in {"session.inspect", "session.recover"}:
-                return self._inspect(driver, reconcile=request.action == "session.recover")
+                return self._inspect(
+                    driver, reconcile=request.action == "session.recover"
+                )
             if request.action == "federate.join":
                 handle = driver.join(request.parameters)
                 with self._lock:
@@ -306,7 +332,9 @@ class SessionController:
                 self._emit("federate.resigned", federate=name)
                 return CommandOutcome(summary="The controlled federate resigned.")
             if request.action != "session.disconnect":
-                raise CommandUnavailable("This session does not implement the requested action.")
+                raise CommandUnavailable(
+                    "This session does not implement the requested action."
+                )
             driver.disconnect()
             with self._lock:
                 self._state, self._federation = "disconnected", None
@@ -322,11 +350,15 @@ class SessionController:
 
     def _inspect(self, driver: SessionDriver, *, reconcile: bool) -> CommandOutcome:
         if not isinstance(driver, InspectableSessionDriver):
-            raise CommandUnavailable("This owned driver does not implement typed inspection.")
+            raise CommandUnavailable(
+                "This owned driver does not implement typed inspection."
+            )
 
         def observe() -> SessionStateObservation:
             # Revalidate even a model constructed with an unsafe model_copy.
-            return SessionStateObservation.model_validate(driver.inspect().model_dump(mode="python"))
+            return SessionStateObservation.model_validate(
+                driver.inspect().model_dump(mode="python")
+            )
 
         observation = observe()
         if reconcile and observation.connection == "connected":
@@ -336,12 +368,23 @@ class SessionController:
             driver.poll()
             observation = observe()
         state: SessionState = "unknown"
-        resolution = observation.reason or "Connection or membership inspection is incomplete; no actions were restored."
-        if observation.connection == "disconnected" and observation.membership == "not-joined":
+        resolution = (
+            observation.reason
+            or "Connection or membership inspection is incomplete; no actions were restored."
+        )
+        if (
+            observation.connection == "disconnected"
+            and observation.membership == "not-joined"
+        ):
             state = "disconnected"
-        elif observation.connection == "connected" and observation.membership == "not-joined":
+        elif (
+            observation.connection == "connected"
+            and observation.membership == "not-joined"
+        ):
             state = "connected"
-        elif observation.connection == "connected" and observation.membership == "joined":
+        elif (
+            observation.connection == "connected" and observation.membership == "joined"
+        ):
             if observation.federation in self._federations:
                 state = "joined"
             else:
@@ -351,26 +394,44 @@ class SessionController:
             resolution = f"Owned session reconciled as {state}; previous command results were not changed."
         elif not reconcile:
             resolution = "Inspection only. Cached control state and previous command results are unchanged."
-        result = SessionInspectionResult(checked_at=time.time(), observation=observation,
-                                         reconciled=reconciled, resolution=resolution)
+        result = SessionInspectionResult(
+            checked_at=time.time(),
+            observation=observation,
+            reconciled=reconciled,
+            resolution=resolution,
+        )
         with self._lock:
             self._inspection = result
             if reconcile:
                 self._state = state
                 if reconciled:
-                    self._federation = observation.federation if state == "joined" else None
+                    self._federation = (
+                        observation.federation if state == "joined" else None
+                    )
                     self._federate = observation.federate if state == "joined" else None
                     self._fault = None
                 else:
                     self._fault = resolution
         if self._sink is not None:
             try:
-                self._sink({"event_type": "session.reconciled" if reconciled else "session.inspected",
-                    "family": "management", "source": self._target_id,
-                    "details": {"target_id": self._target_id, "synthetic": self._synthetic,
-                                "inspection": result.model_dump(mode="json")}})
+                self._sink(
+                    {
+                        "event_type": "session.reconciled"
+                        if reconciled
+                        else "session.inspected",
+                        "family": "management",
+                        "source": self._target_id,
+                        "details": {
+                            "target_id": self._target_id,
+                            "synthetic": self._synthetic,
+                            "inspection": result.model_dump(mode="json"),
+                        },
+                    }
+                )
             except Exception:
-                logging.getLogger(__name__).warning("Session inspection sink failed", exc_info=True)
+                logging.getLogger(__name__).warning(
+                    "Session inspection sink failed", exc_info=True
+                )
         return CommandOutcome(summary=resolution, inspection=result)
 
     def _emit(self, event_type: str, *, federate: str | None = None) -> None:

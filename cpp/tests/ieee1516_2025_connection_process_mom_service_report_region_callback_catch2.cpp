@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include "ieee1516_2025_connection_test_support.hpp"
 #include "ieee1516_2025_process_fom_test_support.hpp"
@@ -231,9 +232,9 @@ TEST_CASE(
     observerJoined = true;
 
     expectedReportClass = observer->getInteractionClassHandle(
-        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
-    auto const federateDimension = observer->getDimensionHandle(L"HLAfederate");
-    auto const serviceGroupDimension = observer->getDimensionHandle(L"HLAserviceGroup");
+        umbra::test::hla::wide::standard::service_invocation);
+    auto const federateDimension = observer->getDimensionHandle(umbra::test::hla::wide::standard::federate);
+    auto const serviceGroupDimension = observer->getDimensionHandle(umbra::test::hla::wide::standard::service_group);
     if (!expectedReportClass.isValid() || !federateDimension.isValid() ||
         !serviceGroupDimension.isValid()) {
       throw std::runtime_error("The process MOM region handles were unavailable.");
@@ -327,13 +328,13 @@ TEST_CASE(
   CHECK(observerCallbacks.sentRegionCounts[1] == 0U);
   REQUIRE_FALSE(observerCallbacks.callbackFailure);
   CHECK((observerCallbacks.dimensionNames ==
-         std::set<std::wstring>{L"HLAfederate", L"HLAserviceGroup"}));
+         std::set<std::wstring>{umbra::test::hla::wide::standard::federate, umbra::test::hla::wide::standard::service_group}));
   REQUIRE(observerCallbacks.ranges.size() == 2U);
-  CHECK((observerCallbacks.ranges.at(L"HLAfederate") ==
+  CHECK((observerCallbacks.ranges.at(umbra::test::hla::wide::standard::federate) ==
          std::pair<unsigned long, unsigned long>{
              expectedNormalizedFederate,
              expectedNormalizedFederate + 1UL}));
-  CHECK((observerCallbacks.ranges.at(L"HLAserviceGroup") ==
+  CHECK((observerCallbacks.ranges.at(umbra::test::hla::wide::standard::service_group) ==
          std::pair<unsigned long, unsigned long>{
              expectedNormalizedGroup, expectedNormalizedGroup + 1UL}));
 }

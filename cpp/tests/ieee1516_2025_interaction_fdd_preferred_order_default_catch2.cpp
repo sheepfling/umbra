@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 TEST_CASE(
@@ -27,15 +28,15 @@ TEST_CASE(
       L"fdd-preferred-order-receiver", L"receiver", federationName));
 
   auto const timestampedClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraFddPreferredTimestampedInteraction");
+      umbra::test::hla::wide::fom::fdd_preferred_timestamped_interaction);
   auto const receiveClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
+      umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
   auto const timestampedReceiverClass = receiver->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraFddPreferredTimestampedInteraction");
+      umbra::test::hla::wide::fom::fdd_preferred_timestamped_interaction);
   auto const receiveReceiverClass = receiver->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
-  auto const timestampedValue = publisher->getParameterHandle(timestampedClass, L"Value");
-  auto const receiveValue = publisher->getParameterHandle(receiveClass, L"Value");
+      umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
+  auto const timestampedValue = publisher->getParameterHandle(timestampedClass, umbra::test::hla::wide::fixture::value);
+  auto const receiveValue = publisher->getParameterHandle(receiveClass, umbra::test::hla::wide::fixture::value);
   REQUIRE(timestampedClass.isValid());
   REQUIRE(receiveClass.isValid());
   REQUIRE(timestampedValue.isValid());

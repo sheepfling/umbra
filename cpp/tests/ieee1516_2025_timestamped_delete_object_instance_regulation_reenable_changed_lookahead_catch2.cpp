@@ -98,13 +98,13 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.objectRemovalReports.empty());
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
   while (publisher->evokeCallback(0.0)) {
   }
   while (receiver->evokeCallback(0.0)) {
   }
   REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"2");
+  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"3");
   REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"remove", "grant"});

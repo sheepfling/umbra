@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace umbra::detail {
 
@@ -182,10 +183,54 @@ AttributeOrderTypeDefaultStatus EmbeddedFederationRegistry::changeDefaultAttribu
           attributeHandles)) {
     return AttributeOrderTypeDefaultStatus::attribute_not_defined;
   }
-  auto& declarations = federation->second.objectClassAttributeDeclarations[requestingFederateId];
-  auto& perClass = declarations.byObjectClass[objectClassHandle];
+  auto const invocationClassName =
+      federation->second.objectClassHandles->nameFor(objectClassHandle);
+  if (!invocationClassName) {
+    return AttributeOrderTypeDefaultStatus::object_class_not_defined;
+  }
+  std::vector<std::pair<std::uint64_t, std::uint64_t>> declaredAttributes;
+  declaredAttributes.reserve(attributeHandles.size());
   for (std::uint64_t const attributeHandle : attributeHandles) {
-    perClass.defaultOrderTypes.insert_or_assign(attributeHandle, orderType);
+    auto const attributeName = federation->second.attributeHandles->nameFor(
+        federation->second.definition.catalog.get(),
+        *invocationClassName,
+        attributeHandle);
+    if (!attributeName) {
+      return AttributeOrderTypeDefaultStatus::attribute_not_defined;
+    }
+
+    // An inherited attribute has one class-attribute identity no matter which
+    // available class handle the federate supplied. Store the default at the
+    // class that declares the attribute so lookups from the declaring class,
+    // subclasses, and other classes exposing that same inherited attribute all
+    // observe the same federate-scoped default.
+    std::string declaringClassName = *invocationClassName;
+    for (;;) {
+      auto const* declaringClass =
+          federation->second.definition.catalog->objectClass(declaringClassName);
+      if (declaringClass == nullptr) {
+        return AttributeOrderTypeDefaultStatus::object_class_not_defined;
+      }
+      if (declaringClass->declaredAttributes.contains(*attributeName)) {
+        break;
+      }
+      if (declaringClass->parentName.empty()) {
+        return AttributeOrderTypeDefaultStatus::attribute_not_defined;
+      }
+      declaringClassName = declaringClass->parentName;
+    }
+    auto const declaringClassHandle =
+        federation->second.objectClassHandles->handleFor(declaringClassName);
+    if (!declaringClassHandle) {
+      return AttributeOrderTypeDefaultStatus::object_class_not_defined;
+    }
+    declaredAttributes.emplace_back(*declaringClassHandle, attributeHandle);
+  }
+  auto& declarations =
+      federation->second.objectClassAttributeDeclarations[requestingFederateId];
+  for (auto const& [declaringClassHandle, attributeHandle] : declaredAttributes) {
+    declarations.byObjectClass[declaringClassHandle]
+        .defaultOrderTypes.insert_or_assign(attributeHandle, orderType);
   }
   return AttributeOrderTypeDefaultStatus::applied;
 }

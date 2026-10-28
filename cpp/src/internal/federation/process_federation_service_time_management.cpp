@@ -18,7 +18,7 @@
 #include <RTI/Exception.h>
 #include <RTI/VariableLengthData.h>
 #include <RTI/encoding/BasicDataElements.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 #include <array>
@@ -38,7 +38,7 @@ std::shared_ptr<rti1516_2025::LogicalTime> processImplicitRegulationTarget(
     FederationTimeExecutionSnapshot const& execution,
     std::uint64_t federateId,
     rti1516_2025::LogicalTimeInterval const& lookahead) {
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       execution.definition.logicalTimeImplementationName);
   if (!factory || factory->getName() != lookahead.implementationName()) {
     return nullptr;
@@ -234,7 +234,7 @@ TransportServiceMessage ProcessFederationService::handleModifyLookahead(
         encodeProcessFederationModifyLookaheadResult(processResult));
   }
 
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       timeState->implementationName());
   if (!factory || factory->getName() != timeState->implementationName()) {
     return internalError(request);
@@ -390,7 +390,7 @@ TransportServiceMessage ProcessFederationService::handleEnableTimeRegulation(
         TransportServiceStatus::ok,
         encodeProcessFederationEnableTimeRegulationResult(processResult));
   }
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       timeState->implementationName());
   if (!factory || factory->getName() != timeState->implementationName()) {
     return internalError(request);

@@ -402,6 +402,7 @@ TEST_CASE(
       L"forced-mom-observer",
       L"observer",
       federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   auto const reportClass = observer->getInteractionClassHandle(
       standard_hla::mom::report_service_invocation);
@@ -1271,6 +1272,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(observer->connect(observerReports, rti1516_2025::HLA_IMMEDIATE));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"retract-mom-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   auto const files = serviceReportFiles(directory.path());
   REQUIRE(files.size() == 1U);

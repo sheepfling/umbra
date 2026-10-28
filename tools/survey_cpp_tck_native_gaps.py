@@ -10,7 +10,15 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
+from typing import TypeAlias, TypedDict
+
+try:
+    from .cpp_tck import CppTckCatalog, load_catalog
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from cpp_tck import CppTckCatalog, load_catalog
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -23,13 +31,37 @@ PRIVATE_MARKERS = (
     "FederationRegistry",
     "umbra::detail",
     "umbra_binding_detail",
-    "#include \"internal/",
-    "#include \"umbra/",
+    '#include "internal/',
+    '#include "umbra/',
     "#include <umbra/",
     "private registry-bound",
     "registry-binding",
     "[process-boundary]",
 )
+
+SemanticCatalogMatches: TypeAlias = dict[str, list[str]]
+
+
+class NativeGapReport(TypedDict):
+    path: str
+    runner_id: str
+    catalog_match: bool
+    semantic_catalog_match: list[str] | None
+    integration: bool
+    private_markers: list[str]
+    private_marker_files: list[str]
+    portable_candidate: bool
+
+
+class NativeGapSurveySummary(TypedDict):
+    catalog_scenario_count: int
+    native_catch2_count: int
+    semantic_coverage_count: int
+    semantic_coverage: list[NativeGapReport]
+    unmatched_native_count: int
+    portable_candidate_count: int
+    portable_candidates: list[NativeGapReport]
+    unmatched_native: list[NativeGapReport]
 
 
 def parse_args() -> argparse.Namespace:
@@ -97,8 +129,8 @@ def private_markers_for(path: Path) -> tuple[list[str], list[str]]:
     return sorted(markers), sorted(marker_files)
 
 
-def semantic_catalog_matches(catalog: dict[str, object]) -> dict[str, list[str]]:
-    matches: dict[str, list[str]] = {}
+def semantic_catalog_matches(catalog: CppTckCatalog) -> SemanticCatalogMatches:
+    matches: SemanticCatalogMatches = {}
     for scenario in catalog["scenarios"]:
         scenario_id = scenario["id"]
         for native_runner_id in scenario.get("native_equivalent_runner_ids", []):
@@ -111,8 +143,8 @@ def semantic_catalog_matches(catalog: dict[str, object]) -> dict[str, list[str]]
 def classify(
     path: Path,
     catalog_ids: set[str],
-    semantic_matches: dict[str, str],
-) -> dict[str, object]:
+    semantic_matches: SemanticCatalogMatches,
+) -> NativeGapReport:
     runner_id = runner_id_for(path)
     private_markers, private_marker_files = private_markers_for(path)
     source = path.read_text(encoding="utf-8")
@@ -137,7 +169,7 @@ def classify(
 
 def main() -> int:
     args = parse_args()
-    catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
+    catalog = load_catalog(args.catalog)
     catalog_ids = {entry["id"] for entry in catalog["scenarios"]}
     semantic_matches = semantic_catalog_matches(catalog)
     native_paths = sorted(args.native_tests.glob("*_catch2.cpp"))
@@ -148,9 +180,8 @@ def main() -> int:
         if missing:
             raise SystemExit("unknown native Catch2 file/stem: " + ", ".join(missing))
         native_paths = [path for path in native_paths if path.stem in requested]
-    reports = [
-        classify(path, catalog_ids, semantic_matches)
-        for path in native_paths
+    reports: list[NativeGapReport] = [
+        classify(path, catalog_ids, semantic_matches) for path in native_paths
     ]
     semantic_covered = [
         report for report in reports if report["semantic_catalog_match"] is not None
@@ -161,22 +192,17 @@ def main() -> int:
         if not report["catalog_match"] and report["semantic_catalog_match"] is None
     ]
     candidates = [report for report in unmatched if report["portable_candidate"]]
-    print(
-        json.dumps(
-            {
-                "catalog_scenario_count": len(catalog_ids),
-                "native_catch2_count": len(reports),
-                "semantic_coverage_count": len(semantic_covered),
-                "semantic_coverage": semantic_covered,
-                "unmatched_native_count": len(unmatched),
-                "portable_candidate_count": len(candidates),
-                "portable_candidates": candidates,
-                "unmatched_native": unmatched,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-    )
+    summary: NativeGapSurveySummary = {
+        "catalog_scenario_count": len(catalog_ids),
+        "native_catch2_count": len(reports),
+        "semantic_coverage_count": len(semantic_covered),
+        "semantic_coverage": semantic_covered,
+        "unmatched_native_count": len(unmatched),
+        "portable_candidate_count": len(candidates),
+        "portable_candidates": candidates,
+        "unmatched_native": unmatched,
+    }
+    print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 
 

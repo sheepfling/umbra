@@ -131,25 +131,45 @@ def compatible_python() -> Path | None:
     rather than searching drives or relying on a developer-specific runtime.
     """
     candidates: list[Path] = []
-    for name in ("python3", "python3.14", "python3.13", "python3.12", "python3.11", "python"):
+    for name in (
+        "python3",
+        "python3.14",
+        "python3.13",
+        "python3.12",
+        "python3.11",
+        "python",
+    ):
         executable = shutil.which(name)
         if executable:
             candidates.append(Path(executable))
     if os.name == "nt":
         local = os.environ.get("LOCALAPPDATA")
         if local:
-            candidates.extend(sorted((Path(local) / "Programs" / "Python").glob("Python3*/python.exe"),
-                                     reverse=True))
+            candidates.extend(
+                sorted(
+                    (Path(local) / "Programs" / "Python").glob("Python3*/python.exe"),
+                    reverse=True,
+                )
+            )
         scoop = Path(os.environ.get("SCOOP", str(Path.home() / "scoop")))
-        candidates.extend(sorted((scoop / "apps").glob("python*/current/python.exe"), reverse=True))
+        candidates.extend(
+            sorted((scoop / "apps").glob("python*/current/python.exe"), reverse=True)
+        )
     for candidate in dict.fromkeys(candidates):
         if candidate.resolve() == Path(sys.executable).resolve():
             continue
         try:
             result = subprocess.run(
-                [str(candidate), "-c", "import sys; sys.exit(sys.version_info < (3, 11))"],
-                env=clean_environment(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                check=False, timeout=5,
+                [
+                    str(candidate),
+                    "-c",
+                    "import sys; sys.exit(sys.version_info < (3, 11))",
+                ],
+                env=clean_environment(),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=5,
             )
             if result.returncode == 0:
                 return candidate
@@ -168,7 +188,8 @@ def clean_environment() -> dict[str, str]:
 
 def forward_to_python(interpreter: Path, argv: Sequence[str]) -> int:
     child = subprocess.Popen(
-        [str(interpreter), str(Path(__file__).resolve()), *argv], env=clean_environment(),
+        [str(interpreter), str(Path(__file__).resolve()), *argv],
+        env=clean_environment(),
     )
     try:
         return wait_for_exit(child)
@@ -179,7 +200,9 @@ def forward_to_python(interpreter: Path, argv: Sequence[str]) -> int:
         try:
             return child.wait(timeout=15)
         except subprocess.TimeoutExpired as error:
-            raise PlaytestError("The newer Python launcher is still shutting down; check its window.") from error
+            raise PlaytestError(
+                "The newer Python launcher is still shutting down; check its window."
+            ) from error
 
 
 def wait_for_exit(child: subprocess.Popen[bytes]) -> int:
@@ -217,7 +240,9 @@ def digest_files(base: Path, paths: Sequence[Path]) -> str:
 def ui_fingerprint(layout: Layout) -> str:
     sources = [path for path in layout.ui.iterdir() if path.is_file()]
     for directory in ("src", "public"):
-        sources.extend(path for path in (layout.ui / directory).rglob("*") if path.is_file())
+        sources.extend(
+            path for path in (layout.ui / directory).rglob("*") if path.is_file()
+        )
     outputs = [path for path in (layout.ui / "dist").rglob("*") if path.is_file()]
     return digest_files(layout.ui, sources) + "\n" + digest_files(layout.ui, outputs)
 
@@ -226,12 +251,18 @@ def prepare_ui(layout: Layout) -> None:
     index = layout.ui / "dist" / "index.html"
     if not (layout.ui / "package.json").is_file():
         if not index.is_file():
-            raise PlaytestError("Dashboard files are missing. Extract the complete playtest ZIP again.")
+            raise PlaytestError(
+                "Dashboard files are missing. Extract the complete playtest ZIP again."
+            )
         print("Using the bundled dashboard (no Node setup needed).", flush=True)
         return
 
     stamp = layout.cache / "ui-ready.txt"
-    if index.is_file() and stamp.is_file() and stamp.read_text() == ui_fingerprint(layout):
+    if (
+        index.is_file()
+        and stamp.is_file()
+        and stamp.read_text() == ui_fingerprint(layout)
+    ):
         print("Dashboard is already built.", flush=True)
         return
     node = shutil.which("node")
@@ -244,9 +275,13 @@ def prepare_ui(layout: Layout) -> None:
         version = subprocess.check_output([node, "--version"], text=True).strip()
         major, minor, *_ = (int(part) for part in version.lstrip("v").split("."))
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
-        raise PlaytestError("Cannot read the Node version. Check your Node installation.") from error
+        raise PlaytestError(
+            "Cannot read the Node version. Check your Node installation."
+        ) from error
     if not ((major == 22 and minor >= 13) or major > 22):
-        raise PlaytestError(f"Node {version} is too old for the build tools; use Node 22.13+.")
+        raise PlaytestError(
+            f"Node {version} is too old for the build tools; use Node 22.13+."
+        )
 
     pnpm = shutil.which("pnpm")
     if pnpm:
@@ -254,13 +289,25 @@ def prepare_ui(layout: Layout) -> None:
     else:
         npm = shutil.which("npm.cmd" if os.name == "nt" else "npm")
         if npm is None:
-            raise PlaytestError("Node is present, but npm is missing. Reinstall Node with npm included.")
-        package_manager = [npm, "exec", "--yes", f"--package=pnpm@{PNPM_VERSION}", "--", "pnpm"]
+            raise PlaytestError(
+                "Node is present, but npm is missing. Reinstall Node with npm included."
+            )
+        package_manager = [
+            npm,
+            "exec",
+            "--yes",
+            f"--package=pnpm@{PNPM_VERSION}",
+            "--",
+            "pnpm",
+        ]
     run_step(
-        [*package_manager, "install", "--frozen-lockfile"], cwd=layout.ui,
+        [*package_manager, "install", "--frozen-lockfile"],
+        cwd=layout.ui,
         label="Preparing dashboard dependencies (first launch may take a minute)...",
     )
-    run_step([*package_manager, "build"], cwd=layout.ui, label="Building the dashboard...")
+    run_step(
+        [*package_manager, "build"], cwd=layout.ui, label="Building the dashboard..."
+    )
     if not index.is_file():
         raise PlaytestError("The dashboard build did not produce dist/index.html.")
     layout.cache.mkdir(parents=True, exist_ok=True)
@@ -271,33 +318,55 @@ def prepare_python(layout: Layout) -> Path:
     stamp = layout.cache / "python-ready.txt"
     project = layout.observer / "pyproject.toml"
     if not project.is_file():
-        raise PlaytestError("Observer sources are missing. Extract the complete playtest ZIP again.")
+        raise PlaytestError(
+            "Observer sources are missing. Extract the complete playtest ZIP again."
+        )
     identity = hashlib.sha256(
-        project.read_bytes() + str(layout.root.resolve()).encode() + sys.version.encode()
+        project.read_bytes()
+        + str(layout.root.resolve()).encode()
+        + sys.version.encode()
     ).hexdigest()
     layout.cache.mkdir(parents=True, exist_ok=True)
-    has_pip = layout.python.is_file() and subprocess.run(
-        [str(layout.python), "-c", "import pip"], env=clean_environment(),
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
-    ).returncode == 0
+    has_pip = (
+        layout.python.is_file()
+        and subprocess.run(
+            [str(layout.python), "-c", "import pip"],
+            env=clean_environment(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode
+        == 0
+    )
     if not has_pip:
         run_step(
             [sys.executable, "-m", "venv", str(layout.cache / "venv")],
-            cwd=layout.root, label="Creating a private Python environment...",
+            cwd=layout.root,
+            label="Creating a private Python environment...",
         )
     if stamp.is_file() and stamp.read_text() == identity:
         result = subprocess.run(
             [str(layout.python), "-c", "import umbra_rti_observer.server, uvicorn"],
-            env=clean_environment(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env=clean_environment(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             check=False,
         )
         if result.returncode == 0:
             print("Python environment is ready.", flush=True)
             return layout.python
     run_step(
-        [str(layout.python), "-m", "pip", "install", "--disable-pip-version-check", "-e",
-         f"{layout.observer}[web]"],
-        cwd=layout.root, label="Installing Python web dependencies (first launch only)...",
+        [
+            str(layout.python),
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "-e",
+            f"{layout.observer}[web]",
+        ],
+        cwd=layout.root,
+        label="Installing Python web dependencies (first launch only)...",
     )
     stamp.write_text(identity)
     return layout.python
@@ -328,28 +397,38 @@ def live_event_count(url: str) -> int | None:
             return None
         health = cast(Mapping[str, object], payload)
         count = health.get("event_count")
-        if (health.get("service") == "umbra-rti-observer"
-                and health.get("contract_version") == CONTRACT_VERSION
-                and isinstance(count, int) and not isinstance(count, bool) and count >= 0):
+        if (
+            health.get("service") == "umbra-rti-observer"
+            and health.get("contract_version") == CONTRACT_VERSION
+            and isinstance(count, int)
+            and not isinstance(count, bool)
+            and count >= 0
+        ):
             return count
     except (OSError, ValueError, urllib.error.URLError):
         pass
     return None
 
 
-def wait_until_ready(child: subprocess.Popen[bytes], url: str, *, timeout: float = 30) -> None:
+def wait_until_ready(
+    child: subprocess.Popen[bytes], url: str, *, timeout: float = 30
+) -> None:
     deadline = time.monotonic() + timeout
     first_count: int | None = None
     while time.monotonic() < deadline:
         if child.poll() is not None:
-            raise PlaytestError(f"The playtest server exited early (exit code {child.returncode}).")
+            raise PlaytestError(
+                f"The playtest server exited early (exit code {child.returncode})."
+            )
         count = live_event_count(url)
         if count is not None:
             if first_count is not None and count > first_count and child.poll() is None:
                 return
             first_count = count if first_count is None else first_count
         time.sleep(0.2)
-    raise PlaytestError("The server did not produce live demo events within 30 seconds.")
+    raise PlaytestError(
+        "The server did not produce live demo events within 30 seconds."
+    )
 
 
 def stop_server(child: subprocess.Popen[bytes]) -> None:
@@ -368,20 +447,46 @@ def stop_server(child: subprocess.Popen[bytes]) -> None:
                 child.wait()
 
 
-def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
-           no_browser: bool, check: bool) -> int:
+def launch(
+    layout: Layout,
+    python: Path,
+    *,
+    profile: str,
+    port: int | None,
+    no_browser: bool,
+    check: bool,
+) -> int:
     selected_port = choose_port(port)
     url = f"http://{HOST}:{selected_port}"
     environment = clean_environment()
     environment["UMBRA_OBSERVER_UI_DIST"] = str(layout.ui / "dist")
     log_path = layout.cache / f"server-{selected_port}.log"
     layout.cache.mkdir(parents=True, exist_ok=True)
-    print(f"Starting the {profile} synthetic profile. Server log: {log_path}", flush=True)
+    print(
+        f"Starting the {profile} synthetic profile. Server log: {log_path}", flush=True
+    )
     with log_path.open("wb") as log:
         child = subprocess.Popen(
-            [str(python), "-u", "-m", "umbra_rti_observer", "--showcase", "--enable-controls",
-             "--profile", profile, "--interval", "0.75", "--host", HOST, "--port", str(selected_port)],
-            cwd=layout.root, env=environment, stdout=log, stderr=subprocess.STDOUT,
+            [
+                str(python),
+                "-u",
+                "-m",
+                "umbra_rti_observer",
+                "--showcase",
+                "--enable-controls",
+                "--profile",
+                profile,
+                "--interval",
+                "0.75",
+                "--host",
+                HOST,
+                "--port",
+                str(selected_port),
+            ],
+            cwd=layout.root,
+            env=environment,
+            stdout=log,
+            stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
         )
         try:
@@ -394,7 +499,9 @@ def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
                 flush=True,
             )
             if check:
-                print("Playtest check passed: the server is healthy and live events are advancing.")
+                print(
+                    "Playtest check passed: the server is healthy and live events are advancing."
+                )
                 return 0
             if not no_browser:
                 try:
@@ -405,7 +512,9 @@ def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
                     print(f"Open {url}/ in your browser.", flush=True)
             code = wait_for_exit(child)
             if code != 0:
-                raise PlaytestError(f"The server stopped unexpectedly (exit code {code}).")
+                raise PlaytestError(
+                    f"The server stopped unexpectedly (exit code {code})."
+                )
             return code
         except PlaytestError:
             log.flush()
@@ -418,16 +527,33 @@ def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
 
 def make_bundle(layout: Layout, output: Path) -> None:
     output = output.resolve()
-    files = [layout.root / name for name in
-             ("Start-Observer.cmd", "Start-Observer-Limited.cmd", "tools/observer_playtest.py")]
+    files = [
+        layout.root / name
+        for name in (
+            "Start-Observer.cmd",
+            "Start-Observer-Limited.cmd",
+            "tools/observer_playtest.py",
+        )
+    ]
     files.append(layout.observer / "pyproject.toml")
     # The packaged README links these guides; keep the extracted ZIP usable
     # without a checkout or a connection back to the repository.
     files.extend(path for path in layout.observer.glob("*.md") if path.is_file())
-    files.extend(path for path in (layout.observer / "benchmarks").glob("*.json") if path.is_file())
-    files.extend(path for path in (layout.observer / "src").rglob("*")
-                 if path.is_file() and (path.suffix in {".py", ".html"}
-                     or path.name == "py.typed" or path.name.endswith(".schema.json")))
+    files.extend(
+        path
+        for path in (layout.observer / "benchmarks").glob("*.json")
+        if path.is_file()
+    )
+    files.extend(
+        path
+        for path in (layout.observer / "src").rglob("*")
+        if path.is_file()
+        and (
+            path.suffix in {".py", ".html"}
+            or path.name == "py.typed"
+            or path.name.endswith(".schema.json")
+        )
+    )
     files.extend(path for path in (layout.ui / "dist").rglob("*") if path.is_file())
     if output in (path.resolve() for path in files):
         raise PlaytestError("Choose a ZIP path outside the source and dashboard files.")
@@ -439,19 +565,37 @@ def make_bundle(layout: Layout, output: Path) -> None:
         archive.writestr(prefix + "README.txt", BUNDLE_README)
         for path in sorted(files):
             archive.write(path, prefix + path.relative_to(layout.root).as_posix())
-    print(f"\nReady to share: {output}\nExtract it and double-click Start-Observer.cmd. "
-          "Only Python 3.11+ and first-run internet access are needed.", flush=True)
+    print(
+        f"\nReady to share: {output}\nExtract it and double-click Start-Observer.cmd. "
+        "Only Python 3.11+ and first-run internet access are needed.",
+        flush=True,
+    )
 
 
 def parse_options(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("umbra", "limited"), default="umbra",
-                        help="rich demo (default) or an RTI-shaped demo without MOM/ownership/regions")
-    parser.add_argument("--port", type=int, help="use this port (default: 8765, or a free port if busy)")
-    parser.add_argument("--no-browser", action="store_true", help="print the URL without opening it")
-    parser.add_argument("--check", action="store_true", help="set up, verify live events, then stop")
-    parser.add_argument("--bundle", nargs="?", const="dist/umbra-observer-playtest.zip", metavar="ZIP",
-                        help="build a shareable ZIP with the React dashboard; no Python setup needed")
+    parser.add_argument(
+        "--profile",
+        choices=("umbra", "limited"),
+        default="umbra",
+        help="rich demo (default) or an RTI-shaped demo without MOM/ownership/regions",
+    )
+    parser.add_argument(
+        "--port", type=int, help="use this port (default: 8765, or a free port if busy)"
+    )
+    parser.add_argument(
+        "--no-browser", action="store_true", help="print the URL without opening it"
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="set up, verify live events, then stop"
+    )
+    parser.add_argument(
+        "--bundle",
+        nargs="?",
+        const="dist/umbra-observer-playtest.zip",
+        metavar="ZIP",
+        help="build a shareable ZIP with the React dashboard; no Python setup needed",
+    )
     options = parser.parse_args(argv)
     if options.port is not None and not 0 <= options.port <= 65535:
         parser.error("--port must be between 0 (choose a free port) and 65535")
@@ -466,16 +610,29 @@ def main(argv: Sequence[str] | None = None) -> int:
             interpreter = compatible_python()
             if interpreter is not None:
                 print(f"Using the installed newer Python: {interpreter}", flush=True)
-                return forward_to_python(interpreter, list(argv) if argv is not None else sys.argv[1:])
-            raise PlaytestError("Python 3.11 or newer is needed. Install a current Python and try again.")
-        print("Umbra Observer playtest - local synthetic data only. No native RTI required.", flush=True)
+                return forward_to_python(
+                    interpreter, list(argv) if argv is not None else sys.argv[1:]
+                )
+            raise PlaytestError(
+                "Python 3.11 or newer is needed. Install a current Python and try again."
+            )
+        print(
+            "Umbra Observer playtest - local synthetic data only. No native RTI required.",
+            flush=True,
+        )
         prepare_ui(layout)
         if options.bundle:
             make_bundle(layout, layout.root / options.bundle)
             return 0
         python = prepare_python(layout)
-        return launch(layout, python, profile=options.profile, port=options.port,
-                      no_browser=options.no_browser, check=options.check)
+        return launch(
+            layout,
+            python,
+            profile=options.profile,
+            port=options.port,
+            no_browser=options.no_browser,
+            check=options.check,
+        )
     except KeyboardInterrupt:
         print("\nPlaytest stopped. Relaunch any time for a fresh demo.", flush=True)
         return 0

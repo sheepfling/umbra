@@ -1,6 +1,9 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <exception>
+#include <optional>
+
 namespace {
 TEST_CASE(
     "Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction",
@@ -168,8 +171,21 @@ TEST_CASE(
   REQUIRE(decodedSerial.get() == 0);
 
   bool momReportPresentAtCallback = false;
+  std::optional<RangeBounds> conveyedRegionBounds;
+  std::exception_ptr conveyedRegionQueryFailure;
   receiverReports.onAttributeReflection = [&] {
     momReportPresentAtCallback = observerReports.interactionReports.size() == 1U;
+    auto const& callbackRegions =
+        receiverReports.attributeReflectionReports.back().sentRegions;
+    if (callbackRegions.size() == 1U) {
+      try {
+        conveyedRegionBounds = receiver->getRangeBounds(
+            *callbackRegions.begin(),
+            sodaFlavor);
+      } catch (...) {
+        conveyedRegionQueryFailure = std::current_exception();
+      }
+    }
   };
   REQUIRE_FALSE(receiver->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(momReportPresentAtCallback);
@@ -183,7 +199,11 @@ TEST_CASE(
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(reflection.transportationType == reliableTransportation);
   REQUIRE(reflection.sentRegionsSupplied);
-  REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(reflection.sentRegions.size() == 1U);
+  REQUIRE(conveyedRegionQueryFailure == nullptr);
+  REQUIRE(conveyedRegionBounds.has_value());
+  REQUIRE(conveyedRegionBounds->getLowerBound() == 0UL);
+  REQUIRE(conveyedRegionBounds->getUpperBound() == 2UL);
   REQUIRE(reflection.sentOrderType == RECEIVE);
   REQUIRE(reflection.receivedOrderType == RECEIVE);
   REQUIRE_FALSE(reflection.retractionSupplied);

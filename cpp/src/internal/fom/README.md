@@ -29,10 +29,10 @@ conformance.
   composition behavior when the optional validator profile is enabled.
 
 The selected `FomStandardEdition` is the IEEE 1516.2 model/schema edition;
-it is independent of the public IEEE 1516.1 C++ binding.  The default is
+it is independent of the public IEEE 1516.1 C++ binding. The default is
 2025.  The embedded development profile accepts the exact
 `fomEdition=2010` setting as an opt-in compatibility mode and rejects other
-edition spellings, including ambiguous `202x` values.  The 2010 slice builds
+edition spellings, including ambiguous `202x` values. The 2010 slice builds
 an edition-neutral catalog for lookup, publication, and registration; it does
 not synthesize a 2025 FDD or MOM projection from the 2010 MIM.
 
@@ -58,10 +58,10 @@ adapter. `RPRboolean` remains an enumerated type represented by `HLAoctet`, not
 an invented RPR primitive class.
 
 Unvendored 2010 schemas/MIM and reviewed external modules are enabled only by
-explicit CMake paths.  `tools/verify_external_2010_fom_resources.py` checks
+explicit CMake paths. `tools/verify_external_2010_fom_resources.py` checks
 the configured resource snapshot against
 `compliance/fom/external-2010-fom-resources.json` before the optional tests
-run.  The sibling Target Radar module is an opt-in registration-only fixture;
+run. The sibling Target Radar module is an opt-in registration-only fixture;
 it is not part of the packaged resource set.
 
 `tools/verify_rpr_standard_boundary.py` is a source-level guard: the neutral

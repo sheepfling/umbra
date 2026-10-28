@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <time>
+        <logicalTime>
+            <dataType>UmbraTestInteger64Time</dataType>
+            <semantics>Fixture for federation-supplied custom logical-time factory selection.</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>UmbraTestInteger64Time</dataType>
+            <semantics>Fixture for federation-supplied custom logical-time interval selection.</semantics>
+        </logicalTimeInterval>
+    </time>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>UmbraTestInteger64Time</name>
+                <representation>HLAinteger64BE</representation>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

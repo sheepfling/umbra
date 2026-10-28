@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 
 namespace {
 TEST_CASE(
@@ -51,7 +52,7 @@ TEST_CASE(
       requester->joinFederationExecution(L"acquisition-requester", L"publisher", federationName));
 
   auto const child = owner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
   auto const reliableChild = owner->getAttributeHandle(child, L"ReliableChild");
   auto const unownedChild = owner->getAttributeHandle(child, L"UnownedChild");
@@ -249,7 +250,7 @@ TEST_CASE(
       L"if-available-divestiture-requester", L"publisher", federationName));
 
   auto const objectClass = owner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+      umbra::test::hla::wide::fom::attribute_fixture_child);
   auto const attribute = owner->getAttributeHandle(objectClass, L"ReliableBaseA");
   AttributeHandleSet const attributes{attribute};
   REQUIRE(objectClass.isValid());

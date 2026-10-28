@@ -368,7 +368,10 @@ artifact after the build script cleared generated classes, rather than only
 against the cached bridge output.
 The same external run now exercises save/restore precondition errors across
 uninitiated, overlapping, and active operations—including the opposite status
-query, scalar and timestamped federation-save requests, synchronization registration/achievement, declaration publication, named object registration, object update, object deletion, direct/regional/directed/timestamped interaction sends, attribute-value requests, ownership queries, order changes, transportation changes, region lifecycle, regional declaration, and region association/unassociation during each active operation—preserving the standard
+query, scalar and timestamped federation-save requests, synchronization registration/achievement, declaration
+publication, named object registration, object update, object deletion, direct/regional/directed/timestamped interaction
+sends, attribute-value requests, ownership queries, order changes, transportation changes, region lifecycle, regional
+declaration, and region association/unassociation during each active operation—preserving the standard
 `SaveNotInitiated`, `FederateHasNotBegunSave`, `SaveNotInProgress`,
 `RestoreNotRequested`, `RestoreNotInProgress`, `SaveInProgress`, and
 `RestoreInProgress` types through JNI. It also exercises two-member federation membership reporting,
@@ -480,7 +483,7 @@ The federation-MOM companion now discovers the single RTI-owned
 `HLAtimeImplementationName`, `HLAadvisoriesUseKnownClass`,
 `HLAdelaySubscriptionEvaluation`, `HLAnonRegulatedGrant`, and
 `HLAallowRelaxedDDM` attributes through C++ → JNI → the external IEEE Java
-API → JPype.  `HLAfederatesInFederation`, `HLAFOMmoduleDesignatorList`,
+API → JPype. `HLAfederatesInFederation`, `HLAFOMmoduleDesignatorList`,
 `HLAcurrentFDD`, and `HLAautoProvide` now have bounded lifecycle-triggered
 update plans. The save-name/time companion now subscribes to
 `HLAlastSaveName`, `HLAlastSaveTime`, `HLAnextSaveName`, and `HLAnextSaveTime`,
@@ -1015,7 +1018,7 @@ or an inherited mock method never counts as JNI coverage.
    unimplemented Java-declared methods; the external 2025 EncoderFactory now
    binds standard handle and logical-time carriers through provider-scoped
    Python façade methods and C++-validated factories, including the Java
-    extendable-variant creator. It remains a deliberate edition-specific
+   extendable-variant creator. It remains a deliberate edition-specific
    extension boundary in the shared Python contract because the native
    provider has no matching standard factory method.
 
@@ -1036,22 +1039,22 @@ order. This is binding evidence; it deliberately does not claim that the
 lightweight fakes implement federation-wide scheduling.
 
 The companion `iter_callback_provenance_matrix()` contains five stable
-semantic callback envelopes.  The fake 2010 and 2025 provider tests consume
+semantic callback envelopes. The fake 2010 and 2025 provider tests consume
 the same discovery, reflection, and interaction vectors and normalize their
 edition-specific Java layouts before checking payload bytes, tags, producer
 handles, optional regions, logical-time implementation/value, order metadata,
-and retraction handles.  The 2010 and 2025 JNI lanes additionally construct
+and retraction handles. The 2010 and 2025 JNI lanes additionally construct
 the carriers through the C++-backed Java factories before passing them through
 the Python callback boundary. This closes a cross-route callback transport gap
 without turning the matrix into a claim about callback scheduling.
 
 `CallbackDeliveryObservation` and `normalize_callback_delivery()` provide a
-small differential layer above those vectors.  The edition-specific fixture
+small differential layer above those vectors. The edition-specific fixture
 tests feed two independently proxied recipients, retain a strict sequence per
 recipient, and compare semantic handles/payload/provenance after provider
-decoding.  Cross-recipient interleaving is intentionally not compared because
+decoding. Cross-recipient interleaving is intentionally not compared because
 the provider owns that scheduling choice; duplicate or missing sequence
-numbers remain binding failures.  The catalog records this as a ten-observation
+numbers remain binding failures. The catalog records this as a ten-observation
 normalization matrix (five vectors × two recipients), keeping the check
 transplantable without treating private handle bytes as normative.
 
@@ -2328,7 +2331,8 @@ subscribers, while scalar save/restore, saved
 logical-time and lookahead rollback, timestamped-save input, constrained
 timed-save grant ordering, in-transit and re-entrant TSO save boundaries,
 native and external-JNI live-TSO retraction restoration, and native plus
-Java-adapter timestamped regional attribute callbacks and the external-JNI timestamped default-region interaction callback are covered. Regional object and interaction
+Java-adapter timestamped regional attribute callbacks and the external-JNI timestamped default-region interaction
+callback are covered. Regional object and interaction
 reprojection now also exercises multiple overlapping subscription regions,
 partial removal while another overlap remains active, and duplicate-discovery/
 duplicate-delivery suppression in both providers.
@@ -2341,7 +2345,7 @@ skipping.
 The staged external-JAR vector now also queues a timestamped directed interaction
 for two constrained Java recipients, resigns one recipient before its qualifying
 grant, and proves that C++ suppresses that stale callback while the surviving
-recipient receives the original time/order/retraction metadata.  The producer's
+recipient receives the original time/order/retraction metadata. The producer's
 post-grant retract correctly remains `MessageCanNoLongerBeRetracted` at the
 requested-time-plus-lookahead boundary.
 

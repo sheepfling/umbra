@@ -14,8 +14,9 @@ import argparse
 import ast
 import json
 import sys
+from datetime import date, datetime, time
 from pathlib import Path
-from typing import Any
+from typing import Literal, TypeAlias, TypedDict, cast
 
 import tomllib
 
@@ -33,11 +34,84 @@ _ALLOWED_STATUSES = {
 }
 
 
-def _load_json(path: Path) -> dict[str, Any]:
+JsonValue: TypeAlias = (
+    str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
+)
+JsonObject: TypeAlias = dict[str, JsonValue]
+
+TomlValue: TypeAlias = (
+    str
+    | int
+    | float
+    | bool
+    | date
+    | datetime
+    | time
+    | list["TomlValue"]
+    | dict[str, "TomlValue"]
+)
+TomlObject: TypeAlias = dict[str, TomlValue]
+EntryPointGroups: TypeAlias = dict[str, dict[str, str]]
+
+ReportStatus: TypeAlias = Literal["pass", "fail"]
+
+
+class MatrixExpectation(TypedDict):
+    vector_count: int | None
+    edition_vector_counts: dict[str, int]
+    wire_vector_count: int | None
+    arithmetic_vector_count: int | None
+
+
+class AdapterReport(TypedDict):
+    id: str
+    declared_status: JsonValue
+    status: ReportStatus
+    findings: list[str]
+
+
+class EditionReport(TypedDict):
+    id: str
+    standard: JsonValue
+    python_namespace: str
+    status: ReportStatus
+    findings: list[str]
+    adapters: list[AdapterReport]
+
+
+class CoverageDimensionReport(TypedDict):
+    id: JsonValue
+    status: JsonValue
+    evidence: JsonValue
+    requirement_refs: JsonValue
+
+
+class MatrixEvidenceReport(TypedDict):
+    id: JsonValue
+    support: JsonValue
+    vector_count: JsonValue
+    wire_vector_count: JsonValue
+    arithmetic_vector_count: JsonValue
+    editions: JsonValue
+    routes: JsonValue
+    requirement_refs: JsonValue
+
+
+class VerificationReport(TypedDict):
+    kind: str
+    catalog: str
+    status: ReportStatus
+    findings: list[str]
+    editions: list[EditionReport]
+    coverage_dimensions: list[CoverageDimensionReport]
+    matrix_evidence: list[MatrixEvidenceReport]
+
+
+def _load_json(path: Path) -> JsonObject:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise TypeError(f"{path} must contain a JSON object")
-    return value
+    return cast(JsonObject, value)
 
 
 def _literal_constants(path: Path) -> dict[str, str]:
@@ -56,15 +130,15 @@ def _literal_constants(path: Path) -> dict[str, str]:
     return constants
 
 
-def _pyproject(path: Path) -> dict[str, Any]:
+def _pyproject(path: Path) -> TomlObject:
     with path.open("rb") as stream:
         value = tomllib.load(stream)
     if not isinstance(value, dict):
         raise TypeError(f"{path} did not contain a TOML table")
-    return value
+    return cast(TomlObject, value)
 
 
-def _entry_points(metadata: dict[str, Any]) -> dict[str, dict[str, str]]:
+def _entry_points(metadata: TomlObject) -> EntryPointGroups:
     project = metadata.get("project", {})
     if not isinstance(project, dict):
         return {}
@@ -127,7 +201,7 @@ def _route_findings(route: object) -> list[str]:
     return findings
 
 
-def _derived_matrix_counts() -> tuple[dict[str, object] | None, str | None]:
+def _derived_matrix_counts() -> tuple[dict[str, MatrixExpectation] | None, str | None]:
     """Derive checked-in matrix counts from the provider-neutral helpers."""
 
     source_roots = (
@@ -158,38 +232,79 @@ def _derived_matrix_counts() -> tuple[dict[str, object] | None, str | None]:
         return (
             {
                 "basic-data-element-values": {
-                    edition: len(iter_data_element_value_matrix(edition))
-                    for edition in ("2010", "2025")
+                    "vector_count": None,
+                    "edition_vector_counts": {
+                        edition: len(iter_data_element_value_matrix(edition))
+                        for edition in ("2010", "2025")
+                    },
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
                 },
-                "callback-ordering-member-state-space": len(iter_surface_matrix()),
-                "callback-provenance-payload-parity": len(
-                    iter_callback_provenance_matrix()
-                ),
-                "callback-delivery-provenance-normalization": len(
-                    iter_callback_provenance_matrix()
-                )
-                * 2,
+                "callback-ordering-member-state-space": {
+                    "vector_count": len(iter_surface_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
+                "callback-provenance-payload-parity": {
+                    "vector_count": len(iter_callback_provenance_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
+                "callback-delivery-provenance-normalization": {
+                    "vector_count": len(iter_callback_provenance_matrix()) * 2,
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
                 "callback-overload-carriers": {
-                    edition: CALLBACK_OVERLOAD_COUNTS[edition] * 2
-                    for edition in ("2010", "2025")
+                    "vector_count": None,
+                    "edition_vector_counts": {
+                        edition: CALLBACK_OVERLOAD_COUNTS[edition] * 2
+                        for edition in ("2010", "2025")
+                    },
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
                 },
-                "save-restore-outcomes": len(iter_save_restore_matrix()),
+                "save-restore-outcomes": {
+                    "vector_count": len(iter_save_restore_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
                 "logical-time-wire-and-arithmetic": {
+                    "vector_count": None,
+                    "edition_vector_counts": {},
                     "wire_vector_count": len(iter_logical_time_wire_matrix()),
                     "arithmetic_vector_count": len(
                         iter_logical_time_arithmetic_matrix()
                     ),
                 },
-                "provider-extension-wire": len(iter_extendable_variant_wire_matrix()),
-                "vendor-time-arithmetic-surface": len(
-                    iter_vendor_time_arithmetic_matrix()
-                ),
-                "vendor-data-element-wire-surface": len(
-                    iter_vendor_data_element_wire_matrix()
-                ),
-                "vendor-data-element-encode-surface": len(
-                    iter_vendor_data_element_encode_matrix()
-                ),
+                "provider-extension-wire": {
+                    "vector_count": len(iter_extendable_variant_wire_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
+                "vendor-time-arithmetic-surface": {
+                    "vector_count": len(iter_vendor_time_arithmetic_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
+                "vendor-data-element-wire-surface": {
+                    "vector_count": len(iter_vendor_data_element_wire_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
+                "vendor-data-element-encode-surface": {
+                    "vector_count": len(iter_vendor_data_element_encode_matrix()),
+                    "edition_vector_counts": {},
+                    "wire_vector_count": None,
+                    "arithmetic_vector_count": None,
+                },
             },
             None,
         )
@@ -203,7 +318,7 @@ def _derived_matrix_counts() -> tuple[dict[str, object] | None, str | None]:
                 pass
 
 
-def _validate_matrix_evidence(catalog: dict[str, Any]) -> list[str]:
+def _validate_matrix_evidence(catalog: JsonObject) -> list[str]:
     """Validate the machine-readable matrix-to-test linkage in the catalog."""
 
     evidence = catalog.get("matrix_evidence")
@@ -221,6 +336,7 @@ def _validate_matrix_evidence(catalog: dict[str, Any]) -> list[str]:
             findings.append("matrix evidence entry is not an object")
             continue
         identifier = item.get("id")
+        lookup_identifier = identifier if isinstance(identifier, str) else None
         if not isinstance(identifier, str) or not identifier:
             findings.append("matrix evidence entries need string ids")
         elif identifier in identifiers:
@@ -258,26 +374,34 @@ def _validate_matrix_evidence(catalog: dict[str, Any]) -> list[str]:
                     f"{identifier}: {finding}" for finding in _route_findings(route)
                 )
         for field in ("vector_count", "wire_vector_count", "arithmetic_vector_count"):
+            count = item.get(field)
             if field in item and (
-                isinstance(item[field], bool)
-                or not isinstance(item[field], int)
-                or item[field] < 1
+                isinstance(count, bool) or not isinstance(count, int) or count < 1
             ):
                 findings.append(
                     f"matrix {identifier!r} {field} must be a positive integer"
                 )
-        expected = derived.get(identifier) if derived is not None else None
-        if isinstance(expected, int) and item.get("vector_count") != expected:
+        expected = (
+            derived.get(lookup_identifier)
+            if derived is not None and lookup_identifier is not None
+            else None
+        )
+        if (
+            expected is not None
+            and expected["vector_count"] is not None
+            and item.get("vector_count") != expected["vector_count"]
+        ):
             findings.append(
                 f"matrix {identifier!r} vector_count is {item.get('vector_count')!r}, "
-                f"derived {expected}"
+                f"derived {expected['vector_count']}"
             )
-        if isinstance(expected, dict):
+        if expected is not None:
             for field in ("wire_vector_count", "arithmetic_vector_count"):
-                if field in expected and item.get(field) != expected[field]:
+                derived_count = expected[field]
+                if derived_count is not None and item.get(field) != derived_count:
                     findings.append(
                         f"matrix {identifier!r} {field} is {item.get(field)!r}, "
-                        f"derived {expected[field]}"
+                        f"derived {derived_count}"
                     )
         if editions is not None:
             if not isinstance(editions, dict) or not editions:
@@ -305,14 +429,15 @@ def _validate_matrix_evidence(catalog: dict[str, Any]) -> list[str]:
                         findings.append(
                             f"matrix {identifier!r}/{edition} vector_count must be a positive integer"
                         )
-                    if (
-                        isinstance(expected, dict)
-                        and edition in expected
-                        and count != expected[edition]
-                    ):
+                    edition_expected = (
+                        expected["edition_vector_counts"].get(edition)
+                        if expected is not None
+                        else None
+                    )
+                    if edition_expected is not None and count != edition_expected:
                         findings.append(
                             f"matrix {identifier!r}/{edition} vector_count is {count!r}, "
-                            f"derived {expected[edition]}"
+                            f"derived {edition_expected}"
                         )
                     edition_routes = details.get("routes")
                     if not isinstance(edition_routes, list) or not edition_routes:
@@ -387,7 +512,9 @@ def _validate_roundtrip_catalog(edition: object, value: object) -> list[str]:
 
     basic = detail.get("basic_value_matrix")
     if not isinstance(basic, dict):
-        findings.append(f"edition {edition!r} roundtrip catalog needs basic_value_matrix")
+        findings.append(
+            f"edition {edition!r} roundtrip catalog needs basic_value_matrix"
+        )
     else:
         expected_count = {"2010": 79, "2025": 103}.get(edition)
         if expected_count is not None and basic.get("vector_count") != expected_count:
@@ -412,7 +539,7 @@ def _validate_roundtrip_catalog(edition: object, value: object) -> list[str]:
         ("handle_and_collection_carrier_matrix", "python_carrier_facade_matrix"),
         ("record_enum_and_exception_carriers", "carrier_inventories"),
     )
-    for *aliases, in inventory_groups:
+    for (*aliases,) in inventory_groups:
         if not any(isinstance(detail.get(alias), dict) for alias in aliases):
             findings.append(
                 f"edition {edition!r} roundtrip catalog needs one of: "
@@ -421,7 +548,7 @@ def _validate_roundtrip_catalog(edition: object, value: object) -> list[str]:
     return findings
 
 
-def _validate_catalog_shape(catalog: dict[str, Any]) -> list[str]:
+def _validate_catalog_shape(catalog: JsonObject) -> list[str]:
     findings: list[str] = []
     if catalog.get("schema_version") != 1:
         findings.append("catalog schema_version must be 1")
@@ -455,12 +582,20 @@ def _validate_catalog_shape(catalog: dict[str, Any]) -> list[str]:
             adapters = edition.get("adapters")
             if not isinstance(adapters, list) or not adapters:
                 findings.append(f"edition {identifier!r} has no adapters")
-            elif len(
-                {adapter.get("id") for adapter in adapters if isinstance(adapter, dict)}
-            ) != len(adapters):
-                findings.append(
-                    f"edition {identifier!r} has duplicate or invalid adapter ids"
-                )
+            else:
+                adapter_ids = [
+                    adapter_id
+                    for adapter in adapters
+                    if isinstance(adapter, dict)
+                    for adapter_id in [adapter.get("id")]
+                    if isinstance(adapter_id, str) and adapter_id
+                ]
+                if len(adapter_ids) != len(adapters) or len(set(adapter_ids)) != len(
+                    adapter_ids
+                ):
+                    findings.append(
+                        f"edition {identifier!r} has duplicate or invalid adapter ids"
+                    )
             for field in (
                 "standard",
                 "python_namespace",
@@ -522,7 +657,7 @@ def _validate_catalog_shape(catalog: dict[str, Any]) -> list[str]:
     return findings
 
 
-def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
+def verify(catalog_path: Path = DEFAULT_CATALOG) -> VerificationReport:
     """Return a machine-readable structural report for the Python routes."""
 
     try:
@@ -539,8 +674,10 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         }
 
     findings = _validate_catalog_shape(catalog)
-    edition_reports: list[dict[str, Any]] = []
-    for edition in catalog.get("editions", ()):
+    edition_reports: list[EditionReport] = []
+    raw_editions = catalog.get("editions", [])
+    editions = raw_editions if isinstance(raw_editions, list) else []
+    for edition in editions:
         if not isinstance(edition, dict):
             continue
         identifier = str(edition.get("id", "<unknown>"))
@@ -591,9 +728,11 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
                     f"{expected_namespace}.{constant} is {constants.get(constant)!r}, expected {expected!r}"
                 )
 
-        adapter_reports: list[dict[str, Any]] = []
+        adapter_reports: list[AdapterReport] = []
         group = str(edition.get("factory_entry_point_group", ""))
-        for adapter in edition.get("adapters", ()):
+        raw_adapters = edition.get("adapters", [])
+        adapters = raw_adapters if isinstance(raw_adapters, list) else []
+        for adapter in adapters:
             if not isinstance(adapter, dict):
                 edition_findings.append("adapter entry is not an object")
                 continue
@@ -664,8 +803,9 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
             }
         )
 
-    coverage = catalog.get("coverage_dimensions", [])
-    coverage_reports = [
+    raw_coverage = catalog.get("coverage_dimensions", [])
+    coverage = raw_coverage if isinstance(raw_coverage, list) else []
+    coverage_reports: list[CoverageDimensionReport] = [
         {
             "id": item.get("id"),
             "status": item.get("status"),
@@ -678,7 +818,9 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     for dimension in coverage:
         if not isinstance(dimension, dict):
             continue
-        for evidence_path in dimension.get("evidence", ()):
+        raw_evidence = dimension.get("evidence", [])
+        evidence_paths = raw_evidence if isinstance(raw_evidence, list) else []
+        for evidence_path in evidence_paths:
             for finding in _route_findings(evidence_path):
                 # Keep the coverage-dimension diagnostic stable for callers
                 # that supply a plain path, while method-qualified evidence
@@ -688,7 +830,11 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
                         "route file is missing:", "evidence path is missing:", 1
                     )
                 findings.append(f"{dimension.get('id')}: {finding}")
-        for requirement_ref in dimension.get("requirement_refs", ()):
+        raw_requirement_refs = dimension.get("requirement_refs", [])
+        requirement_refs = (
+            raw_requirement_refs if isinstance(raw_requirement_refs, list) else []
+        )
+        for requirement_ref in requirement_refs:
             if (
                 not isinstance(requirement_ref, str)
                 or not (ROOT / requirement_ref).is_file()
@@ -702,8 +848,12 @@ def verify(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         if edition["status"] == "fail"
         for finding in edition["findings"]
     )
-    matrix_reports = []
-    for item in catalog.get("matrix_evidence", []):
+    matrix_reports: list[MatrixEvidenceReport] = []
+    raw_matrix_evidence = catalog.get("matrix_evidence", [])
+    matrix_evidence = (
+        raw_matrix_evidence if isinstance(raw_matrix_evidence, list) else []
+    )
+    for item in matrix_evidence:
         if not isinstance(item, dict):
             continue
         matrix_reports.append(
@@ -757,7 +907,11 @@ def main() -> int:
                 counts.append(f"wire={matrix['wire_vector_count']}")
             if matrix.get("arithmetic_vector_count") is not None:
                 counts.append(f"arithmetic={matrix['arithmetic_vector_count']}")
-            for edition, details in matrix.get("editions", {}).items():
+            raw_edition_counts = matrix.get("editions", {})
+            edition_counts = (
+                raw_edition_counts if isinstance(raw_edition_counts, dict) else {}
+            )
+            for edition, details in edition_counts.items():
                 if (
                     isinstance(details, dict)
                     and details.get("vector_count") is not None

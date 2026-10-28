@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
-from pathlib import Path
 import sys
 import tempfile
 import unittest
-from zipfile import ZipFile, ZIP_DEFLATED
-
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[3]
 _SPEC = importlib.util.spec_from_file_location(
@@ -20,13 +19,12 @@ _SPEC.loader.exec_module(_MODULE)
 
 class ProviderJarPreflightTests(unittest.TestCase):
     def _jar(self, entries: dict[str, str | bytes]) -> Path:
-        handle = tempfile.NamedTemporaryFile(suffix=".jar", delete=False)
-        handle.close()
-        path = Path(handle.name)
+        temporary_directory = tempfile.TemporaryDirectory(prefix="provider-jar-")
+        self.addCleanup(temporary_directory.cleanup)
+        path = Path(temporary_directory.name) / "provider.jar"
         with ZipFile(path, "w", ZIP_DEFLATED) as archive:
             for name, value in entries.items():
                 archive.writestr(name, value)
-        self.addCleanup(lambda: path.unlink(missing_ok=True))
         return path
 
     def test_provider_descriptor_is_required_and_2010_only(self) -> None:
@@ -45,7 +43,9 @@ class ProviderJarPreflightTests(unittest.TestCase):
             {"META-INF/services/hla.rti1516e.RtiFactory": "vendor.Provider\n"}
         )
         self.assertEqual(
-            _MODULE.verify([provider_without_class], dependency_jars=[dependency_only_class])[0].status,
+            _MODULE.verify(
+                [provider_without_class], dependency_jars=[dependency_only_class]
+            )[0].status,
             "pass",
         )
 

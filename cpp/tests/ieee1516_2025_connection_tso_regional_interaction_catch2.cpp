@@ -474,6 +474,7 @@ TEST_CASE(
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
       ++receivedInteractionCount;
+      callbackOrder.push_back('I');
       receivedInteractionClass = interactionClass;
       receivedTransportationType = transportationType;
       receivedProducingFederate = producingFederate;
@@ -513,6 +514,7 @@ TEST_CASE(
 
     void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
       ++timeAdvanceGrantCount;
+      callbackOrder.push_back('G');
       timeAdvanceGrantImplementation = time.implementationName();
       if (auto const* integerTime =
               dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
@@ -541,6 +543,7 @@ TEST_CASE(
     std::size_t timeAdvanceGrantCount = 0U;
     std::wstring timeAdvanceGrantImplementation;
     std::int64_t timeAdvanceGrantValue = -1;
+    std::vector<char> callbackOrder;
   };
 
   constexpr wchar_t const* federationName =
@@ -928,7 +931,7 @@ TEST_CASE(
         true));
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(1)));
     REQUIRE(senderFederate.timeRegulationEnabledCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
@@ -982,9 +985,11 @@ TEST_CASE(
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     static_cast<void>(receiverRti->evokeCallback(0.0));
     REQUIRE(receiverFederate.receivedInteractionCount == 1U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
+    if (receiverFederate.timeAdvanceGrantCount == 0U) {
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
     REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
     REQUIRE(receiverFederate.receivedInteractionClass == expectedClass);
     REQUIRE(receiverFederate.receivedTransportationType.isValid());

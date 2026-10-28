@@ -17,14 +17,17 @@ import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TypedDict, cast
 
 try:
     from .cpp_tck import (
         DEFAULT_CATALOG,
         ROOT,
         STANDARD_CALLBACK_MODELS,
+        CppTckCatalog,
+        CppTckScenario,
         callback_models_for_scenario,
         load_catalog,
     )
@@ -34,6 +37,8 @@ except ImportError:  # Direct invocation: python tools/run_cpp_tck.py
         DEFAULT_CATALOG,
         ROOT,
         STANDARD_CALLBACK_MODELS,
+        CppTckCatalog,
+        CppTckScenario,
         callback_models_for_scenario,
         load_catalog,
     )
@@ -70,6 +75,68 @@ DEFAULT_STANDARD_INVALID_FOM = (
 DIRECT_COMMAND_LENGTH_LIMIT = 24000
 
 
+class _ResolvedPathInputs(TypedDict):
+    package_prefix: Path
+    build_directory: Path
+    service_report_directory: Path
+    fom: Path
+    model_fom: Path
+    rate_fom: Path
+    ddm_fom: Path
+    multi_attribute_fom: Path
+    three_dimensional_fom: Path
+    mim_fom: Path
+    switches_fom: Path
+    auto_provide_fom: Path
+    data_type_merge_consumer_fom: Path
+    data_type_merge_provider_fom: Path
+    data_type_merge_conflicting_provider_fom: Path
+    variant_alternative_base_fom: Path
+    variant_alternative_disjoint_fom: Path
+    variant_alternative_overlap_fom: Path
+    interaction_parameter_base_fom: Path
+    interaction_parameter_disjoint_fom: Path
+    interaction_parameter_conflict_fom: Path
+    object_attribute_base_fom: Path
+    object_attribute_disjoint_fom: Path
+    object_attribute_conflict_fom: Path
+    known_class_fom: Path
+    known_class_disabled_fom: Path
+    ownership_extension_fom: Path
+
+
+class ResolvedInputs(_ResolvedPathInputs):
+    ddm_dimensions: list[str]
+    three_dimensions: list[str]
+    additional_fom: list[Path]
+    invalid_fom: list[Path]
+    standard_invalid_fom: list[Path]
+    scenario_foms: list[str]
+
+
+class _ResolvedInputsBuilder(_ResolvedPathInputs, total=False):
+    ddm_dimensions: list[str]
+    three_dimensions: list[str]
+    additional_fom: list[Path]
+    invalid_fom: list[Path]
+    standard_invalid_fom: list[Path]
+    scenario_foms: list[str]
+
+
+class ConfiguredPackagePaths(TypedDict, total=False):
+    umbra_rti_DIR: Path
+    HLA_RTI_TCK_API_INCLUDE_DIR: Path
+
+
+class DirectRunSummary(TypedDict):
+    executable: str
+    scenario_count: int
+    scenario_ids: list[str]
+    callback_model: str
+    results: str | None
+    junit: str | None
+
+
 def default_path(relative: str) -> Path:
     return ROOT / relative
 
@@ -94,7 +161,9 @@ def resolve_directory(value: str | Path, *, must_exist: bool, label: str) -> Pat
     return path
 
 
-def path_list(values: Iterable[str], defaults: Iterable[Path], label: str) -> list[Path]:
+def path_list(
+    values: Iterable[str], defaults: Iterable[Path], label: str
+) -> list[Path]:
     selected = list(values)
     if not selected:
         selected = [str(value) for value in defaults]
@@ -105,19 +174,24 @@ def join_cmake_list(values: Iterable[Path | str]) -> str:
     return ";".join(str(value) for value in values)
 
 
-def command_text(command: list[str]) -> str:
+def command_text(command: Sequence[str]) -> str:
     if os.name == "nt":
         return subprocess.list2cmdline(command)
     return shlex.join(command)
 
 
-def command_length(command: list[str]) -> int:
+def command_length(command: Sequence[str]) -> int:
     return len(os.fsencode(command_text(command)))
 
 
-def run_command(command: list[str], *, cwd: Path) -> None:
+def run_command(
+    command: Sequence[str],
+    *,
+    cwd: Path,
+    env: Mapping[str, str] | None = None,
+) -> None:
     print(f"+ {command_text(command)}", flush=True)
-    subprocess.run(command, cwd=cwd, check=True)
+    subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -187,7 +261,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--provider-id", default="installed-package")
     parser.add_argument("--timeout-ms", type=int, default=10000)
 
-    parser.add_argument("--fom", default=str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")))
+    parser.add_argument(
+        "--fom", default=str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml"))
+    )
     parser.add_argument(
         "--model-fom",
         default=str(default_path("packages/hla-rti-cpp-tck/fom/fom-model-tck.xml")),
@@ -213,7 +289,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--rate-fom",
         default=str(
-            default_path("packages/hla-rti-cpp-tck/fom/attribute-relevance-rate-tck.xml")
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/attribute-relevance-rate-tck.xml"
+            )
         ),
     )
     parser.add_argument(
@@ -222,11 +300,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--multi-attribute-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml")),
+        default=str(
+            default_path("packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml")
+        ),
     )
     parser.add_argument(
         "--three-dimensional-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/ddm-three-dimensional-tck.xml")),
+        default=str(
+            default_path("packages/hla-rti-cpp-tck/fom/ddm-three-dimensional-tck.xml")
+        ),
     )
     parser.add_argument("--mim-fom", default=str(DEFAULT_MIM))
     parser.add_argument(
@@ -239,51 +321,99 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--data-type-merge-consumer-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-consumer-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/data-type-merge-consumer-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--data-type-merge-provider-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-provider-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/data-type-merge-provider-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--data-type-merge-conflicting-provider-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--variant-alternative-base-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-base-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/variant-alternative-base-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--variant-alternative-disjoint-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-disjoint-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/variant-alternative-disjoint-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--variant-alternative-overlap-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--interaction-parameter-base-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-base-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-base-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--interaction-parameter-disjoint-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-disjoint-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-disjoint-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--interaction-parameter-conflict-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--object-attribute-base-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-base-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/object-attribute-merge-base-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--object-attribute-disjoint-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-disjoint-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/object-attribute-merge-disjoint-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--object-attribute-conflict-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml"
+            )
+        ),
     )
     parser.add_argument(
         "--scenario-fom",
@@ -308,7 +438,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--ownership-extension-fom",
-        default=str(default_path("packages/hla-rti-cpp-tck/fom/ownership-post-join-extension-tck.xml")),
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/ownership-post-join-extension-tck.xml"
+            )
+        ),
         help="FOM module adding an attribute to an already registered class at join",
     )
     parser.add_argument(
@@ -395,7 +529,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rate-designator", default="TckSlow")
     parser.add_argument("--fom-update-rate", default="TckFast")
     parser.add_argument("--fom-additional-update-rate", default="TckAdditionalRate")
-    parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
+    parser.add_argument(
+        "--interaction-class", default="HLAinteractionRoot.TckInteraction"
+    )
     parser.add_argument(
         "--preferred-timestamp-interaction-class",
         default="HLAinteractionRoot.TckPreferredTimestampInteraction",
@@ -505,7 +641,7 @@ def load_arguments(parser: argparse.ArgumentParser) -> argparse.Namespace:
     return arguments
 
 
-def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
+def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
     if arguments.connection_loss_marker:
         arguments.connection_loss_marker = str(
             resolve_path(
@@ -556,12 +692,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=False,
             label="service-report directory",
         )
-    inputs: dict[str, Any] = {
+    inputs: _ResolvedInputsBuilder = {
         "package_prefix": package_prefix,
         "build_directory": build_directory,
         "service_report_directory": service_report_directory,
         "fom": resolve_path(arguments.fom, must_exist=True, label="FOM"),
-        "model_fom": resolve_path(arguments.model_fom, must_exist=True, label="model FOM"),
+        "model_fom": resolve_path(
+            arguments.model_fom, must_exist=True, label="model FOM"
+        ),
         "rate_fom": resolve_path(
             arguments.rate_fom,
             must_exist=True,
@@ -674,7 +812,9 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
     if len(ddm_dimensions) < 2:
         raise ValueError("at least two --ddm-dimension values are required")
     if len(three_dimensions) < 3:
-        raise ValueError("at least three --three-dimensional-dimension values are required")
+        raise ValueError(
+            "at least three --three-dimensional-dimension values are required"
+        )
     inputs["ddm_dimensions"] = ddm_dimensions
     inputs["three_dimensions"] = three_dimensions
     inputs["additional_fom"] = path_list(
@@ -696,287 +836,847 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
     if scenario_fom_bindings is None:
         scenario_fom_bindings = [
             "object-class-semantics-conflict="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"
+                )
+            ),
             "matching-data-types-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/matching-data-types-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/matching-data-types-first-tck.xml"
+                )
+            ),
             "matching-data-types-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/matching-data-types-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/matching-data-types-second-tck.xml"
+                )
+            ),
             "object-dimension-merge-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-dimension-merge-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-dimension-merge-first-tck.xml"
+                )
+            ),
             "object-dimension-merge-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-dimension-merge-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-dimension-merge-second-tck.xml"
+                )
+            ),
             "interaction-dimension-merge-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-first-tck.xml"
+                )
+            ),
             "interaction-dimension-merge-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-second-tck.xml"
+                )
+            ),
             "named-variant-alternative-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml"
+                )
+            ),
             "named-variant-alternative-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/named-variant-alternative-second-tck.xml"
+                )
+            ),
             "extendable-hlaother-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml"
+                )
+            ),
             "extendable-hlaother-invalid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml"
+                )
+            ),
             "enumerated-value-collision-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-value-collision-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-value-collision-first-tck.xml"
+                )
+            ),
             "enumerated-value-collision-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml"
+                )
+            ),
             "nonextendable-variant-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml"
+                )
+            ),
             "nonextendable-variant-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml"
+                )
+            ),
             "array-cardinality-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/valid-array-cardinality-forms-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/valid-array-cardinality-forms-tck.xml"
+                )
+            ),
             "array-cardinality-reversed-range="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml"
+                )
+            ),
             "array-cardinality-fixed-encoding-mismatch="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml"
+                )
+            ),
             "array-cardinality-variable-encoding-mismatch="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml"
+                )
+            ),
             "time-representation-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/time-representation-valid-tck.xml"
+                )
+            ),
+            "time-representation-valid-float64="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/time-representation-float64-tck.xml"
+                )
+            ),
             "default-logical-time="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/default-logical-time-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/default-logical-time-tck.xml"
+                )
+            ),
             "time-representation-basic-data="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-basic-data-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/time-representation-basic-data-tck.xml"
+                )
+            ),
             "time-representation-reference-data="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/time-representation-reference-data-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/time-representation-reference-data-tck.xml"
+                )
+            ),
             "member-data-type-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/member-data-type-valid-tck.xml"
+                )
+            ),
             "member-data-type-attribute-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-attribute-basic-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/member-data-type-attribute-basic-tck.xml"
+                )
+            ),
             "member-data-type-parameter-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/member-data-type-parameter-basic-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/member-data-type-parameter-basic-tck.xml"
+                )
+            ),
             "attribute-na-valid-companions="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-valid-companions-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-valid-companions-tck.xml"
+                )
+            ),
             "attribute-na-invalid-update-type="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-type-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-type-tck.xml"
+                )
+            ),
             "attribute-na-invalid-update-condition="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-condition-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-condition-tck.xml"
+                )
+            ),
             "attribute-na-invalid-transportation="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-invalid-transportation-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-invalid-transportation-tck.xml"
+                )
+            ),
             "attribute-na-omitted-companions="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-tck.xml"
+                )
+            ),
             "attribute-na-omitted-companions-extension="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-extension-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-extension-tck.xml"
+                )
+            ),
             "attribute-dynamic-update-condition-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-dynamic-update-condition-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-dynamic-update-condition-valid-tck.xml"
+                )
+            ),
             "attribute-conditional-update-condition-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-na-tck.xml"
+                )
+            ),
             "attribute-periodic-update-condition-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-periodic-update-condition-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-periodic-update-condition-na-tck.xml"
+                )
+            ),
             "attribute-conditional-update-condition-empty="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-empty-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-conditional-update-condition-empty-tck.xml"
+                )
+            ),
             "attribute-neither-value-required-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-valid-tck.xml"
+                )
+            ),
             "attribute-neither-value-required-true="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-true-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-neither-value-required-true-tck.xml"
+                )
+            ),
             "root-hierarchy-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/root-hierarchy-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/root-hierarchy-valid-tck.xml"
+                )
+            ),
             "root-hierarchy-invalid-object="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-object-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-object-tck.xml"
+                )
+            ),
             "root-hierarchy-invalid-interaction="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-interaction-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/root-hierarchy-invalid-interaction-tck.xml"
+                )
+            ),
             "tag-data-type-category-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-category-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/tag-data-type-category-valid-tck.xml"
+                )
+            ),
             "tag-data-type-basic-user="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-user-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/tag-data-type-basic-user-tck.xml"
+                )
+            ),
             "tag-data-type-basic-synchronization="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml"
+                )
+            ),
             "inherited-member-names-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-member-names-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/inherited-member-names-valid-tck.xml"
+                )
+            ),
             "inherited-attribute-duplicate="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-attribute-duplicate-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/inherited-attribute-duplicate-tck.xml"
+                )
+            ),
             "inherited-parameter-duplicate="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/inherited-parameter-duplicate-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/inherited-parameter-duplicate-tck.xml"
+                )
+            ),
             "equivalent-class-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/equivalent-class-base-tck.xml"
+                )
+            ),
             "equivalent-class-conflict="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/equivalent-class-conflict-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/equivalent-class-conflict-tck.xml"
+                )
+            ),
             "reference-class-consumer="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-consumer-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-class-consumer-tck.xml"
+                )
+            ),
             "reference-class-provider="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-provider-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-class-provider-tck.xml"
+                )
+            ),
             "reference-class-unresolved="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-class-unresolved-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-class-unresolved-tck.xml"
+                )
+            ),
             "enumerated-representation-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-representation-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-representation-omitted-tck.xml"
+                )
+            ),
             "enumerated-representation-nonbasic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/enumerated-representation-nonbasic-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-representation-nonbasic-tck.xml"
+                )
+            ),
             "array-element-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-valid-tck.xml")),
+            + str(
+                default_path("packages/hla-rti-cpp-tck/fom/array-element-valid-tck.xml")
+            ),
             "array-element-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/array-element-omitted-tck.xml"
+                )
+            ),
             "array-element-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml")),
+            + str(
+                default_path("packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml")
+            ),
             "record-member-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-valid-tck.xml")),
+            + str(
+                default_path("packages/hla-rti-cpp-tck/fom/record-member-valid-tck.xml")
+            ),
             "record-member-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-omitted-tck.xml"
+                )
+            ),
             "record-member-basic-field="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-field-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-basic-field-tck.xml"
+                )
+            ),
             "record-member-basic-alternative="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml"
+                )
+            ),
             "variant-discriminant-valid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-tck.xml"
+                )
+            ),
             "variant-discriminant-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-omitted-tck.xml"
+                )
+            ),
             "variant-discriminant-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-basic-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-basic-tck.xml"
+                )
+            ),
             "variant-discriminant-simple="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-simple-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-simple-tck.xml"
+                )
+            ),
             "variant-discriminant-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml"
+                )
+            ),
             "variant-enumerator-range="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-range-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-range-tck.xml"
+                )
+            ),
             "variant-enumerator-hlaother="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-hlaother-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-hlaother-tck.xml"
+                )
+            ),
             "variant-enumerator-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-omitted-tck.xml"
+                )
+            ),
             "variant-enumerator-malformed-range="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-malformed-range-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-malformed-range-tck.xml"
+                )
+            ),
             "variant-enumerator-composite-hlaother="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-composite-hlaother-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-composite-hlaother-tck.xml"
+                )
+            ),
             "variant-member-unknown="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-member-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-member-tck.xml"
+                )
+            ),
             "variant-member-unknown-endpoint="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-endpoint-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-endpoint-tck.xml"
+                )
+            ),
             "variant-member-incomplete="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-incomplete-members-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-incomplete-members-tck.xml"
+                )
+            ),
             "variant-member-later-consumer="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-later-consumer-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-later-consumer-tck.xml"
+                )
+            ),
             "variant-member-later-provider="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-enumerator-later-provider-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-enumerator-later-provider-tck.xml"
+                )
+            ),
             "variant-range-order-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-range-order-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-range-order-base-tck.xml"
+                )
+            ),
             "variant-range-order-valid-extension="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-range-order-valid-extension-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-range-order-valid-extension-tck.xml"
+                )
+            ),
             "variant-range-order-conflict-extension="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-range-order-conflict-extension-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-range-order-conflict-extension-tck.xml"
+                )
+            ),
             "variant-range-other-complement="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/variant-range-other-complement-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-range-other-complement-tck.xml"
+                )
+            ),
             "reference-attribute-consumer="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml"
+                )
+            ),
             "reference-attribute-provider="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-provider-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-attribute-provider-tck.xml"
+                )
+            ),
             "reference-attribute-missing="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-missing-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-attribute-missing-tck.xml"
+                )
+            ),
             "reference-attribute-mismatched="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/reference-attribute-mismatched-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-attribute-mismatched-tck.xml"
+                )
+            ),
             "representation-special="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/representation-special-identifiers-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-special-identifiers-tck.xml"
+                )
+            ),
             "representation-missing-simple="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/representation-missing-simple-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-missing-simple-tck.xml"
+                )
+            ),
             "representation-missing-enumerated="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/representation-missing-enumerated-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-missing-enumerated-tck.xml"
+                )
+            ),
             "representation-invalid-special="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml"
+                )
+            ),
             "representation-invalid-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/representation-invalid-basic-reference-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-invalid-basic-reference-tck.xml"
+                )
+            ),
             "transportation-reference-consumer="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-consumer-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-reference-consumer-tck.xml"
+                )
+            ),
             "transportation-reference-provider="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-provider-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-reference-provider-tck.xml"
+                )
+            ),
             "transportation-reference-missing="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-reference-missing-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-reference-missing-tck.xml"
+                )
+            ),
             "directed-reference-object="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-object-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/directed-reference-object-tck.xml"
+                )
+            ),
             "directed-reference-interaction="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-interaction-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/directed-reference-interaction-tck.xml"
+                )
+            ),
             "directed-reference-missing="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml"
+                )
+            ),
             "dimension-reference-consumer="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-consumer-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-reference-consumer-tck.xml"
+                )
+            ),
             "dimension-reference-provider="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-provider-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-reference-provider-tck.xml"
+                )
+            ),
             "dimension-reference-missing="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-reference-missing-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-reference-missing-tck.xml"
+                )
+            ),
             "dimension-duplicate-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml"
+                )
+            ),
             "dimension-duplicate-equal-unique="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml"
+                )
+            ),
             "dimension-duplicate-conflicting-upper-bound="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
+                )
+            ),
             "dimension-input-raw-basic="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-raw-basic-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-raw-basic-tck.xml"
+                )
+            ),
             "dimension-input-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-na-tck.xml")),
+            + str(
+                default_path("packages/hla-rti-cpp-tck/fom/dimension-input-na-tck.xml")
+            ),
             "dimension-input-mixed-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-mixed-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-mixed-na-tck.xml"
+                )
+            ),
             "dimension-duplicate-within-module="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-within-module-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-duplicate-within-module-tck.xml"
+                )
+            ),
             "object-class-name-period="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-period-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-class-name-period-tck.xml"
+                )
+            ),
             "object-class-name-reserved-hla="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-reserved-hla-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-class-name-reserved-hla-tck.xml"
+                )
+            ),
             "object-class-name-reserved-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-reserved-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-class-name-reserved-na-tck.xml"
+                )
+            ),
             "object-class-name-allowed-punctuation="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-name-allowed-punctuation-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-class-name-allowed-punctuation-tck.xml"
+                )
+            ),
             "model-modification-date-timezone="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-timezone-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/model-modification-date-timezone-tck.xml"
+                )
+            ),
             "model-modification-date-exact="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/model-modification-date-exact-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/model-modification-date-exact-tck.xml"
+                )
+            ),
             "update-rate-zero-preflight="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml"
+                )
+            ),
             "update-rate-positive-preflight="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-positive-preflight-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-positive-preflight-tck.xml"
+                )
+            ),
             "dimension-default-range-outside="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-default-range-outside-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-default-range-outside-tck.xml"
+                )
+            ),
             "dimension-default-range-bounded="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-default-range-bounded-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-default-range-bounded-tck.xml"
+                )
+            ),
             "dimension-input-table-type="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml"
+                )
+            ),
             "dimension-input-description-na-invalid="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-na-invalid-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-description-na-invalid-tck.xml"
+                )
+            ),
             "dimension-input-description-text="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-text-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-description-text-tck.xml"
+                )
+            ),
             "dimension-input-description-named-na="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-description-named-na-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-description-named-na-tck.xml"
+                )
+            ),
             "dimension-input-description-named-text="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml"
+                )
+            ),
             "synchronization-duplicate-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml"
+                )
+            ),
             "synchronization-duplicate-equal="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml"
+                )
+            ),
             "synchronization-duplicate-note-conflict="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml"
+                )
+            ),
             "transportation-duplicate-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-duplicate-base-tck.xml"
+                )
+            ),
             "transportation-duplicate-equal="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml"
+                )
+            ),
             "transportation-duplicate-note-conflict="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml"
+                )
+            ),
             "update-rate-duplicate-base="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-base-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-duplicate-base-tck.xml"
+                )
+            ),
             "update-rate-duplicate-equal="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml"
+                )
+            ),
             "update-rate-duplicate-note-conflict="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml"
+                )
+            ),
             "switch-duplicate-disabled="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-disabled-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/switch-duplicate-disabled-tck.xml"
+                )
+            ),
             "switch-duplicate-equal="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml"
+                )
+            ),
             "switch-duplicate-enabled="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml"
+                )
+            ),
             "switch-duplicate-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml"
+                )
+            ),
             "advisory-switch-duplicate-disabled="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-disabled-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-disabled-tck.xml"
+                )
+            ),
             "advisory-switch-duplicate-equal="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-equal-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-equal-tck.xml"
+                )
+            ),
             "advisory-switch-duplicate-enabled="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml"
+                )
+            ),
             "advisory-switch-duplicate-omitted="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-omitted-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-omitted-tck.xml"
+                )
+            ),
             "service-usage-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml")),
+            + str(
+                default_path("packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml")
+            ),
             "service-usage-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/service-usage-second-tck.xml"
+                )
+            ),
             "note-collision-first="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/note-collision-first-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/note-collision-first-tck.xml"
+                )
+            ),
             "note-collision-second="
-            + str(default_path("packages/hla-rti-cpp-tck/fom/note-collision-second-tck.xml")),
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/note-collision-second-tck.xml"
+                )
+            ),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()
@@ -988,10 +1688,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
         path = resolve_path(file_name, must_exist=True, label=f"scenario FOM {name}")
         scenario_foms.append(f"{name}={path}")
     inputs["scenario_foms"] = scenario_foms
-    return inputs
+    return cast(ResolvedInputs, inputs)
 
 
-def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> list[str]:
+def cmake_definitions(
+    arguments: argparse.Namespace, inputs: ResolvedInputs
+) -> list[str]:
     definitions = {
         "CMAKE_BUILD_TYPE": arguments.configuration,
         "BUILD_TESTING": "ON",
@@ -1002,12 +1704,9 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION": arguments.fom_additional_transportation,
         "HLA_RTI_TCK_ADAPTER_FOM_DIMENSION": arguments.fom_dimension,
         "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION": arguments.fom_additional_dimension,
-        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS":
-            arguments.fom_additional_dimension_object_class,
-        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE":
-            arguments.fom_additional_dimension_attribute,
-        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_UPDATE_RATE":
-            arguments.fom_additional_update_rate,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS": arguments.fom_additional_dimension_object_class,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE": arguments.fom_additional_dimension_attribute,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_UPDATE_RATE": arguments.fom_additional_update_rate,
         "HLA_RTI_TCK_ADAPTER_RATE_FOM": inputs["rate_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_FOM": inputs["ddm_fom"],
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM": inputs["multi_attribute_fom"],
@@ -1056,7 +1755,9 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
             "known_class_disabled_fom"
         ],
-        "HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM": inputs["ownership_extension_fom"],
+        "HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM": inputs[
+            "ownership_extension_fom"
+        ],
         "HLA_RTI_TCK_ADAPTER_OWNERSHIP_ADDED_ATTRIBUTE": arguments.ownership_added_attribute,
         "HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS": ";".join(inputs["ddm_dimensions"]),
         "HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS": ";".join(
@@ -1114,9 +1815,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_ATTRIBUTE": (
             arguments.known_class_derived_attribute
         ),
-        "HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES": join_cmake_list(inputs["additional_fom"]),
-        "HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES": join_cmake_list(inputs["invalid_fom"]),
-        "HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES": join_cmake_list(inputs["standard_invalid_fom"]),
+        "HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES": join_cmake_list(
+            inputs["additional_fom"]
+        ),
+        "HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES": join_cmake_list(
+            inputs["invalid_fom"]
+        ),
+        "HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES": join_cmake_list(
+            inputs["standard_invalid_fom"]
+        ),
         "HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL": arguments.callback_model,
         "HLA_RTI_TCK_ADAPTER_TIMEOUT_MS": str(arguments.timeout_ms),
         "HLA_RTI_TCK_ADAPTER_SCENARIO_SET": arguments.scenario_set,
@@ -1136,16 +1843,16 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
     }
     definitions.update({key: value for key, value in optional.items() if value})
     if arguments.connection_loss_fixture:
-        definitions[
-            "HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS"
-        ] = ";".join(CONNECTION_LOSS_SCENARIOS)
+        definitions["HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS"] = ";".join(
+            CONNECTION_LOSS_SCENARIOS
+        )
         definitions["HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED"] = "ON"
     if arguments.connection_loss_server_managed:
         definitions["HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED"] = "ON"
     return [f"-D{key}={value}" for key, value in definitions.items()]
 
 
-def configure(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
+def configure(arguments: argparse.Namespace, inputs: ResolvedInputs) -> None:
     build_directory: Path = inputs["build_directory"]
     command = [
         arguments.cmake,
@@ -1162,7 +1869,7 @@ def configure(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     run_command(command, cwd=ROOT)
 
 
-def verify_configured_package(inputs: dict[str, Any]) -> dict[str, Path]:
+def verify_configured_package(inputs: ResolvedInputs) -> ConfiguredPackagePaths:
     """Reject a reused CMake cache bound to a different installed package.
 
     CMAKE_PREFIX_PATH is only a search hint: a cached package ``_DIR`` may
@@ -1174,19 +1881,28 @@ def verify_configured_package(inputs: dict[str, Any]) -> dict[str, Path]:
     if not cache.is_file():
         raise ValueError(f"configured CMake cache was not found: {cache}")
     keys = ("umbra_rti_DIR", "HLA_RTI_TCK_API_INCLUDE_DIR")
-    values: dict[str, Path] = {}
+    values: ConfiguredPackagePaths = {}
     for line in cache.read_text(encoding="utf-8", errors="replace").splitlines():
         name_and_type, separator, value = line.partition("=")
         if not separator:
             continue
         name = name_and_type.partition(":")[0]
-        if name in keys and value and not value.endswith("-NOTFOUND"):
-            values[name] = Path(value).resolve()
+        if value and not value.endswith("-NOTFOUND"):
+            resolved = Path(value).resolve()
+            if name == "umbra_rti_DIR":
+                values["umbra_rti_DIR"] = resolved
+            elif name == "HLA_RTI_TCK_API_INCLUDE_DIR":
+                values["HLA_RTI_TCK_API_INCLUDE_DIR"] = resolved
     prefix: Path = inputs["package_prefix"].resolve()
-    for key in keys:
-        actual = values.get(key)
+    actual_paths = (
+        values.get("umbra_rti_DIR"),
+        values.get("HLA_RTI_TCK_API_INCLUDE_DIR"),
+    )
+    for key, actual in zip(keys, actual_paths, strict=True):
         if actual is None or not actual.is_dir():
-            raise ValueError(f"configured {key} is missing or not a directory in {cache}")
+            raise ValueError(
+                f"configured {key} is missing or not a directory in {cache}"
+            )
         if not actual.is_relative_to(prefix):
             raise ValueError(
                 f"configured {key} resolves outside --package-prefix: "
@@ -1196,7 +1912,7 @@ def verify_configured_package(inputs: dict[str, Any]) -> dict[str, Path]:
     return values
 
 
-def build(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
+def build(arguments: argparse.Namespace, inputs: ResolvedInputs) -> None:
     command = [
         arguments.cmake,
         "--build",
@@ -1209,7 +1925,7 @@ def build(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     run_command(command, cwd=ROOT)
 
 
-def ctest_scenario_regex(selected: list[dict[str, Any]]) -> str | None:
+def ctest_scenario_regex(selected: Sequence[CppTckScenario]) -> str | None:
     """Return an exact CTest-name filter for a selected catalog slice.
 
     CMake applies the scenario filter while configuring the adapter, but a
@@ -1220,19 +1936,14 @@ def ctest_scenario_regex(selected: list[dict[str, Any]]) -> str | None:
     """
     if not selected:
         return None
-    slugs = {
-        re.sub(r"[^A-Za-z0-9_]", "_", scenario["id"])
-        for scenario in selected
-    }
-    alternatives = sorted(
-        f"hla_rti_cpp_tck\\.{re.escape(slug)}\\." for slug in slugs
-    )
+    slugs = {re.sub(r"[^A-Za-z0-9_]", "_", scenario["id"]) for scenario in selected}
+    alternatives = sorted(f"hla_rti_cpp_tck\\.{re.escape(slug)}\\." for slug in slugs)
     return "(" + "|".join(alternatives) + ")"
 
 
 def ctest_callback_model_exclusion_regex(
     arguments: argparse.Namespace,
-    selected: list[dict[str, Any]],
+    selected: Sequence[CppTckScenario],
 ) -> str | None:
     if arguments.callback_model != "both":
         return None
@@ -1250,8 +1961,8 @@ def ctest_callback_model_exclusion_regex(
 
 def ctest_registered_scenarios(
     arguments: argparse.Namespace,
-    selected: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
+    selected: Sequence[CppTckScenario],
+) -> list[CppTckScenario]:
     """Remove scenarios executed only through an adapter-managed fixture."""
     return [
         scenario
@@ -1269,8 +1980,8 @@ def ctest_registered_scenarios(
 
 def run_ctest(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
-    selected: list[dict[str, Any]],
+    inputs: ResolvedInputs,
+    selected: Sequence[CppTckScenario],
 ) -> None:
     command = [
         arguments.ctest,
@@ -1321,10 +2032,16 @@ def find_executable(build_directory: Path, configuration: str) -> Path:
     )
 
 
-def select_scenarios(arguments: argparse.Namespace, catalog: dict[str, Any]) -> list[dict[str, Any]]:
+def select_scenarios(
+    arguments: argparse.Namespace, catalog: CppTckCatalog
+) -> list[CppTckScenario]:
     by_id = {scenario["id"]: scenario for scenario in catalog["scenarios"]}
     if arguments.scenario:
-        unknown = [scenario_id for scenario_id in arguments.scenario if scenario_id not in by_id]
+        unknown = [
+            scenario_id
+            for scenario_id in arguments.scenario
+            if scenario_id not in by_id
+        ]
         if unknown:
             raise ValueError("unknown catalog scenario(s): " + ", ".join(unknown))
         if len(set(arguments.scenario)) != len(arguments.scenario):
@@ -1335,13 +2052,12 @@ def select_scenarios(arguments: argparse.Namespace, catalog: dict[str, Any]) -> 
             scenario
             for scenario in catalog["scenarios"]
             if scenario["default_status"] != "unsupported"
-            and (
-                arguments.scenario_set == "all"
-                or scenario["promotion"] == "promoted"
-            )
+            and (arguments.scenario_set == "all" or scenario["promotion"] == "promoted")
         ]
     unsupported = [
-        scenario["id"] for scenario in selected if scenario["default_status"] == "unsupported"
+        scenario["id"]
+        for scenario in selected
+        if scenario["default_status"] == "unsupported"
     ]
     if unsupported:
         raise ValueError("unsupported catalog scenario(s): " + ", ".join(unsupported))
@@ -1361,8 +2077,8 @@ def select_scenarios(arguments: argparse.Namespace, catalog: dict[str, Any]) -> 
 
 def direct_arguments(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
-    selected: list[dict[str, Any]],
+    inputs: ResolvedInputs,
+    selected: Sequence[CppTckScenario],
     results: Path | None,
     junit: Path | None,
 ) -> list[str]:
@@ -1560,12 +2276,12 @@ def direct_arguments(
 
 def direct_scenario_chunks(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
-    selected: list[dict[str, Any]],
+    selected: Sequence[CppTckScenario],
     results: Path | None,
     junit: Path | None,
-) -> list[list[dict[str, Any]]]:
+) -> list[list[CppTckScenario]]:
     """Partition a direct run when its child-process command line is large."""
     if not selected:
         return []
@@ -1579,8 +2295,8 @@ def direct_scenario_chunks(
     if command_length(full_command) <= DIRECT_COMMAND_LENGTH_LIMIT:
         return [selected]
 
-    chunks: list[list[dict[str, Any]]] = []
-    current: list[dict[str, Any]] = []
+    chunks: list[list[CppTckScenario]] = []
+    current: list[CppTckScenario] = []
     for scenario in selected:
         candidate = current + [scenario]
         candidate_command = [str(executable)] + direct_arguments(
@@ -1864,8 +2580,12 @@ CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_INTERACTION_ALTERNATE_ADVANCES_SCENAR
     "cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances-contract",
 )
 CONNECTION_LOSS_ADAPTER = (
-    ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
-    "run_connection_loss.py"
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_connection_loss.py"
 )
 OWNERSHIP_SERVICE_REPORT_SCENARIOS = (
     "cpp-tck.service-report-query-attribute-ownership",
@@ -1876,8 +2596,12 @@ OWNERSHIP_SERVICE_REPORT_SCENARIOS = (
     "cpp-tck.service-report-confirm-divestiture-contract",
 )
 OWNERSHIP_SERVICE_REPORT_ADAPTER = (
-    ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
-    "run_confirm_divestiture.py"
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_confirm_divestiture.py"
 )
 
 
@@ -1902,7 +2626,9 @@ def is_portable_dispatch_scenario(scenario_id: str) -> bool:
 def is_custom_transportation_timestamped_regional_interaction_scenario(
     scenario_id: str,
 ) -> bool:
-    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_REGIONAL_INTERACTION_SCENARIOS
+    return (
+        scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_REGIONAL_INTERACTION_SCENARIOS
+    )
 
 
 def is_custom_transportation_attribute_scenario(scenario_id: str) -> bool:
@@ -1924,13 +2650,19 @@ def is_custom_transportation_timestamped_attribute_scenario(scenario_id: str) ->
 def is_custom_transportation_timestamped_attribute_alternate_advances_scenario(
     scenario_id: str,
 ) -> bool:
-    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_ALTERNATE_ADVANCES_SCENARIOS
+    return (
+        scenario_id
+        in CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_ALTERNATE_ADVANCES_SCENARIOS
+    )
 
 
 def is_custom_transportation_timestamped_interaction_alternate_advances_scenario(
     scenario_id: str,
 ) -> bool:
-    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
+    return (
+        scenario_id
+        in CUSTOM_TRANSPORTATION_TIMESTAMPED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
+    )
 
 
 def is_custom_transportation_timestamped_directed_delivery_scenario(
@@ -1942,14 +2674,17 @@ def is_custom_transportation_timestamped_directed_delivery_scenario(
 def is_custom_transportation_timestamped_directed_interaction_alternate_advances_scenario(
     scenario_id: str,
 ) -> bool:
-    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
+    return (
+        scenario_id
+        in CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
+    )
 
 
 def run_executable_direct(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
-    selected: list[dict[str, Any]],
+    selected: Sequence[CppTckScenario],
     results: Path | None,
     junit: Path | None,
 ) -> None:
@@ -1985,7 +2720,7 @@ def run_executable_direct(
             results,
             junit,
         )
-        run_command(command, cwd=ROOT)
+        run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
         return
 
     print(
@@ -2020,7 +2755,7 @@ def run_executable_direct(
                 chunk_junit,
             )
             try:
-                run_command(command, cwd=ROOT)
+                run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
             except subprocess.CalledProcessError as error:
                 failed_scenarios.append((scenario["id"], error))
             if chunk_results is not None and chunk_results.is_file():
@@ -2062,7 +2797,7 @@ def run_executable_direct(
 
 def run_connection_loss_adapter(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
     scenario_id: str,
     results: Path,
@@ -2118,9 +2853,9 @@ def run_connection_loss_adapter(
 
 def run_connection_loss_check(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
-    scenario_ids: list[str],
+    scenario_ids: Sequence[str],
 ) -> None:
     with tempfile.TemporaryDirectory(
         prefix="cpp-tck-connection-loss-",
@@ -2140,7 +2875,7 @@ def run_connection_loss_check(
 
 def run_ownership_service_report_adapter(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
     scenario_id: str,
     results: Path,
@@ -2190,9 +2925,9 @@ def run_ownership_service_report_adapter(
 
 def run_ownership_service_report_check(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
-    scenario_ids: list[str],
+    scenario_ids: Sequence[str],
 ) -> None:
     with tempfile.TemporaryDirectory(
         prefix="cpp-tck-ownership-service-report-",
@@ -2231,7 +2966,7 @@ def merge_json_evidence_parts(parts: Iterable[Path], output: Path) -> None:
 
 def validate_direct_evidence(
     results: Path,
-    selected: list[dict[str, Any]],
+    selected: Sequence[CppTckScenario],
     callback_model: str,
 ) -> None:
     payload = json.loads(results.read_text(encoding="utf-8"))
@@ -2246,7 +2981,9 @@ def validate_direct_evidence(
     }
     missing = sorted(expected - observed)
     if missing:
-        preview = ", ".join(f"{scenario_id}/{model}" for scenario_id, model in missing[:12])
+        preview = ", ".join(
+            f"{scenario_id}/{model}" for scenario_id, model in missing[:12]
+        )
         suffix = "" if len(missing) <= 12 else f" (+{len(missing) - 12} more)"
         raise ValueError(
             "direct evidence is missing selected scenario/callback results: "
@@ -2257,7 +2994,7 @@ def validate_direct_evidence(
 
 def callback_models_for_run(
     requested_callback_model: str,
-    scenario: dict[str, Any],
+    scenario: CppTckScenario,
 ) -> tuple[str, ...]:
     requested = (
         STANDARD_CALLBACK_MODELS
@@ -2270,7 +3007,7 @@ def callback_models_for_run(
 
 def callback_model_argument_for_scenario(
     arguments: argparse.Namespace,
-    scenario: dict[str, Any],
+    scenario: CppTckScenario,
 ) -> str:
     models = callback_models_for_run(arguments.callback_model, scenario)
     if not models:
@@ -2281,11 +3018,41 @@ def callback_model_argument_for_scenario(
     return "both" if models == STANDARD_CALLBACK_MODELS else models[0]
 
 
+def direct_run_environment(
+    inputs: ResolvedInputs,
+    *,
+    base_environment: Mapping[str, str] | None = None,
+) -> MutableMapping[str, str]:
+    """Add the selected package's runtime directory for direct child runs.
+
+    CTest receives this path from the package adapter's test properties. The
+    direct-evidence subprocess must receive the equivalent DLL/shared-library
+    search path when it bypasses CTest.
+    """
+    environment: MutableMapping[str, str] = dict(
+        os.environ if base_environment is None else base_environment
+    )
+    if os.name == "nt":
+        variable = "PATH"
+        runtime_directory = Path(inputs["package_prefix"]) / "bin"
+    elif sys.platform == "darwin":
+        variable = "DYLD_LIBRARY_PATH"
+        runtime_directory = Path(inputs["package_prefix"]) / "lib"
+    else:
+        variable = "LD_LIBRARY_PATH"
+        runtime_directory = Path(inputs["package_prefix"]) / "lib"
+    existing = environment.get(variable)
+    environment[variable] = os.pathsep.join(
+        [str(runtime_directory), *([existing] if existing else [])]
+    )
+    return environment
+
+
 def run_portable_dispatch_direct(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
+    inputs: ResolvedInputs,
     executable: Path,
-    scenario: dict[str, Any],
+    scenario: CppTckScenario,
     results: Path | None,
     junit: Path | None,
 ) -> None:
@@ -2300,6 +3067,7 @@ def run_portable_dispatch_direct(
         if arguments.callback_model == "both"
         else (arguments.callback_model,)
     )
+    child_environment = direct_run_environment(inputs)
     runner_id = scenario["runner_id"]
     with tempfile.TemporaryDirectory(
         prefix="cpp-tck-portable-dispatch-evidence-",
@@ -2322,6 +3090,7 @@ def run_portable_dispatch_direct(
             completed = subprocess.run(
                 command,
                 cwd=ROOT,
+                env=child_environment,
                 text=True,
                 capture_output=True,
                 check=False,
@@ -2445,9 +3214,9 @@ def merge_junit_evidence(
 
 def run_direct(
     arguments: argparse.Namespace,
-    inputs: dict[str, Any],
-    catalog: dict[str, Any],
-) -> dict[str, Any]:
+    inputs: ResolvedInputs,
+    catalog: CppTckCatalog,
+) -> DirectRunSummary:
     selected = select_scenarios(arguments, catalog)
     results = (
         resolve_path(arguments.results, must_exist=False, label="results output")
@@ -2464,9 +3233,7 @@ def run_direct(
             output.parent.mkdir(parents=True, exist_ok=True)
     executable = find_executable(inputs["build_directory"], arguments.configuration)
     connection_loss_selected = [
-        scenario
-        for scenario in selected
-        if is_connection_loss_scenario(scenario["id"])
+        scenario for scenario in selected if is_connection_loss_scenario(scenario["id"])
     ]
     public_handle_decoding_selected = [
         scenario
@@ -2517,7 +3284,9 @@ def run_direct(
     custom_transportation_timestamped_directed_delivery_selected = [
         scenario
         for scenario in selected
-        if is_custom_transportation_timestamped_directed_delivery_scenario(scenario["id"])
+        if is_custom_transportation_timestamped_directed_delivery_scenario(
+            scenario["id"]
+        )
     ]
     custom_transportation_timestamped_directed_interaction_alternate_advances_selected = [
         scenario
@@ -2566,9 +3335,7 @@ def run_direct(
     if special_selected:
         special_ids = {scenario["id"] for scenario in special_selected}
         direct_selected = [
-            scenario
-            for scenario in selected
-            if scenario["id"] not in special_ids
+            scenario for scenario in selected if scenario["id"] not in special_ids
         ]
         with tempfile.TemporaryDirectory(
             prefix="cpp-tck-special-slices-",
@@ -2625,7 +3392,9 @@ def run_direct(
                     custom_transportation_attribute_junit_parts.append(custom_junit)
             custom_transportation_interaction_results_parts: list[Path] = []
             custom_transportation_interaction_junit_parts: list[Path] = []
-            for index, scenario in enumerate(custom_transportation_interaction_selected):
+            for index, scenario in enumerate(
+                custom_transportation_interaction_selected
+            ):
                 custom_results = temporary_root / (
                     f"custom-transportation-interaction-{index}.json"
                 )
@@ -2641,12 +3410,16 @@ def run_direct(
                     custom_junit if junit is not None else None,
                 )
                 if results is not None:
-                    custom_transportation_interaction_results_parts.append(custom_results)
+                    custom_transportation_interaction_results_parts.append(
+                        custom_results
+                    )
                 if junit is not None:
                     custom_transportation_interaction_junit_parts.append(custom_junit)
             custom_transportation_timestamped_delivery_results_parts: list[Path] = []
             custom_transportation_timestamped_delivery_junit_parts: list[Path] = []
-            for index, scenario in enumerate(custom_transportation_timestamped_delivery_selected):
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_delivery_selected
+            ):
                 custom_results = temporary_root / (
                     f"custom-transportation-timestamped-delivery-{index}.json"
                 )
@@ -2662,9 +3435,13 @@ def run_direct(
                     custom_junit if junit is not None else None,
                 )
                 if results is not None:
-                    custom_transportation_timestamped_delivery_results_parts.append(custom_results)
+                    custom_transportation_timestamped_delivery_results_parts.append(
+                        custom_results
+                    )
                 if junit is not None:
-                    custom_transportation_timestamped_delivery_junit_parts.append(custom_junit)
+                    custom_transportation_timestamped_delivery_junit_parts.append(
+                        custom_junit
+                    )
             custom_transportation_timestamped_attribute_results_parts: list[Path] = []
             custom_transportation_timestamped_attribute_junit_parts: list[Path] = []
             for index, scenario in enumerate(
@@ -2692,8 +3469,12 @@ def run_direct(
                     custom_transportation_timestamped_attribute_junit_parts.append(
                         custom_junit
                     )
-            custom_transportation_timestamped_attribute_alternate_advances_results_parts: list[Path] = []
-            custom_transportation_timestamped_attribute_alternate_advances_junit_parts: list[Path] = []
+            custom_transportation_timestamped_attribute_alternate_advances_results_parts: list[
+                Path
+            ] = []
+            custom_transportation_timestamped_attribute_alternate_advances_junit_parts: list[
+                Path
+            ] = []
             for index, scenario in enumerate(
                 custom_transportation_timestamped_attribute_alternate_advances_selected
             ):
@@ -2719,8 +3500,12 @@ def run_direct(
                     custom_transportation_timestamped_attribute_alternate_advances_junit_parts.append(
                         custom_junit
                     )
-            custom_transportation_timestamped_interaction_alternate_advances_results_parts: list[Path] = []
-            custom_transportation_timestamped_interaction_alternate_advances_junit_parts: list[Path] = []
+            custom_transportation_timestamped_interaction_alternate_advances_results_parts: list[
+                Path
+            ] = []
+            custom_transportation_timestamped_interaction_alternate_advances_junit_parts: list[
+                Path
+            ] = []
             for index, scenario in enumerate(
                 custom_transportation_timestamped_interaction_alternate_advances_selected
             ):
@@ -2746,9 +3531,15 @@ def run_direct(
                     custom_transportation_timestamped_interaction_alternate_advances_junit_parts.append(
                         custom_junit
                     )
-            custom_transportation_timestamped_directed_delivery_results_parts: list[Path] = []
-            custom_transportation_timestamped_directed_delivery_junit_parts: list[Path] = []
-            for index, scenario in enumerate(custom_transportation_timestamped_directed_delivery_selected):
+            custom_transportation_timestamped_directed_delivery_results_parts: list[
+                Path
+            ] = []
+            custom_transportation_timestamped_directed_delivery_junit_parts: list[
+                Path
+            ] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_directed_delivery_selected
+            ):
                 custom_results = temporary_root / (
                     f"custom-transportation-timestamped-directed-delivery-{index}.json"
                 )
@@ -2771,8 +3562,12 @@ def run_direct(
                     custom_transportation_timestamped_directed_delivery_junit_parts.append(
                         custom_junit
                     )
-            custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts: list[Path] = []
-            custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts: list[Path] = []
+            custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts: list[
+                Path
+            ] = []
+            custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts: list[
+                Path
+            ] = []
             for index, scenario in enumerate(
                 custom_transportation_timestamped_directed_interaction_alternate_advances_selected
             ):
@@ -2798,8 +3593,12 @@ def run_direct(
                     custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts.append(
                         custom_junit
                     )
-            custom_transportation_timestamped_regional_interaction_results_parts: list[Path] = []
-            custom_transportation_timestamped_regional_interaction_junit_parts: list[Path] = []
+            custom_transportation_timestamped_regional_interaction_results_parts: list[
+                Path
+            ] = []
+            custom_transportation_timestamped_regional_interaction_junit_parts: list[
+                Path
+            ] = []
             for index, scenario in enumerate(
                 custom_transportation_timestamped_regional_interaction_selected
             ):
@@ -2869,7 +3668,9 @@ def run_direct(
             ownership_service_report_results_parts: list[Path] = []
             ownership_service_report_junit_parts: list[Path] = []
             for index, scenario in enumerate(managed_ownership_service_report_selected):
-                service_results = temporary_root / f"ownership-service-report-{index}.json"
+                service_results = (
+                    temporary_root / f"ownership-service-report-{index}.json"
+                )
                 service_junit = temporary_root / f"ownership-service-report-{index}.xml"
                 run_ownership_service_report_adapter(
                     arguments,
@@ -2883,48 +3684,56 @@ def run_direct(
                 ownership_service_report_junit_parts.append(service_junit)
             if results is not None:
                 json_parts = (
-                    [base_results] if base_results is not None else []
-                ) + public_results_parts + custom_transportation_attribute_results_parts + (
-                    custom_transportation_interaction_results_parts
-                ) + (
-                    custom_transportation_timestamped_delivery_results_parts
-                ) + (
-                    custom_transportation_timestamped_attribute_results_parts
-                ) + (
-                    custom_transportation_timestamped_attribute_alternate_advances_results_parts
-                ) + (
-                    custom_transportation_timestamped_interaction_alternate_advances_results_parts
-                ) + (
-                    custom_transportation_timestamped_directed_delivery_results_parts
-                ) + (
-                    custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts
-                ) + (
-                    custom_transportation_timestamped_regional_interaction_results_parts
-                ) + portable_dispatch_results_parts + loss_results_parts + (
-                    ownership_service_report_results_parts
+                    ([base_results] if base_results is not None else [])
+                    + public_results_parts
+                    + custom_transportation_attribute_results_parts
+                    + (custom_transportation_interaction_results_parts)
+                    + (custom_transportation_timestamped_delivery_results_parts)
+                    + (custom_transportation_timestamped_attribute_results_parts)
+                    + (
+                        custom_transportation_timestamped_attribute_alternate_advances_results_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_interaction_alternate_advances_results_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_directed_delivery_results_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_regional_interaction_results_parts
+                    )
+                    + portable_dispatch_results_parts
+                    + loss_results_parts
+                    + (ownership_service_report_results_parts)
                 )
                 merge_json_evidence_parts(json_parts, results)
             if junit is not None:
                 junit_parts = (
-                    [base_junit] if base_junit is not None else []
-                ) + public_junit_parts + custom_transportation_attribute_junit_parts + (
-                    custom_transportation_interaction_junit_parts
-                ) + (
-                    custom_transportation_timestamped_delivery_junit_parts
-                ) + (
-                    custom_transportation_timestamped_attribute_junit_parts
-                ) + (
-                    custom_transportation_timestamped_attribute_alternate_advances_junit_parts
-                ) + (
-                    custom_transportation_timestamped_interaction_alternate_advances_junit_parts
-                ) + (
-                    custom_transportation_timestamped_directed_delivery_junit_parts
-                ) + (
-                    custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts
-                ) + (
-                    custom_transportation_timestamped_regional_interaction_junit_parts
-                ) + portable_dispatch_junit_parts + loss_junit_parts + (
-                    ownership_service_report_junit_parts
+                    ([base_junit] if base_junit is not None else [])
+                    + public_junit_parts
+                    + custom_transportation_attribute_junit_parts
+                    + (custom_transportation_interaction_junit_parts)
+                    + (custom_transportation_timestamped_delivery_junit_parts)
+                    + (custom_transportation_timestamped_attribute_junit_parts)
+                    + (
+                        custom_transportation_timestamped_attribute_alternate_advances_junit_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_interaction_alternate_advances_junit_parts
+                    )
+                    + (custom_transportation_timestamped_directed_delivery_junit_parts)
+                    + (
+                        custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts
+                    )
+                    + (
+                        custom_transportation_timestamped_regional_interaction_junit_parts
+                    )
+                    + portable_dispatch_junit_parts
+                    + loss_junit_parts
+                    + (ownership_service_report_junit_parts)
                 )
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
@@ -2969,8 +3778,7 @@ def main() -> int:
                 arguments.connection_loss_fixture
                 and not (arguments.results or arguments.junit)
                 and any(
-                    is_connection_loss_scenario(scenario["id"])
-                    for scenario in selected
+                    is_connection_loss_scenario(scenario["id"]) for scenario in selected
                 )
             ):
                 run_connection_loss_check(
@@ -3024,18 +3832,28 @@ def main() -> int:
                     )
                 ]
             ),
-            "direct_scenario_count": len(selected) if (arguments.results or arguments.junit) else 0,
+            "direct_scenario_count": len(selected)
+            if (arguments.results or arguments.junit)
+            else 0,
             "ctest": ctest_ran,
             "direct": direct_summary,
         }
         print(json.dumps(summary, indent=2, sort_keys=True))
         return 0
-    except (OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as error:
+    except (
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ) as error:
         if isinstance(error, subprocess.CalledProcessError):
             message = f"command failed with exit code {error.returncode}: {command_text(error.cmd)}"
         else:
             message = str(error)
-        print(json.dumps({"valid": False, "findings": [message]}, indent=2), file=sys.stderr)
+        print(
+            json.dumps({"valid": False, "findings": [message]}, indent=2),
+            file=sys.stderr,
+        )
         return 1
 
 

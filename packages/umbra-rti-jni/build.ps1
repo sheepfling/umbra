@@ -2,6 +2,7 @@
 param(
     [string]$OutputDirectory = (Join-Path $PSScriptRoot "build"),
     [string]$JavaApiJar,
+    [string]$Libxml2SourceDirectory,
     [switch]$RunSmokeTest
 )
 
@@ -53,8 +54,23 @@ $cmakeArguments = @(
     "-DUMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON",
     "-DUMBRA_FETCH_LIBXML2=ON"
 )
-$cachedLibxmlSource = Join-Path $repositoryRoot "packages\umbra-rti-native\build\cp312-cp312-win_amd64\_deps\libxml2-src"
-if (Test-Path -LiteralPath $cachedLibxmlSource -PathType Container) {
+$cachedLibxmlSource = $null
+if (-not [string]::IsNullOrWhiteSpace($Libxml2SourceDirectory)) {
+    $cachedLibxmlSource = [System.IO.Path]::GetFullPath($Libxml2SourceDirectory)
+    if (-not (Test-Path -LiteralPath (Join-Path $cachedLibxmlSource "CMakeLists.txt") -PathType Leaf)) {
+        throw "Libxml2 source directory must contain CMakeLists.txt: $cachedLibxmlSource"
+    }
+} else {
+    $cachedLibxmlCandidates = @(
+        (Join-Path $repositoryRoot "out\mgw\embedded\_deps\libxml2-src"),
+        (Join-Path $repositoryRoot "out\cmake\fom-services\_deps\libxml2-src"),
+        (Join-Path $repositoryRoot "packages\umbra-rti-native\build\cp312-cp312-win_amd64\_deps\libxml2-src")
+    )
+    $cachedLibxmlSource = $cachedLibxmlCandidates |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_ "CMakeLists.txt") -PathType Leaf } |
+        Select-Object -First 1
+}
+if ($null -ne $cachedLibxmlSource) {
     $cmakeArguments += "-DFETCHCONTENT_SOURCE_DIR_LIBXML2=$cachedLibxmlSource"
 }
 & cmake @cmakeArguments

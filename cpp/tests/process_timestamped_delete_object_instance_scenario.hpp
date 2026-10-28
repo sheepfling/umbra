@@ -14,5 +14,6 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     bool requestNmr = false,
     bool verifyProducerTimeBoundary = false,
     bool receiverKnowsObject = true,
-    bool disableProducerRegulation = false);
+    bool disableProducerRegulation = false,
+    bool verifyDeferredLookaheadDeletionBoundary = false);
 #endif

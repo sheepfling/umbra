@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records one bounded native C++ development-profile slice: a timestamped Delete Object Instance accepted while the producer regulates with lookahead one, retained while the producer disables and callback-gated re-enables Time Regulation with changed lookahead three, and delivered to a time-constrained recipient after the producer establishes the new GALT boundary. It proves that the new lookahead is observable and governs the subsequent removal callback without replacing the queued deletion or its retraction identity. It does not claim general time-role coordination, alternate advance modes, save/restore, remote transport, package/JUnit/protected-review evidence, validation, or conformance. Requirement IDs are synchronized to the locked 2025 export; any future reappearance of a previously mitigated RL issue must be appended as a new post-RL-157 observation rather than changing the historical entry.",
+  "notes": "This contract records one bounded native C++ development-profile slice: a timestamped Delete Object Instance accepted while the producer regulates with lookahead one, retained while the producer disables and callback-gated re-enables Time Regulation with changed lookahead three, and delivered to a time-constrained recipient after the producer establishes the new GALT boundary. It proves that the new lookahead is observable and governs the subsequent removal callback without replacing the queued deletion or its retraction identity. It does not claim general time-role coordination, alternate advance modes, save/restore, remote transport, package/JUnit/protected-review evidence, validation, or conformance. Requirement IDs are synchronized to the locked 2025 export; any future reappearance of a previously mitigated RL issue must be appended as a new post-RL-157 observation rather than changing the historical entry. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-timestamped-delete-regulation-reenable-changed-lookahead-known-instance",
@@ -98,7 +98,7 @@
     {
       "id": "umbra-timestamped-delete-regulation-reenable-changed-lookahead-disable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeRegulation",
       "tests": [
@@ -138,7 +138,7 @@
     {
       "id": "umbra-timestamped-delete-regulation-reenable-changed-lookahead-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
-      "clause_id": "clause-8.8.3",
+      "clause_id": "clause-8.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
@@ -155,5 +155,25 @@
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "timestamped-object-deletion-regulation-reenable-changed-lookahead-requirements-contract.json",
+        "owned_id": "umbra-timestamped-delete-regulation-reenable-changed-lookahead-disable",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      },
+      {
+        "contract": "timestamped-object-deletion-regulation-reenable-changed-lookahead-requirements-contract.json",
+        "owned_id": "umbra-timestamped-delete-regulation-reenable-changed-lookahead-grant",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "previous_clause_id": "clause-8.8.3",
+        "reviewed_clause_id": "clause-8.8"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

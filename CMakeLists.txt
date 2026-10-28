@@ -15,9 +15,20 @@ endif()
 
 include(GNUInstallDirs)
 include(CTest)
+include(cmake/test_executable_budget.cmake)
 include(CMakePackageConfigHelpers)
 
 option(UMBRA_FETCH_CATCH2 "Download the pinned Catch2 test dependency when it is unavailable" OFF)
+option(
+  UMBRA_FULL_DEBUG_TEST_EXECUTABLES
+  "Keep full debug sections in explicitly built MinGW test executables"
+  OFF
+)
+option(
+  UMBRA_EXPORT_INTERNAL_TEST_SYMBOLS
+  "Export private MinGW DLL symbols needed by native Catch2 white-box tests"
+  OFF
+)
 option(
   UMBRA_BUILD_SHARED_LIBRARIES
   "Build the IEEE 1516.1-2025 RTI, fedtime, and authorizer libraries as shared libraries"
@@ -300,6 +311,7 @@ add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/internal/federation/process_federation_service_interaction_send.cpp
   cpp/src/internal/federation/process_federation_service_handle_lookup.cpp
   cpp/src/internal/federation/process_federation_service_lifecycle.cpp
+  cpp/src/internal/federation/process_federation_service_federation_listing.cpp
   cpp/src/internal/federation/process_federation_service_save_restore.cpp
   cpp/src/internal/federation/process_federation_service_time_management.cpp
   cpp/src/internal/federation/process_federation_service_tso_delivery.cpp
@@ -373,9 +385,9 @@ add_library(umbra::rti ALIAS umbra_rti)
 umbra_configure_2025_library_abi(umbra_rti rti "${UMBRA_RTI_LIBRARY_NAME}")
 target_compile_features(umbra_rti PUBLIC cxx_std_20)
 if(UMBRA_BUILD_SHARED_LIBRARIES)
-  target_compile_definitions(umbra_rti PRIVATE BUILDING_RTI)
+  target_compile_definitions(umbra_rti PRIVATE BUILDING_RTI UMBRA_BUILD_SHARED_LIBRARIES=1)
 else()
-  target_compile_definitions(umbra_rti PUBLIC STATIC_RTI)
+  target_compile_definitions(umbra_rti PUBLIC STATIC_RTI STATIC_FEDTIME)
 endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # The unmodified IEEE 1516.1-2025 encoding header uses Microsoft's _int64
@@ -469,6 +481,31 @@ else()
   target_compile_definitions(umbra_authorizer PUBLIC STATIC_AUTHORIZER)
 endif()
 target_link_libraries(umbra_authorizer PUBLIC umbra::rti)
+
+if(WIN32 AND UMBRA_BUILD_SHARED_LIBRARIES AND
+   UMBRA_EXPORT_INTERNAL_TEST_SYMBOLS)
+  # White-box Catch2 sources call internal implementation seams. Keep the
+  # installed/public header set unchanged; only this test preset expands DLL
+  # exports so those cases can share one RTI image instead of static copies.
+  foreach(_umbra_test_export_target IN ITEMS
+      umbra_rti umbra_fedtime umbra_authorizer)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      # MinGW suppresses automatic export when the official entry points
+      # already use explicit dllexport annotations; force the test-only
+      # complete export table at the linker instead.
+      target_link_options("${_umbra_test_export_target}" PRIVATE
+        "LINKER:--export-all-symbols")
+    else()
+      set_target_properties("${_umbra_test_export_target}" PROPERTIES
+        WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
+  endforeach()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # The RTI also links static libxml2. Do not re-export archive dependency
+    # symbols: process probes link libxml2 themselves and would collide.
+    target_link_options(umbra_rti PRIVATE "LINKER:--exclude-libs,ALL")
+  endif()
+endif()
 
 include(cmake/fom_validation_backend.cmake)
 
@@ -652,7 +689,9 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/tools/query_rti_work_regression.py
     )
     set_tests_properties(umbra.planning.query_matrix_regression
-      PROPERTIES LABELS "foundation;planning;traceability"
+      PROPERTIES
+        LABELS "foundation;planning;traceability"
+        TIMEOUT 300
     )
     add_test(
       NAME umbra.cpp_tck.catalog_traceability
@@ -684,6 +723,15 @@ if(BUILD_TESTING)
     )
     set_tests_properties(
       umbra.ieee1516_2025.requirements_lab_resync_guard
+      PROPERTIES LABELS "requirements-lab;traceability"
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.requirements_lab_contract_guard
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab_contract_regression.py
+    )
+    set_tests_properties(
+      umbra.ieee1516_2025.requirements_lab_contract_guard
       PROPERTIES LABELS "requirements-lab;traceability"
     )
     if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
@@ -2101,10 +2149,37 @@ if(BUILD_TESTING)
     include(cmake/time_management_private_phase_catch2.cmake)
     include(cmake/fom_source_diagnostics_catch2.cmake)
     include(cmake/catch2_ctest_lanes.cmake)
+
+    # Keep the broad suites in a few shared-library runners. Focused
+    # one-case targets remain buildable by name, but do not multiply the RTI
+    # image (and its DWARF) during an ordinary `cmake --build`.
+    set(_umbra_default_catch2_runners
+      umbra_ieee1516_2025_catch2
+    )
+    list(APPEND _umbra_default_catch2_runners
+      ${UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS})
+    get_property(_umbra_catch2_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_umbra_test_target IN LISTS _umbra_catch2_targets)
+      if(_umbra_test_target MATCHES "_catch2$" AND
+         (UMBRA_FULL_DEBUG_TEST_EXECUTABLES OR
+          NOT _umbra_test_target IN_LIST _umbra_default_catch2_runners))
+        set_property(TARGET "${_umbra_test_target}" PROPERTY EXCLUDE_FROM_ALL TRUE)
+      endif()
+    endforeach()
   else()
     message(STATUS "Catch2 v3 not found; configure with -DUMBRA_FETCH_CATCH2=ON or provide Catch2::Catch2WithMain")
   endif()
 endif()
+
+# Every routine MinGW test executable gets the same link-time debug policy
+# and post-link image/section budget, including the smoke and probe targets.
+get_property(_umbra_local_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_umbra_test_target IN LISTS _umbra_local_targets)
+  get_target_property(_umbra_target_type "${_umbra_test_target}" TYPE)
+  if(_umbra_target_type STREQUAL "EXECUTABLE")
+    umbra_guard_test_executable("${_umbra_test_target}")
+  endif()
+endforeach()
 
 install(TARGETS ieee1516_2025_headers ieee1516_2010_headers
   EXPORT umbra_rti_targets

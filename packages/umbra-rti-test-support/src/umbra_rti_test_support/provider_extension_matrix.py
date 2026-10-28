@@ -281,7 +281,9 @@ def iter_vendor_data_element_wire_matrix() -> tuple[VendorDataElementWireVector,
     )
 
 
-def iter_vendor_data_element_encode_matrix() -> tuple[VendorDataElementEncodeVector, ...]:
+def iter_vendor_data_element_encode_matrix() -> tuple[
+    VendorDataElementEncodeVector, ...
+]:
     """Return exact, offset, and undersized destination-window probes.
 
     The four-octet carrier is intentionally provider-owned.  These vectors
@@ -292,24 +294,20 @@ def iter_vendor_data_element_encode_matrix() -> tuple[VendorDataElementEncodeVec
     """
 
     return (
-        VendorDataElementEncodeVector(
-            "exact-offset-trailing", b"\0" * 6, 1, 5, True
-        ),
+        VendorDataElementEncodeVector("exact-offset-trailing", b"\0" * 6, 1, 5, True),
         VendorDataElementEncodeVector("exact-origin", b"\0" * 4, 0, 4, True),
-        VendorDataElementEncodeVector(
-            "truncated-offset", b"\0" * 6, 1, 3, False
-        ),
+        VendorDataElementEncodeVector("truncated-offset", b"\0" * 6, 1, 3, False),
         VendorDataElementEncodeVector("empty-offset", b"\0" * 4, 1, 0, False),
     )
 
 
 __all__ = [
     "ExtendableVariantWireVector",
-    "VendorDataElementWireVector",
     "VendorDataElementEncodeVector",
+    "VendorDataElementWireVector",
     "VendorTimeArithmeticVector",
     "iter_extendable_variant_wire_matrix",
-    "iter_vendor_data_element_wire_matrix",
     "iter_vendor_data_element_encode_matrix",
+    "iter_vendor_data_element_wire_matrix",
     "iter_vendor_time_arithmetic_matrix",
 ]

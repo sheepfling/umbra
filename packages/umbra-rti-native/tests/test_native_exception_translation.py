@@ -21,7 +21,11 @@ class NativeExceptionTranslationTest(unittest.TestCase):
                 FederationExecutionDoesNotExist,
                 "provider text: a:b α",
             ),
-            ("VendorFailure: unknown provider error", RTIexception, "unknown provider error"),
+            (
+                "VendorFailure: unknown provider error",
+                RTIexception,
+                "unknown provider error",
+            ),
             (
                 "FederationExecutionDoesNotExist",
                 FederationExecutionDoesNotExist,
@@ -44,7 +48,9 @@ class NativeExceptionTranslationTest(unittest.TestCase):
                     else:
                         operation = provider.UmbraRtiFactory().getRtiAmbassador
                     with (
-                        patch.object(provider._native, "NativeAmbassador", side_effect=error),
+                        patch.object(
+                            provider._native, "NativeAmbassador", side_effect=error
+                        ),
                         self.assertRaises(expected_type) as raised,
                     ):
                         operation()
@@ -53,12 +59,16 @@ class NativeExceptionTranslationTest(unittest.TestCase):
                     self.assertIs(raised.exception.__cause__, error)
 
     def test_encoder_specific_translation_retains_original_native_cause(self) -> None:
-        error = provider._native.NativeRtiError("EncoderException: invalid encoded value")
+        error = provider._native.NativeRtiError(
+            "EncoderException: invalid encoded value"
+        )
 
         def reject() -> object:
             raise error
 
-        with self.assertRaisesRegex(EncoderException, "^invalid encoded value$") as raised:
+        with self.assertRaisesRegex(
+            EncoderException, "^invalid encoded value$"
+        ) as raised:
             provider._call_native(reject, encoding_error=EncoderException)
         self.assertIs(raised.exception.__cause__, error)
 

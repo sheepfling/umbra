@@ -60,6 +60,9 @@ provider-neutral API package in an isolated environment:
 
     python -m pip install -e packages/umbra-rti-api
 
+For the recommended edit, test, lint, and full-profile cadence, see the
+[Python development workflow](../docs/python/PYTHON-DEVELOPMENT-WORKFLOW.md).
+
 Then install exactly one provider while working on it:
 
     python -m pip install -e packages/umbra-rti-jpype[jpype]

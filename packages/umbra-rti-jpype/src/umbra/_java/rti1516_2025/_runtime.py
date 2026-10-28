@@ -2,56 +2,52 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 from hla.rti1516_2025 import (
+    AttributeHandle,
+    AttributeHandleSet,
+    AttributeHandleValueMap,
     BytesLike,
     CallbackModel,
     FederateAmbassador,
+    FederateHandle,
+    FederateHandleSaveStatusPair,
+    FederateHandleSet,
+    FederateRestoreStatus,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
     FederationExecutionMemberInformation,
     FederationExecutionMemberInformationSet,
-    FederateHandle,
-    FederateHandleSet,
-    FederateHandleSaveStatusPair,
-    FederateRestoreStatus,
-    AttributeHandle,
-    AttributeHandleSet,
-    AttributeHandleValueMap,
-    RestoreFailureReason,
-    RestoreStatus,
-    SaveStatus,
-    SaveFailureReason,
+    HLAfloat64Time,
+    HLAinteger64Time,
     InteractionClassHandle,
     InteractionClassHandleSet,
+    LogicalTime,
+    MessageRetractionHandle,
     ObjectClassHandle,
     ObjectInstanceHandle,
     ObjectInstanceNameSet,
-    HLAfloat64Interval,
-    HLAfloat64Time,
-    HLAinteger64Interval,
-    HLAinteger64Time,
-    LogicalTime,
-    LogicalTimeInterval,
-    MessageRetractionHandle,
     OrderType,
     ParameterHandle,
     ParameterHandleValueMap,
     RegionHandle,
     RegionHandleSet,
+    RestoreFailureReason,
+    RestoreStatus,
+    RtiConfiguration,
+    SaveFailureReason,
+    SaveStatus,
     SynchronizationPointFailureReason,
     TransportationTypeHandle,
-    RtiConfiguration,
 )
 from hla.rti1516_2025.auth import Credentials, HLAnoCredentials
 from hla.rti1516_2025.exceptions import RTIinternalError
 
 from .config import JavaProviderConfiguration
-
 
 _JVM_CONFIGURATION_LOCK = Lock()
 _STARTED_JVM_CONFIGURATION: JavaProviderConfiguration | None = None
@@ -151,16 +147,22 @@ class JavaRuntime(Protocol):
     def cast_handle(self, handle: object, interface_name: str) -> object:
         """Pin an opaque Java handle to one standard interface for overloads."""
 
-    def attribute_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
+    def attribute_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
         """Build a Java ``AttributeHandleSet`` through its standard factory."""
 
-    def interaction_class_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
+    def interaction_class_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
         """Build a Java interaction-class set for directed interaction services."""
 
     def object_instance_name_set(self, encoded_values: tuple[str, ...]) -> object:
         """Build a Java ``Set<String>`` for batch object-name services."""
 
-    def federate_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
+    def federate_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
         """Build a Java ``FederateHandleSet`` through its standard factory."""
 
     def fom_module_url(self, value: str) -> object:
@@ -193,16 +195,24 @@ class JavaRuntime(Protocol):
     def logical_time_factory(self, ambassador: object) -> object:
         """Return the selected Java logical-time factory."""
 
-    def decode_logical_time(self, ambassador: object, encoded_value: BytesLike) -> object:
+    def decode_logical_time(
+        self, ambassador: object, encoded_value: BytesLike
+    ) -> object:
         """Decode a logical time through the selected Java factory."""
 
-    def decode_logical_interval(self, ambassador: object, encoded_value: BytesLike) -> object:
+    def decode_logical_interval(
+        self, ambassador: object, encoded_value: BytesLike
+    ) -> object:
         """Decode an interval through the selected Java factory."""
 
-    def dimension_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
+    def dimension_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
         """Build a Java DimensionHandleSet through the selected RTI factory."""
 
-    def region_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
+    def region_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
         """Build a Java RegionHandleSet through the selected RTI factory."""
 
     def range_bounds(self, lower_bound: int, upper_bound: int) -> object:
@@ -275,18 +285,24 @@ class _FederateAmbassadorCallback:
             FederateHandle(self._federate_handle_bytes(producing_federate)),
         )
 
-    def objectInstanceNameReservationSucceeded(self, object_instance_name: object) -> None:
+    def objectInstanceNameReservationSucceeded(
+        self, object_instance_name: object
+    ) -> None:
         self._target.objectInstanceNameReservationSucceeded(str(object_instance_name))
 
     def objectInstanceNameReservationFailed(self, object_instance_name: object) -> None:
         self._target.objectInstanceNameReservationFailed(str(object_instance_name))
 
-    def multipleObjectInstanceNameReservationSucceeded(self, object_instance_names: object) -> None:
+    def multipleObjectInstanceNameReservationSucceeded(
+        self, object_instance_names: object
+    ) -> None:
         self._target.multipleObjectInstanceNameReservationSucceeded(
             ObjectInstanceNameSet(str(name) for name in object_instance_names)
         )
 
-    def multipleObjectInstanceNameReservationFailed(self, object_instance_names: object) -> None:
+    def multipleObjectInstanceNameReservationFailed(
+        self, object_instance_names: object
+    ) -> None:
         self._target.multipleObjectInstanceNameReservationFailed(
             ObjectInstanceNameSet(str(name) for name in object_instance_names)
         )
@@ -313,7 +329,10 @@ class _FederateAmbassadorCallback:
         )
 
     def turnUpdatesOnForObjectInstance(
-        self, object_instance: object, attributes: object, update_rate_designator: object = None
+        self,
+        object_instance: object,
+        attributes: object,
+        update_rate_designator: object = None,
     ) -> None:
         arguments = (
             ObjectInstanceHandle(self._federate_handle_bytes(object_instance)),
@@ -323,7 +342,9 @@ class _FederateAmbassadorCallback:
             arguments += (str(update_rate_designator),)
         self._target.turnUpdatesOnForObjectInstance(*arguments)
 
-    def turnUpdatesOffForObjectInstance(self, object_instance: object, attributes: object) -> None:
+    def turnUpdatesOffForObjectInstance(
+        self, object_instance: object, attributes: object
+    ) -> None:
         self._target.turnUpdatesOffForObjectInstance(
             ObjectInstanceHandle(self._federate_handle_bytes(object_instance)),
             self._attribute_handle_set(attributes),
@@ -523,7 +544,9 @@ class _FederateAmbassadorCallback:
             self._order_type(received_order_type),
             None
             if optional_retraction is None
-            else MessageRetractionHandle(self._federate_handle_bytes(optional_retraction)),
+            else MessageRetractionHandle(
+                self._federate_handle_bytes(optional_retraction)
+            ),
         )
         callback = self._target_method(callback_name)
         try:
@@ -543,7 +566,9 @@ class _FederateAmbassadorCallback:
         try:
             return OrderType[str(name).split(".")[-1]]
         except KeyError as error:
-            raise RTIinternalError(f"Java RTI returned an unknown OrderType: {name}") from error
+            raise RTIinternalError(
+                f"Java RTI returned an unknown OrderType: {name}"
+            ) from error
 
     def _region_handle_set(self, value: object) -> RegionHandleSet:
         return RegionHandleSet(
@@ -585,7 +610,10 @@ class _FederateAmbassadorCallback:
         return getattr(self._target, callback_name)
 
     def requestAttributeOwnershipAssumption(
-        self, object_instance: object, offered_attributes: object, user_supplied_tag: object
+        self,
+        object_instance: object,
+        offered_attributes: object,
+        user_supplied_tag: object,
     ) -> None:
         self._ownership_set_callback(
             "requestAttributeOwnershipAssumption",
@@ -595,7 +623,10 @@ class _FederateAmbassadorCallback:
         )
 
     def requestDivestitureConfirmation(
-        self, object_instance: object, released_attributes: object, user_supplied_tag: object
+        self,
+        object_instance: object,
+        released_attributes: object,
+        user_supplied_tag: object,
     ) -> None:
         self._ownership_set_callback(
             "requestDivestitureConfirmation",
@@ -605,7 +636,10 @@ class _FederateAmbassadorCallback:
         )
 
     def attributeOwnershipAcquisitionNotification(
-        self, object_instance: object, secured_attributes: object, user_supplied_tag: object
+        self,
+        object_instance: object,
+        secured_attributes: object,
+        user_supplied_tag: object,
     ) -> None:
         self._ownership_set_callback(
             "attributeOwnershipAcquisitionNotification",
@@ -618,11 +652,17 @@ class _FederateAmbassadorCallback:
         self, object_instance: object, attributes: object, user_supplied_tag: object
     ) -> None:
         self._ownership_set_callback(
-            "attributeOwnershipUnavailable", object_instance, attributes, user_supplied_tag
+            "attributeOwnershipUnavailable",
+            object_instance,
+            attributes,
+            user_supplied_tag,
         )
 
     def requestAttributeOwnershipRelease(
-        self, object_instance: object, candidate_attributes: object, user_supplied_tag: object
+        self,
+        object_instance: object,
+        candidate_attributes: object,
+        user_supplied_tag: object,
     ) -> None:
         self._ownership_set_callback(
             "requestAttributeOwnershipRelease",
@@ -635,21 +675,30 @@ class _FederateAmbassadorCallback:
         self, object_instance: object, attributes: object
     ) -> None:
         self._ownership_set_callback(
-            "confirmAttributeOwnershipAcquisitionCancellation", object_instance, attributes
+            "confirmAttributeOwnershipAcquisitionCancellation",
+            object_instance,
+            attributes,
         )
 
     def informAttributeOwnership(
         self, object_instance: object, attributes: object, owner: object
     ) -> None:
         self._ownership_set_callback(
-            "informAttributeOwnership", object_instance, attributes, optional_owner=owner
+            "informAttributeOwnership",
+            object_instance,
+            attributes,
+            optional_owner=owner,
         )
 
     def attributeIsNotOwned(self, object_instance: object, attributes: object) -> None:
         self._ownership_set_callback("attributeIsNotOwned", object_instance, attributes)
 
-    def attributeIsOwnedByRTI(self, object_instance: object, attributes: object) -> None:
-        self._ownership_set_callback("attributeIsOwnedByRTI", object_instance, attributes)
+    def attributeIsOwnedByRTI(
+        self, object_instance: object, attributes: object
+    ) -> None:
+        self._ownership_set_callback(
+            "attributeIsOwnedByRTI", object_instance, attributes
+        )
 
     def _logical_time(self, value: object) -> LogicalTime:
         numeric = _java_time_value(value)
@@ -693,20 +742,22 @@ class _FederateAmbassadorCallback:
         self._target.reportFederationExecutions(
             FederationExecutionInformationSet(
                 FederationExecutionInformation(
-                    str(getattr(information, "federationExecutionName")),
-                    str(getattr(information, "logicalTimeImplementationName")),
+                    str(information.federationExecutionName),
+                    str(information.logicalTimeImplementationName),
                 )
                 for information in report  # type: ignore[union-attr]
             )
         )
 
-    def reportFederationExecutionMembers(self, federation_name: object, report: object) -> None:
+    def reportFederationExecutionMembers(
+        self, federation_name: object, report: object
+    ) -> None:
         self._target.reportFederationExecutionMembers(
             str(federation_name),
             FederationExecutionMemberInformationSet(
                 FederationExecutionMemberInformation(
-                    str(getattr(information, "federateName")),
-                    str(getattr(information, "federateType")),
+                    str(information.federateName),
+                    str(information.federateType),
                 )
                 for information in report  # type: ignore[union-attr]
             ),
@@ -718,7 +769,9 @@ class _FederateAmbassadorCallback:
     def federateResigned(self, reason: object) -> None:
         self._target.federateResigned(str(reason))
 
-    def federationSynchronized(self, synchronization_point_label: object, failed_to_sync_set: object) -> None:
+    def federationSynchronized(
+        self, synchronization_point_label: object, failed_to_sync_set: object
+    ) -> None:
         self._target.federationSynchronized(
             str(synchronization_point_label),
             FederateHandleSet(
@@ -727,8 +780,12 @@ class _FederateAmbassadorCallback:
             ),
         )
 
-    def synchronizationPointRegistrationSucceeded(self, synchronization_point_label: object) -> None:
-        self._target.synchronizationPointRegistrationSucceeded(str(synchronization_point_label))
+    def synchronizationPointRegistrationSucceeded(
+        self, synchronization_point_label: object
+    ) -> None:
+        self._target.synchronizationPointRegistrationSucceeded(
+            str(synchronization_point_label)
+        )
 
     def announceSynchronizationPoint(
         self, synchronization_point_label: object, user_supplied_tag: object
@@ -754,13 +811,13 @@ class _FederateAmbassadorCallback:
     def federationSaveStatusResponse(self, response: object) -> None:
         records = []
         for pair in response:  # type: ignore[union-attr]
-            status = getattr(pair, "status")
+            status = pair.status
             name = getattr(status, "name", status)
             if callable(name):
                 name = name()
             records.append(
                 FederateHandleSaveStatusPair(
-                    FederateHandle(self._federate_handle_bytes(getattr(pair, "handle"))),
+                    FederateHandle(self._federate_handle_bytes(pair.handle)),
                     SaveStatus[str(name)],
                 )
             )
@@ -784,14 +841,14 @@ class _FederateAmbassadorCallback:
     def federationRestoreStatusResponse(self, response: object) -> None:
         records = []
         for item in response:  # type: ignore[union-attr]
-            status = getattr(item, "status")
+            status = item.status
             name = getattr(status, "name", status)
             if callable(name):
                 name = name()
             records.append(
                 FederateRestoreStatus(
-                    FederateHandle(self._federate_handle_bytes(getattr(item, "preRestoreHandle"))),
-                    FederateHandle(self._federate_handle_bytes(getattr(item, "postRestoreHandle"))),
+                    FederateHandle(self._federate_handle_bytes(item.preRestoreHandle)),
+                    FederateHandle(self._federate_handle_bytes(item.postRestoreHandle)),
                     RestoreStatus[str(name)],
                 )
             )
@@ -806,9 +863,13 @@ class _FederateAmbassadorCallback:
     def federationRestoreBegun(self) -> None:
         self._target.federationRestoreBegun()
 
-    def initiateFederateRestore(self, label: object, federate_name: object, handle: object) -> None:
+    def initiateFederateRestore(
+        self, label: object, federate_name: object, handle: object
+    ) -> None:
         self._target.initiateFederateRestore(
-            str(label), str(federate_name), FederateHandle(self._federate_handle_bytes(handle))
+            str(label),
+            str(federate_name),
+            FederateHandle(self._federate_handle_bytes(handle)),
         )
 
     def federationRestored(self) -> None:
@@ -848,7 +909,9 @@ class JPypeJavaRuntime:
     ) -> JavaCallbackBinding:
         jpype = self._require_started_jvm()
         callback_interface = jpype.JClass("hla.rti1516_2025.FederateAmbassador")
-        target = _FederateAmbassadorCallback(federate_ambassador, self.federate_handle_bytes)
+        target = _FederateAmbassadorCallback(
+            federate_ambassador, self.federate_handle_bytes
+        )
         return JavaCallbackBinding(
             proxy=jpype.JProxy(callback_interface, inst=target),
             target=target,
@@ -857,16 +920,20 @@ class JPypeJavaRuntime:
     def rti_configuration(self, configuration: RtiConfiguration) -> object:
         jpype = self._require_started_jvm()
         result = jpype.JClass("hla.rti1516_2025.RtiConfiguration").createConfiguration()
-        return result.withConfigurationName(configuration.configurationName()).withRtiAddress(
-            configuration.rtiAddress()
-        ).withAdditionalSettings(configuration.additionalSettings())
+        return (
+            result.withConfigurationName(configuration.configurationName())
+            .withRtiAddress(configuration.rtiAddress())
+            .withAdditionalSettings(configuration.additionalSettings())
+        )
 
     def credentials(self, credentials: Credentials) -> object:
         jpype = self._require_started_jvm()
         if isinstance(credentials, HLAnoCredentials):
             return jpype.JClass("hla.rti1516_2025.auth.HLAnoCredentials")()
         byte_array = jpype.JArray(jpype.JByte)(credentials.getData())
-        return jpype.JClass("hla.rti1516_2025.auth.Credentials")(credentials.getType(), byte_array)
+        return jpype.JClass("hla.rti1516_2025.auth.Credentials")(
+            credentials.getType(), byte_array
+        )
 
     def exception_name(self, error: BaseException) -> str | None:
         """Return the Java error name, unwrapping proxy checked exceptions."""
@@ -913,32 +980,46 @@ class JPypeJavaRuntime:
         return jpype.JObject(handle, jpype.JClass(interface_name))
 
     def logical_time_factory(self, ambassador: object) -> object:
-        return getattr(ambassador, "getTimeFactory")()
+        return ambassador.getTimeFactory()
 
-    def decode_logical_time(self, ambassador: object, encoded_value: BytesLike) -> object:
+    def decode_logical_time(
+        self, ambassador: object, encoded_value: BytesLike
+    ) -> object:
         factory = self.logical_time_factory(ambassador)
         decoder = getattr(factory, "decodeTime", None)
         if decoder is None:
-            decoder = getattr(factory, "decodeLogicalTime")
+            decoder = factory.decodeLogicalTime
         return decoder(self.byte_array(encoded_value), 0)
 
-    def decode_logical_interval(self, ambassador: object, encoded_value: BytesLike) -> object:
+    def decode_logical_interval(
+        self, ambassador: object, encoded_value: BytesLike
+    ) -> object:
         factory = self.logical_time_factory(ambassador)
         decoder = getattr(factory, "decodeInterval", None)
         if decoder is None:
-            decoder = getattr(factory, "decodeLogicalTimeInterval")
+            decoder = factory.decodeLogicalTimeInterval
         return decoder(self.byte_array(encoded_value), 0)
 
-    def dimension_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = getattr(ambassador, "getDimensionHandleSetFactory")().create()
+    def dimension_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
+        handle_set = ambassador.getDimensionHandleSetFactory().create()
         for encoded_value in encoded_values:
-            handle_set.add(self.decode_handle(ambassador, "getDimensionHandleFactory", encoded_value))
+            handle_set.add(
+                self.decode_handle(
+                    ambassador, "getDimensionHandleFactory", encoded_value
+                )
+            )
         return handle_set
 
-    def region_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = getattr(ambassador, "getRegionHandleSetFactory")().create()
+    def region_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
+        handle_set = ambassador.getRegionHandleSetFactory().create()
         for encoded_value in encoded_values:
-            handle_set.add(self.decode_handle(ambassador, "getRegionHandleFactory", encoded_value))
+            handle_set.add(
+                self.decode_handle(ambassador, "getRegionHandleFactory", encoded_value)
+            )
         return handle_set
 
     def range_bounds(self, lower_bound: int, upper_bound: int) -> object:
@@ -946,19 +1027,27 @@ class JPypeJavaRuntime:
             int(lower_bound), int(upper_bound)
         )
 
-    def attribute_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = getattr(ambassador, "getAttributeHandleSetFactory")().create()
+    def attribute_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
+        handle_set = ambassador.getAttributeHandleSetFactory().create()
         for encoded_value in encoded_values:
             handle_set.add(
-                self.decode_handle(ambassador, "getAttributeHandleFactory", encoded_value)
+                self.decode_handle(
+                    ambassador, "getAttributeHandleFactory", encoded_value
+                )
             )
         return handle_set
 
-    def interaction_class_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = getattr(ambassador, "getInteractionClassHandleSetFactory")().create()
+    def interaction_class_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
+        handle_set = ambassador.getInteractionClassHandleSetFactory().create()
         for encoded_value in encoded_values:
             handle_set.add(
-                self.decode_handle(ambassador, "getInteractionClassHandleFactory", encoded_value)
+                self.decode_handle(
+                    ambassador, "getInteractionClassHandleFactory", encoded_value
+                )
             )
         return handle_set
 
@@ -968,10 +1057,16 @@ class JPypeJavaRuntime:
             name_set.add(str(value))
         return name_set
 
-    def federate_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = getattr(ambassador, "getFederateHandleSetFactory")().create()
+    def federate_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> object:
+        handle_set = ambassador.getFederateHandleSetFactory().create()
         for encoded_value in encoded_values:
-            handle_set.add(self.decode_handle(ambassador, "getFederateHandleFactory", encoded_value))
+            handle_set.add(
+                self.decode_handle(
+                    ambassador, "getFederateHandleFactory", encoded_value
+                )
+            )
         return handle_set
 
     def fom_module_url(self, value: str) -> object:
@@ -989,10 +1084,12 @@ class JPypeJavaRuntime:
         ambassador: object,
         encoded_values: tuple[tuple[bytes, bytes], ...],
     ) -> object:
-        value_map = getattr(ambassador, "getAttributeHandleValueMapFactory")().create(0)
+        value_map = ambassador.getAttributeHandleValueMapFactory().create(0)
         for encoded_handle, value in encoded_values:
             value_map.put(
-                self.decode_handle(ambassador, "getAttributeHandleFactory", encoded_handle),
+                self.decode_handle(
+                    ambassador, "getAttributeHandleFactory", encoded_handle
+                ),
                 self.byte_array(value),
             )
         return value_map
@@ -1002,10 +1099,12 @@ class JPypeJavaRuntime:
         ambassador: object,
         encoded_values: tuple[tuple[bytes, bytes], ...],
     ) -> object:
-        value_map = getattr(ambassador, "getParameterHandleValueMapFactory")().create(0)
+        value_map = ambassador.getParameterHandleValueMapFactory().create(0)
         for encoded_handle, value in encoded_values:
             value_map.put(
-                self.decode_handle(ambassador, "getParameterHandleFactory", encoded_handle),
+                self.decode_handle(
+                    ambassador, "getParameterHandleFactory", encoded_handle
+                ),
                 self.byte_array(value),
             )
         return value_map
@@ -1037,10 +1136,16 @@ class JPypeJavaRuntime:
         return pair_list
 
     def resign_action(self, resign_action_name: str) -> object:
-        return getattr(self._require_started_jvm().JClass("hla.rti1516_2025.ResignAction"), resign_action_name)
+        return getattr(
+            self._require_started_jvm().JClass("hla.rti1516_2025.ResignAction"),
+            resign_action_name,
+        )
 
     def order_type(self, order_type_name: str) -> object:
-        return getattr(self._require_started_jvm().JClass("hla.rti1516_2025.OrderType"), order_type_name)
+        return getattr(
+            self._require_started_jvm().JClass("hla.rti1516_2025.OrderType"),
+            order_type_name,
+        )
 
     def service_group(self, service_group_name: str) -> object:
         return getattr(
@@ -1059,7 +1164,7 @@ class JPypeJavaRuntime:
         class _DataElementFactoryProxy:
             def createElement(self, index: int) -> object:
                 element = factory.createElement(int(index))  # type: ignore[attr-defined]
-                return getattr(element, "_implementation")
+                return element._implementation
 
         return jpype.JProxy(interface, inst=_DataElementFactoryProxy())
 
@@ -1076,14 +1181,18 @@ class JPypeJavaRuntime:
             if jpype.isJVMStarted():
                 if _STARTED_JVM_CONFIGURATION == configuration:
                     return jpype
-                if configuration.classpath or configuration.jvm_path or configuration.jvm_options:
+                if (
+                    configuration.classpath
+                    or configuration.jvm_path
+                    or configuration.jvm_options
+                ):
                     raise RTIinternalError(
                         "The JVM is already running with a different or unknown Java RTI configuration"
                     )
                 return jpype
 
             arguments = list(configuration.jvm_options)
-            keyword_arguments: dict[str, object] = {
+            keyword_arguments: dict[str, bool | str | list[str]] = {
                 "classpath": list(configuration.classpath),
                 "convertStrings": configuration.convert_strings,
             }
@@ -1092,7 +1201,9 @@ class JPypeJavaRuntime:
             try:
                 jpype.startJVM(*arguments, **keyword_arguments)
             except Exception as error:
-                raise RTIinternalError(f"Could not start the JVM for the Java RTI: {error}") from error
+                raise RTIinternalError(
+                    f"Could not start the JVM for the Java RTI: {error}"
+                ) from error
             _STARTED_JVM_CONFIGURATION = configuration
         return jpype
 

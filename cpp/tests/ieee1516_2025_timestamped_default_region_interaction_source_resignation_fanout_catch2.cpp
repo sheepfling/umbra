@@ -121,7 +121,7 @@ TEST_CASE(
   // The independent regulator supplies the federation-wide frontier after
   // the producing federate has left the execution.
   REQUIRE_NOTHROW(clock->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(2)));
+      rti1516_2025::HLAinteger64Time(3)));
   while (clockReports.timeAdvanceGrantReports.empty() &&
          clock->evokeCallback(0.0)) {
   }

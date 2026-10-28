@@ -7,7 +7,7 @@
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/time/federate_time_state.hpp"
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 #endif
 
 #include <algorithm>
@@ -25,7 +25,7 @@ std::shared_ptr<LogicalTime> implicitRegulationAdvanceTarget(
     umbra::detail::FederationTimeExecutionSnapshot const& execution,
     std::uint64_t federateId,
     LogicalTimeInterval const& lookahead) {
-  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       execution.definition.logicalTimeImplementationName);
   if (!factory || factory->getName() != lookahead.implementationName()) {
     return nullptr;

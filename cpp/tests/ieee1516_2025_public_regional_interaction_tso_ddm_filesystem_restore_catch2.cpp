@@ -195,7 +195,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(8)));
   REQUIRE_FALSE(owner->evokeCallback(0.0));
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   auto const& report = receiverReports.timestampedInteractionReports.front();
   REQUIRE(report.interactionClass == interactionClass);

@@ -1797,6 +1797,7 @@ python tools/query_rti_work.py matrix header-binding-shell --summary --compact -
 python tools/query_rti_work.py matrix time-support --summary --compact --limit 20
 python tools/query_rti_work.py matrix hla-1516.1-2025:clause-9.12 --summary --compact --limit 20
 ```
+
 Use `work --summary` for the bounded handoff: it keeps the active task, lane,
 baseline source/mapping counts, and the first executable commands in view while
 leaving the full package/JUnit handle set available from plain `work`,
@@ -2874,6 +2875,7 @@ sender resigns. Query its exact handle with:
 python tools/query_rti_work.py lane package-process-connection-loss-delete-objects --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss-delete-objects --output-on-failure
 ```
+
 The lane handle carries the backing C++ plan id, its five Requirements-Lab
 requirement ids, and its five canonical 2025 section keys; use `case` or
 `trace` on `umbra-cpp-connection-lost-automatic-delete-integration` for
@@ -2904,6 +2906,7 @@ restore success callbacks. Query its exact handle and focused rerun with:
 python tools/query_rti_work.py lane package-process-federation-save-restore --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore --output-on-failure
 ```
+
 The indexed handle carries the six Requirements-Lab requirement ids and six
 canonical 2025 section keys from the native process restore-success case; the
 installed lane remains process-boundary foundation evidence, not a conformance
@@ -2918,6 +2921,7 @@ The restore-failure projection is independently addressable as
 python tools/query_rti_work.py lane package-process-federation-save-restore-failure --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-failure --output-on-failure
 ```
+
 Its indexed handle carries the six requirement/section mappings from the native
 restore-failure case and remains foundation evidence.
 The restore-abort projection is independently addressable as
@@ -2930,6 +2934,7 @@ The restore-abort projection is independently addressable as
 python tools/query_rti_work.py lane package-process-federation-save-restore-abort --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-abort --output-on-failure
 ```
+
 Its indexed handle carries the six requirement/section mappings from the native
 restore-abort case and remains foundation evidence.
 The restore-status projection is independently addressable as
@@ -2942,6 +2947,7 @@ response, and the subsequent restore completion. Query it with:
 python tools/query_rti_work.py lane package-process-federation-save-restore-status --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-status --output-on-failure
 ```
+
 Its indexed handle carries the nine requirement/section mappings from the native
 restore-status case and remains foundation evidence.
 Query that declaration mapping directly with:
@@ -3258,10 +3264,10 @@ federation-management translation unit is not an evidence source.
 In the embedded profile, the `package-process` label is the downstream public
 interoperability check: its client uses only installed IEEE 1516.1-2025
 headers and `umbra::rti`, while the source-tree probe is explicitly retained as
-private test infrastructure.  The CMake target is
+private test infrastructure. The CMake target is
 `umbra_rti_package_process_smoke`; the CTest test name is
 `umbra_rti_package_process_consumer`, and the stable CTest label is
-`package-process`.  The timestamped projection is separately addressable as
+`package-process`. The timestamped projection is separately addressable as
 `umbra_rti_package_process_timestamped_consumer` /
 `package-process-timestamped`; it uses the same executable with a bounded
 timestamped-client mode. The parameterized-envelope projection is separately

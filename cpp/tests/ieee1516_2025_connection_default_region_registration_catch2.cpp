@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -470,9 +471,9 @@ TEST_CASE(
     constexpr char const* objectClassName =
         "HLAobjectRoot.Food.Drink.Soda";
     constexpr wchar_t const* objectClassNameWide =
-        L"HLAobjectRoot.Food.Drink.Soda";
+        umbra::test::hla::wide::fom::food_drink_soda;
     constexpr char const* attributeName = "Flavor";
-    constexpr wchar_t const* attributeNameWide = L"Flavor";
+    constexpr wchar_t const* attributeNameWide = umbra::test::hla::wide::fixture::flavor;
     std::atomic_uint64_t expectedObjectClass{0U};
     std::atomic_uint64_t expectedAttribute{0U};
     std::atomic_uint64_t firstObjectInstance{0U};
@@ -733,9 +734,9 @@ TEST_CASE(
       rti->joinFederationExecution(federateName, L"owner", federationName));
 
   auto const objectClass =
-      rti->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const flavor = rti->getAttributeHandle(objectClass, L"Flavor");
-  auto const dimension = rti->getDimensionHandle(L"SodaFlavor");
+      rti->getObjectClassHandle(umbra::test::hla::wide::fom::food_drink_soda);
+  auto const flavor = rti->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::flavor);
+  auto const dimension = rti->getDimensionHandle(umbra::test::hla::wide::fixture::soda_flavor);
   REQUIRE(objectClass.isValid());
   REQUIRE(flavor.isValid());
   REQUIRE(dimension.isValid());

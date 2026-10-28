@@ -47,6 +47,8 @@ TEST_CASE(
       L"timestamped-send-mom-receiver", L"receiver", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"timestamped-send-mom-observer", L"observer", federationName));
+  // This case checks the report payload, not its internal MOM routing region.
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   // Keep setup calls out of the accepted timestamped service-report record.
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));

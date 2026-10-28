@@ -557,9 +557,9 @@ TEST_CASE(
     auto const receiverObjectClass = receiver->getObjectClassHandle(
         fixture_hla::fom::two_dimensional_regional_object);
     publisherAttribute = publisher->getAttributeHandle(
-        publisherObjectClass, L"Value");
+        publisherObjectClass, umbra::test::hla::wide::fixture::value);
     auto const receiverAttribute = receiver->getAttributeHandle(
-        receiverObjectClass, L"Value");
+        receiverObjectClass, umbra::test::hla::wide::fixture::value);
     publisherDimension = publisher->getDimensionHandle(
         fixture_hla::fixture::umbra_region_x);
     auto const publisherY = publisher->getDimensionHandle(

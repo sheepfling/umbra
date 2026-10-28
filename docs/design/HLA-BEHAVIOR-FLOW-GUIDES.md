@@ -874,16 +874,85 @@ on their own; this family map does not infer 2010 behavior or parity.
   → [joined-federate MOM lifecycle](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md)
   when studying RTI-owned management objects. The focused guides define each
   boundary and its evidence.
-- **Connection, membership, and execution are separate:** [Connect, Disconnect, and configuration](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md) explains the local RTI session gates; [authorization and credentials](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md) follows the 2025 authorizer from Connect through Create/Destroy/Join and distinguishes the typed credential envelope from authorizer-specific policy; [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) distinguishes Connect/Disconnect, Join/Resign, and Create/Destroy, including rejoining on the same connected ambassador in one focused embedded case.
-- **Why an attribute update reached a federate:** start with the cross-cutting [attribute-value concept map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#an-object-attribute-value-touches-several-independent-boundaries), then use the [delivery and observation checklist](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#keep-delivery-and-observation-questions-separate). The focused guides distinguish publication and per-instance ownership, receiver knowledge and subscription/DDM, optional solicitation, update-rate admission, logical-time eligibility, and callback observation; follow only the gates relevant to the service. Begin with [object/interaction information](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md), then choose [subscription state](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md), [attribute-value requests](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md), [ownership transfer](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md), [DDM/regions](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md), [update-rate admission](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md), [time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md), or [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) as needed. For broader update/interaction routing and advisory paths, see [relevance advisories](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md), [attribute scope](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md), [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md), [Delay Subscription Evaluation](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md), or [directed interactions](HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md).
-- **How timestamp, order, transport, callbacks, and retraction relate:** [time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md) → [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) → [order and transportation](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md) → [TSO retraction](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md). Then read [DSE](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md) or [directed interactions](HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md) for their recipient boundaries.
-- **What happens when in-flight work becomes stale:** start with the cross-cutting guide's [withdraw/invalidate/preserve/account lens](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#when-work-becomes-stale-withdraw-invalidate-preserve-or-account), then follow the service-specific subscription, ownership/resignation, TSO-retraction, or lifecycle guide. For a queued regional TSO interaction after the receiver replaces its subscription, see the DDM guide's [bounded no-retarget trace](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#a-replacement-regional-interaction-subscription-does-not-retarget-queued-tso-work). Do not merge their cancellation and observation rules.
-- **How a service and callback cross the 2025 process endpoint:** [process request/callback flow](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md) separates private request correlation, pushed frames, explicit receive polling, callback-model dispatch, the per-recipient TSO callback-acknowledgment seam, source-derived poll-family priority versus pushed-stream FIFO, and local typed errors versus generic remote rejection for Send Interaction and Update Attribute Values.
-- **Which protocol result am I waiting for, and when can the app observe it?** Use the cross-cutting [completion-boundary map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#different-protocols-have-different-completion-boundaries) to keep time-advance, synchronization, and save/restore outcomes distinct from callback dispatch; then follow [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) → [synchronization points](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md) → [save/restore](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md), including a bounded embedded trace of a live regional TSO interaction → [ownership persistence and resignation](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md) → [joined-federate MOM lifecycle](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md); add [TSO retraction](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md) when in-flight timestamped work is involved.
-- **How a failure becomes a report or callback:** begin with the cross-cutting guide's [service-result/state/report distinction](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-service-result-committed-state-and-a-report-are-separate-traces), then follow [exception reporting](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md) → [service invocation reporting](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md) → [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) for the separate mechanisms and callback boundary.
-- **Why a set-valued operation may have partial or all-or-nothing outcomes:** start with the cross-cutting [service-contract versus argument-shape map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md), then compare the [name-reservation](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md), [FOM composition](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md), and [attribute ownership](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) guides. Read outcomes from each service contract; Umbra's state-commit units are profile-specific examples, not semantics inferred from the argument's shape.
-- **Model declarations, identity, and encoded values:** Begin with the 2025 cross-cutting guide's model-vocabulary/runtime-state distinction, then use [FOM module admission/composition](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md) for model assembly; [names and handle resolution](HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md) for typed lookup, active federate names, and known-object scope; [object-instance name reservation](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md) for the distinct owner-reservation and peer-discovery paths; and [2025 DataElement encoding](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md) plus its [separate 2010 companion](HLA-2010-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md) for edition-specific public C++ value bytes. Keep model representation, API encoding, and RTI transport framing distinct.
-- **Bounded 2010 reference behavior:** read the [separate 2010 reference-RTI guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md) on its own. The 2025 paths above are not evidence of 2010 behavior.
+- **Connection, membership, and execution are separate:**
+  [Connect, Disconnect, and configuration](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md) explains the local RTI
+  session gates; [authorization and credentials](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md) follows the 2025 authorizer from
+  Connect through Create/Destroy/Join and distinguishes the typed credential envelope from authorizer-specific policy;
+  [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) distinguishes Connect/Disconnect,
+  Join/Resign, and Create/Destroy, including rejoining on the same connected ambassador in one focused embedded case.
+- **Why an attribute update reached a federate:** start with the cross-cutting
+  [attribute-value concept map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#an-object-attribute-value-touches-several-independent-boundaries),
+  then use the
+  [delivery and observation checklist](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#keep-delivery-and-observation-questions-separate).
+  The focused guides distinguish publication and per-instance ownership, receiver knowledge and subscription/DDM,
+  optional solicitation, update-rate admission, logical-time eligibility, and callback observation; follow only the
+  gates relevant to the service. Begin with
+  [object/interaction information](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md), then choose
+  [subscription state](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md),
+  [attribute-value requests](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md),
+  [ownership transfer](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md),
+  [DDM/regions](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md),
+  [update-rate admission](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md),
+  [time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md), or
+  [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) as needed. For broader
+  update/interaction routing and advisory paths, see [relevance advisories](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md),
+  [attribute scope](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md),
+  [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md),
+  [Delay Subscription Evaluation](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md), or
+  [directed interactions](HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md).
+- **How timestamp, order, transport, callbacks, and retraction relate:**
+  [time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md) →
+  [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) →
+  [order and transportation](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md) →
+  [TSO retraction](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md). Then read
+  [DSE](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md) or
+  [directed interactions](HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md) for their recipient boundaries.
+- **What happens when in-flight work becomes stale:** start with the cross-cutting guide's
+  [withdraw/invalidate/preserve/account lens](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#when-work-becomes-stale-withdraw-invalidate-preserve-or-account),
+  then follow the service-specific subscription, ownership/resignation, TSO-retraction, or lifecycle guide. For a queued
+  regional TSO interaction after the receiver replaces its subscription, see the DDM guide's
+  [bounded no-retarget trace](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#a-replacement-regional-interaction-subscription-does-not-retarget-queued-tso-work).
+  Do not merge their cancellation and observation rules.
+- **How a service and callback cross the 2025 process endpoint:**
+  [process request/callback flow](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md) separates private
+  request correlation, pushed frames, explicit receive polling, callback-model dispatch, the per-recipient TSO
+  callback-acknowledgment seam, source-derived poll-family priority versus pushed-stream FIFO, and local typed errors
+  versus generic remote rejection for Send Interaction and Update Attribute Values.
+- **Which protocol result am I waiting for, and when can the app observe it?** Use the cross-cutting
+  [completion-boundary map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#different-protocols-have-different-completion-boundaries)
+  to keep time-advance, synchronization, and save/restore outcomes distinct from callback dispatch; then follow
+  [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) →
+  [synchronization points](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md) →
+  [save/restore](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md), including a bounded embedded trace of a live regional
+  TSO interaction →
+  [ownership persistence and resignation](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md) →
+  [joined-federate MOM lifecycle](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md); add
+  [TSO retraction](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md) when in-flight timestamped work is involved.
+- **How a failure becomes a report or callback:** begin with the cross-cutting guide's
+  [service-result/state/report distinction](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-service-result-committed-state-and-a-report-are-separate-traces),
+  then follow [exception reporting](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md) →
+  [service invocation reporting](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md) →
+  [callback/service ordering](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) for the separate mechanisms and
+  callback boundary.
+- **Why a set-valued operation may have partial or all-or-nothing outcomes:** start with the cross-cutting
+  [service-contract versus argument-shape map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md), then compare
+  the [name-reservation](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md),
+  [FOM composition](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md), and
+  [attribute ownership](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) guides. Read outcomes from each service contract;
+  Umbra's state-commit units are profile-specific examples, not semantics inferred from the argument's shape.
+- **Model declarations, identity, and encoded values:** Begin with the 2025 cross-cutting guide's
+  model-vocabulary/runtime-state distinction, then use
+  [FOM module admission/composition](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md) for model assembly;
+  [names and handle resolution](HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md) for typed lookup, active federate
+  names, and known-object scope;
+  [object-instance name reservation](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md) for the distinct
+  owner-reservation and peer-discovery paths; and
+  [2025 DataElement encoding](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md) plus its
+  [separate 2010 companion](HLA-2010-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md) for edition-specific public C++ value bytes.
+  Keep model representation, API encoding, and RTI transport framing distinct.
+- **Bounded 2010 reference behavior:** read the
+  [separate 2010 reference-RTI guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md) on its own. The 2025 paths above are not
+  evidence of 2010 behavior.
 
 ## Local Mermaid rendering and syntax audit
 
@@ -2377,7 +2446,11 @@ the existing focused test checks that failed preparation leaves the base
 federation joinable. No build, test, CI, Requirements Lab, or 2010 RTI work
 occurred.
 
-Next handoff: audit the 2025 [TSO message-retraction guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md), focusing on whether its producer-legality, per-recipient delivery/retraction, and source-versus-current-owner diagrams lead with reusable HLA questions before profile-specific timelines. Reuse existing source/test evidence and inspect the pending diagram set without compiling or rerunning tests. Keep 2025 embedded/process distinctions and the 2010 stream separate; leave GitHub visual review pending until the local revisions are published.
+Next handoff: audit the 2025 [TSO message-retraction guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md), focusing on whether
+its producer-legality, per-recipient delivery/retraction, and source-versus-current-owner diagrams lead with reusable
+HLA questions before profile-specific timelines. Reuse existing source/test evidence and inspect the pending diagram set
+without compiling or rerunning tests. Keep 2025 embedded/process distinctions and the 2010 stream separate; leave GitHub
+visual review pending until the local revisions are published.
 
 ### 2025 save/restore HLA-question reader audit — 2026-10-11
 
@@ -3797,7 +3870,11 @@ The revised diagram remains unrendered because the configured Scoop sources
 have no Mermaid CLI manifest. No C++ build, test rerun, CI, or Requirements Lab
 work occurred.
 
-Next handoff: audit the existing 2025 [Federation and Federate Lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) for the HLA-first membership mental model across Join, resignation, connection loss, and execution destruction. Distinguish portable participant/execution state from Umbra's service rollback and callback-observation mechanics; compare only bounded 2025 API/source/test evidence, keep 2010 separate, and do not build or rerun tests.
+Next handoff: audit the existing 2025
+[Federation and Federate Lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) for the HLA-first
+membership mental model across Join, resignation, connection loss, and execution destruction. Distinguish portable
+participant/execution state from Umbra's service rollback and callback-observation mechanics; compare only bounded 2025
+API/source/test evidence, keep 2010 separate, and do not build or rerun tests.
 
 ### 2025 federation membership: rejected Disconnect and post-commit Join effects — 2026-10-12
 
@@ -3835,7 +3912,10 @@ duplicated, and its new version remains unrendered because Scoop has no
 configured Mermaid CLI package. No C++ build, test rerun, CI, or Requirements
 Lab work occurred.
 
-Next handoff: audit the existing 2025 [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md) for the HLA-first distinction between execution-scoped management objects, member-scoped objects, and observer knowledge. Compare its existing flows with the pinned 2025 MIM/API and bounded source/test evidence; keep implementation-specific projections labeled, preserve 2010 separately, add no diagram unless a concrete reader gap appears, and do not build or rerun tests.
+Next handoff: audit the existing 2025 [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md) for the HLA-first
+distinction between execution-scoped management objects, member-scoped objects, and observer knowledge. Compare its
+existing flows with the pinned 2025 MIM/API and bounded source/test evidence; keep implementation-specific projections
+labeled, preserve 2010 separately, add no diagram unless a concrete reader gap appears, and do not build or rerun tests.
 
 ### 2025 Federation MOM projection versus execution lifecycle — 2026-10-12
 
@@ -3854,7 +3934,11 @@ failed-first-Join test or process parity is claimed. No diagram or count
 changed, so rendering was not needed. The 2010 stream and Requirements Lab
 were untouched; no build, test rerun, or CI occurred.
 
-Next handoff: audit the existing 2025 [service invocation reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md) for the HLA-first boundary between a service's synchronous outcome, its invocation-report record, and any later requested MOM report interaction. Reuse the MOM guide's receive-order evidence without duplicating its flow; keep embedded/process and 2010 boundaries explicit, add a diagram only for a demonstrated reader gap, and do not build or rerun tests.
+Next handoff: audit the existing 2025
+[service invocation reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md) for the HLA-first boundary
+between a service's synchronous outcome, its invocation-report record, and any later requested MOM report interaction.
+Reuse the MOM guide's receive-order evidence without duplicating its flow; keep embedded/process and 2010 boundaries
+explicit, add a diagram only for a demonstrated reader gap, and do not build or rerun tests.
 
 ### 2025 invocation reports versus requested Federation MOM reports — 2026-10-12
 
@@ -3876,7 +3960,10 @@ during federation creation before the relevant assertions. No new diagram or
 diagram-count change; no render was needed. No 2010,
 Requirements Lab, build, test rerun, or CI work occurred.
 
-Next handoff: audit the 2025 [exception-reporting guide](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md) at the boundary between a public service's synchronous exception, `HLAreportException`, `HLAreportMOMexception`, and a failed `HLAreportServiceInvocation`. Reuse the new trace comparison and inspect only bounded 2025 MIM/API/source/test evidence; preserve 2010 separately, add a diagram only for a demonstrated reader gap, and do not build or rerun tests.
+Next handoff: audit the 2025 [exception-reporting guide](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md) at the boundary
+between a public service's synchronous exception, `HLAreportException`, `HLAreportMOMexception`, and a failed
+`HLAreportServiceInvocation`. Reuse the new trace comparison and inspect only bounded 2025 MIM/API/source/test evidence;
+preserve 2010 separately, add a diagram only for a demonstrated reader gap, and do not build or rerun tests.
 
 ### 2025 exception-report scope and report-family boundary — 2026-10-12
 
@@ -3896,7 +3983,12 @@ failure routes. Test sources were inspected, not run; no fresh result or
 process/embedded parity is claimed. No 2010, Requirements Lab, build, test, or
 CI work occurred.
 
-Next handoff: audit the 2025 [Object and Interaction Information Flow guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) alongside the [Object Attribute Subscription State guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md) for the portable path from publication/send through receiver eligibility, known-object state, and callback observation. Compare existing flows with bounded 2025 MIM/API/source/test evidence; add no duplicate chart, keep 2010 separate, and do not build or rerun tests.
+Next handoff: audit the 2025
+[Object and Interaction Information Flow guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) alongside the
+[Object Attribute Subscription State guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md) for the portable
+path from publication/send through receiver eligibility, known-object state, and callback observation. Compare existing
+flows with bounded 2025 MIM/API/source/test evidence; add no duplicate chart, keep 2010 separate, and do not build or
+rerun tests.
 
 ### 2025 object information and subscription-state wayfinding — 2026-10-12
 
@@ -5704,4 +5796,7 @@ keep normative forced-loss questions open.
 
 ## Historical review notes
 
-Detailed dated audits and prior handoffs are preserved in the [historical progress log](HLA-BEHAVIOR-FLOW-GUIDES-PROGRESS-LOG.md). Use the prioritized backlog above and the current `documentation_flow_guide_handoff` in [ROADMAP-INDEX.json](../planning/ROADMAP-INDEX.json) for active work. Renderer and screenshot history remains in the [review ledger](HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md).
+Detailed dated audits and prior handoffs are preserved in the
+[historical progress log](HLA-BEHAVIOR-FLOW-GUIDES-PROGRESS-LOG.md). Use the prioritized backlog above and the current
+`documentation_flow_guide_handoff` in [ROADMAP-INDEX.json](../planning/ROADMAP-INDEX.json) for active work. Renderer and
+screenshot history remains in the [review ledger](HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md).

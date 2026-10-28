@@ -827,7 +827,9 @@ class Recorder final : public rti::FederateAmbassador {
       rti::AttributeHandleSet const& attributes,
       rti::VariableLengthData const& tag) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    ownershipAcquisition_ = OwnershipEventRecord{object, attributes, copyBytes(tag)};
+    auto record = OwnershipEventRecord{object, attributes, copyBytes(tag)};
+    ownershipAcquisition_ = record;
+    ownershipAcquisitionEvents_.push_back(std::move(record));
   }
 
   void attributeOwnershipUnavailable(
@@ -907,6 +909,9 @@ class Recorder final : public rti::FederateAmbassador {
     timeConstrainedEnabled_.push_back(
         LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
     timeConstrainedEnablementOrder_.push_back("time-constrained-enabled");
+    if (recordTimeConstrainedEnablementInCallbackOrder_) {
+      callbackOrder_.push_back("time-constrained-enabled");
+    }
   }
 
   void flushQueueGrant(
@@ -1285,6 +1290,11 @@ class Recorder final : public rti::FederateAmbassador {
     return timeConstrainedEnablementOrder_;
   }
 
+  void recordTimeConstrainedEnablementInCallbackOrder() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    recordTimeConstrainedEnablementInCallbackOrder_ = true;
+  }
+
   std::vector<LogicalTimeRecord> timeAdvanceGrants() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return timeAdvanceGrants_;
@@ -1328,6 +1338,11 @@ class Recorder final : public rti::FederateAmbassador {
   std::optional<OwnershipEventRecord> ownershipAcquisition() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return ownershipAcquisition_;
+  }
+
+  std::vector<OwnershipEventRecord> ownershipAcquisitionEvents() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ownershipAcquisitionEvents_;
   }
 
   std::optional<OwnershipEventRecord> ownershipUnavailable() const {
@@ -1411,6 +1426,7 @@ class Recorder final : public rti::FederateAmbassador {
     ownershipAssumption_.reset();
     divestitureConfirmation_.reset();
     ownershipAcquisition_.reset();
+    ownershipAcquisitionEvents_.clear();
     ownershipAcquisitionCancellationEvents_.clear();
     ownershipUnavailable_.reset();
     ownershipUnavailableEvents_.clear();
@@ -1574,6 +1590,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<std::string> timeRegulationEnablementOrder_;
   std::vector<LogicalTimeRecord> timeConstrainedEnabled_;
   std::vector<std::string> timeConstrainedEnablementOrder_;
+  bool recordTimeConstrainedEnablementInCallbackOrder_ = false;
   std::vector<LogicalTimeRecord> timeAdvanceGrants_;
   std::vector<RetractionRecord> retractions_;
   std::vector<AttributeTransportationConfirmationRecord>
@@ -1604,6 +1621,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::optional<OwnershipEventRecord> ownershipAssumption_;
   std::optional<OwnershipEventRecord> divestitureConfirmation_;
   std::optional<OwnershipEventRecord> ownershipAcquisition_;
+  std::vector<OwnershipEventRecord> ownershipAcquisitionEvents_;
   std::vector<OwnershipEventRecord> ownershipAcquisitionCancellationEvents_;
   std::optional<OwnershipEventRecord> ownershipUnavailable_;
   std::vector<OwnershipEventRecord> ownershipUnavailableEvents_;

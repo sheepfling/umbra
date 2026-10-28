@@ -49,6 +49,7 @@ TEST_CASE(
       L"timestamped-send-time-regulated-mom-receiver", L"receiver", federationName));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"timestamped-send-time-regulated-mom-observer", L"observer", federationName));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(false));
 
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
@@ -197,16 +198,18 @@ TEST_CASE(
 
   // The immediate MOM report precedes the constrained recipient's callback;
   // the receiver then advances to the timestamp before the producer advances
-  // to one, preserving callback-before-grant ordering.
+  // to two, placing GALT above the requested grant while preserving
+  // callback-before-grant ordering.
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(timestamp));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(1)));
+      rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(observerReports.interactionReports.size() == 1U);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);

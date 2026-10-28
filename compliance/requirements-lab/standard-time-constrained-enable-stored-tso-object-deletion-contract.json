@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-evidence-not-conformance-evidence",
+  "notes": "The portable C++ scenario maps page-192 l93-27 directly to canonical §8.6 through the pinned source crosswalk and RL-362. It discovers an object, advances an unconstrained receiver, leaves Enable Time Constrained pending, queues one timestamped Delete Object Instance at time 6, and deliberately avoids evoking the receiver until Time Constrained Enabled. A removal delivered before the transition must retain RECEIVE order and precede Time Constrained Enabled; otherwise the stored deletion must arrive with TIMESTAMP/TIMESTAMP order before the receiver's TAR(6) grant. Clause 8.6 permits receive-order delivery before the transition. The fixture advances the producer to time 6 before receiver TAR(6), so it does not assert a grant at GALT=6. It does not prescribe a GALT formula, cover other timestamped producer families, establish Java parity, or claim provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-time-constrained-enable-stored-tso-object-deletion",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, enableTimeRegulation, timeAdvanceRequest, enableTimeConstrained, deleteObjectInstance(time), disableTimeConstrained, disableTimeRegulation; FederateAmbassador::timeRegulationEnabled, timeAdvanceGrant, timeConstrainedEnabled, removeObjectInstance(time)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletion",
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletionContract"
+      ]
+    }
+  ]
+}

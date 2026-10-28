@@ -86,7 +86,11 @@ inline void serveExpectedPrimaryProcessRequest(
                   request.operation ==
                       detail::TransportServiceOperation::report_successful_void_service_invocation ||
                   request.operation ==
-                      detail::TransportServiceOperation::recheck_exception_report;
+                      detail::TransportServiceOperation::recheck_exception_report ||
+                  request.operation ==
+                      detail::TransportServiceOperation::acknowledge_tso_delivery ||
+                  request.operation ==
+                      detail::TransportServiceOperation::acknowledge_push_attribute_update;
               if (isServiceReport && request.operation != expectedOperation) {
                 auto response = serviceHandler(request);
                 if (response.status != detail::TransportServiceStatus::ok) {

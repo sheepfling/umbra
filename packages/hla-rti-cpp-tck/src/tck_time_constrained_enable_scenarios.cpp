@@ -425,6 +425,17 @@ void scenarioTimeConstrainedEnableRetainsQueuedTso(
       "The queued TSO was delivered before the constrained receiver advanced to its timestamp");
   auto const callbackOrderBeforeTsoAdvance = receiver.recorder().callbackOrder();
 
+  // The regulator's time-5 plus lookahead-1 bound is exactly six.  TAR(6)
+  // cannot be granted to the constrained receiver until the regulator moves
+  // beyond that bound, so advance the producer to the queued message time
+  // before asking the receiver to advance to six.
+  regulator.rtiAmbassador().timeAdvanceRequest(*six);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 3U; },
+      options,
+      "Time-constrained queued-TSO regulator grant to six");
+
   receiver.rtiAmbassador().timeAdvanceRequest(*six);
   waitFor(
       receiver,
@@ -466,6 +477,436 @@ void scenarioTimeConstrainedEnableRetainsQueuedTsoContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeConstrainedEnableRetainsQueuedTso(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Time-constrained directed queued-TSO transition requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "queued-directed-tso-publisher");
+  Session receiver(options, model, "queued-directed-tso-receiver");
+  auto const federation = federationName(
+      options,
+      "time-constrained-enable-retains-queued-tso-directed-interaction");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherObject = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverObject = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherObject,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObject,
+      options.attributeName);
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      publisherObject.isValid() && receiverObject.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherInteraction.isValid() && receiverInteraction.isValid(),
+      "Time-constrained directed queued-TSO transition resolved an invalid adapter FOM handle");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherObject,
+      rti::AttributeHandleSet{publisherAttribute});
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverObject,
+      rti::AttributeHandleSet{receiverAttribute},
+      true,
+      L"");
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherObject,
+      rti::InteractionClassHandleSet{publisherInteraction});
+  receiver.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      receiverObject,
+      rti::InteractionClassHandleSet{receiverInteraction},
+      true);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  auto const target = publisher.rtiAmbassador().registerObjectInstance(
+      publisherObject);
+  require(
+      target.isValid(),
+      "Time-constrained directed queued-TSO transition registered an invalid target");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(target); },
+      options,
+      "Time-constrained directed queued-TSO target discovery");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Time-constrained directed queued-TSO members selected different logical-time factories");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Time-constrained directed queued-TSO publisher regulation");
+
+  auto const five = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      5U);
+  receiver.rtiAmbassador().timeAdvanceRequest(*five);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained directed queued-TSO unconstrained grant to five");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().text == five->toString(),
+      "Time-constrained directed queued-TSO receiver did not reach logical time five");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  receiver.pump();
+  require(
+      receiver.recorder().timeConstrainedEnabled().empty(),
+      "Directed Time Constrained Enabled fired before the regulator advanced beyond receiver time five");
+
+  auto const six = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const tagBytes{0x54U, 0x43U, 0x45U, 0x2DU, 0x44U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      target,
+      rti::ParameterHandleValueMap{},
+      tag,
+      *six);
+  require(
+      retraction.isValid(),
+      "Time-constrained directed queued-TSO send returned an invalid retraction handle");
+  receiver.pump();
+  require(
+      receiver.recorder().directedInteractions().empty() &&
+          receiver.recorder().timedDirectedInteractions().empty() &&
+          receiver.recorder().timeConstrainedEnabled().empty(),
+      "A timestamped directed interaction escaped while Time Constrained enablement was pending");
+
+  auto const four = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*four);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained directed queued-TSO publisher grant to four");
+  receiver.pump();
+  require(
+      receiver.recorder().timeConstrainedEnabled().empty() &&
+          receiver.recorder().directedInteractions().empty() &&
+          receiver.recorder().timedDirectedInteractions().empty(),
+      "Directed role transition or queued TSO completed while GALT remained at receiver time five");
+
+  auto const publisherFive = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherFive);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "Time-constrained directed queued-TSO publisher grant to five");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "Time-constrained directed queued-TSO role-transition callback");
+  require(
+      receiver.recorder().directedInteractions().empty() &&
+          receiver.recorder().timedDirectedInteractions().empty(),
+      "The directed queued TSO was delivered before the constrained receiver advanced to its timestamp");
+  auto const callbackOrderBeforeTsoAdvance = receiver.recorder().callbackOrder();
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*six);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedDirectedInteractions().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "Time-constrained directed queued-TSO delivery before grant six");
+  auto const timedInteractions = receiver.recorder().timedDirectedInteractions();
+  auto const grants = receiver.recorder().timeAdvanceGrants();
+  auto const callbackOrder = receiver.recorder().callbackOrder();
+  require(
+      receiver.recorder().directedInteractions().empty() &&
+          timedInteractions.size() == 1U &&
+          timedInteractions.front().interaction == receiverInteraction &&
+          timedInteractions.front().object == target &&
+          timedInteractions.front().parameters.empty() &&
+          timedInteractions.front().tag == tagBytes &&
+          timedInteractions.front().producer == publisher.federateHandle() &&
+          timedInteractions.front().timeText == six->toString() &&
+          timedInteractions.front().sentOrder == rti::TIMESTAMP &&
+          timedInteractions.front().receivedOrder == rti::TIMESTAMP &&
+          timedInteractions.front().retractionPresent,
+      "The directed queued TSO lost its target, producer, tag, timestamp, or timestamp-order delivery");
+  require(
+      grants.size() == 2U && grants.back().text == six->toString(),
+      "Time-constrained directed queued-TSO receiver did not receive its grant at time six");
+  require(
+      callbackOrder.size() == callbackOrderBeforeTsoAdvance.size() + 2U &&
+          callbackOrder[callbackOrderBeforeTsoAdvance.size()] == "directed" &&
+          callbackOrder.back() == "grant",
+      "The queued timestamped directed interaction did not precede its time-advance grant");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteraction(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletion(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Time-constrained queued object-deletion transition requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "queued-delete-tso-publisher");
+  Session receiver(options, model, "queued-delete-tso-receiver");
+  auto const federation = federationName(
+      options,
+      "time-constrained-enable-retains-queued-tso-object-deletion");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherObject = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverObject = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherObject,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObject,
+      options.attributeName);
+  require(
+      publisherObject.isValid() && receiverObject.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "Time-constrained queued object-deletion transition resolved an invalid adapter FOM handle");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherObject,
+      rti::AttributeHandleSet{publisherAttribute});
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverObject,
+      rti::AttributeHandleSet{receiverAttribute},
+      true,
+      L"");
+  auto const target = publisher.rtiAmbassador().registerObjectInstance(
+      publisherObject);
+  require(
+      target.isValid(),
+      "Time-constrained queued object-deletion transition registered an invalid target");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(target); },
+      options,
+      "Time-constrained queued object-deletion target discovery");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Time-constrained queued object-deletion members selected different logical-time factories");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Time-constrained queued object-deletion publisher regulation");
+
+  auto const five = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      5U);
+  receiver.rtiAmbassador().timeAdvanceRequest(*five);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained queued object-deletion unconstrained grant to five");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().text == five->toString(),
+      "Time-constrained queued object-deletion receiver did not reach logical time five");
+
+  receiver.recorder().recordTimeConstrainedEnablementInCallbackOrder();
+  receiver.rtiAmbassador().enableTimeConstrained();
+  receiver.pump();
+  require(
+      receiver.recorder().timeConstrainedEnabled().empty(),
+      "Time Constrained Enabled fired before the regulator advanced beyond receiver time five");
+
+  auto const six = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const tagBytes{0x54U, 0x43U, 0x45U, 0x2DU, 0x58U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().deleteObjectInstance(
+      target,
+      tag,
+      *six);
+  require(
+      retraction.isValid(),
+      "Time-constrained queued object-deletion send returned an invalid retraction handle");
+  // Keep the receiver callback queue unpumped so this deletion is still stored
+  // when the transition completes; §8.6 permits earlier delivery as receive order.
+
+  auto const four = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*four);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained queued object-deletion publisher grant to four");
+
+  auto const publisherFive = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherFive);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "Time-constrained queued object-deletion publisher grant to five");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "Time-constrained queued object-deletion role-transition callback");
+  auto const removalsAtTransition = receiver.recorder().removals();
+  auto const timedRemovalsAtTransition = receiver.recorder().timedRemovals();
+  auto const callbackOrderAtTransition = receiver.recorder().callbackOrder();
+  auto const constrainedEnableOrder = std::find(
+      callbackOrderAtTransition.begin(),
+      callbackOrderAtTransition.end(),
+      "time-constrained-enabled");
+  require(
+      constrainedEnableOrder != callbackOrderAtTransition.end(),
+      "The recorder did not capture the Time Constrained Enabled callback boundary");
+  require(
+      removalsAtTransition.empty(),
+      "The stored timestamped deletion used an unexpected non-timestamp callback form");
+  if (!timedRemovalsAtTransition.empty()) {
+    auto const receiveOrderBeforeTransition =
+        timedRemovalsAtTransition.size() == 1U &&
+        timedRemovalsAtTransition.front().receivedOrder == rti::RECEIVE &&
+        std::find(
+            callbackOrderAtTransition.begin(),
+            constrainedEnableOrder,
+            "remove") != constrainedEnableOrder;
+    require(
+        receiveOrderBeforeTransition,
+        "The queued deletion was neither retained as TSO nor delivered as RECEIVE before Time Constrained Enabled");
+  }
+  auto const removalDeliveredAtTransition = !timedRemovalsAtTransition.empty();
+  auto const callbackOrderBeforeTsoAdvance = callbackOrderAtTransition;
+
+  // With the producer at five and lookahead one, GALT is six.  Let the
+  // producer advance to six so the constrained recipient's TAR(6) can be
+  // granted under the strict-below-GALT rule.
+  publisher.rtiAmbassador().timeAdvanceRequest(*six);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 3U; },
+      options,
+      "Time-constrained queued object-deletion publisher grant to six");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*six);
+  waitFor(
+      receiver,
+      [&] {
+        return (removalDeliveredAtTransition ||
+                receiver.recorder().timedRemovals().size() == 1U) &&
+            receiver.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "Time-constrained queued object-deletion delivery before grant six");
+  auto const timedRemovals = receiver.recorder().timedRemovals();
+  auto const grants = receiver.recorder().timeAdvanceGrants();
+  auto const callbackOrder = receiver.recorder().callbackOrder();
+  require(
+      receiver.recorder().removals().empty() &&
+          timedRemovals.size() == 1U &&
+          timedRemovals.front().object == target &&
+          timedRemovals.front().tag == tagBytes &&
+          timedRemovals.front().producer == publisher.federateHandle() &&
+          timedRemovals.front().timeText == six->toString() &&
+          timedRemovals.front().sentOrder == rti::TIMESTAMP &&
+          timedRemovals.front().receivedOrder ==
+              (removalDeliveredAtTransition ? rti::RECEIVE : rti::TIMESTAMP) &&
+          timedRemovals.front().retractionPresent &&
+          !timedRemovals.front().retraction.empty(),
+      "The queued object removal lost its object, producer, tag, timestamp, or timestamp-order delivery");
+  require(
+      grants.size() == 2U && grants.back().text == six->toString(),
+      "Time-constrained queued object-deletion receiver did not receive its grant at time six");
+  if (removalDeliveredAtTransition) {
+    require(
+        callbackOrder.size() == callbackOrderBeforeTsoAdvance.size() + 1U &&
+            callbackOrder.back() == "grant",
+        "The Time Constrained Enabled-time deletion was not followed by the grant at time six");
+  } else {
+    require(
+        callbackOrder.size() == callbackOrderBeforeTsoAdvance.size() + 2U &&
+            callbackOrder[callbackOrderBeforeTsoAdvance.size()] == "remove" &&
+            callbackOrder.back() == "grant",
+        "The queued timestamped object removal did not precede its time-advance grant");
+  }
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTsoObjectDeletion(options, model);
 }
 
 void scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(

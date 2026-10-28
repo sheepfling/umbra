@@ -5,24 +5,50 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
-from pathlib import Path
 import sys
-from typing import Any
-
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Literal, TypeAlias, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PYTHON_ROOT = ROOT / "packages" / "umbra-rti-api" / "src"
 
+ModuleName: TypeAlias = Literal["root", "encoding", "exceptions", "time"]
+NestedCallbackAliasName: TypeAlias = Literal[
+    "FederateAmbassador.SupplementalReflectInfo",
+    "FederateAmbassador.SupplementalReceiveInfo",
+    "FederateAmbassador.SupplementalRemoveInfo",
+]
+ModuleDifferenceField: TypeAlias = Literal["missing_attributes", "not_exported"]
 
-def _java_names(java_root: Path, relative: str) -> list[str]:
+
+class ModuleInventory(TypedDict):
+    java_type_count: int
+    python_export_count: int
+    missing_attributes: list[str]
+    not_exported: list[str]
+    python_helpers: list[str]
+
+
+class PythonTypeSurfaceReport(TypedDict):
+    standard: Literal["IEEE 1516.1-2010"]
+    java_package: Literal["hla.rti1516e"]
+    modules: dict[ModuleName, ModuleInventory]
+    nested_callback_aliases: dict[NestedCallbackAliasName, bool]
+
+
+def _java_names(java_root: Path, relative: Path) -> list[str]:
     path = java_root / relative
     return sorted(item.stem for item in path.glob("*.java"))
 
 
-def _module_inventory(java_root: Path, module_name: str, relative: str) -> dict[str, Any]:
+def _module_inventory(
+    java_root: Path, module_name: str, relative: Path
+) -> ModuleInventory:
     module = importlib.import_module(module_name)
     expected = _java_names(java_root, relative)
-    exported = set(getattr(module, "__all__", ()))
+    exported_names = cast(Iterable[str], getattr(module, "__all__", ()))
+    exported = set(exported_names)
     return {
         "java_type_count": len(expected),
         "python_export_count": len(exported),
@@ -32,20 +58,23 @@ def _module_inventory(java_root: Path, module_name: str, relative: str) -> dict[
     }
 
 
-def verify(java_root: Path, python_root: Path) -> dict[str, Any]:
+def verify(java_root: Path, python_root: Path) -> PythonTypeSurfaceReport:
     sys.path.insert(0, str(python_root))
-    modules = {
+    module_specs: dict[ModuleName, tuple[str, Path]] = {
         "root": ("hla.rti1516e", Path("hla") / "rti1516e"),
         "encoding": ("hla.rti1516e.encoding", Path("hla") / "rti1516e" / "encoding"),
-        "exceptions": ("hla.rti1516e.exceptions", Path("hla") / "rti1516e" / "exceptions"),
+        "exceptions": (
+            "hla.rti1516e.exceptions",
+            Path("hla") / "rti1516e" / "exceptions",
+        ),
         "time": ("hla.rti1516e.time", Path("hla") / "rti1516e" / "time"),
     }
-    inventory = {
+    inventory: dict[ModuleName, ModuleInventory] = {
         label: _module_inventory(java_root, module_name, relative)
-        for label, (module_name, relative) in modules.items()
+        for label, (module_name, relative) in module_specs.items()
     }
     root = importlib.import_module("hla.rti1516e")
-    nested_aliases = {
+    nested_aliases: dict[NestedCallbackAliasName, bool] = {
         "FederateAmbassador.SupplementalReflectInfo": getattr(
             root.FederateAmbassador, "SupplementalReflectInfo", None
         )
@@ -59,7 +88,7 @@ def verify(java_root: Path, python_root: Path) -> dict[str, Any]:
         )
         is root.SupplementalRemoveInfo,
     }
-    result: dict[str, Any] = {
+    result: PythonTypeSurfaceReport = {
         "standard": "IEEE 1516.1-2010",
         "java_package": "hla.rti1516e",
         "modules": inventory,
@@ -70,7 +99,12 @@ def verify(java_root: Path, python_root: Path) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--java-root", type=Path, required=True, help="root containing hla/rti1516e/*.java")
+    parser.add_argument(
+        "--java-root",
+        type=Path,
+        required=True,
+        help="root containing hla/rti1516e/*.java",
+    )
     parser.add_argument("--python-root", type=Path, default=DEFAULT_PYTHON_ROOT)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -78,7 +112,11 @@ def main() -> int:
         inventory = verify(args.java_root, args.python_root)
         findings: list[str] = []
         for module_name, data in inventory["modules"].items():
-            for key in ("missing_attributes", "not_exported"):
+            fields: tuple[ModuleDifferenceField, ...] = (
+                "missing_attributes",
+                "not_exported",
+            )
+            for key in fields:
                 if data[key]:
                     findings.append(f"{module_name}.{key}: {data[key]}")
         for alias, present in inventory["nested_callback_aliases"].items():
@@ -86,7 +124,9 @@ def main() -> int:
                 findings.append(f"missing Java-shaped nested callback alias: {alias}")
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(inventory, indent=2) + "\n", encoding="utf-8"
+            )
         if findings:
             print("IEEE 1516e Python type-surface verification: FAIL", file=sys.stderr)
             for finding in findings:
@@ -99,8 +139,17 @@ def main() -> int:
                 f"Python exports={data['python_export_count']}"
             )
         return 0
-    except (OSError, ImportError, AttributeError, ValueError, json.JSONDecodeError) as error:
-        print(f"IEEE 1516e Python type-surface verification: FAIL: {error}", file=sys.stderr)
+    except (
+        OSError,
+        ImportError,
+        AttributeError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as error:
+        print(
+            f"IEEE 1516e Python type-surface verification: FAIL: {error}",
+            file=sys.stderr,
+        )
         return 1
 
 

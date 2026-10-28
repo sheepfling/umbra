@@ -3,4 +3,4 @@
 from __future__ import annotations
 
 from .public import *
-from .public import __all__
+from .public import __all__ as __all__

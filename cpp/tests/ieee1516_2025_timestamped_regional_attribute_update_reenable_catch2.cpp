@@ -105,22 +105,25 @@ TEST_CASE(
   REQUIRE(retraction.isValid());
   REQUIRE(receiverReports.attributeReflectionReports.empty());
 
-  // The source association is explicit and overlap-qualified. Its queued
-  // callback must retain the original RegionHandle through the role change.
+  // Section 8.7 requires queued TSO messages to become receive-order delivery
+  // when the recipient leaves the Time Constrained role.
   REQUIRE_NOTHROW(receiver->disableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.attributeReflectionReports.empty());
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(receiverReports.attributeReflectionReports.front().receivedOrderType == RECEIVE);
+  REQUIRE(receiverReports.attributeReflectionReports.front().timeImplementationName.empty());
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 2U);
 
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant"});
 
   auto const& report = receiverReports.attributeReflectionReports.front();
   REQUIRE(report.objectInstance == objectInstance);
@@ -131,14 +134,15 @@ TEST_CASE(
   REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(report.producingFederate == publisherHandle);
-  REQUIRE(report.timeImplementationName == L"HLAinteger64Time");
-  REQUIRE(report.timeValue == L"7");
-  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.retractionSupplied);
-  REQUIRE(report.retractionValid);
+  REQUIRE(report.timeImplementationName.empty());
+  REQUIRE(report.timeValue.empty());
+  REQUIRE(report.sentOrderType == RECEIVE);
+  REQUIRE(report.receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(report.retractionSupplied);
+  REQUIRE_FALSE(report.retractionValid);
   REQUIRE(report.sentRegionsSupplied);
-  REQUIRE(report.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(report.sentRegions.size() == 1U);
+  REQUIRE(report.sentRegions.begin()->isValid());
   REQUIRE_THROWS_AS(
       publisher->retract(retraction),
       rti1516_2025::MessageCanNoLongerBeRetracted);

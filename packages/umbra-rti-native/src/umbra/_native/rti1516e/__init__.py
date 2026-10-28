@@ -14,53 +14,56 @@ provider.
 from __future__ import annotations
 
 from abc import update_abstractmethods
-from typing import Any, Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from hla.rti1516e import (
-    AttributeHandleFactory,
+    RTIAMBASSADOR_METHODS,
     AttributeHandle,
+    AttributeHandleFactory,
     AttributeHandleSetFactory,
-    AttributeHandleValueMapFactory,
     AttributeHandleValueMap,
-    AttributeSetRegionSetPairListFactory,
-    AttributeRegionAssociation,
+    AttributeHandleValueMapFactory,
     AttributeSetRegionSetPairList,
+    AttributeSetRegionSetPairListFactory,
+    CallbackModel,
+    DimensionHandle,
+    DimensionHandleFactory,
+    DimensionHandleSetFactory,
+    FederateAmbassador,
+    FederateHandle,
+    FederateHandleFactory,
+    FederateHandleSet,
+    FederateHandleSetFactory,
+    InteractionClassHandle,
+    InteractionClassHandleFactory,
     MutableAttributeHandleSet,
     MutableAttributeHandleValueMap,
     MutableDimensionHandleSet,
     MutableFederateHandleSet,
-    MutableRegionHandleSet,
     MutableParameterHandleValueMap,
-    DimensionHandle,
-    DimensionHandleFactory,
-    DimensionHandleSetFactory,
-    FederateHandleFactory,
-    FederateHandleSetFactory,
-    InteractionClassHandleFactory,
-    ObjectClassHandleFactory,
-    ObjectInstanceHandleFactory,
-    ParameterHandleFactory,
-    ParameterHandleValueMapFactory,
-    RegionHandleSetFactory,
-    CallbackModel,
-    FederateAmbassador,
-    FederateHandle,
-    FederateHandleSet,
-    InteractionClassHandle,
+    MutableRegionHandleSet,
     ObjectClassHandle,
+    ObjectClassHandleFactory,
     ObjectInstanceHandle,
+    ObjectInstanceHandleFactory,
     OrderType,
     ParameterHandle,
+    ParameterHandleFactory,
     ParameterHandleValueMap,
-    RTIAMBASSADOR_METHODS,
+    ParameterHandleValueMapFactory,
+    RegionHandleSetFactory,
+    ResignAction,
     RTIambassador,
-    SupplementalReflectInfo,
+    RtiFactory,
     SupplementalReceiveInfo,
+    SupplementalReflectInfo,
     TransportationTypeHandle,
     TransportationTypeHandleFactory,
-    RtiFactory,
 )
-from hla.rti1516e import ResignAction
+from hla.rti1516e import (
+    AttributeRegionAssociation as AttributeRegionAssociation,
+)
 from hla.rti1516e.exceptions import exceptionForName
 
 from . import _native_2010
@@ -73,9 +76,7 @@ def _call_native(function: Any, *args: object) -> Any:
         return function(*args)
     except _native_2010.Native2010RtiError as error:
         name, separator, message = str(error).partition(": ")
-        raise exceptionForName(
-            name, message if separator else name, error
-        ) from error
+        raise exceptionForName(name, message if separator else name, error) from error
 
 
 class _Native2010CallbackBridge:
@@ -106,8 +107,7 @@ class _Native2010CallbackBridge:
         producing_federate: bytes,
     ) -> None:
         decoded = AttributeHandleValueMap(
-            (AttributeHandle(handle), bytes(value))
-            for handle, value in values.items()
+            (AttributeHandle(handle), bytes(value)) for handle, value in values.items()
         )
         supplement = SupplementalReflectInfo(
             FederateHandle(producing_federate) if producing_federate else None
@@ -129,8 +129,7 @@ class _Native2010CallbackBridge:
         producing_federate: bytes,
     ) -> None:
         decoded = ParameterHandleValueMap(
-            (ParameterHandle(handle), bytes(value))
-            for handle, value in values.items()
+            (ParameterHandle(handle), bytes(value)) for handle, value in values.items()
         )
         supplement = SupplementalReceiveInfo(
             FederateHandle(producing_federate) if producing_federate else None
@@ -162,7 +161,9 @@ class _Native2010CallbackBridge:
     def announceSynchronizationPoint(self, label: str, tag: bytes) -> None:
         self._target.announceSynchronizationPoint(str(label), bytes(tag))
 
-    def federationSynchronized(self, label: str, failed_to_sync: Iterable[bytes]) -> None:
+    def federationSynchronized(
+        self, label: str, failed_to_sync: Iterable[bytes]
+    ) -> None:
         self._target.federationSynchronized(
             str(label),
             FederateHandleSet(FederateHandle(bytes(value)) for value in failed_to_sync),
@@ -254,7 +255,9 @@ class _Native2010RegionHandleSetFactory(RegionHandleSetFactory):
         return MutableRegionHandleSet()
 
 
-class _Native2010AttributeSetRegionSetPairListFactory(AttributeSetRegionSetPairListFactory):
+class _Native2010AttributeSetRegionSetPairListFactory(
+    AttributeSetRegionSetPairListFactory
+):
     def create(self, capacity: int = 0) -> AttributeSetRegionSetPairList:
         del capacity
         return AttributeSetRegionSetPairList()
@@ -299,7 +302,10 @@ class Native2010RTIambassador(RTIambassador):
         return Native2010Float64TimeFactory()
 
     def createFederationExecution(
-        self, federationExecutionName: str, fomModule: object, logicalTimeImplementationName: str = ""
+        self,
+        federationExecutionName: str,
+        fomModule: object,
+        logicalTimeImplementationName: str = "",
     ) -> None:
         del logicalTimeImplementationName
         _call_native(
@@ -308,9 +314,14 @@ class Native2010RTIambassador(RTIambassador):
         )
 
     def destroyFederationExecution(self, federationExecutionName: str) -> None:
-        _call_native(self._implementation.destroy_federation_execution, str(federationExecutionName))
+        _call_native(
+            self._implementation.destroy_federation_execution,
+            str(federationExecutionName),
+        )
 
-    def registerFederationSynchronizationPoint(self, label: str, tag: bytes, *args: object) -> None:
+    def registerFederationSynchronizationPoint(
+        self, label: str, tag: bytes, *args: object
+    ) -> None:
         if args:
             raise NotImplementedError(
                 "IEEE 1516.1-2010 native reference slice does not yet support an explicit synchronization set"
@@ -321,7 +332,9 @@ class Native2010RTIambassador(RTIambassador):
             bytes(tag),
         )
 
-    def synchronizationPointAchieved(self, label: str, successfully: bool = True) -> None:
+    def synchronizationPointAchieved(
+        self, label: str, successfully: bool = True
+    ) -> None:
         _call_native(
             self._implementation.synchronization_point_achieved,
             str(label),
@@ -347,74 +360,110 @@ class Native2010RTIambassador(RTIambassador):
     def resignFederationExecution(self, resignAction: ResignAction) -> None:
         if not isinstance(resignAction, ResignAction):
             raise TypeError("resignAction must be ResignAction")
-        _call_native(self._implementation.resign_federation_execution, resignAction.name)
+        _call_native(
+            self._implementation.resign_federation_execution, resignAction.name
+        )
 
     def getFederateHandle(self, theName: str) -> FederateHandle:
-        return FederateHandle(bytes(_call_native(
-            self._implementation.get_federate_handle,
-            str(theName),
-        )))
+        return FederateHandle(
+            bytes(
+                _call_native(
+                    self._implementation.get_federate_handle,
+                    str(theName),
+                )
+            )
+        )
 
     def getFederateName(self, theHandle: FederateHandle) -> str:
-        return str(_call_native(
-            self._implementation.get_federate_name,
-            theHandle.encodedValue,
-        ))
+        return str(
+            _call_native(
+                self._implementation.get_federate_name,
+                theHandle.encodedValue,
+            )
+        )
 
     def getObjectClassHandle(self, theName: str) -> ObjectClassHandle:
         return ObjectClassHandle(
-            bytes(_call_native(self._implementation.get_object_class_handle, str(theName)))
+            bytes(
+                _call_native(self._implementation.get_object_class_handle, str(theName))
+            )
         )
 
     def getObjectClassName(self, theHandle: ObjectClassHandle) -> str:
-        return str(_call_native(self._implementation.get_object_class_name, theHandle.encodedValue))
-
-    def getAttributeHandle(self, whichClass: ObjectClassHandle, theAttributeName: str) -> AttributeHandle:
-        return AttributeHandle(
-            bytes(_call_native(
-                self._implementation.get_attribute_handle,
-                whichClass.encodedValue,
-                str(theAttributeName),
-            ))
+        return str(
+            _call_native(
+                self._implementation.get_object_class_name, theHandle.encodedValue
+            )
         )
 
-    def getAttributeName(self, whichClass: ObjectClassHandle, theHandle: AttributeHandle) -> str:
-        return str(_call_native(
-            self._implementation.get_attribute_name,
-            whichClass.encodedValue,
-            theHandle.encodedValue,
-        ))
+    def getAttributeHandle(
+        self, whichClass: ObjectClassHandle, theAttributeName: str
+    ) -> AttributeHandle:
+        return AttributeHandle(
+            bytes(
+                _call_native(
+                    self._implementation.get_attribute_handle,
+                    whichClass.encodedValue,
+                    str(theAttributeName),
+                )
+            )
+        )
+
+    def getAttributeName(
+        self, whichClass: ObjectClassHandle, theHandle: AttributeHandle
+    ) -> str:
+        return str(
+            _call_native(
+                self._implementation.get_attribute_name,
+                whichClass.encodedValue,
+                theHandle.encodedValue,
+            )
+        )
 
     def getInteractionClassHandle(self, theName: str) -> InteractionClassHandle:
         return InteractionClassHandle(
-            bytes(_call_native(self._implementation.get_interaction_class_handle, str(theName)))
+            bytes(
+                _call_native(
+                    self._implementation.get_interaction_class_handle, str(theName)
+                )
+            )
         )
 
     def getInteractionClassName(self, theHandle: InteractionClassHandle) -> str:
-        return str(_call_native(
-            self._implementation.get_interaction_class_name,
-            theHandle.encodedValue,
-        ))
+        return str(
+            _call_native(
+                self._implementation.get_interaction_class_name,
+                theHandle.encodedValue,
+            )
+        )
 
     def getParameterHandle(
         self, whichClass: InteractionClassHandle, theName: str
     ) -> ParameterHandle:
-        return ParameterHandle(bytes(_call_native(
-            self._implementation.get_parameter_handle,
-            whichClass.encodedValue,
-            str(theName),
-        )))
+        return ParameterHandle(
+            bytes(
+                _call_native(
+                    self._implementation.get_parameter_handle,
+                    whichClass.encodedValue,
+                    str(theName),
+                )
+            )
+        )
 
     def getParameterName(
         self, whichClass: InteractionClassHandle, theHandle: ParameterHandle
     ) -> str:
-        return str(_call_native(
-            self._implementation.get_parameter_name,
-            whichClass.encodedValue,
-            theHandle.encodedValue,
-        ))
+        return str(
+            _call_native(
+                self._implementation.get_parameter_name,
+                whichClass.encodedValue,
+                theHandle.encodedValue,
+            )
+        )
 
-    def publishObjectClassAttributes(self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]) -> None:
+    def publishObjectClassAttributes(
+        self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]
+    ) -> None:
         _call_native(
             self._implementation.publish_object_class_attributes,
             theClass.encodedValue,
@@ -422,9 +471,15 @@ class Native2010RTIambassador(RTIambassador):
         )
 
     def unpublishObjectClass(self, theClass: ObjectClassHandle) -> None:
-        _call_native(self._implementation.unpublish_object_class_attributes, theClass.encodedValue, set())
+        _call_native(
+            self._implementation.unpublish_object_class_attributes,
+            theClass.encodedValue,
+            set(),
+        )
 
-    def unpublishObjectClassAttributes(self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]) -> None:
+    def unpublishObjectClassAttributes(
+        self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]
+    ) -> None:
         _call_native(
             self._implementation.unpublish_object_class_attributes,
             theClass.encodedValue,
@@ -446,9 +501,15 @@ class Native2010RTIambassador(RTIambassador):
         )
 
     def unsubscribeObjectClass(self, theClass: ObjectClassHandle) -> None:
-        _call_native(self._implementation.unsubscribe_object_class_attributes, theClass.encodedValue, set())
+        _call_native(
+            self._implementation.unsubscribe_object_class_attributes,
+            theClass.encodedValue,
+            set(),
+        )
 
-    def unsubscribeObjectClassAttributes(self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]) -> None:
+    def unsubscribeObjectClassAttributes(
+        self, theClass: ObjectClassHandle, attributeList: Iterable[AttributeHandle]
+    ) -> None:
         _call_native(
             self._implementation.unsubscribe_object_class_attributes,
             theClass.encodedValue,
@@ -490,7 +551,11 @@ class Native2010RTIambassador(RTIambassador):
         return ObjectInstanceHandle(bytes(encoded))
 
     def getObjectInstanceName(self, theHandle: ObjectInstanceHandle) -> str:
-        return str(_call_native(self._implementation.get_object_instance_name, theHandle.encodedValue))
+        return str(
+            _call_native(
+                self._implementation.get_object_instance_name, theHandle.encodedValue
+            )
+        )
 
     def updateAttributeValues(
         self,
@@ -501,7 +566,10 @@ class Native2010RTIambassador(RTIambassador):
         _call_native(
             self._implementation.update_attribute_values,
             theObject.encodedValue,
-            {handle.encodedValue: bytes(value) for handle, value in theAttributeValues.items()},
+            {
+                handle.encodedValue: bytes(value)
+                for handle, value in theAttributeValues.items()
+            },
             bytes(theUserSuppliedTag),
         )
 
@@ -537,11 +605,13 @@ class Native2010RTIambassador(RTIambassador):
         theObject: ObjectInstanceHandle,
         theAttribute: AttributeHandle,
     ) -> bool:
-        return bool(_call_native(
-            self._implementation.is_attribute_owned_by_federate,
-            theObject.encodedValue,
-            theAttribute.encodedValue,
-        ))
+        return bool(
+            _call_native(
+                self._implementation.is_attribute_owned_by_federate,
+                theObject.encodedValue,
+                theAttribute.encodedValue,
+            )
+        )
 
     def getAttributeHandleSetFactory(self) -> AttributeHandleSetFactory:
         return _Native2010AttributeHandleSetFactory()
@@ -582,7 +652,9 @@ class Native2010RTIambassador(RTIambassador):
     def getRegionHandleSetFactory(self) -> RegionHandleSetFactory:
         return _Native2010RegionHandleSetFactory()
 
-    def getAttributeSetRegionSetPairListFactory(self) -> AttributeSetRegionSetPairListFactory:
+    def getAttributeSetRegionSetPairListFactory(
+        self,
+    ) -> AttributeSetRegionSetPairListFactory:
         return _Native2010AttributeSetRegionSetPairListFactory()
 
     def getTransportationTypeHandleFactory(self) -> TransportationTypeHandleFactory:
@@ -593,7 +665,9 @@ class Native2010RTIambassador(RTIambassador):
 
 
 def _unsupported(name: str):
-    def invoke(self: Native2010RTIambassador, *args: object, **kwargs: object) -> object:
+    def invoke(
+        self: Native2010RTIambassador, *args: object, **kwargs: object
+    ) -> object:
         raise NotImplementedError(
             f"IEEE 1516.1-2010 native provider has not implemented {name}"
         )
@@ -626,9 +700,9 @@ class Native2010RtiFactory(RtiFactory):
 
 
 __all__ = [
+    "Native2010EncoderFactory",
+    "Native2010Float64TimeFactory",
     "Native2010RTIambassador",
     "Native2010RtiFactory",
-    "Native2010EncoderFactory",
     "Native2010TimeFactory",
-    "Native2010Float64TimeFactory",
 ]

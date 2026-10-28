@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK covers two repeated-acquisition boundaries. First, with A already Acquiring, a repeated request for {A,B} preserves A and starts B. Second, after canceling A but before delivering its confirmation (Trying to Cancel Acquisition), the same repeated request preserves A's cancellation state and starts B. In both branches the owner receives no duplicate Request Attribute Ownership Release for A and does receive the B request; cancellations are confirmed independently and ownership remains unchanged. Direct mapped requirements are page-162-l16-4, l22-6, l28-8, l34-10, l43-13, l52-16, l58-18, l64-20, and l76-24, all under §7.8. This is standard public-API evidence only; no Java parity, independent-provider behavior, or general conformance is claimed.",
+  "requirements": [
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l16-4", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l22-6", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l28-8", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l34-10", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l43-13", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l52-16", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l58-18", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l64-20", "standard_section": "hla-1516.1-2025:clause-7.8"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l76-24", "standard_section": "hla-1516.1-2025:clause-7.8"}
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-repeat-acquisition-while-pending",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition and cancelAttributeOwnershipAcquisition with requestAttributeOwnershipRelease and confirmAttributeOwnershipAcquisitionCancellation callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_acquisition_repeat_pending.cpp::scenarioRepeatAcquisitionWhilePendingContract"
+      ]
+    }
+  ]
+}

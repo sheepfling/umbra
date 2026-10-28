@@ -330,6 +330,136 @@ void scenarioRegionLifecycleContract(
   scenarioRegionLifecycle(options, model);
 }
 
+void scenarioRegionCommitCompleteRanges(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "region-commit-complete-ranges-owner");
+  Session member(options, model, "region-commit-complete-ranges-member");
+  auto const federation = federationName(options, "region-commit-complete-ranges");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto const handles = ddmHandles(owner, options);
+  verifyDdmClassDimensions(owner, options, handles, "incomplete region commit");
+  rti::AttributeHandleSet const attributes{handles.attribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(handles.objectClass, attributes);
+
+  auto const region = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{handles.firstDimension, handles.secondDimension});
+  require(region.isValid(), "two-dimensional region template creation failed");
+  owner.rtiAmbassador().setRangeBounds(
+      region, handles.firstDimension, rti::RangeBounds(1UL, 5UL));
+  requireException(
+      [&] { owner.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region}); },
+      L"InvalidRegion",
+      "commit after setting only one of two region dimensions");
+
+  auto const pendingFirstBounds =
+      owner.rtiAmbassador().getRangeBounds(region, handles.firstDimension);
+  require(
+      pendingFirstBounds.getLowerBound() == 1UL &&
+          pendingFirstBounds.getUpperBound() == 5UL,
+      "failed incomplete commit discarded the pending first-dimension bounds");
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const attributeRegions{{
+      attributes,
+      rti::RegionHandleSet{region},
+  }};
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstanceWithRegions(
+            handles.objectClass, attributeRegions));
+      },
+      L"InvalidRegion",
+      "regional object registration using an incomplete region template");
+
+  owner.rtiAmbassador().setRangeBounds(
+      region, handles.secondDimension, rti::RangeBounds(6UL, 9UL));
+  owner.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+  verifyDdmRegion(
+      owner,
+      handles,
+      region,
+      1UL,
+      5UL,
+      6UL,
+      9UL,
+      "region completed after a rejected partial commit");
+  auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
+      handles.objectClass, attributeRegions);
+  require(object.isValid(), "completed region template was not usable for registration");
+
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioRegionalObjectAttributeDimensionSubset(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "regional-object-attribute-dimension-subset-owner");
+  Session member(options, model, "regional-object-attribute-dimension-subset-member");
+  auto const federation = federationName(options, "regional-object-attribute-dimension-subset");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto const handles = ddmHandles(owner, options);
+  verifyDdmClassDimensions(owner, options, handles, "instance-attribute dimension subset");
+  auto const unrelatedDimension = ddmUnrelatedDimensionHandle(owner, options);
+  auto const availableDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForObjectClass(handles.objectClass);
+  require(
+      availableDimensions.count(unrelatedDimension) == 0U,
+      "DDM adapter's unrelated dimension is available for the object class");
+
+  rti::AttributeHandleSet const attributes{handles.attribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(handles.objectClass, attributes);
+  auto const unrelatedRegion = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{unrelatedDimension});
+  require(unrelatedRegion.isValid(), "unrelated-dimension region creation failed");
+  owner.rtiAmbassador().setRangeBounds(
+      unrelatedRegion, unrelatedDimension, rti::RangeBounds(0UL, 1UL));
+  owner.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{unrelatedRegion});
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const unrelatedAttributeRegions{{
+      attributes,
+      rti::RegionHandleSet{unrelatedRegion},
+  }};
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstanceWithRegions(
+            handles.objectClass, unrelatedAttributeRegions));
+      },
+      L"InvalidRegionContext",
+      "regional object registration with a dimension unavailable to its attribute");
+
+  auto const validRegion = createDdmRegion(owner, handles, 1UL, 5UL, 2UL, 7UL);
+  rti::AttributeHandleSetRegionHandleSetPairVector const validAttributeRegions{{
+      attributes,
+      rti::RegionHandleSet{validRegion},
+  }};
+  auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
+      handles.objectClass, validAttributeRegions);
+  require(object.isValid(), "registration with available attribute dimensions failed");
+  requireException(
+      [&] {
+        owner.rtiAmbassador().associateRegionsForUpdates(
+            object, unrelatedAttributeRegions);
+      },
+      L"InvalidRegionContext",
+      "region association with a dimension unavailable to the instance attribute");
+
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, validAttributeRegions);
+  owner.rtiAmbassador().deleteRegion(validRegion);
+  owner.rtiAmbassador().deleteRegion(unrelatedRegion);
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
 
 void scenarioRegionalUnpublishRegionRelease(Options const& options, rti::CallbackModel model) {
   require(!options.ddmFom.empty(),
@@ -597,6 +727,32 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
           "overlap receiver received an update after source-region reassociation");
 
   owner.rtiAmbassador().unassociateRegionsForUpdates(object, disjointSourcePair);
+  overlap.recorder().clearReflection();
+  std::vector<std::uint8_t> defaultRegionValue{0x91U, 0x92U, 0x93U};
+  std::vector<std::uint8_t> defaultRegionTag{0x52U, 0x44U};
+  rti::AttributeHandleValueMap defaultRegionValues;
+  defaultRegionValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(
+          defaultRegionValue.data(), defaultRegionValue.size()));
+  rti::VariableLengthData defaultRegionUserTag(
+      defaultRegionTag.data(), defaultRegionTag.size());
+  owner.rtiAmbassador().updateAttributeValues(
+      object, defaultRegionValues, defaultRegionUserTag);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().reflection().present; },
+      options,
+      "default-region attribute reflection after final explicit association removal");
+  auto const defaultRegionReflection = overlap.recorder().reflection();
+  require(
+      defaultRegionReflection.values.size() == 1U &&
+          defaultRegionReflection.values.count(overlapHandles.attribute) == 1U &&
+          copyBytes(defaultRegionReflection.values.at(overlapHandles.attribute)) ==
+              defaultRegionValue &&
+          defaultRegionReflection.tag == defaultRegionTag,
+      "removing the final update-region association did not restore default-region delivery");
+
   overlap.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       overlapHandles.objectClass, overlapPair);
   disjoint.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
@@ -727,16 +883,17 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
           requests.front().tag == requestTagBytes,
       "regional attribute-value response provider callback returned the wrong metadata");
 
-  // The response is sent after the requester moves its committed region out of
-  // overlap. Reflection delivery must re-check the current DDM eligibility.
+  // The requester begins at the source's upper endpoint. Since DDM ranges are
+  // semi-open, [0,1) and [1,2) only touch and do not overlap; reflection must
+  // re-check the current DDM eligibility after this committed boundary move.
   requester.rtiAmbassador().setRangeBounds(
       requesterRegion,
       requesterHandles.firstDimension,
-      rti::RangeBounds(2UL, 3UL));
+      rti::RangeBounds(1UL, 2UL));
   requester.rtiAmbassador().setRangeBounds(
       requesterRegion,
       requesterHandles.secondDimension,
-      rti::RangeBounds(2UL, 3UL));
+      rti::RangeBounds(1UL, 2UL));
   requester.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{requesterRegion});
   owner.rtiAmbassador().updateAttributeValues(

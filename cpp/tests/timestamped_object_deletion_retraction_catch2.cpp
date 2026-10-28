@@ -396,6 +396,159 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded Delete Object Instance follows all Table 2 order-classification rows",
+    "[integration][development-profile][2025][object-management][time-management]"
+    "[delete-object-instance-order-classification-matrix]"
+    "[delete-object-instance-preferred-order][tso][receive-order]"
+    "[rti.service.delete-object-instance][rti.service.change-attribute-order-type]"
+    "[rti.service.enable-time-regulation][federate.callback.remove-object-instance]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  ReportingFederateAmbassador regulatorReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto regulator = makeRti();
+  auto const federationName = nextFederationName() + L"-order-matrix";
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regulator->connect(regulatorReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"delete-order-matrix-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"delete-order-matrix-receiver", L"subscriber", federationName));
+  REQUIRE_NOTHROW(regulator->joinFederationExecution(
+      L"delete-order-matrix-regulator", L"regulator", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliable = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
+  auto const bestEffort = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::best_effort_base);
+  auto const privilegeToDelete = publisher->getAttributeHandle(
+      objectClass, umbra::test::hla::wide::standard::privilege_to_delete_object);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  REQUIRE(privilegeToDelete.isValid());
+  AttributeHandleSet const observedAttributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      objectClass, observedAttributes));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(
+      objectClass, observedAttributes));
+
+  struct MatrixRow final {
+    OrderType preferredOrder;
+    bool regulating;
+    bool timestamped;
+  };
+  std::vector<MatrixRow> const rows{
+      {RECEIVE, false, false},
+      {RECEIVE, false, true},
+      {TIMESTAMP, false, false},
+      {TIMESTAMP, false, true},
+      {RECEIVE, true, false},
+      {RECEIVE, true, true},
+      {TIMESTAMP, true, false},
+      {TIMESTAMP, true, true},
+  };
+  std::vector<ObjectInstanceHandle> objects;
+  objects.reserve(rows.size());
+  for (std::size_t index = 0U; index != rows.size(); ++index) {
+    objects.push_back(publisher->registerObjectInstance(objectClass));
+  }
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.objectDiscoveryReports == objects);
+
+  // A separate regulator gives the pre-regulation timestamped calls a valid
+  // time bound without changing the sender's role under test.
+  REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  drainCallbacks(*regulator);
+
+  std::size_t timestampedCallbacks = 0U;
+  std::size_t receiveOrderCallbacks = 0U;
+  bool senderRegulationEnabled = false;
+  for (std::size_t index = 0U; index != rows.size(); ++index) {
+    auto const& row = rows[index];
+    if (row.regulating && !senderRegulationEnabled) {
+      REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(1)));
+      drainCallbacks(*publisher);
+      senderRegulationEnabled = true;
+    }
+
+    auto const object = objects[index];
+    REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+        object,
+        AttributeHandleSet{privilegeToDelete},
+        row.preferredOrder));
+    unsigned char const tagBytes[] = {
+        0x44U, static_cast<unsigned char>(index), 0x32U};
+    VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+    OrderType const expectedSentOrder =
+        row.regulating && row.timestamped && row.preferredOrder == TIMESTAMP
+        ? TIMESTAMP
+        : RECEIVE;
+    bool const expectedRetraction = expectedSentOrder == TIMESTAMP;
+
+    if (row.timestamped) {
+      auto const retraction = publisher->deleteObjectInstance(
+          object, tag, rti1516_2025::HLAinteger64Time(6));
+      REQUIRE(retraction.isValid() == expectedRetraction);
+      ++timestampedCallbacks;
+      drainCallbacks(*receiver);
+      REQUIRE(receiverReports.objectRemovalReports.size() == timestampedCallbacks);
+      auto const& removal = receiverReports.objectRemovalReports.back();
+      REQUIRE(removal.objectInstance == object);
+      REQUIRE(removal.producer == publisherHandle);
+      REQUIRE(variableLengthDataBytes(removal.tag) ==
+              std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+      REQUIRE(removal.timeImplementationName == standard_hla::mom::integer64_time);
+      REQUIRE(removal.timeValue == L"6");
+      REQUIRE(removal.sentOrderType == expectedSentOrder);
+      REQUIRE(removal.receivedOrderType == RECEIVE);
+      REQUIRE(removal.retractionSupplied == expectedRetraction);
+      REQUIRE(removal.retractionValid == expectedRetraction);
+    } else {
+      REQUIRE_NOTHROW(publisher->deleteObjectInstance(object, tag));
+      ++receiveOrderCallbacks;
+      drainCallbacks(*receiver);
+      REQUIRE(receiverReports.receiveOrderObjectRemovalReports.size() ==
+              receiveOrderCallbacks);
+      auto const& removal =
+          receiverReports.receiveOrderObjectRemovalReports.back();
+      REQUIRE(removal.objectInstance == object);
+      REQUIRE(removal.producer == publisherHandle);
+      REQUIRE(variableLengthDataBytes(removal.tag) ==
+              std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+    }
+  }
+  REQUIRE(timestampedCallbacks == 4U);
+  REQUIRE(receiveOrderCallbacks == 4U);
+
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(regulator->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(regulator->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
     "Embedded timestamped Delete Object Instance follows privilege attribute order",
     "[integration][development-profile][2025][object-management][time-management][tso]"
     "[delete-object-instance-preferred-order]"
@@ -431,7 +584,7 @@ TEST_CASE(
   auto const bestEffort = publisher->getAttributeHandle(
       objectClass, fixture_hla::fixture::best_effort_base);
   auto const privilegeToDelete = publisher->getAttributeHandle(
-      objectClass, L"HLAprivilegeToDeleteObject");
+      objectClass, umbra::test::hla::wide::standard::privilege_to_delete_object);
   REQUIRE(objectClass.isValid());
   REQUIRE(reliable.isValid());
   REQUIRE(bestEffort.isValid());

@@ -1,11 +1,16 @@
 # HLA Behavior Flow Guides: Historical Progress Log
 
-This companion retains the dated reader-gap audits, evidence reviews, and prior handoffs that accumulated after the living guide index. The records are preserved for traceability; their historical “next handoff” notes are not the active queue.
+This companion retains the dated reader-gap audits, evidence reviews, and prior handoffs that accumulated after the
+living guide index. The records are preserved for traceability; their historical “next handoff” notes are not the active
+queue.
 
-For the current goal, prioritized topics, and active handoff, use [the living guide index](HLA-BEHAVIOR-FLOW-GUIDES.md) and [roadmap handoff](../planning/ROADMAP-INDEX.json). Mermaid rendering and visual-inspection records remain in the [review ledger](HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md).
+For the current goal, prioritized topics, and active handoff, use [the living guide index](HLA-BEHAVIOR-FLOW-GUIDES.md)
+and [roadmap handoff](../planning/ROADMAP-INDEX.json). Mermaid rendering and visual-inspection records remain in the
+[review ledger](HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md).
 
 ---
-### 2025 process Send Interaction failure mapping — 2026-10-16
+
+## 2025 process Send Interaction failure mapping — 2026-10-16
 
 Compared the pinned untimed Send Interaction exception list with the ordinary
 configured-process path. The local adapter preserves typed failures for a
@@ -36,6 +41,7 @@ cross-service rule until the sources demonstrate one. Documentation-only,
 2025-only.
 
 ---
+
 ### 2025 process Send Interaction payload layers — 2026-10-16
 
 Surveyed the configured-process receive-order Send Interaction path against the
@@ -62,6 +68,7 @@ Update the existing guide only if the standard, source, and focused tests show
 a real reader gap. Documentation-only, 2025-only.
 
 ---
+
 ### 2025 variant model-to-codec boundary — 2026-10-16
 
 Compared the FOM `DrinkGarnish` composition path with the DataElement codec
@@ -85,6 +92,7 @@ bytes and private framing. Document only verified behavior and test limits.
 Documentation-only, 2025-only; no 2010 work, builds, test reruns, or CI.
 
 ---
+
 ### 2025 process variant-record Create/Join evidence boundary — 2026-10-16
 
 Compared composer-level variant-record cases with configured-process FOM
@@ -109,6 +117,7 @@ only for a demonstrated reader gap. Documentation-only, 2025-only; no 2010 work,
 builds, test reruns, or CI.
 
 ---
+
 ### 2025 process additional-module Join interaction boundary — 2026-10-16
 
 Traced the configured-process interaction path after additional-module Join.
@@ -137,6 +146,7 @@ reader gap. Do not infer process/embedded parity or normative behavior.
 Documentation-only, 2025-only; no 2010 work, builds, test reruns, or CI.
 
 ---
+
 ### 2025 additional-module Join post-commit profile branches — 2026-10-16
 
 Reconciled the replacement-definition commit and post-commit setup paths. The
@@ -165,6 +175,7 @@ path with the focused object-only module test. Do not infer interaction parity
 from object-class lookup.
 
 ---
+
 ### 2025 configured-process delete-privilege source path and test boundary — 2026-10-16
 
 Traced the configured-process Delete Object Instance handler. After validating
@@ -190,6 +201,7 @@ post-commit setup failure, and update the guide only if a concrete reader gap
 remains. Keep catalog persistence source-only; infer no HLA transaction rule.
 
 ---
+
 ### 2025 catalog inheritance versus per-instance delete authority — 2026-10-16
 
 Reviewed the 2025 standard MIM, catalog lookup, and focused composer/runtime
@@ -218,6 +230,7 @@ transfer parity. Keep renderer retries paused until browser-launch access
 changes.
 
 ---
+
 ### 2025 variant-record discriminant composition flow — 2026-10-16
 
 The 2025 FOM module guide had no variant-record section despite current
@@ -246,6 +259,7 @@ runtime ownership from catalog visibility. The first queued process DDM visual
 review remains conditional on browser-launch access changing.
 
 ---
+
 ### 2025 inline-link integrity audit — 2026-10-16
 
 Checked inline local Markdown links in all 31 `HLA-2025-*` guides. All 3,288
@@ -267,6 +281,7 @@ for visual review when browser launch access changes; otherwise resume content
 review only for a demonstrated 2025 reader gap.
 
 ---
+
 ### 2025 guide portfolio syntax sweep and sequence-label repair — 2026-10-16
 
 Revalidated the 2025 guide portfolio after the Auto Provide handoff review;
@@ -289,6 +304,7 @@ the queued 2025 process regional-attribute DDM sequence; otherwise continue
 only for a demonstrated 2025 reader gap.
 
 ---
+
 ### 2025 RAVU response after ownership change — guide clarification — 2026-10-16
 
 Followed the active handoff through the provider's later Update Attribute
@@ -345,6 +361,7 @@ versus-response distinction only if the existing guides leave a reader gap;
 keep normative and profile-boundary claims explicit.
 
 ---
+
 ### 2025 regional class-request multi-region overlap filter — guide clarification — 2026-10-16
 
 Audited the configured-process regional class-request filter for attributes
@@ -376,6 +393,7 @@ compare focused tests. Record any remaining limit as source-only and make no
 normative or embedded/process parity claim.
 
 ---
+
 ### 2025 configured-process regional class request across multiple providers — guide clarification — 2026-10-16
 
 Traced the configured-process class planner from live object expansion through
@@ -406,6 +424,7 @@ Update the existing DDM/RAVU explanation only if it leaves a real reader gap,
 and keep untested behavior source-only.
 
 ---
+
 ### 2025 configured-process regional class-request projection boundary — guide clarification — 2026-10-16
 
 Rechecked the configured-process regional class-level Request Attribute Value
@@ -438,6 +457,7 @@ untested, and make no normative or embedded-parity claim. Documentation-only;
 do not build, rerun tests, or run CI.
 
 ---
+
 ### 2025 configured-process Unconditional Divestiture audit — existing coverage sufficient — 2026-10-16
 
 Rechecked the ownership guide's configured-process Unconditional Divestiture
@@ -470,6 +490,7 @@ profile-parity claim. Documentation-only and 2025-only; keep visual review
 paused and do not build, rerun tests, or run CI.
 
 ---
+
 ### 2025 configured-process ordinary late-subscription audit — no change — 2026-10-16
 
 Reviewed the process path for a subscription that makes an already-registered
@@ -500,6 +521,7 @@ demonstrated reader gap; no duplicate chart. Documentation-only, 2025-only;
 keep visual review paused and do not build, rerun tests, or run CI.
 
 ---
+
 ### 2025 configured-process ordinary interaction send boundary — guide clarification — 2026-10-16
 
 Traced the configured-process ordinary Send Interaction path beyond recipient
@@ -530,6 +552,7 @@ parity. Update an existing guide only for a demonstrated reader gap. Keep
 visual review paused and do not build, rerun tests, or run CI.
 
 ---
+
 ### 2025 ordinary interaction unpublication and class-promotion review — no change — 2026-10-16
 
 Reviewed the ordinary interaction sections in the 2025 information-flow guide
@@ -556,6 +579,7 @@ cases and embedded inherited-receipt tests; retain the process evidence gap
 unless focused process evidence covers the inherited match.
 
 ---
+
 ### 2025 object-removal identity and recipient-cleanup review — no change — 2026-10-16
 
 Compared the object-information guide's deletion and per-recipient cleanup
@@ -582,6 +606,7 @@ configured-process send/dequeue path and focused cases; retain the source-only
 gap if tests do not isolate this transition.
 
 ---
+
 ### 2025 callback exception/cancellation and first-reflection review — no change — 2026-10-16
 
 Audited the callback/service-ordering guide against the current 2025 dispatcher,
@@ -612,6 +637,7 @@ cases. Keep transferred-owner process identity source-only where tests use one
 federate for both registration and deletion.
 
 ---
+
 ### 2025 ordinary late-subscription and initial-value review — no change — 2026-10-16
 
 Compared the 2025 object-attribute subscription guide with the embedded
@@ -639,6 +665,7 @@ embedded/process route; do not infer profile parity or normative meaning
 beyond the evidence.
 
 ---
+
 ### 2025 Auto Provide path review — no change — 2026-10-16
 
 Reviewed the Auto Provide guide against the embedded discovery planner,
@@ -661,6 +688,7 @@ object values remain distinct from RTI-owned MOM values. Keep unresolved
 process outcomes source-only absent focused evidence.
 
 ---
+
 ### 2025 interaction regional DDM and FOM ancestry review — no change — 2026-10-16
 
 Compared the interaction-class ancestry sections in the 2025 DDM and FOM
@@ -691,6 +719,7 @@ separate from explicit Request Attribute Value Update and add no process claim
 without evidence.
 
 ---
+
 ### 2025 FOM admission/composition guide review — no change — 2026-10-16
 
 Surveyed the existing 2025 FOM module admission/composition guide against its
@@ -716,6 +745,7 @@ infer normative inheritance from source, and add no chart if the guides already
 make those boundaries clear.
 
 ---
+
 ### 2025 synchronization partial-achievement/late-join review — no change — 2026-10-16
 
 Rechecked the late-join question against the current synchronization guide,
@@ -742,6 +772,7 @@ add no diagram unless it explains a distinct state transition. Keep normative
 claims separate from current Umbra behavior and test coverage.
 
 ---
+
 ### 2025 configured-process regional request dispatch/save-restore trace — 2026-10-16
 
 Expanded the 2025 regional class-request trace beyond the ambassador and
@@ -761,6 +792,7 @@ No diagram changed. No build, test rerun, CI, or Requirements Lab work was
 performed.
 
 ---
+
 ### 2025 embedded/process regional class-request precondition ordering — 2026-10-16
 
 Compared the two 2025 adapter paths against API 9.13 and their focused cases.
@@ -788,6 +820,7 @@ record the strongest source/test-bounded result in the 2025 guide. Keep this
 documentation-only; do not infer API exception priority or start builds/tests.
 
 ---
+
 ### 2025 configured-process regional class-request validation and exception mapping — 2026-10-16
 
 The configured-process regional class planner validates supplied request
@@ -821,6 +854,7 @@ the API exception list. Keep the process regional-attribute DDM chart first in
 the paused visual-review queue.
 
 ---
+
 ### 2025 process Release Denied versus cancellation after owner callback entry — 2026-10-16
 
 Audited the configured-process boundary after an owner-side release callback
@@ -847,6 +881,7 @@ filtering against the embedded-first explanation and focused process tests.
 Update the guide only if bounded evidence identifies a useful reader gap.
 
 ---
+
 ### 2025 process ownership cancellation vs divestiture notification — 2026-10-16
 
 Audited the configured-process race between Cancel Attribute Ownership
@@ -882,6 +917,7 @@ normative ordering claims unverified without the standard text. Documentation-
 only and 2025-only; no builds, test reruns, CI, or Requirements Lab edits.
 
 ---
+
 ### 2025 process Unconditional Divestiture: pre-existing regular request path — 2026-10-16
 
 Traced the configured-process path for a regular acquisition that is already
@@ -914,6 +950,7 @@ the paused visual-review queue. Documentation-only; no builds, test reruns,
 CI, or Requirements Lab edits.
 
 ---
+
 ### 2025 configured-process Unconditional Divestiture: selected recipient paths verified — 2026-10-16
 
 Reconciled the attribute-ownership guide's process evidence against the 2025
@@ -944,6 +981,7 @@ disposition. Keep the process regional-attribute DDM sequence first in the
 paused visual-review queue. Documentation-only; renderer retry remains paused.
 
 ---
+
 ### 2025 ordinary process late-subscription values: existing guide matches bounded evidence — 2026-10-16
 
 Rechecked the 2025 process object-subscription path against the service,
@@ -981,6 +1019,7 @@ process regional-attribute DDM sequence first in the paused visual-review
 queue.
 
 ---
+
 ### 2025 Auto Provide after discovery: existing guide sufficient; process solicitation remains unverified — 2026-10-16
 
 Audited the 2025 Auto Provide path across the embedded registry planner,
@@ -1020,6 +1059,7 @@ the process regional-attribute DDM sequence first in the paused visual-review
 queue.
 
 ---
+
 ### 2025 process Federation MOM after additional-module Join: existing sequence sufficient — 2026-10-16
 
 Rechecked the Federation MOM guide's configured-process sequence against the
@@ -1056,6 +1096,7 @@ and the provider's later value update. Add no chart if the current guide already
 answers the reader question; keep process behavior source-only where untested.
 
 ---
+
 ### 2025 additional-module Join post-commit rollback: existing explanation sufficient — 2026-10-16
 
 Rechecked the additional-module Join failure boundary across the embedded
@@ -1092,6 +1133,7 @@ behavior source/test-bounded and add no duplicate chart if current coverage is
 sufficient.
 
 ---
+
 ### 2025 process regional class-request filtering and callback checkpoint — 2026-10-16
 
 Traced the configured-process regional class request through request-region
@@ -1128,6 +1170,7 @@ guides, current source rollback, and focused tests; keep any unverified catalog
 state source-only and avoid a duplicate chart if current coverage is sufficient.
 
 ---
+
 ### 2025 process class-request provider partitioning: source confirmed, test gap remains — 2026-10-16
 
 Traced the process class-level Request Attribute Value Update through the shared
@@ -1163,6 +1206,7 @@ answers the reader question, and keep untested profile behavior explicitly
 open.
 
 ---
+
 ### 2025 class Request Attribute Value Update persistence boundary: existing guide sufficient — 2026-10-16
 
 Rechecked the class-level request path against the current embedded runtime,
@@ -1192,6 +1236,7 @@ source/test coverage gap unless durable test evidence establishes an observable
 result. Do not add a chart if the existing class-request explanation is enough.
 
 ---
+
 ### 2025 process RECEIVE temporal gate: no duplicate chart — 2026-10-16
 
 Rechecked the 2025 time guide against the current embedded temporal gate,
@@ -1223,6 +1268,7 @@ interleaving source-only unless durable evidence proves its public outcome. Add
 no duplicate chart if the existing explanation answers the reader question.
 
 ---
+
 ### 2025 discovery versus first reflection: no additional chart needed — 2026-10-16
 
 Reviewed the newly-known-object handoff against the current 2025 object and
@@ -1252,6 +1298,7 @@ asynchronous-delivery, pending-advance scenario. Preserve the process
 regional-attribute DDM chart as first in the paused visual-review queue.
 
 ---
+
 ### 2025 configured-process service-report recipient and callback lifecycle — 2026-10-16
 
 Traced configured-process `HLAreportServiceInvocation` from report-request
@@ -1302,6 +1349,7 @@ regional-attribute DDM chart as the first item in the paused visual-review
 queue.
 
 ---
+
 ### 2025 configured-process regional service-report boundary — 2026-10-16
 
 Traced the receive-order and timestamped configured-process regional interaction
@@ -1332,6 +1380,7 @@ the process regional-attribute DDM sequence as first in the visual-review
 queue; renderer retries remain paused.
 
 ---
+
 ### 2025 delete-privilege transfer cross-service reader review — 2026-10-16
 
 The 2025 ownership and object-information guides each covered one side of the
@@ -1351,6 +1400,7 @@ review remain pending because browser launch is denied. Updated the working
 inventory to 306 charts. No build, test, CI, or Requirements Lab work was done.
 
 ---
+
 ### Whole-tree Mermaid syntax pass using an in-memory sanitizer adapter — 2026-10-16
 
 Followed the first scan's Node-side DOMPurify failure to Mermaid's bundled
@@ -1372,6 +1422,7 @@ review remains pending, with the process DDM sequence first once Chromium can
 launch. Verify GitHub rendering after relevant changes are published.
 
 ---
+
 ### Whole-inventory Mermaid syntax triage and targeted repair — 2026-10-16
 
 Scanned all 303 current Mermaid fences across the 43 design Markdown files
@@ -1395,6 +1446,7 @@ rendering only after browser launch access changes; keep the process DDM
 sequence first in that queue and verify GitHub presentation after publication.
 
 ---
+
 ### 2025 callback dispatch exception/cancellation reader audit and render retry — 2026-10-16
 
 Reviewed the existing 2025 callback/service-ordering guide for a bounded
@@ -1420,6 +1472,7 @@ reader need. Keep the process DDM sequence first in the visual-review queue,
 but defer rendering until the browser can launch; keep 2010 and 2025 separate.
 
 ---
+
 ### Documentation roadmap refresh and renderer outcome — 2026-10-16
 
 Reconciled the living index with the completed process receive-order timing
@@ -1443,6 +1496,7 @@ first in the visual-review queue, but do not let unavailable rendering block
 substantive documentation work.
 
 ---
+
 ### 2025 ResignAction and Connect/configuration reader audit — 2026-10-16
 
 Compared the HLA-first Connect/Join/Resign/Disconnect mental model and its
@@ -1472,6 +1526,7 @@ diagram, source, build, test, CI, Requirements Lab, or 2010 implementation
 change was made.
 
 ---
+
 ### 2025 synchronization partial-result and process Join rollback audit — 2026-10-16
 
 Rechecked the synchronization guide's source-derived sequence for an
@@ -1497,6 +1552,7 @@ first in the visual-review queue once a working local renderer is available.
 No build, test, CI, Requirements Lab, or 2010 implementation work was done.
 
 ---
+
 ### 2025 process receive-order attribute/time gate audit — 2026-10-16
 
 Compared the time-management and DSE guides with the process attribute
@@ -1520,6 +1576,7 @@ has syntax-only Mermaid acceptance; keep visual review pending until an image
 is actually produced and inspected. Then resume a gap-driven non-timing audit.
 
 ---
+
 ### 2025 process regional attribute-scope transition review — 2026-10-16
 
 Compared the Attribute Scope and DDM guides with the process notification,
@@ -1547,6 +1604,7 @@ untested cases as open and add no chart unless there is a demonstrated reader
 gap.
 
 ---
+
 ### 2025 process regional attribute projection review — 2026-10-16
 
 Compared the DDM guide's embedded attribute flow with the process receive-order
@@ -1570,6 +1628,7 @@ paths, and focused tests. Keep producer-facing relevance advisories distinct
 from receiver-facing in/out-of-scope callbacks and value reflection.
 
 ---
+
 ### 2025 process Delay Subscription Evaluation review — 2026-10-16
 
 Compared the existing DSE process-path explanation with the attribute-update
@@ -1595,6 +1654,7 @@ snapshots, and process receive-order timing; add documentation only for a real
 reader gap.
 
 ---
+
 ### 2025 passive three-role subscription review — 2026-10-16
 
 Compared the subscription-state guide's “Passive is not a hard delivery veto”
@@ -1624,6 +1684,7 @@ diagram unless a genuine reader gap remains; preserve the process/embedded and
 2010/2025 boundaries.
 
 ---
+
 ### 2025 process receive-order attribute eligibility source audit — 2026-10-16
 
 Compared the process mixed-order attribute path with the embedded
@@ -1654,6 +1715,7 @@ process DSE and regional projection as separate queued reviews; preserve the
 2010 boundary and do not build or rerun tests.
 
 ---
+
 ### Documentation roadmap made explicit — 2026-10-16
 
 Reconciled the short action view with the existing guide inventory and active
@@ -1681,6 +1743,7 @@ source and focused cases as durable evidence; keep the mixed-passel result open
 unless a tracked case directly establishes it. Do not build or rerun tests.
 
 ---
+
 ### 2025 interaction event versus object-attribute identity — 2026-10-12
 
 Audited the 2025 object/interaction guide's HLA distinction against the
@@ -1716,6 +1779,7 @@ guide audit without compiling or rerunning tests. Preserve 2010/2025 and
 embedded/process boundaries.
 
 ---
+
 ### 2025 Federation MOM request/report outcome boundary — 2026-10-12
 
 Reviewed the request-driven Federation MOM path against the pinned 2025 MIM,
@@ -1837,6 +1901,7 @@ Preserve 2010/2025 and embedded/process boundaries; do not build, rerun tests,
 start CI, or edit the Requirements Lab.
 
 ---
+
 ### 2025 DataElement carrier versus encoded-value length — 2026-10-12
 
 Audited the existing 2025 DataElement guide against the pinned `DataElement`
@@ -1870,6 +1935,7 @@ projections labeled, preserve 2010 separately, add no diagram unless a
 concrete reader gap appears, and do not build or rerun tests.
 
 ---
+
 ### 2025 federation membership: rejected Disconnect and post-commit Join effects — 2026-10-12
 
 Compared the local ambassador state chart with the pinned 2025 Disconnect
@@ -1895,6 +1961,7 @@ keep the 2010 codec and evidence separate, add no diagram unless a concrete
 reader gap remains, and do not build or rerun tests.
 
 ---
+
 ### 2025 FOM module admission and additional-module Join commit boundary — 2026-10-12
 
 Reviewed the module-admission/composition guide against the pinned 2025 API
@@ -1923,6 +1990,7 @@ from Umbra service rollback and callback-observation mechanics; preserve 2010
 separately and do not build or rerun tests.
 
 ---
+
 ### 2025 Federation Synchronization: report result vs service failure — 2026-10-12
 
 Audited the announce/achieve/federation-synchronized path against the pinned
@@ -1954,6 +2022,7 @@ diagrams with pinned API and bounded implementation/test evidence. Preserve
 build or rerun tests.
 
 ---
+
 ### 2025 Attribute Ownership: synchronous service boundaries — 2026-10-12
 
 Audited the If-Available and If-Wanted paths against the pinned 2025 API,
@@ -1982,6 +2051,7 @@ add no chart unless a concrete reader gap appears, and do not build or rerun
 tests.
 
 ---
+
 ### 2025 known-object subscription: independent effect gates — 2026-10-12
 
 Audited the late-subscription comparison against the bounded source/test
@@ -4398,7 +4468,12 @@ listing exposes purchase/subscription access, not §6.21 text. The guide already
 states these boundaries, so no duplicate chart or normative guess was added.
 No C++ build, tests, CI, 2010, or Requirements Lab work occurred.
 
-Next: audit the 2025 [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md), focusing on the HLA-first region-template lifecycle: distinguish dimension/region declaration, committed extents, per-object update associations, subscription regions, and deletion/invalidated use. Check its diagrams and current focused evidence for a genuine reader gap; do not add another diagram if the existing lifecycle/overlap flows already teach the distinction. Preserve its 2025-only scope, keep the 2010 stream separate, and do not build or rerun tests. Current-set visual review remains pending until an approved preview runtime is available.
+Next: audit the 2025 [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md), focusing on the
+HLA-first region-template lifecycle: distinguish dimension/region declaration, committed extents, per-object update
+associations, subscription regions, and deletion/invalidated use. Check its diagrams and current focused evidence for a
+genuine reader gap; do not add another diagram if the existing lifecycle/overlap flows already teach the distinction.
+Preserve its 2025-only scope, keep the 2010 stream separate, and do not build or rerun tests. Current-set visual review
+remains pending until an approved preview runtime is available.
 
 ### 2025 Federation MOM projection versus execution lifecycle — 2026-10-12
 
@@ -4731,9 +4806,18 @@ that distinction; focused dispatcher tests cover local FIFO, not cross-service
 ordering. No duplicate diagram was needed. No tests/build/CI, 2010, or
 Requirements Lab work occurred.
 
-2026-10-12: Compared the existing value-map diagram's tall layout with a left-to-right alternative and adopted the more compact layout. Mermaid Live Editor 12.1.0 accepted and rendered the exact guide source; the distinct object-attribute update/reflection and ordinary-interaction send/receive paths remain clear. This was not a GitHub render, so GitHub presentation remains unverified. No mmdc install, C++ build, test run, CI, 2010, or Requirements Lab work occurred.
+2026-10-12: Compared the existing value-map diagram's tall layout with a left-to-right alternative and adopted the more
+compact layout. Mermaid Live Editor 12.1.0 accepted and rendered the exact guide source; the distinct object-attribute
+update/reflection and ordinary-interaction send/receive paths remain clear. This was not a GitHub render, so GitHub
+presentation remains unverified. No mmdc install, C++ build, test run, CI, 2010, or Requirements Lab work occurred.
 
-2026-10-12: Audited discovery versus first reflection against the existing object/interaction and subscription-state guides. Their diagrams already distinguish receiver-known state, embedded late-subscription values, the process selector's discovery priority, and the process MOM-only initial-value branch. The focused ordinary process update test observes discovery and a later explicit reflection but does not assert order or an ordinary late-subscription snapshot; another diagram would duplicate the current source/profile comparison. The pinned API headers do not provide normative clause prose, and IEEE lists purchase/subscription access for IEEE 1516.1-2025; §§6.9/6.11 ordering and the ordinary §5.8 process result remain unverified. No C++ build, test run, CI, 2010, or Requirements Lab work occurred.
+2026-10-12: Audited discovery versus first reflection against the existing object/interaction and subscription-state
+guides. Their diagrams already distinguish receiver-known state, embedded late-subscription values, the process
+selector's discovery priority, and the process MOM-only initial-value branch. The focused ordinary process update test
+observes discovery and a later explicit reflection but does not assert order or an ordinary late-subscription snapshot;
+another diagram would duplicate the current source/profile comparison. The pinned API headers do not provide normative
+clause prose, and IEEE lists purchase/subscription access for IEEE 1516.1-2025; §§6.9/6.11 ordering and the ordinary
+§5.8 process result remain unverified. No C++ build, test run, CI, 2010, or Requirements Lab work occurred.
 
 2026-10-12: Audited the 2025 object-class declaration and ancestry question
 against the pinned API signatures, embedded registry source, and focused
@@ -8693,7 +8777,13 @@ The pinned API headers provide callback and service signatures/clause labels,
 not the normative prose needed to decide the standard's exact ordering rule.
 No duplicate diagram was warranted, and no normative conclusion was inferred.
 The late-subscription process behavior and standard-text question remain open.
-Evidence: [object-information first-reflection discussion](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#first-reflection-after-discovery-order-and-evidence-boundary), [subscription profile comparison](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#process-late-subscription-path-same-selectors-an-unresolved-initial-value-edge), [embedded callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L322), [process MOM-only initial-value branch](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L95), [embedded test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180), and [process explicit-update test](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457).
+Evidence:
+[object-information first-reflection discussion](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#first-reflection-after-discovery-order-and-evidence-boundary),
+[subscription profile comparison](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#process-late-subscription-path-same-selectors-an-unresolved-initial-value-edge),
+[embedded callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L322),
+[process MOM-only initial-value branch](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L95),
+[embedded test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180), and
+[process explicit-update test](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457).
 
 This was documentation/source/test inspection only; no build, test rerun, CI,
 Requirements Lab, or 2010 behavior work was performed.
@@ -10198,6 +10288,7 @@ Preserve the process regional-attribute DDM sequence first in the paused
 visual-review queue.
 
 ---
+
 ### 2025 class-level RAVU and discovery-triggered solicitation review — 2026-10-16
 
 Rechecked the configured-process class-level Request Attribute Value Update
@@ -10232,6 +10323,7 @@ or embedded/process parity. Documentation-only; no builds, test reruns, CI, or
 Requirements Lab work.
 
 ---
+
 ### 2025 Federation MOM Current FDD Join boundary review — 2026-10-16
 
 Compared the configured-process Join path, current-value request path,
@@ -10266,6 +10358,7 @@ Documentation-only, 2025-only; no builds, test reruns, CI, or Requirements Lab
 work.
 
 ---
+
 ### 2025 variant-record model/runtime evidence boundary — 2026-10-16
 
 Compared the variant-record composition and codec guides with the focused
@@ -10298,6 +10391,7 @@ embedded/process parity. Documentation-only, 2025-only; no builds, test
 reruns, CI, or Requirements Lab work.
 
 ---
+
 ### 2025 additional-module Join post-commit rollback review — 2026-10-16
 
 Traced configured-process additional-module Join through preparation,
@@ -10332,6 +10426,7 @@ parity. Documentation-only, 2025-only; no builds, test reruns, CI, or
 Requirements Lab work.
 
 ---
+
 ### 2025 process Release Denied/cancellation after owner callback entry — 2026-10-16
 
 Reviewed the configured-process boundary against the embedded 2025 race case
@@ -10368,6 +10463,7 @@ demonstrated reader gap. Documentation-only, 2025-only; no builds, test
 reruns, CI, or Requirements Lab work.
 
 ---
+
 ### 2025 process object-removal producer identity after privilege transfer — 2026-10-16
 
 Traced the configured-process timestamped deletion identity across the TSO
@@ -10406,6 +10502,7 @@ question. Infer no profile parity or normative behavior. Documentation-only,
 2025-only; no builds, test reruns, CI, or Requirements Lab work.
 
 ---
+
 ### 2025 ordinary-object late-subscription initial-reflection review — 2026-10-16
 
 Rechecked the 2025 subscription-state guide against the current discovery,

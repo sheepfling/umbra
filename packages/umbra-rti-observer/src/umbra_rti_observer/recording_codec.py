@@ -59,8 +59,13 @@ class SpliceList:
     items: list[JsonValue]
 
     def to_json(self) -> JsonObject:
-        return {"op": "splice", "path": list(self.path), "index": self.index,
-                "delete_count": self.delete_count, "items": self.items}
+        return {
+            "op": "splice",
+            "path": list(self.path),
+            "index": self.index,
+            "delete_count": self.delete_count,
+            "items": self.items,
+        }
 
 
 Edit: TypeAlias = SetValue | DeleteKey | SpliceList
@@ -145,7 +150,9 @@ def difference(before: JsonObject, after: JsonObject) -> list[Edit]:
             while prefix < min(len(old), len(new)) and _same(old[prefix], new[prefix]):
                 prefix += 1
             suffix = 0
-            while suffix < min(len(old), len(new)) - prefix and _same(old[len(old) - suffix - 1], new[len(new) - suffix - 1]):
+            while suffix < min(len(old), len(new)) - prefix and _same(
+                old[len(old) - suffix - 1], new[len(new) - suffix - 1]
+            ):
                 suffix += 1
             if prefix == 0 and suffix == 0 and old and new:
                 overlap = _overlap(old, new)
@@ -158,8 +165,14 @@ def difference(before: JsonObject, after: JsonObject) -> list[Edit]:
                 for index in range(prefix, len(new) - suffix):
                     visit(old[index], new[index], (*path, index))
             else:
-                add(SpliceList(path, prefix, len(old) - prefix - suffix,
-                               new[prefix:len(new) - suffix if suffix else len(new)]))
+                add(
+                    SpliceList(
+                        path,
+                        prefix,
+                        len(old) - prefix - suffix,
+                        new[prefix : len(new) - suffix if suffix else len(new)],
+                    )
+                )
         else:
             add(SetValue(path, new))
 
@@ -176,7 +189,9 @@ def _child(container: JsonValue, key: str | int) -> JsonValue:
         return container[key]
     if isinstance(container, list) and type(key) is int and 0 <= key < len(container):
         return container[key]
-    raise EditError("Edit path must address an existing own key or bounded array index.")
+    raise EditError(
+        "Edit path must address an existing own key or bounded array index."
+    )
 
 
 def apply_edits(state: JsonObject, edits: list[Edit]) -> JsonObject:
@@ -185,20 +200,31 @@ def apply_edits(state: JsonObject, edits: list[Edit]) -> JsonObject:
         raise EditError("Too many edits in a frame.")
     root = state
     for edit in edits:
-        if len(edit.path) > MAX_PATH_DEPTH or any(type(key) not in (int, str) for key in edit.path):
+        if len(edit.path) > MAX_PATH_DEPTH or any(
+            type(key) not in (int, str) for key in edit.path
+        ):
             raise EditError("Invalid edit path.")
         target: JsonValue = root
         if isinstance(edit, SpliceList):
             for key in edit.path:
                 target = _child(target, key)
-            if (not isinstance(target, list) or type(edit.index) is not int or type(edit.delete_count) is not int
-                    or not 0 <= edit.index <= len(target) or not 0 <= edit.delete_count <= len(target) - edit.index):
+            if (
+                not isinstance(target, list)
+                or type(edit.index) is not int
+                or type(edit.delete_count) is not int
+                or not 0 <= edit.index <= len(target)
+                or not 0 <= edit.delete_count <= len(target) - edit.index
+            ):
                 raise EditError("Splice must stay within an existing array.")
-            target[edit.index:edit.index + edit.delete_count] = copy.deepcopy(edit.items)
+            target[edit.index : edit.index + edit.delete_count] = copy.deepcopy(
+                edit.items
+            )
             continue
         if not edit.path:
             if not isinstance(edit, SetValue) or not isinstance(edit.value, dict):
-                raise EditError("Only an object replacement can address the state root.")
+                raise EditError(
+                    "Only an object replacement can address the state root."
+                )
             root = copy.deepcopy(edit.value)
             continue
         for key in edit.path[:-1]:
@@ -211,8 +237,15 @@ def apply_edits(state: JsonObject, edits: list[Edit]) -> JsonObject:
                 del target[key]
             else:
                 target[key] = copy.deepcopy(edit.value)
-        elif isinstance(edit, SetValue) and isinstance(target, list) and type(key) is int and 0 <= key < len(target):
+        elif (
+            isinstance(edit, SetValue)
+            and isinstance(target, list)
+            and type(key) is int
+            and 0 <= key < len(target)
+        ):
             target[key] = copy.deepcopy(edit.value)
         else:
-            raise EditError("Set/delete must address the stated container type exactly.")
+            raise EditError(
+                "Set/delete must address the stated container type exactly."
+            )
     return root

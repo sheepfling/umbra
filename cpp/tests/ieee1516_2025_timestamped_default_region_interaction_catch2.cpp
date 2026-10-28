@@ -76,7 +76,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
 
@@ -174,10 +175,8 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Interval(5)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
 
-  // The dimensional interaction uses the private default source region. Its
-  // queued TSO identity must survive a receiver role transition; disabling
-  // and re-enabling Time Constrained must not deliver, discard, duplicate, or
-  // replace the pending passel.
+  // Section 8.7 requires queued TSO messages to become receive-order delivery
+  // when the recipient leaves the Time Constrained role.
   auto const retraction = publisher->sendInteraction(
       interactionClass,
       parameterValues,
@@ -188,6 +187,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->disableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
 
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
@@ -196,13 +196,14 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(
       receiverReports.callbackOrder ==
-      std::vector<std::string>{"interaction", "grant"});
+      std::vector<std::string>{"grant"});
 
-  auto const& report = receiverReports.timestampedInteractionReports.front();
+  auto const& report = receiverReports.interactionReports.front();
   REQUIRE(report.interactionClass == interactionClass);
   REQUIRE(report.parameterValues.size() == 1U);
   REQUIRE(report.parameterValues.contains(temperatureOk));
@@ -211,12 +212,6 @@ TEST_CASE(
   REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
   REQUIRE(report.producingFederate == publisherHandle);
-  REQUIRE(report.timeImplementationName == standard_hla::mom::integer64_time);
-  REQUIRE(report.timeValue == L"6");
-  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(report.retractionSupplied);
-  REQUIRE(report.retractionValid);
   REQUIRE(report.sentRegionsSupplied);
   REQUIRE(report.sentRegions.empty());
   REQUIRE_THROWS_AS(
@@ -400,6 +395,8 @@ TEST_CASE(
     "[federate.callback.time-advance-grant]") {
   auto runScenario = [](std::int64_t reenabledLookahead,
                         std::int64_t producerAdvance) {
+  INFO("reenabled lookahead " << reenabledLookahead << ", producer advance "
+                              << producerAdvance);
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -488,11 +485,13 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(producerAdvance)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
-  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(receiverReports.callbackOrder ==
           std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
 
   auto const& report = receiverReports.timestampedInteractionReports.front();
   REQUIRE(report.interactionClass == interactionClass);
@@ -527,10 +526,10 @@ TEST_CASE(
   };
 
   // Exercise both the unchanged-lookahead lifecycle and the changed-lookahead
-  // boundary.  With lookahead three, TAR(3) is the first producer position
-  // whose GALT reaches the queued timestamp six.
+  // boundary.  With lookahead three, TAR(4) moves GALT strictly beyond the
+  // queued timestamp six so a grant at six is safe.
   runScenario(5, 2);
-  runScenario(3, 3);
+  runScenario(3, 4);
 }
 
 TEST_CASE(

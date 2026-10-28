@@ -1027,10 +1027,15 @@ object/ownership gates remain in the [object and interaction
 guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) and
 [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md). For the
 separate process-profile question of callback work already queued at Resign,
-see the [callback and service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-profile-resign-and-queued-callback-work); this lifecycle table does not claim that pending process callback work is canceled or delivered.
+see the
+[callback and service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-profile-resign-and-queued-callback-work);
+this lifecycle table does not claim that pending process callback work is canceled or delivered.
 
 One concrete ownership case is the process-profile [push cancellation
-confirmation](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#push-delivery-commits-before-the-client-can-dispatch): after its frame has been submitted to the local `HLA_EVOKED` dispatcher, the inspected path does not revalidate it after object deletion or requester Resign. The focused process cancellation test exercises default-pull confirmation only, so this is a source-derived possibility, not a tested post-Resign result or a portable HLA rule.
+confirmation](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#push-delivery-commits-before-the-client-can-dispatch): after
+its frame has been submitted to the local `HLA_EVOKED` dispatcher, the inspected path does not revalidate it after
+object deletion or requester Resign. The focused process cancellation test exercises default-pull confirmation only, so
+this is a source-derived possibility, not a tested post-Resign result or a portable HLA rule.
 
 | Exit path | Departing member's view | Surviving members' view | Object and execution state |
 | --- | --- | --- | --- |

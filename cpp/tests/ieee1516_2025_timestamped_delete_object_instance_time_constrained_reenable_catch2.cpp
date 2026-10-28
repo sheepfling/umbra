@@ -15,6 +15,7 @@ TEST_CASE(
     "[federate.callback.time-advance-grant]") {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
+  receiverReports.recordReceiveOrderObjectRemovalInCallbackOrder = true;
   auto publisher = makeRti();
   auto receiver = makeRti();
   auto const federationName = nextFederationName();
@@ -71,12 +72,14 @@ TEST_CASE(
   REQUIRE(receiverReports.objectRemovalReports.empty());
   REQUIRE(receiver->getObjectInstanceHandle(objectInstanceName) == objectInstance);
 
-  // The pending removal keeps its joined-federate identity while the
-  // recipient leaves and re-enters the Time Constrained role. It must not be
-  // delivered early, discarded, duplicated, or replaced.
+  // Section 8.7 requires queued TSO messages to become receive-order delivery
+  // when the recipient leaves the Time Constrained role.
   REQUIRE_NOTHROW(receiver->disableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.objectRemovalReports.empty());
+  REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
+  REQUIRE(receiverReports.objectRemovalReports.front().receivedOrderType == RECEIVE);
+  REQUIRE(receiverReports.objectRemovalReports.front().timeImplementationName.empty());
+  REQUIRE_FALSE(receiverReports.objectRemovalReports.front().retractionSupplied);
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 2U);
@@ -96,15 +99,19 @@ TEST_CASE(
   REQUIRE(removal.producingFederate == publisherHandle);
   REQUIRE(variableLengthDataBytes(removal.userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
-  REQUIRE(removal.timeImplementationName == L"HLAinteger64Time");
-  REQUIRE(removal.timeValue == L"6");
-  REQUIRE(removal.sentOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(removal.receivedOrderType == rti1516_2025::TIMESTAMP);
-  REQUIRE(removal.retractionSupplied);
-  REQUIRE(removal.retractionValid);
+  REQUIRE(removal.timeImplementationName.empty());
+  REQUIRE(removal.timeValue.empty());
+  REQUIRE(removal.sentOrderType == RECEIVE);
+  REQUIRE(removal.receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(removal.retractionSupplied);
+  REQUIRE_FALSE(removal.retractionValid);
   REQUIRE_THROWS_AS(
       receiver->getObjectInstanceHandle(objectInstanceName),
       rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE(publisher->getObjectInstanceName(objectInstance) == objectInstanceName);
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  while (publisher->evokeCallback(0.0)) {
+  }
   REQUIRE_THROWS_AS(
       publisher->getObjectInstanceName(objectInstance),
       rti1516_2025::ObjectInstanceNotKnown);

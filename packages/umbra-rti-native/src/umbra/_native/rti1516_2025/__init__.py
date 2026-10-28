@@ -7,7 +7,7 @@ source-checkout tests.
 
 from __future__ import annotations
 
-from . import _native
+from . import _native as _native
 from .provider import UmbraRtiFactory
 from .provider import _UmbraRTIambassador as _ProviderRTIambassador
 

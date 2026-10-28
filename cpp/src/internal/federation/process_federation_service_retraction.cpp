@@ -19,7 +19,7 @@
 #include <RTI/Exception.h>
 #include <RTI/VariableLengthData.h>
 #include <RTI/encoding/BasicDataElements.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <algorithm>
 #include <array>
@@ -54,7 +54,7 @@ makeProcessTsoRetractionLowerBound(FederateTimeSnapshot const& snapshot) {
     return {};
   }
 
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       snapshot.implementationName);
   if (!factory || factory->getName() != snapshot.implementationName) {
     return {};

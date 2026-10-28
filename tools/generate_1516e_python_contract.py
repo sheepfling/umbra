@@ -15,10 +15,9 @@ archive without copying the archive into the repository.
 from __future__ import annotations
 
 import argparse
+import re
 from collections import Counter
 from pathlib import Path
-import re
-
 
 _DECLARATION = re.compile(
     r"(?m)^\s*(?:public\s+)?(?:static\s+)?(?:default\s+)?"
@@ -80,7 +79,10 @@ def overload_counts(source: str) -> dict[str, int]:
     """Return Java declaration counts keyed by method name."""
 
     return dict(
-        Counter(match.group(1) for match in _DECLARATION.finditer(_top_level_interface_source(source)))
+        Counter(
+            match.group(1)
+            for match in _DECLARATION.finditer(_top_level_interface_source(source))
+        )
     )
 
 
@@ -150,21 +152,24 @@ def _method_block(name: str, *, abstract: bool) -> str:
     decorator = "    @abstractmethod\n" if abstract else ""
     body = (
         "        raise NotImplementedError(\n"
-        "            f\"IEEE 1516e provider has not implemented "
-        "{type(self).__name__}.{self_name}\"\n"
+        '            f"IEEE 1516e provider has not implemented '
+        '{type(self).__name__}.{self_name}"\n'
         "        )"
         if abstract
         else "        return None"
     )
+    method_context = f"        self_name = {name!r}\n" if abstract else ""
     return (
         f"{decorator}    def {name}(self, *args: object, **kwargs: object) -> object:\n"
-        f"        self_name = {name!r}\n{body}"
+        f"{method_context}{body}"
     )
 
 
 def render(java_root: Path) -> str:
     rti_source = (java_root / "RTIambassador.java").read_text(encoding="utf-8")
-    federate_source = (java_root / "FederateAmbassador.java").read_text(encoding="utf-8")
+    federate_source = (java_root / "FederateAmbassador.java").read_text(
+        encoding="utf-8"
+    )
     rti_names = method_names(rti_source)
     federate_names = method_names(federate_source)
     rti_counts = overload_counts(rti_source)
@@ -184,7 +189,9 @@ def render(java_root: Path) -> str:
         "from __future__ import annotations",
         "",
         "from abc import ABC, abstractmethod",
+        "from collections.abc import Mapping",
         "from dataclasses import dataclass",
+        "from types import MappingProxyType",
         "from typing import ClassVar",
         "",
         'STANDARD_EDITION = "IEEE 1516.1-2010"',
@@ -198,18 +205,30 @@ def render(java_root: Path) -> str:
         "",
         f"RTIAMBASSADOR_METHODS = {rti_names!r}",
         f"FEDERATE_AMBASSADOR_METHODS = {federate_names!r}",
-        f"RTIAMBASSADOR_OVERLOAD_COUNTS = {rti_counts!r}",
-        f"FEDERATE_AMBASSADOR_OVERLOAD_COUNTS = {federate_counts!r}",
-        f"RTIAMBASSADOR_PARAMETER_TYPES = {rti_parameter_types!r}",
-        f"FEDERATE_AMBASSADOR_PARAMETER_TYPES = {federate_parameter_types!r}",
-        f"RTIAMBASSADOR_RETURN_TYPES = {rti_return_types!r}",
-        f"FEDERATE_AMBASSADOR_RETURN_TYPES = {federate_return_types!r}",
+        f"RTIAMBASSADOR_OVERLOAD_COUNTS: Mapping[str, int] = MappingProxyType({rti_counts!r})",
+        f"FEDERATE_AMBASSADOR_OVERLOAD_COUNTS: Mapping[str, int] = MappingProxyType({federate_counts!r})",
+        (
+            "RTIAMBASSADOR_PARAMETER_TYPES: Mapping[str, tuple[tuple[str, ...], ...]] = "
+            f"MappingProxyType({rti_parameter_types!r})"
+        ),
+        (
+            "FEDERATE_AMBASSADOR_PARAMETER_TYPES: Mapping[str, tuple[tuple[str, ...], ...]] = "
+            f"MappingProxyType({federate_parameter_types!r})"
+        ),
+        (
+            "RTIAMBASSADOR_RETURN_TYPES: Mapping[str, tuple[str, ...]] = "
+            f"MappingProxyType({rti_return_types!r})"
+        ),
+        (
+            "FEDERATE_AMBASSADOR_RETURN_TYPES: Mapping[str, tuple[str, ...]] = "
+            f"MappingProxyType({federate_return_types!r})"
+        ),
         "",
         "class FederateAmbassador(ABC):",
-        '    \"\"\"Receive callbacks from a 2010 provider.\"\"\"',
-        '    __java_package__: ClassVar[str] = JAVA_PACKAGE',
-        '    __cpp_namespace__: ClassVar[str] = CPP_NAMESPACE',
-        '    __overload_counts__: ClassVar[dict[str, int]] = FEDERATE_AMBASSADOR_OVERLOAD_COUNTS',
+        '    """Receive callbacks from a 2010 provider."""',
+        "    __java_package__: ClassVar[str] = JAVA_PACKAGE",
+        "    __cpp_namespace__: ClassVar[str] = CPP_NAMESPACE",
+        "    __overload_counts__: ClassVar[Mapping[str, int]] = FEDERATE_AMBASSADOR_OVERLOAD_COUNTS",
         "",
     ]
     blocks.extend(_method_block(name, abstract=False) for name in federate_names)
@@ -217,14 +236,13 @@ def render(java_root: Path) -> str:
         [
             "",
             "class NullFederateAmbassador(FederateAmbassador):",
-            '    \"\"\"Convenience callback sink matching the standard Java helper.\"\"\"',
-            "    pass",
+            '    """Convenience callback sink matching the standard Java helper."""',
             "",
             "class RTIambassador(ABC):",
-            '    \"\"\"Provider-facing IEEE 1516.1-2010 RTI service contract.\"\"\"',
-            '    __java_package__: ClassVar[str] = JAVA_PACKAGE',
-            '    __cpp_namespace__: ClassVar[str] = CPP_NAMESPACE',
-            '    __overload_counts__: ClassVar[dict[str, int]] = RTIAMBASSADOR_OVERLOAD_COUNTS',
+            '    """Provider-facing IEEE 1516.1-2010 RTI service contract."""',
+            "    __java_package__: ClassVar[str] = JAVA_PACKAGE",
+            "    __cpp_namespace__: ClassVar[str] = CPP_NAMESPACE",
+            "    __overload_counts__: ClassVar[Mapping[str, int]] = RTIAMBASSADOR_OVERLOAD_COUNTS",
             "",
         ]
     )
@@ -233,19 +251,19 @@ def render(java_root: Path) -> str:
         [
             "",
             "__all__ = [",
-            '    "STANDARD_EDITION",',
-            '    "JAVA_PACKAGE",',
             '    "CPP_NAMESPACE",',
-            '    "MethodSpec",',
-            '    "RTIAMBASSADOR_METHODS",',
             '    "FEDERATE_AMBASSADOR_METHODS",',
-            '    "RTIAMBASSADOR_OVERLOAD_COUNTS",',
             '    "FEDERATE_AMBASSADOR_OVERLOAD_COUNTS",',
-            '    "RTIAMBASSADOR_PARAMETER_TYPES",',
             '    "FEDERATE_AMBASSADOR_PARAMETER_TYPES",',
-            '    "RTIAMBASSADOR_RETURN_TYPES",',
             '    "FEDERATE_AMBASSADOR_RETURN_TYPES",',
+            '    "JAVA_PACKAGE",',
+            '    "RTIAMBASSADOR_METHODS",',
+            '    "RTIAMBASSADOR_OVERLOAD_COUNTS",',
+            '    "RTIAMBASSADOR_PARAMETER_TYPES",',
+            '    "RTIAMBASSADOR_RETURN_TYPES",',
+            '    "STANDARD_EDITION",',
             '    "FederateAmbassador",',
+            '    "MethodSpec",',
             '    "NullFederateAmbassador",',
             '    "RTIambassador",',
             "]",
@@ -260,7 +278,10 @@ def main() -> int:
     parser.add_argument("--java-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    required = (args.java_root / "RTIambassador.java", args.java_root / "FederateAmbassador.java")
+    required = (
+        args.java_root / "RTIambassador.java",
+        args.java_root / "FederateAmbassador.java",
+    )
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
         parser.error("missing Java API sources: " + ", ".join(missing))

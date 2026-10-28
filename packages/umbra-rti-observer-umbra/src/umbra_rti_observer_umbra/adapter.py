@@ -4,73 +4,153 @@ from __future__ import annotations
 
 import json
 import threading
-from collections.abc import Callable, Mapping
-from typing import Any
+from collections.abc import Callable, Iterable, Mapping
+from typing import Literal, NotRequired, TypedDict, cast
 
-from hla.rti1516_2025 import FederateAmbassador
-from umbra_rti_observer import EventSink
+from hla.rti1516_2025 import CallbackModel, FederateAmbassador, RTIambassador
+from umbra_rti_observer import EventSink, JsonObject, JsonValue
+from umbra_rti_observer.models import CapabilityState
+
+_UNREADABLE_PROVIDER_VALUE = object()
+
+ObserverEventType = Literal[
+    "runtime.started",
+    "runtime.stopped",
+    "runtime.error",
+    "federate.joined",
+    "federate.resigned",
+    "federate.updated",
+    "object.discovered",
+    "object.updated",
+    "object.removed",
+    "interaction.received",
+    "callback.invoked",
+]
 
 
-def _jsonable(value: Any) -> Any:
+class AdapterCapability(TypedDict):
+    """One capability family in this adapter's normalized callback surface."""
+
+    state: CapabilityState
+    event_types: NotRequired[list[ObserverEventType]]
+    reason: NotRequired[str]
+
+
+class AdapterCapabilities(TypedDict):
+    """Named observer capability families provided by the Umbra adapter."""
+
+    lifecycle: AdapterCapability
+    federates: AdapterCapability
+    objects: AdapterCapability
+    attributes: AdapterCapability
+    interactions: AdapterCapability
+    logical_time: AdapterCapability
+    mom: AdapterCapability
+    persistence: AdapterCapability
+    ownership: AdapterCapability
+    regions: AdapterCapability
+
+
+class RtiConnectOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the RTI connect boundary."""
+
+    configuration: object
+    credentials: object
+
+
+def _probe_provider_value(operation: Callable[[], object]) -> object:
+    """Read a provider-owned proxy without letting its representation escape."""
+    try:
+        return operation()
+    except Exception:  # noqa: BLE001 - proxy getters and __str__ are provider-defined
+        return _UNREADABLE_PROVIDER_VALUE
+
+
+def _best_effort(operation: Callable[[], object]) -> None:
+    """Keep observer delivery and cleanup failures from replacing RTI behavior."""
+    try:
+        operation()
+    except Exception:  # noqa: BLE001 - these are non-authoritative side effects
+        return
+
+
+def _jsonable(value: object) -> JsonValue:
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
-    if isinstance(value, (bytes, bytearray, memoryview)):
+    if isinstance(value, memoryview):
+        return {"encoding": "hex", "value": value.tobytes().hex()}
+    if isinstance(value, (bytes, bytearray)):
         return {"encoding": "hex", "value": bytes(value).hex()}
     if isinstance(value, Mapping):
-        return {str(key): _jsonable(item) for key, item in value.items()}
+        mapping = cast(Mapping[object, object], value)
+        return {str(key): _jsonable(item) for key, item in mapping.items()}
     if isinstance(value, (list, tuple, set, frozenset)):
-        return [_jsonable(item) for item in value]
+        items = cast(Iterable[object], value)
+        return [_jsonable(item) for item in items]
     try:
         json.dumps(value)
     except (TypeError, ValueError, OverflowError):
         return str(value)
-    return value
+    return cast(JsonValue, value)
 
 
-def _handle(value: Any) -> str | None:
+def _handle(value: object) -> str | None:
     if value is None:
         return None
     for attribute in ("encodedValue", "value", "handle"):
-        try:
-            candidate = getattr(value, attribute, None)
-        except Exception:
+        candidate = _probe_provider_value(
+            lambda name=attribute: getattr(value, name, None)
+        )
+        if candidate is _UNREADABLE_PROVIDER_VALUE:
             continue
         if candidate is None or callable(candidate):
             continue
-        if isinstance(candidate, (bytes, bytearray, memoryview)):
+        if isinstance(candidate, memoryview):
+            return f"0x{candidate.tobytes().hex()}"
+        if isinstance(candidate, (bytes, bytearray)):
             return f"0x{bytes(candidate).hex()}"
-        try:
-            text = str(candidate).strip()
-        except Exception:
-            continue
-        if text:
+        text = _safe_text(candidate)
+        if text is not None:
             return text
-    try:
-        text = str(value).strip()
-    except Exception:
-        return None
-    return text or None
+    return _safe_text(value)
 
 
-def _mapping(value: Any) -> dict[str, Any]:
+def _safe_text(value: object) -> str | None:
+    result = _probe_provider_value(lambda: str(value).strip())
+    if isinstance(result, str) and result:
+        return result
+    return None
+
+
+def _mapping_pairs(value: object) -> list[tuple[object, object]] | None:
     if isinstance(value, Mapping):
-        return {(_handle(key) or str(key)): _jsonable(item) for key, item in value.items()}
-    items = getattr(value, "items", None)
-    if callable(items):
-        try:
-            return {(_handle(key) or str(key)): _jsonable(item) for key, item in items()}
-        except Exception:
-            pass
-    return {}
+        mapping = cast(Mapping[object, object], value)
+        pairs = _probe_provider_value(lambda: list(mapping.items()))
+    else:
+        items = _probe_provider_value(lambda: getattr(value, "items", None))
+        if not callable(items):
+            return None
+        typed_items = cast(Callable[[], Iterable[tuple[object, object]]], items)
+        pairs = _probe_provider_value(lambda: list(typed_items()))
+    if pairs is _UNREADABLE_PROVIDER_VALUE:
+        return None
+    return cast(list[tuple[object, object]], pairs)
 
 
-def _handles(value: Any) -> list[str | None]:
+def _mapping(value: object) -> JsonObject:
+    item_pairs = _mapping_pairs(value)
+    if item_pairs is None:
+        return {}
+    return {(_handle(key) or str(key)): _jsonable(item) for key, item in item_pairs}
+
+
+def _handles(value: object) -> list[str | None]:
     if value is None:
         return []
-    try:
-        return [_handle(item) for item in value]
-    except Exception:
+    items = _probe_provider_value(lambda: list(cast(Iterable[object], value)))
+    if items is _UNREADABLE_PROVIDER_VALUE:
         return []
+    return [_handle(item) for item in cast(list[object], items)]
 
 
 class UmbraFederateAmbassador(FederateAmbassador):
@@ -96,12 +176,12 @@ class UmbraFederateAmbassador(FederateAmbassador):
         with self._sink_lock:
             self._sink = sink
 
-    def _emit(self, event_type: str, **fields: Any) -> None:
+    def _emit(self, event_type: str, **fields: object) -> None:
         with self._sink_lock:
             sink = self._sink
         if sink is None:
             return
-        event: dict[str, Any] = {
+        event: JsonObject = {
             "event_type": event_type,
             "source": self.source,
         }
@@ -112,21 +192,24 @@ class UmbraFederateAmbassador(FederateAmbassador):
         ):
             if value is not None:
                 event[key] = value
-        event.update({key: _jsonable(value) for key, value in fields.items() if value is not None})
-        try:
-            sink(event)
-        except Exception:
-            # Dashboard delivery is diagnostic and must not change callback
-            # behavior in an RTI federate when its sink is unavailable.
-            return
+        event.update(
+            {
+                key: _jsonable(value)
+                for key, value in fields.items()
+                if value is not None
+            }
+        )
+        # Dashboard delivery is diagnostic and must not change callback
+        # behavior in an RTI federate when its sink is unavailable.
+        _best_effort(lambda: sink(event))
 
-    def runtime_started(self, **details: Any) -> None:
+    def runtime_started(self, **details: object) -> None:
         self._emit("runtime.started", details=details)
 
-    def runtime_stopped(self, **details: Any) -> None:
+    def runtime_stopped(self, **details: object) -> None:
         self._emit("runtime.stopped", details=details)
 
-    def runtime_error(self, **details: Any) -> None:
+    def runtime_error(self, **details: object) -> None:
         self._emit("runtime.error", details=details)
 
     def connectionLost(self, faultDescription: str) -> None:
@@ -140,10 +223,10 @@ class UmbraFederateAmbassador(FederateAmbassador):
 
     def discoverObjectInstance(
         self,
-        objectInstance: Any,
-        objectClass: Any,
+        objectInstance: object,
+        objectClass: object,
         objectInstanceName: str,
-        producingFederate: Any,
+        producingFederate: object,
     ) -> None:
         self._emit(
             "object.discovered",
@@ -155,13 +238,13 @@ class UmbraFederateAmbassador(FederateAmbassador):
 
     def removeObjectInstance(
         self,
-        objectInstance: Any,
-        userSuppliedTag: Any,
-        producingFederate: Any,
-        time: Any = None,
-        sentOrderType: Any = None,
-        receivedOrderType: Any = None,
-        retraction: Any = None,
+        objectInstance: object,
+        userSuppliedTag: object,
+        producingFederate: object,
+        time: object = None,
+        sentOrderType: object = None,
+        receivedOrderType: object = None,
+        retraction: object = None,
     ) -> None:
         self._emit(
             "object.removed",
@@ -176,16 +259,16 @@ class UmbraFederateAmbassador(FederateAmbassador):
 
     def reflectAttributeValues(
         self,
-        objectInstance: Any,
-        attributeValues: Any,
-        userSuppliedTag: Any,
-        transportationType: Any,
-        producingFederate: Any,
-        sentRegions: Any = None,
-        time: Any = None,
-        sentOrderType: Any = None,
-        receivedOrderType: Any = None,
-        retraction: Any = None,
+        objectInstance: object,
+        attributeValues: object,
+        userSuppliedTag: object,
+        transportationType: object,
+        producingFederate: object,
+        sentRegions: object = None,
+        time: object = None,
+        sentOrderType: object = None,
+        receivedOrderType: object = None,
+        retraction: object = None,
     ) -> None:
         self._emit(
             "object.updated",
@@ -202,16 +285,16 @@ class UmbraFederateAmbassador(FederateAmbassador):
 
     def receiveInteraction(
         self,
-        interactionClass: Any,
-        parameterValues: Any,
-        userSuppliedTag: Any,
-        transportationType: Any,
-        producingFederate: Any,
-        sentRegions: Any = None,
-        time: Any = None,
-        sentOrderType: Any = None,
-        receivedOrderType: Any = None,
-        retraction: Any = None,
+        interactionClass: object,
+        parameterValues: object,
+        userSuppliedTag: object,
+        transportationType: object,
+        producingFederate: object,
+        sentRegions: object = None,
+        time: object = None,
+        sentOrderType: object = None,
+        receivedOrderType: object = None,
+        retraction: object = None,
     ) -> None:
         interaction_handle = _handle(interactionClass)
         self._emit(
@@ -230,16 +313,16 @@ class UmbraFederateAmbassador(FederateAmbassador):
 
     def receiveDirectedInteraction(
         self,
-        interactionClass: Any,
-        objectInstance: Any,
-        parameterValues: Any,
-        userSuppliedTag: Any,
-        transportationType: Any,
-        producingFederate: Any,
-        time: Any = None,
-        sentOrderType: Any = None,
-        receivedOrderType: Any = None,
-        retraction: Any = None,
+        interactionClass: object,
+        objectInstance: object,
+        parameterValues: object,
+        userSuppliedTag: object,
+        transportationType: object,
+        producingFederate: object,
+        time: object = None,
+        sentOrderType: object = None,
+        receivedOrderType: object = None,
+        retraction: object = None,
     ) -> None:
         interaction_handle = _handle(interactionClass)
         self._emit(
@@ -258,56 +341,89 @@ class UmbraFederateAmbassador(FederateAmbassador):
             directed=True,
         )
 
-    def turnInteractionsOn(self, interactionClass: Any) -> None:
-        self._service_event("turnInteractionsOn", {"interaction_handle": _handle(interactionClass)})
+    def turnInteractionsOn(self, interactionClass: object) -> None:
+        self._service_event(
+            "turnInteractionsOn", {"interaction_handle": _handle(interactionClass)}
+        )
 
-    def turnInteractionsOff(self, interactionClass: Any) -> None:
-        self._service_event("turnInteractionsOff", {"interaction_handle": _handle(interactionClass)})
+    def turnInteractionsOff(self, interactionClass: object) -> None:
+        self._service_event(
+            "turnInteractionsOff", {"interaction_handle": _handle(interactionClass)}
+        )
 
-    def _service_event(self, operation: str, value: Any = None) -> None:
+    def _service_event(self, operation: str, value: object = None) -> None:
         self._emit(
             "callback.invoked",
             operation=operation,
             details={"value": _jsonable(value)} if value is not None else {},
         )
 
-    def provideAttributeValueUpdate(self, objectInstance: Any, attributes: Any, userSuppliedTag: Any) -> None:
+    def provideAttributeValueUpdate(
+        self, objectInstance: object, attributes: object, userSuppliedTag: object
+    ) -> None:
         self._service_event(
             "provideAttributeValueUpdate",
-            {"object_handle": _handle(objectInstance), "attributes": _handles(attributes), "tag": userSuppliedTag},
+            {
+                "object_handle": _handle(objectInstance),
+                "attributes": _handles(attributes),
+                "tag": userSuppliedTag,
+            },
         )
 
-    def attributesInScope(self, objectInstance: Any, attributes: Any) -> None:
-        self._service_event("attributesInScope", {"object_handle": _handle(objectInstance)})
+    def attributesInScope(self, objectInstance: object, attributes: object) -> None:
+        self._service_event(
+            "attributesInScope", {"object_handle": _handle(objectInstance)}
+        )
 
-    def attributesOutOfScope(self, objectInstance: Any, attributes: Any) -> None:
-        self._service_event("attributesOutOfScope", {"object_handle": _handle(objectInstance)})
+    def attributesOutOfScope(self, objectInstance: object, attributes: object) -> None:
+        self._service_event(
+            "attributesOutOfScope", {"object_handle": _handle(objectInstance)}
+        )
 
-    def turnUpdatesOnForObjectInstance(self, objectInstance: Any, attributes: Any, updateRateDesignator: str | None = None) -> None:
+    def turnUpdatesOnForObjectInstance(
+        self,
+        objectInstance: object,
+        attributes: object,
+        updateRateDesignator: str | None = None,
+    ) -> None:
         self._service_event(
             "turnUpdatesOnForObjectInstance",
-            {"object_handle": _handle(objectInstance), "update_rate": updateRateDesignator},
+            {
+                "object_handle": _handle(objectInstance),
+                "update_rate": updateRateDesignator,
+            },
         )
 
-    def turnUpdatesOffForObjectInstance(self, objectInstance: Any, attributes: Any) -> None:
-        self._service_event("turnUpdatesOffForObjectInstance", {"object_handle": _handle(objectInstance)})
+    def turnUpdatesOffForObjectInstance(
+        self, objectInstance: object, attributes: object
+    ) -> None:
+        self._service_event(
+            "turnUpdatesOffForObjectInstance",
+            {"object_handle": _handle(objectInstance)},
+        )
 
-    def reportFederationExecutions(self, report: Any) -> None:
+    def reportFederationExecutions(self, report: object) -> None:
         self._service_event("reportFederationExecutions", _jsonable(report))
 
-    def reportFederationExecutionMembers(self, federationExecutionName: str, report: Any) -> None:
+    def reportFederationExecutionMembers(
+        self, federationExecutionName: str, report: object
+    ) -> None:
         self._service_event(
             "reportFederationExecutionMembers",
             {"federation": federationExecutionName, "members": _jsonable(report)},
         )
 
-    def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+    def reportFederationExecutionDoesNotExist(
+        self, federationExecutionName: str
+    ) -> None:
         self._service_event(
             "reportFederationExecutionDoesNotExist",
             {"federation": federationExecutionName},
         )
 
-    def federationSynchronized(self, synchronizationPointLabel: str, failedToSyncSet: Any) -> None:
+    def federationSynchronized(
+        self, synchronizationPointLabel: str, failedToSyncSet: object
+    ) -> None:
         self._service_event(
             "federationSynchronized",
             {
@@ -319,7 +435,7 @@ class UmbraFederateAmbassador(FederateAmbassador):
     def federationSaved(self) -> None:
         self._service_event("federationSaved")
 
-    def federationNotSaved(self, reason: Any) -> None:
+    def federationNotSaved(self, reason: object) -> None:
         self._service_event("federationNotSaved", {"reason": _jsonable(reason)})
 
     def federationRestoreBegun(self) -> None:
@@ -328,19 +444,19 @@ class UmbraFederateAmbassador(FederateAmbassador):
     def federationRestored(self) -> None:
         self._service_event("federationRestored")
 
-    def federationNotRestored(self, reason: Any) -> None:
+    def federationNotRestored(self, reason: object) -> None:
         self._service_event("federationNotRestored", {"reason": _jsonable(reason)})
 
-    def timeRegulationEnabled(self, time: Any) -> None:
+    def timeRegulationEnabled(self, time: object) -> None:
         self._service_event("timeRegulationEnabled", {"logical_time": time})
 
-    def timeConstrainedEnabled(self, time: Any) -> None:
+    def timeConstrainedEnabled(self, time: object) -> None:
         self._service_event("timeConstrainedEnabled", {"logical_time": time})
 
-    def timeAdvanceGrant(self, time: Any) -> None:
+    def timeAdvanceGrant(self, time: object) -> None:
         self._service_event("timeAdvanceGrant", {"logical_time": time})
 
-    def requestRetraction(self, retraction: Any) -> None:
+    def requestRetraction(self, retraction: object) -> None:
         self._service_event("requestRetraction", {"retraction": _handle(retraction)})
 
 
@@ -355,7 +471,7 @@ class UmbraRtiAdapter:
     name = "umbra-python-rti"
 
     @property
-    def capabilities(self) -> dict[str, dict[str, Any]]:
+    def capabilities(self) -> AdapterCapabilities:
         """Describe the callback surface normalized by this adapter.
 
         The manifest describes observer coverage, not the complete RTI API.
@@ -370,11 +486,19 @@ class UmbraRtiAdapter:
             },
             "federates": {
                 "state": "available",
-                "event_types": ["federate.joined", "federate.resigned", "federate.updated"],
+                "event_types": [
+                    "federate.joined",
+                    "federate.resigned",
+                    "federate.updated",
+                ],
             },
             "objects": {
                 "state": "available",
-                "event_types": ["object.discovered", "object.updated", "object.removed"],
+                "event_types": [
+                    "object.discovered",
+                    "object.updated",
+                    "object.removed",
+                ],
             },
             "attributes": {
                 "state": "available",
@@ -386,7 +510,12 @@ class UmbraRtiAdapter:
             },
             "logical_time": {
                 "state": "available",
-                "event_types": ["object.updated", "object.removed", "interaction.received", "callback.invoked"],
+                "event_types": [
+                    "object.updated",
+                    "object.removed",
+                    "interaction.received",
+                    "callback.invoked",
+                ],
             },
             "mom": {
                 "state": "partial",
@@ -410,11 +539,11 @@ class UmbraRtiAdapter:
 
     def __init__(
         self,
-        rti_ambassador: Any,
+        rti_ambassador: RTIambassador,
         *,
-        callback_model: Any,
-        configuration: Any = None,
-        credentials: Any = None,
+        callback_model: CallbackModel,
+        configuration: object | None = None,
+        credentials: object | None = None,
         source: str = "umbra",
         connection: str | None = None,
         federation: str | None = None,
@@ -449,7 +578,7 @@ class UmbraRtiAdapter:
             self._sink = sink
         try:
             self.callback.set_sink(sink)
-            kwargs: dict[str, Any] = {}
+            kwargs: RtiConnectOptions = {}
             if self.configuration is not None:
                 kwargs["configuration"] = self.configuration
             if self.credentials is not None:
@@ -460,17 +589,10 @@ class UmbraRtiAdapter:
             self.callback.runtime_started(adapter=self.name)
         except Exception as error:
             self.callback.runtime_error(operation="connect", error=str(error))
-            try:
-                # A provider may have allocated part of a session before
-                # reporting a connect failure. Disconnect is best-effort here;
-                # the original connect exception remains authoritative.
-                self.rti_ambassador.disconnect()
-            except Exception:
-                pass
-            try:
-                self.callback.set_sink(None)
-            except Exception:
-                pass
+            # A provider may have allocated part of a session before reporting
+            # a connect failure. The original connect exception stays primary.
+            _best_effort(self.rti_ambassador.disconnect)
+            self.callback.set_sink(None)
             with self._state_lock:
                 self._sink = None
             raise

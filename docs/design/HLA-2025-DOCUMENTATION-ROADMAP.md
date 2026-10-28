@@ -83,9 +83,24 @@ the [configured-process synchronization callback-exception chart](HLA-2025-FEDER
 the [configured-process Delete/Retract ownership-buffer chart](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#configured-process-callback-buffers-are-a-separate-boundary),
 the [Connect-through-Disconnect credential-lifetime chart](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md#disconnect-ends-this-source-level-credential-scope),
 and the Federation MOM guide's [execution-scoped object lifetime chart](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#one-object-belongs-to-the-federation-execution).
-The forced-connection-loss [membership-list flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#forced-connection-loss-has-its-own-membership-list-path) keeps the embedded enqueue path, inspected process-dispatch boundary, and untested outcomes distinct. The Federation MOM [synchronization list/status query flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-synchronization-queries-active-point-list-and-roster-status) is exceptionally tall, but preserves the distinction between the two MIM requests, embedded status mapping, and the unverified configured-process result. The forced-loss Push topic is represented by two charts: the [configured-process Push removal sequence](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#configured-process-push-crosses-the-registry-boundary-before-sending) and [independent host/local loss sequence](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#transport-closure-can-start-another-process-loss-pass).
-The forced-loss [observer route-availability chart](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#forced-loss-can-skip-an-observer-whose-callback-route-is-unavailable) was revised after checking the registry callback-entry transition: it loops through remaining planned removals before ending in the skipped-known-observer state. The final saved chart rendered with legible branches and no clipping.
-The [object-existence, receiver-knowledge, DDM, and removal chart](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#object-existence-receiver-knowledge-and-ddm-eligibility-are-separate-states) was also rendered and inspected. It keeps the known-object ledger separate from current update eligibility and shows deletion planning without a current-overlap recheck. The regional and deletion tests remain component evidence; no focused test combines disjointness followed by removal.
+The forced-connection-loss
+[membership-list flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#forced-connection-loss-has-its-own-membership-list-path)
+keeps the embedded enqueue path, inspected process-dispatch boundary, and untested outcomes distinct. The Federation MOM
+[synchronization list/status query flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-synchronization-queries-active-point-list-and-roster-status)
+is exceptionally tall, but preserves the distinction between the two MIM requests, embedded status mapping, and the
+unverified configured-process result. The forced-loss Push topic is represented by two charts: the
+[configured-process Push removal sequence](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#configured-process-push-crosses-the-registry-boundary-before-sending)
+and
+[independent host/local loss sequence](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#transport-closure-can-start-another-process-loss-pass).
+The forced-loss
+[observer route-availability chart](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#forced-loss-can-skip-an-observer-whose-callback-route-is-unavailable)
+was revised after checking the registry callback-entry transition: it loops through remaining planned removals before
+ending in the skipped-known-observer state. The final saved chart rendered with legible branches and no clipping.
+The
+[object-existence, receiver-knowledge, DDM, and removal chart](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#object-existence-receiver-knowledge-and-ddm-eligibility-are-separate-states)
+was also rendered and inspected. It keeps the known-object ledger separate from current update eligibility and shows
+deletion planning without a current-overlap recheck. The regional and deletion tests remain component evidence; no
+focused test combines disjointness followed by removal.
 The [receive-order value-routing sequence](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#receive-order-value-routing-after-regional-overlap-changes)
 was also rendered and inspected. Its overlap phases and callback-queue events
 are legible and unclipped; the switch annotation clearly changes sent-region

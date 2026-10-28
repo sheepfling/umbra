@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -171,8 +172,8 @@ TEST_CASE(
       L"subscriber",
       federationName));
 
-  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  auto const soda = owner->getObjectClassHandle(umbra::test::hla::wide::fom::food_drink_soda);
+  auto const flavor = owner->getAttributeHandle(soda, umbra::test::hla::wide::fixture::flavor);
   REQUIRE(soda.isValid());
   REQUIRE(flavor.isValid());
   AttributeHandleSet const flavorOnly{flavor};
@@ -242,7 +243,7 @@ TEST_CASE(
   REQUIRE(reflection.attributeValues.contains(flavor));
   REQUIRE(bytes(reflection.attributeValues.at(flavor)) == responseValue);
   REQUIRE(bytes(reflection.userSuppliedTag) == responseTag);
-  REQUIRE(reflection.transportationType == owner->getTransportationTypeHandle(L"HLAreliable"));
+  REQUIRE(reflection.transportationType == owner->getTransportationTypeHandle(umbra::test::hla::wide::standard::reliable_transportation));
   REQUIRE(reflection.producingFederate == ownerHandle);
   REQUIRE_FALSE(reflection.sentRegionsSupplied);
 
@@ -281,8 +282,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->joinFederationExecution(
       L"attribute-unsubscribe-discovery-requester", L"subscriber", federationName));
 
-  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  auto const soda = owner->getObjectClassHandle(umbra::test::hla::wide::fom::food_drink_soda);
+  auto const flavor = owner->getAttributeHandle(soda, umbra::test::hla::wide::fixture::flavor);
   REQUIRE(soda.isValid());
   REQUIRE(flavor.isValid());
   AttributeHandleSet const flavorOnly{flavor};
@@ -343,8 +344,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->joinFederationExecution(
       L"attribute-unsubscribe-reflection-requester", L"subscriber", federationName));
 
-  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  auto const soda = owner->getObjectClassHandle(umbra::test::hla::wide::fom::food_drink_soda);
+  auto const flavor = owner->getAttributeHandle(soda, umbra::test::hla::wide::fixture::flavor);
   REQUIRE(soda.isValid());
   REQUIRE(flavor.isValid());
   AttributeHandleSet const flavorOnly{flavor};

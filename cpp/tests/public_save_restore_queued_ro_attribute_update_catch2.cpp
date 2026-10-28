@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -268,12 +269,12 @@ TEST_CASE(
     REQUIRE(ownerFederate.isValid());
     REQUIRE(receiverFederate.isValid());
 
-    auto const ownerClass = owner->getObjectClassHandle(L"HLAobjectRoot.Employee");
+    auto const ownerClass = owner->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
     auto const receiverClass =
-        receiver->getObjectClassHandle(L"HLAobjectRoot.Employee");
-    auto const ownerAttribute = owner->getAttributeHandle(ownerClass, L"Name");
+        receiver->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
+    auto const ownerAttribute = owner->getAttributeHandle(ownerClass, umbra::test::hla::wide::fixture::name);
     auto const receiverAttribute =
-        receiver->getAttributeHandle(receiverClass, L"Name");
+        receiver->getAttributeHandle(receiverClass, umbra::test::hla::wide::fixture::name);
     REQUIRE(ownerClass.isValid());
     REQUIRE(receiverClass.isValid());
     REQUIRE(ownerAttribute.isValid());

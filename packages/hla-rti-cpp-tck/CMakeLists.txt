@@ -105,7 +105,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_connection_lifecycle.cpp
   src/portable_tck.cpp
   src/tck_portable_scenario_runner.cpp
-  src/tck_timestamped_object_deletion_router.cpp
+  src/tck_nmr_regional_timestamped_interaction.cpp
+  src/tck_timestamped_tso_message_set_router.cpp
   src/tck_nmr_future_timestamped_attribute_update.cpp
   src/tck_timestamped_attribute_pending_tara.cpp
   src/tck_timestamped_attribute_tara_router.cpp
@@ -192,12 +193,12 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_variant_enumerator_syntax.cpp
   src/tck_fom_variant_enumerator_membership.cpp
   src/tck_fom_variant_range_semantics.cpp
-  src/tck_fom_dimension_duplicate.cpp
   src/tck_fom_reference_attribute_resolution.cpp
   src/tck_fom_data_representation_resolution.cpp
   src/tck_fom_transportation_reference_resolution.cpp
   src/tck_fom_directed_reference_resolution.cpp
   src/tck_fom_dimension_reference_resolution.cpp
+  src/tck_fom_dimension_duplicate.cpp
   src/tck_fom_synchronization_duplicate.cpp
   src/tck_fom_transportation_duplicate.cpp
   src/tck_fom_update_rate_duplicate.cpp
@@ -210,12 +211,14 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_attribute_immediate_recipient_retraction.cpp
   src/tck_timestamped_attribute_sender_regulation_transition.cpp
   src/tck_unregulated_sender_timestamped_interaction.cpp
+    src/tck_unregulated_sender_timestamped_attribute_update.cpp
   src/tck_timestamped_interaction_scenarios.cpp
   src/tck_nmr_future_timestamped_object_deletion.cpp
   src/tck_nmra_future_timestamped_object_deletion.cpp
   src/tck_tara_future_timestamped_object_deletion.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
   src/tck_time_management_scenarios.cpp
+  src/tck_non_regulating_federate_peer_advance.cpp
   src/tck_tar_acknowledged_tso_galt_release.cpp
   src/tck_time_constrained_enable_scenarios.cpp
   src/tck_time_regulation_enable_actual_lookahead.cpp
@@ -266,6 +269,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_object_registration_discovery_scenarios.cpp
   src/tck_object_management_scenarios.cpp
   src/tck_object_removal_fanout_scenarios.cpp
+  src/tck_ownership_acquisition_repeat_pending.cpp
+  src/tck_acquisition_publication_guard.cpp
   src/tck_ownership_management_scenarios.cpp
   src/tck_ownership_assumption_search.cpp
   src/tck_ownership_divestiture_return_set.cpp
@@ -284,7 +289,18 @@ add_executable(hla_rti_cpp_tck
 )
 set_source_files_properties(src/main.cpp PROPERTIES
   COMPILE_DEFINITIONS "main=hla_rti_cpp_tck_original_main")
+if(HLA_RTI_TCK_TEST_BUDGET_SCRIPT)
+  include("${HLA_RTI_TCK_TEST_BUDGET_SCRIPT}")
+  umbra_guard_test_executable(hla_rti_cpp_tck)
+endif()
+
 target_compile_features(hla_rti_cpp_tck PRIVATE cxx_std_20)
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # The unmodified IEEE 1516.1-2025 encoding header uses Microsoft's _int64
+  # keyword for every _WIN32 compiler. Keep that licensed header exact and
+  # provide the MinGW spelling to the standalone portable TCK target.
+  target_compile_definitions(hla_rti_cpp_tck PRIVATE "_int64=long long")
+endif()
 if(MSVC)
   target_compile_options(hla_rti_cpp_tck PRIVATE /bigobj)
 endif()

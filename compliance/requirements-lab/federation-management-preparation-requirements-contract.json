@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "private-preparation-not-public-service-evidence",
-  "notes": "This contract pins Umbra's private federation-management preparation pipeline to source-derived IEEE 1516.1-2025 records. It checks the MIM-first validation, FDD composition, and additional-module compatibility boundary before the official Create or Join methods mutate state. It is source/test traceability only, not a public-service catalog, JUnit result, or conformance claim.",
+  "notes": "This contract pins Umbra's private federation-management preparation pipeline to source-derived IEEE 1516.1-2025 records. It checks the MIM-first validation, FDD composition, and additional-module compatibility boundary before the official Create or Join methods mutate state. It is source/test traceability only, not a public-service catalog, JUnit result, or conformance claim. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-create-default-mim-first",
@@ -29,12 +29,25 @@
     {
       "id": "umbra-join-additional-module-preparation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l44-6",
-      "clause_id": "clause-4.11.4",
+      "clause_id": "clause-4.11",
       "source": "cpp/src/internal/federation/federation_management_coordinator.cpp",
       "source_symbol": "FederationManagementCoordinator::prepareAdditionalModules",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::Federation preparation loads MIM first and emits only an FDD-backed reference-time definition"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "federation-management-preparation-requirements-contract.json",
+        "owned_id": "umbra-join-additional-module-preparation",
+        "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l44-6",
+        "previous_clause_id": "clause-4.11.4",
+        "reviewed_clause_id": "clause-4.11"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

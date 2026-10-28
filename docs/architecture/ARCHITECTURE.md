@@ -31,7 +31,8 @@ functions, the Exception base, and all 109 standard exception types declared
 by the vendored 2025 `Exception.h`, plus the support types required by the
 initial connection API: VariableLengthData,
 ConfigurationResult, and RtiConfiguration. It also implements the official
-FederateHandle, ObjectClassHandle, ObjectInstanceHandle, InteractionClassHandle, AttributeHandle, and ParameterHandle value types used by the embedded
+FederateHandle, ObjectClassHandle, ObjectInstanceHandle, InteractionClassHandle, AttributeHandle, and ParameterHandle
+value types used by the embedded
 federation-management and lookup slices; construction, decoding, and value
 extraction remain private to the runtime. The same
 target now implements the official HLAinteger64Time/HLAfloat64Time values,
@@ -234,7 +235,8 @@ unique active federate names, active membership identities, and destroy/resign
 invariants. It resolves joined names only to active members while retaining a
 separate lifetime identity index for returned federate designators after
 resignation, and retains immutable per-federation object-class, interaction-class,
-defining-attribute, and defining-parameter handle-directory snapshots that preserve existing values across a compatible FOM extension. It
+defining-attribute, and defining-parameter handle-directory snapshots that preserve existing values across a compatible
+FOM extension. It
 also owns federation-wide reserved object-instance names by reserving federate
 identity; a successful reservation is committed before its standard result
 callback, multiple release validates the entire set before erasing it, and
@@ -524,7 +526,8 @@ reports, three temporal reports, limited object discovery/removal, and limited
 receive-order interaction, attribute-update, object-instance/object-class
 request/provide delivery, and bounded ownership-query reporting, full object
 lifecycle/ownership state,
-save/restore, remaining object/attribute DDM region realization and broader routing, directed DDM and remaining timestamped directed delivery, FOM sharing-policy enforcement,
+save/restore, remaining object/attribute DDM region realization and broader routing, directed DDM and remaining
+timestamped directed delivery, FOM sharing-policy enforcement,
 or message transport. It supports only unnamed non-region registration,
 discovery, no-time deletion/removal, no-time and bounded non-regional
 timestamped attribute update/reflection, object-instance/object-class

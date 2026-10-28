@@ -287,6 +287,130 @@ ProcessFederationDestroyResult decodeProcessFederationDestroyResult(
       static_cast<ProcessFederationDestroyStatus>(status)};
 }
 
+std::vector<std::uint8_t> encodeProcessFederationExecutionMembersRequest(
+    ProcessFederationExecutionMembersRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation member-list request requires a federation name.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  return std::move(writer).finish();
+}
+
+ProcessFederationExecutionMembersRequest
+decodeProcessFederationExecutionMembersRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationExecutionMembersRequest result{reader.wideString()};
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation member-list request requires a federation name.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationExecutionMembersResult(
+    ProcessFederationExecutionMembersResult const& result) {
+  std::vector<std::wstring> names;
+  std::vector<std::wstring> types;
+  names.reserve(result.members.size());
+  types.reserve(result.members.size());
+  for (auto const& member : result.members) {
+    if (member.name.empty() || member.type.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation member-list result contains an empty identity.");
+    }
+    names.push_back(member.name);
+    types.push_back(member.type);
+  }
+  if (!result.federationExists && !result.members.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A missing federation cannot have listed members.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(result.federationExists ? 1U : 0U);
+  writer.wideStringVector(names);
+  writer.wideStringVector(types);
+  return std::move(writer).finish();
+}
+
+ProcessFederationExecutionMembersResult
+decodeProcessFederationExecutionMembersResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const exists = reader.unsigned8();
+  if (exists > 1U) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation member-list result has an invalid existence flag.");
+  }
+  auto names = reader.wideStringVector();
+  auto types = reader.wideStringVector();
+  reader.finish();
+  if (names.size() != types.size() || (exists == 0U && !names.empty())) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation member-list result has inconsistent member fields.");
+  }
+  ProcessFederationExecutionMembersResult result;
+  result.federationExists = exists == 1U;
+  result.members.reserve(names.size());
+  for (std::size_t index = 0U; index < names.size(); ++index) {
+    if (names[index].empty() || types[index].empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation member-list result contains an empty identity.");
+    }
+    result.members.push_back(
+        ProcessFederationExecutionMember{std::move(names[index]), std::move(types[index])});
+  }
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationExecutionsResult(
+    ProcessFederationExecutionsResult const& result) {
+  std::vector<std::wstring> names;
+  std::vector<std::wstring> logicalTimeImplementations;
+  names.reserve(result.federations.size());
+  logicalTimeImplementations.reserve(result.federations.size());
+  for (auto const& federation : result.federations) {
+    if (federation.name.empty() ||
+        federation.logicalTimeImplementationName.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-list result contains an incomplete execution summary.");
+    }
+    names.push_back(federation.name);
+    logicalTimeImplementations.push_back(
+        federation.logicalTimeImplementationName);
+  }
+  PayloadWriter writer;
+  writer.wideStringVector(names);
+  writer.wideStringVector(logicalTimeImplementations);
+  return std::move(writer).finish();
+}
+
+ProcessFederationExecutionsResult decodeProcessFederationExecutionsResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto names = reader.wideStringVector();
+  auto logicalTimeImplementations = reader.wideStringVector();
+  reader.finish();
+  if (names.size() != logicalTimeImplementations.size()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-list result has inconsistent summary fields.");
+  }
+  ProcessFederationExecutionsResult result;
+  result.federations.reserve(names.size());
+  for (std::size_t index = 0U; index < names.size(); ++index) {
+    if (names[index].empty() || logicalTimeImplementations[index].empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-list result contains an incomplete execution summary.");
+    }
+    result.federations.push_back(ProcessFederationExecutionSummary{
+        std::move(names[index]), std::move(logicalTimeImplementations[index])});
+  }
+  return result;
+}
+
 
 
 std::vector<std::uint8_t>

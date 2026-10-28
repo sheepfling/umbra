@@ -1,8 +1,8 @@
-from pathlib import Path
-from importlib.metadata import entry_points
 import os
 import tempfile
 import unittest
+from importlib.metadata import entry_points
+from pathlib import Path
 
 from hla.rti1516_2025 import RtiFactoryFactory
 from hla.rti1516_2025.exceptions import RTIinternalError
@@ -31,12 +31,10 @@ class UmbraJniRtiFactoryTest(unittest.TestCase):
         metadata = (Path(__file__).parents[1] / "pyproject.toml").read_text(
             encoding="utf-8"
         )
-        self.assertIn(
-            '[project.entry-points."hla.rti1516_2025.factories"]', metadata
-        )
+        self.assertIn('[project.entry-points."hla.rti1516_2025.factories"]', metadata)
         self.assertRegex(
             metadata,
-            r'(?m)^umbra-jni\s*=\s*'
+            r"(?m)^umbra-jni\s*=\s*"
             r'"umbra\.\_java\.rti1516_2025:UmbraJniRtiFactory"\s*$',
         )
 
@@ -53,7 +51,9 @@ class UmbraJniRtiFactoryTest(unittest.TestCase):
         # that an installed application will use.  Artifact validation is
         # deliberately deferred until the returned factory is asked to start
         # Java, so discovery itself remains side-effect free.
-        discovered = RtiFactoryFactory.getRtiFactory(UmbraJniRtiFactory.ENTRY_POINT_ALIAS)
+        discovered = RtiFactoryFactory.getRtiFactory(
+            UmbraJniRtiFactory.ENTRY_POINT_ALIAS
+        )
         self.assertIsInstance(discovered, UmbraJniRtiFactory)
 
     def test_configuration_only_adapter_delegates_to_java_factory(self):
@@ -96,7 +96,9 @@ class UmbraJniRtiFactoryTest(unittest.TestCase):
                 )
             }
             try:
-                os.environ[UmbraJniRtiFactory.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE] = str(root)
+                os.environ[
+                    UmbraJniRtiFactory.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE
+                ] = str(root)
                 os.environ[UmbraJniRtiFactory.API_JAR_ENVIRONMENT_VARIABLE] = str(api)
                 runtime = _FakeRuntime()
                 factory = UmbraJniRtiFactory(runtime=runtime)

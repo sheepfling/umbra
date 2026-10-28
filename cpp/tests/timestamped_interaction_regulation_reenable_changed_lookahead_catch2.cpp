@@ -141,6 +141,7 @@ TEST_CASE(
     "[integration][development-profile][interaction-management][time-management]"
     "[timestamped-interaction][tso][re-enable][regulation-disable][changed-lookahead]"
     "[timestamped-interaction-regulation-reenable-changed-lookahead]"
+    "[lane.timestamped-interaction-regulation-reenable-changed-lookahead]"
     "[rti.service.send-interaction][rti.service.enable-time-regulation]"
     "[rti.service.disable-time-regulation][rti.service.query-lookahead]"
     "[rti.service.time-advance-request][rti.service.enable-time-constrained]"
@@ -213,9 +214,9 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->queryLookahead(changedLookahead));
   REQUIRE(changedLookahead.getInterval() == 3);
 
-  // With current time zero and lookahead three, the producer's advance to two
-  // raises GALT to the queued message's timestamp five. The constrained
-  // receiver remains pending until that changed boundary is established.
+  // This sets up the timestamp-five GALT boundary case: after the queued
+  // message at five is delivered, the inclusive GALT boundary also permits
+  // TAR(5) to complete.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
@@ -223,7 +224,17 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Time(2)));
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 1U);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantCount == 1U);
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "grant"});
+
+  // Advancing the producer again must not grant the receiver a second time.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(3)));
+  drainCallbacks(*publisher);
+  drainCallbacks(*receiver);
   REQUIRE(receiverReports.timeAdvanceGrantCount == 1U);
   REQUIRE(receiverReports.callbackOrder ==
           std::vector<std::string>{"interaction", "grant"});

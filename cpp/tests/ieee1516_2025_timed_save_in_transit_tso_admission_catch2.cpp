@@ -56,7 +56,7 @@ TEST_CASE(
     saveInitiatedBeforeTsoCallbackReturned =
         !receiverReports.initiateFederateSaveReports.empty();
     try {
-      owner->requestFederationSave(saveLabel, rti1516_2025::HLAinteger64Time(5));
+      owner->requestFederationSave(saveLabel, rti1516_2025::HLAinteger64Time(6));
       reentrantSaveRequestAccepted = true;
     } catch (...) {
       reentrantSaveRequestAccepted = false;
@@ -70,32 +70,49 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Time(5));
   REQUIRE(message.isValid());
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
-  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
-  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  while (owner->evokeCallback(0.0)) {
+  }
   REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
-  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"4");
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"5");
 
   // The timestamped request is made while this interaction is in transit.
   // It becomes eligible only after the callback returns and the runtime
-  // completes that delivery, so the direct save callback follows Receive
-  // Interaction and precedes the matching grant.
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  // completes that delivery, so the save cannot start while the timestamp-5
+  // callback remains in transit. The producer has reached time 5, so save
+  // time 6 is the first valid boundary after its lookahead floor.
+  while (receiver->evokeCallback(0.0)) {
+  }
   REQUIRE(reentrantSaveRequestAccepted);
   REQUIRE_FALSE(saveInitiatedBeforeTsoCallbackReturned);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
-  REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(receiverReports.initiateFederateSaveReports.empty());
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
-  REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"interaction", "save-initiate", "grant"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
   REQUIRE(ownerReports.initiateFederateSaveReports.empty());
   REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant"});
 
-  static_cast<void>(owner->evokeCallback(0.0));
-  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
-  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"4");
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "grant", "save-initiate", "grant"});
+  while (owner->evokeCallback(0.0)) {
+  }
   REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
-  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant", "save-initiate"});
+  REQUIRE(ownerReports.callbackOrder ==
+          std::vector<std::string>{"grant", "grant", "save-initiate"});
 
   REQUIRE_NOTHROW(owner->federateSaveBegun());
   REQUIRE_NOTHROW(receiver->federateSaveBegun());

@@ -1,3 +1,4 @@
+#include "internal/time/federation_time_factory_provider.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/federation/federation_registry.hpp"
@@ -928,7 +929,7 @@ void UmbraRtiAmbassador::queryLogicalTime(LogicalTime &time) {
     } catch (umbra::detail::ProcessFederationClientError const &error) {
       throw RTIinternalError(wideAscii(error.what()));
     }
-    auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+    auto factory = umbra::detail::makeFederationLogicalTimeFactory(
         processTime.implementationName);
     if (!factory || factory->getName() != processTime.implementationName) {
       throw RTIinternalError(

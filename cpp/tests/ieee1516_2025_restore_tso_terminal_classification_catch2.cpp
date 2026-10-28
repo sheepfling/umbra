@@ -253,13 +253,18 @@ TEST_CASE(
 
   // With no surviving recipient the timestamped deletion still owns an
   // execution-wide designator. Crossing the strict timestamp/lookahead bound
-  // terminalizes it and releases the deleted object's name before the save.
+  // closes retraction, but the producer's local object-knowledge boundary is
+  // its own granted time and must not be advanced early.
   REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
   while (rti->evokeCallback(0.0)) {
   }
   REQUIRE_THROWS_AS(
       rti->retract(terminal),
       rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE(rti->getObjectInstanceHandle(objectName) == original);
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  while (rti->evokeCallback(0.0)) {
+  }
   REQUIRE_THROWS_AS(
       rti->getObjectInstanceHandle(objectName),
       rti1516_2025::ObjectInstanceNotKnown);
@@ -277,12 +282,14 @@ TEST_CASE(
   // handle belongs to post-save state and must not survive the restore.
   REQUIRE_NOTHROW(rti->reserveObjectInstanceName(objectName));
   REQUIRE_FALSE(rti->evokeCallback(0.0));
+  REQUIRE(reports.objectInstanceNameReservationSucceededReports.size() == 2U);
+  REQUIRE(reports.objectInstanceNameReservationFailedReports.empty());
   ObjectInstanceHandle postSaveObject;
   REQUIRE_NOTHROW(postSaveObject = rti->registerObjectInstance(objectClass, objectName));
   auto const postSave = rti->deleteObjectInstance(
       postSaveObject,
       tag,
-      rti1516_2025::HLAinteger64Time(6));
+      rti1516_2025::HLAinteger64Time(12));
   REQUIRE(postSave.isValid());
   REQUIRE(variableLengthDataBytes(terminal.encode()) !=
           variableLengthDataBytes(postSave.encode()));

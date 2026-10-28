@@ -144,7 +144,9 @@ TEST_CASE(
 
   auto calculation = FederationFlushQueueGrantCalculator{}.calculate(execution, 1);
   REQUIRE(calculation.calculated());
-  REQUIRE(asIntegerTime(calculation.grantedTime).getTime() == 4);
+  // Without a regulating federate, NRG caps the actual grant at current time;
+  // the optimistic FQR time still reflects the in-transit TSO frontier.
+  REQUIRE(asIntegerTime(calculation.grantedTime).getTime() == 2);
   REQUIRE(asIntegerTime(calculation.optimisticTime).getTime() == 4);
 }
 

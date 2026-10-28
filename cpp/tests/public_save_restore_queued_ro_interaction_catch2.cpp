@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
+#include "hla_test_names.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
 
@@ -96,12 +97,12 @@ TEST_CASE(
     suppressDeclarationRelevanceAdvisories(*recipient);
 
     interactionClass = producer->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
     auto const recipientInteractionClass = recipient->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
-    parameter = producer->getParameterHandle(interactionClass, L"Value");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
+    parameter = producer->getParameterHandle(interactionClass, umbra::test::hla::wide::fixture::value);
     auto const recipientParameter = recipient->getParameterHandle(
-        recipientInteractionClass, L"Value");
+        recipientInteractionClass, umbra::test::hla::wide::fixture::value);
     REQUIRE(interactionClass.isValid());
     REQUIRE(recipientInteractionClass.isValid());
     REQUIRE(parameter.isValid());
@@ -161,9 +162,9 @@ TEST_CASE(
     suppressDeclarationRelevanceAdvisories(*recipient);
 
     auto const recipientInteractionClass = recipient->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
     auto const recipientParameter = recipient->getParameterHandle(
-        recipientInteractionClass, L"Value");
+        recipientInteractionClass, umbra::test::hla::wide::fixture::value);
     REQUIRE(recipientInteractionClass.isValid());
     REQUIRE(recipientParameter.isValid());
     REQUIRE_NOTHROW(producer->requestFederationRestore(saveLabel));
@@ -267,12 +268,12 @@ TEST_CASE(
     suppressDeclarationRelevanceAdvisories(*recipient);
 
     interactionClass = producer->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
     auto const recipientInteractionClass = recipient->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
-    parameter = producer->getParameterHandle(interactionClass, L"Value");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
+    parameter = producer->getParameterHandle(interactionClass, umbra::test::hla::wide::fixture::value);
     auto const recipientParameter = recipient->getParameterHandle(
-        recipientInteractionClass, L"Value");
+        recipientInteractionClass, umbra::test::hla::wide::fixture::value);
     REQUIRE(interactionClass.isValid());
     REQUIRE(recipientInteractionClass.isValid());
     REQUIRE(parameter.isValid());
@@ -344,9 +345,9 @@ TEST_CASE(
     suppressDeclarationRelevanceAdvisories(*recipient);
 
     auto const recipientInteractionClass = recipient->getInteractionClassHandle(
-        L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction");
+        umbra::test::hla::wide::fom::fdd_preferred_receive_interaction);
     auto const recipientParameter = recipient->getParameterHandle(
-        recipientInteractionClass, L"Value");
+        recipientInteractionClass, umbra::test::hla::wide::fixture::value);
     REQUIRE(recipientInteractionClass.isValid());
     REQUIRE(recipientParameter.isValid());
     REQUIRE_NOTHROW(producer->requestFederationRestore(saveLabel));

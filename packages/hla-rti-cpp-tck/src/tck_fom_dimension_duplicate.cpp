@@ -1,5 +1,9 @@
 #include "tck_fom_module_scenarios.hpp"
 
+#include <cstdint>
+
+#include "tck_main_scenarios.hpp"
+
 namespace hla_rti_cpp_tck::detail {
 namespace {
 
@@ -290,9 +294,11 @@ void scenarioFomDimensionDefaultRange(Options const& options,
   auto const& bounded = requiredFom(options, "dimension-default-range-bounded");
   Session creator(options, model, "dimension-default-range-creator");
   Session member(options, model, "dimension-default-range-member");
+  Session endpoint(options, model, "dimension-default-range-endpoint");
   auto const federation = federationName(options, "fom-dimension-default-range");
   creator.connect();
   member.connect();
+  endpoint.connect();
   auto const createWithMim = [&](std::filesystem::path const& module) {
     creator.rtiAmbassador().createFederationExecutionWithMIM(
         federation, std::vector<std::wstring>{module.wstring()},
@@ -303,15 +309,122 @@ void scenarioFomDimensionDefaultRange(Options const& options,
 
   // A valid half-open boundary must work under the same failed-create name.
   createWithMim(bounded);
+  creator.join(options.ownerFederateName, options.federateType, federation);
   member.join(options.memberFederateName, options.federateType, federation);
+  endpoint.join(options.memberFederateName + L"-upper-endpoint",
+                options.federateType, federation);
   auto& rti = member.rtiAmbassador();
   auto const name = std::wstring(L"TckBoundedDefaultDimension");
   auto const dimension = rti.getDimensionHandle(name);
   require(dimension.isValid() && rti.getDimensionName(dimension) == name &&
               rti.getDimensionUpperBound(dimension) == 100U,
           "a bounded dimension default range did not compose publicly");
+  auto const intervalRegion =
+      rti.createRegion(rti::DimensionHandleSet{dimension});
+  require(intervalRegion.isValid(),
+          "the FDD dimension could not be used in a region interval");
+  // The smallest valid interval has a one-unit span; equality of the two
+  // endpoints is invalid under the standard RangeBounds contract.
+  rti.setRangeBounds(
+      intervalRegion, dimension, rti::RangeBounds(0U, 1U));
+  auto const minimumSpan = rti.getRangeBounds(intervalRegion, dimension);
+  require(minimumSpan.getLowerBound() == 0U &&
+              minimumSpan.getUpperBound() == 1U,
+          "the minimum one-unit region interval did not round-trip in bound order");
+  requireException(
+      [&] {
+        rti.setRangeBounds(
+            intervalRegion, dimension, rti::RangeBounds(1U, 1U));
+      },
+      L"InvalidRangeBound",
+      "a zero-width region interval");
+  rti.setRangeBounds(
+      intervalRegion, dimension, rti::RangeBounds(0U, 100U));
+  auto const intervalBounds = rti.getRangeBounds(intervalRegion, dimension);
+  require(intervalBounds.getLowerBound() == 0U &&
+              intervalBounds.getUpperBound() == rti.getDimensionUpperBound(dimension),
+          "the FDD dimension interval did not preserve its zero origin and upper bound");
+  rti.commitRegionModifications(rti::RegionHandleSet{intervalRegion});
+  rti.deleteRegion(intervalRegion);
+
+  auto& producerRti = creator.rtiAmbassador();
+  auto& endpointRti = endpoint.rtiAmbassador();
+  auto const objectClass = producerRti.getObjectClassHandle(
+      L"HLAobjectRoot.TckBoundedDefaultObject");
+  auto const attribute = producerRti.getAttributeHandle(objectClass, L"Value");
+  auto const producerDimension = producerRti.getDimensionHandle(name);
+  auto const endpointDimension = endpointRti.getDimensionHandle(name);
+  require(objectClass.isValid() && attribute.isValid() &&
+              producerDimension.isValid() && endpointDimension.isValid(),
+          "the bounded-default FOM did not expose its routing class, attribute, and dimension");
+  rti::AttributeHandleSet const attributes{attribute};
+  producerRti.publishObjectClassAttributes(objectClass, attributes);
+
+  auto const producerRegion = producerRti.createRegion(
+      rti::DimensionHandleSet{producerDimension});
+  producerRti.setRangeBounds(producerRegion, producerDimension,
+                             rti::RangeBounds(0U, 1U));
+  producerRti.commitRegionModifications(
+      rti::RegionHandleSet{producerRegion});
+  auto const memberRegion = rti.createRegion(
+      rti::DimensionHandleSet{dimension});
+  rti.setRangeBounds(memberRegion, dimension, rti::RangeBounds(0U, 1U));
+  rti.commitRegionModifications(rti::RegionHandleSet{memberRegion});
+  auto const endpointRegion = endpointRti.createRegion(
+      rti::DimensionHandleSet{endpointDimension});
+  endpointRti.setRangeBounds(endpointRegion, endpointDimension,
+                             rti::RangeBounds(1U, 2U));
+  endpointRti.commitRegionModifications(
+      rti::RegionHandleSet{endpointRegion});
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const producerPair{{
+      attributes, rti::RegionHandleSet{producerRegion}}};
+  rti::AttributeHandleSetRegionHandleSetPairVector const memberPair{{
+      attributes, rti::RegionHandleSet{memberRegion}}};
+  rti::AttributeHandleSetRegionHandleSetPairVector const endpointPair{{
+      attributes, rti::RegionHandleSet{endpointRegion}}};
+  rti.subscribeObjectClassAttributesWithRegions(objectClass, memberPair);
+  endpointRti.subscribeObjectClassAttributesWithRegions(objectClass,
+                                                        endpointPair);
+  auto const object = producerRti.registerObjectInstanceWithRegions(
+      objectClass, producerPair);
+  require(object.isValid(),
+          "the bounded default range did not permit a regional object registration");
+  waitForSessions({&creator, &member, &endpoint}, [&] {
+    return member.recorder().hasDiscovery(object);
+  }, options, "discovery for the overlapping [0,1) subscription");
+  require(endpoint.recorder().discoveryCount() == 0U,
+          "a subscriber at [1,2) discovered an object whose region ends at 1");
+
+  std::uint8_t const valueByte = 0x5AU;
+  rti::AttributeHandleValueMap const values{{
+      attribute, rti::VariableLengthData(&valueByte, sizeof(valueByte))}};
+  producerRti.updateAttributeValues(object, values,
+                                    rti::VariableLengthData{});
+  waitForSessions({&creator, &endpoint, &member}, [&] {
+    return member.recorder().reflectionCount() == 1U;
+  }, options, "reflection for the overlapping [0,1) subscription");
+  auto const reflections = member.recorder().reflections();
+  require(reflections.size() == 1U && reflections.front().object == object &&
+              reflections.front().values.count(attribute) == 1U,
+          "the overlapping [0,1) subscription did not receive the source update");
+  require(endpoint.recorder().discoveryCount() == 0U &&
+              endpoint.recorder().reflectionCount() == 0U,
+          "the half-open upper endpoint at 1 matched the adjacent [1,2) subscription");
+
+  rti.unsubscribeObjectClassAttributesWithRegions(objectClass, memberPair);
+  endpointRti.unsubscribeObjectClassAttributesWithRegions(objectClass,
+                                                          endpointPair);
+  producerRti.unassociateRegionsForUpdates(object, producerPair);
+  rti.deleteRegion(memberRegion);
+  endpointRti.deleteRegion(endpointRegion);
+  producerRti.deleteRegion(producerRegion);
+  producerRti.unpublishObjectClassAttributes(objectClass, attributes);
   member.resign(rti::NO_ACTION);
+  endpoint.resign(rti::NO_ACTION);
+  creator.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   creator.rtiAmbassador().destroyFederationExecution(federation);
+  endpoint.disconnect();
   member.disconnect();
   creator.disconnect();
 }

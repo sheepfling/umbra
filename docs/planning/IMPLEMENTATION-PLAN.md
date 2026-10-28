@@ -446,7 +446,8 @@ The preceding process DDM slice is independently queryable at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:14552`: 126 assertions under
 `HLA_EVOKED` and `HLA_IMMEDIATE`, thirteen Lab requirements, seven canonical
 2025 subsections, and thirteen official C++ API surfaces. Use the exact
-`focus process-multi-recipient-regional-interaction`, `trace m108.embedded-process-multi-recipient-regional-interaction`, `matrix`, `test`, `check --lane`,
+`focus process-multi-recipient-regional-interaction`,
+`trace m108.embedded-process-multi-recipient-regional-interaction`, `matrix`, `test`, `check --lane`,
 and CTest handles. It proves overlap-filtered delivery to two disjoint
 regional recipients, send-time source-region metadata through Convey Region
 Designator Sets, and sender exclusion; timestamped/retraction, directed,
@@ -832,7 +833,7 @@ The installed profile has separate
 ordinary, timestamped, parameterized, connection-loss, object-registration,
 named-registration, and ordinary attribute-update/Reflect two-client package
   lanes. The focused named-registration process case and installed package lane
-	are green, including duplicate-name and illegal-name error mapping. The public
+    are green, including duplicate-name and illegal-name error mapping. The public
  process region lifecycle/regional-registration, remote regional
 subscription/update, timestamped regional update/reflect, regional
  unsubscription suppression, and disjoint suppression cases are green; the
@@ -1000,7 +1001,7 @@ to either an implemented service or the prescribed exception path.
 
 Create private modules with one-way dependencies:
 
-~~~text
+```text
 standard binding adapter
         |
 service coordinators
@@ -1008,7 +1009,7 @@ service coordinators
 state  callbacks FOM    transport
         |                 |
    executors/queues    local or remote backend
-~~~
+```
 
 - State owns connections, federations, federates, handles, and lifecycle
   invariants.

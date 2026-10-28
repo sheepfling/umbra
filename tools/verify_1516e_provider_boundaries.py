@@ -13,10 +13,33 @@ import re
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "compliance" / "standards" / "ieee1516e-2010-artifact-manifest.json"
+
+JsonScalar: TypeAlias = str | int | float | bool | None
+JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonObject: TypeAlias = dict[str, JsonValue]
+
+
+class _ManifestScope(TypedDict):
+    primary_goal: str
+    completion_rule: str
+
+
+class _ProviderBoundaryManifest(TypedDict):
+    python_2010_entry_point_group: str
+    python_2010_entry_point_alias: str
+    python_2010_native_entry_point: str
+    python_2010_time_factory_policy: str
+    native_2010_entry_points: list[str]
+    jni_2010_java_packages: list[str]
+
+
+class _ProviderBoundariesDocument(TypedDict):
+    scope: _ManifestScope
+    provider_boundaries: _ProviderBoundaryManifest
 
 
 _ENTRY_POINT_SECTION = re.compile(r'^\[project\.entry-points\."([^"]+)"\]\s*$')
@@ -57,11 +80,64 @@ def _source_files(root: Path) -> Iterable[Path]:
     )
 
 
-def _manifest(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
+def _manifest(path: Path) -> _ProviderBoundariesDocument:
+    decoded: object = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(decoded, dict) or not all(
+        isinstance(key, str) for key in decoded
+    ):
         raise TypeError(f"{path} must contain a JSON object")
+    document = cast(JsonObject, decoded)
+    scope = _manifest_object(document, "scope", path)
+    boundaries = _manifest_object(document, "provider_boundaries", path)
+    return {
+        "scope": {
+            "primary_goal": _manifest_string(scope, "primary_goal", path),
+            "completion_rule": _manifest_string(scope, "completion_rule", path),
+        },
+        "provider_boundaries": {
+            "python_2010_entry_point_group": _manifest_string(
+                boundaries, "python_2010_entry_point_group", path
+            ),
+            "python_2010_entry_point_alias": _manifest_string(
+                boundaries, "python_2010_entry_point_alias", path
+            ),
+            "python_2010_native_entry_point": _manifest_string(
+                boundaries, "python_2010_native_entry_point", path
+            ),
+            "python_2010_time_factory_policy": _manifest_string(
+                boundaries, "python_2010_time_factory_policy", path
+            ),
+            "native_2010_entry_points": _manifest_string_list(
+                boundaries, "native_2010_entry_points", path
+            ),
+            "jni_2010_java_packages": _manifest_string_list(
+                boundaries, "jni_2010_java_packages", path
+            ),
+        },
+    }
+
+
+def _manifest_object(document: JsonObject, key: str, path: Path) -> JsonObject:
+    value = document.get(key)
+    if not isinstance(value, dict) or not all(
+        isinstance(child_key, str) for child_key in value
+    ):
+        raise TypeError(f"{path} field {key!r} must be a JSON object")
+    return cast(JsonObject, value)
+
+
+def _manifest_string(document: JsonObject, key: str, path: Path) -> str:
+    value = document.get(key)
+    if not isinstance(value, str):
+        raise TypeError(f"{path} field {key!r} must be a string")
     return value
+
+
+def _manifest_string_list(document: JsonObject, key: str, path: Path) -> list[str]:
+    value = document.get(key)
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise TypeError(f"{path} field {key!r} must be an array of strings")
+    return [item for item in value if isinstance(item, str)]
 
 
 def verify() -> list[str]:
@@ -134,9 +210,7 @@ def verify() -> list[str]:
         jni_2010_path / "src" / "main" / "resources" / "META-INF" / "services"
     )
     expected_descriptors = {
-        "hla.rti1516e.RtiFactory": (
-            "org.umbra.jni.rti1516e.NativeRtiFactory",
-        ),
+        "hla.rti1516e.RtiFactory": ("org.umbra.jni.rti1516e.NativeRtiFactory",),
         "hla.rti1516e.LogicalTimeFactory": (
             "org.umbra.jni.rti1516e.NativeInteger64TimeFactory",
             "org.umbra.jni.rti1516e.NativeFloat64TimeFactory",
@@ -144,46 +218,52 @@ def verify() -> list[str]:
     }
     for name, expected in expected_descriptors.items():
         descriptor = service_root / name
-        actual = tuple(
-            line.strip()
-            for line in descriptor.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ) if descriptor.is_file() else ()
+        actual = (
+            tuple(
+                line.strip()
+                for line in descriptor.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            )
+            if descriptor.is_file()
+            else ()
+        )
         if actual != expected:
-            findings.append(f"the 2010 JNI ServiceLoader descriptor {name} is missing or changed")
+            findings.append(
+                f"the 2010 JNI ServiceLoader descriptor {name} is missing or changed"
+            )
 
     manifest = _manifest(MANIFEST)
-    scope = manifest.get("scope", {})
-    if scope.get("primary_goal") != "surface-complete-bindable":
+    scope = manifest["scope"]
+    if scope["primary_goal"] != "surface-complete-bindable":
         findings.append("manifest does not pin the surface-complete-bindable goal")
-    if scope.get("completion_rule") != (
+    if scope["completion_rule"] != (
         "A callable standard method counts as surface-bound when its name, overload shape, "
         "callback carrier, exception mapping, and provider load/link path are present. "
         "Invocation behavior is supplementary evidence; an explicit unsupported result "
         "is not a missing surface symbol."
     ):
         findings.append("manifest does not pin the surface-only completion rule")
-    boundary = manifest.get("provider_boundaries", {})
-    if boundary.get("python_2010_entry_point_group") != "hla.rti1516e.factories":
+    boundary = manifest["provider_boundaries"]
+    if boundary["python_2010_entry_point_group"] != "hla.rti1516e.factories":
         findings.append("manifest does not pin the 2010 Python entry-point group")
-    if boundary.get("python_2010_entry_point_alias") != "java-2010":
+    if boundary["python_2010_entry_point_alias"] != "java-2010":
         findings.append("manifest does not pin the java-2010 provider alias")
-    if boundary.get("python_2010_native_entry_point") != (
+    if boundary["python_2010_native_entry_point"] != (
         "UmbraNative2010 / umbra._native.rti1516e:Native2010RtiFactory"
     ):
         findings.append(
             "manifest does not pin the direct native 2010 Python entry point"
         )
-    if boundary.get("python_2010_time_factory_policy") != (
+    if boundary["python_2010_time_factory_policy"] != (
         "LogicalTimeFactoryFactory honors hla.rti1516e.time_factories entries and otherwise discovers "
         "getTimeFactory/getFloat64TimeFactory from the edition-specific RTI providers."
     ):
         findings.append(
             "manifest does not pin the 2010 logical-time factory discovery policy"
         )
-    if boundary.get("native_2010_entry_points") != ["umbra::rti_2010"]:
+    if boundary["native_2010_entry_points"] != ["umbra::rti_2010"]:
         findings.append("manifest must pin the bounded native 2010 target")
-    if boundary.get("jni_2010_java_packages") != ["org.umbra.jni.rti1516e"]:
+    if boundary["jni_2010_java_packages"] != ["org.umbra.jni.rti1516e"]:
         findings.append("manifest must pin the bounded JNI 2010 package")
     return findings
 

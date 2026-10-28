@@ -5,7 +5,7 @@
 
 #include <RTI/Exception.h>
 #include <RTI/VariableLengthData.h>
-#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include "internal/time/federation_time_factory_provider.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -36,7 +36,7 @@ inline void validateProcessLogicalTime(
         "A process federation timestamp uses a different logical-time implementation.");
   }
 
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       expectedImplementationName);
   if (!factory || factory->getName() != expectedImplementationName) {
     throw ProcessFederationServiceProtocolError(
@@ -66,7 +66,7 @@ decodeProcessLogicalTime(
     ProcessFederationLogicalTime const& timestamp,
     std::wstring const& expectedImplementationName) {
   validateProcessLogicalTime(timestamp, expectedImplementationName);
-  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+  auto factory = umbra::detail::makeFederationLogicalTimeFactory(
       expectedImplementationName);
   rti1516_2025::VariableLengthData encoded;
   if (!timestamp.encoding.empty()) {

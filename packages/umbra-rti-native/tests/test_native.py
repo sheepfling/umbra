@@ -1640,13 +1640,10 @@ class NativeProviderTest(unittest.TestCase):
                     event[0] == "initiate" for event in self.events
                 )
                 if self.owner is not None and self.save_time is not None:
-                    try:
-                        self.owner.requestFederationSave(
-                            "python-reentrant-tso-save", self.save_time
-                        )
-                        self.save_accepted = True
-                    except Exception:
-                        self.save_accepted = False
+                    self.owner.requestFederationSave(
+                        "python-reentrant-tso-save", self.save_time
+                    )
+                    self.save_accepted = True
 
             def initiateFederateSave(self, label: str, time=None) -> None:
                 self.events.append(("initiate", label))
@@ -1877,9 +1874,7 @@ class NativeProviderTest(unittest.TestCase):
                 federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher_federate = publisher.joinFederationExecution(
-                "regional-publisher", federation_name
-            )
+            publisher.joinFederationExecution("regional-publisher", federation_name)
             publisher_joined = True
             subscriber.joinFederationExecution("regional-subscriber", federation_name)
             subscriber_joined = True

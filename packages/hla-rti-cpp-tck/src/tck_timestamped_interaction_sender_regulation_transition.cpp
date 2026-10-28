@@ -77,7 +77,7 @@ void scenarioTimestampedInteractionSenderRegulationTransition(
   auto const senderTarget = timeAfter(
       *senderTime.factory, *senderTime.initial, *senderTime.epsilon, 2U);
   auto const regulatorTarget = timeAfter(
-      *regulatorTime.factory, *regulatorTime.initial, *regulatorTime.epsilon, 1U);
+      *regulatorTime.factory, *regulatorTime.initial, *regulatorTime.epsilon, 2U);
 
   std::vector<std::uint8_t> const firstValue{0x41U, 0x42U};
   std::vector<std::uint8_t> const firstTagBytes{0x31U};

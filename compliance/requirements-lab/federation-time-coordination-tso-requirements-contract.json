@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-runtime-foundation-not-conformance-evidence",
-  "notes": "This contract records the next private IEEE 1516.1-2025 temporal-coordinator slice. FederationTimeCoordinator binds the selected official LogicalTime implementation, retains pending TSO entries, models callback work as in-transit, retains completed timestamps until the recipient's next logical-time advance, and removes all recipient-owned temporal state on resignation. FederationTimeExecutionSnapshot carries those three states into the GALT/LITS calculator: delivered-since-last-advance and queued/in-transit timestamps participate in GALT, while future queued/in-transit timestamps participate in LITS. The private registry hooks are test-only kernel boundaries; no public timestamped Send Interaction, Update Attribute Values, Delete Object Instance, Retract, time-advance variant, transport, JUnit evidence, protected review, package result, or conformance claim is made.",
+  "notes": "This contract records the next private IEEE 1516.1-2025 temporal-coordinator slice. FederationTimeCoordinator binds the selected official LogicalTime implementation, retains pending TSO entries, models callback work as in-transit, retains completed timestamps until the recipient's next logical-time advance, and removes all recipient-owned temporal state on resignation. FederationTimeExecutionSnapshot carries those three states into the GALT/LITS calculator: delivered-since-last-advance and queued/in-transit timestamps participate in GALT, while future queued/in-transit timestamps participate in LITS. The private registry hooks are test-only kernel boundaries; no public timestamped Send Interaction, Update Attribute Values, Delete Object Instance, Retract, time-advance variant, transport, JUnit evidence, protected review, package result, or conformance claim is made. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-private-tso-coordinator-queues-pending-messages-per-recipient",
@@ -30,7 +30,7 @@
     {
       "id": "umbra-private-tso-bounds-account-for-delivered-and-in-transit-timestamps",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -80,5 +80,18 @@
         "cpp/tests/federation_registry_catch2.cpp::The registry projects private TSO coordination into its time snapshot"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "federation-time-coordination-tso-requirements-contract.json",
+        "owned_id": "umbra-private-tso-bounds-account-for-delivered-and-in-transit-timestamps",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.6"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

@@ -24,10 +24,10 @@ from .alerting import (
     CommandWatch,
 )
 from .attribution import (
-    event_federate,
-    event_perspective,
-    participant_attribution,
-    perspective_ended,
+    event_participant_metadata,
+    participant_event_ended,
+    participant_event_metadata,
+    participant_event_perspective,
 )
 from .capabilities import (
     OBSERVER_CAPABILITIES,
@@ -58,6 +58,7 @@ from .models import (
     JsonValue,
     LiveMetrics,
     ObjectInspection,
+    RawObserverEvent,
     Retention,
     to_json_object,
     to_json_value,
@@ -109,7 +110,7 @@ EVENT_TYPES = (
     "event.raw",
 )
 
-EventSink = Callable[[Mapping[str, object]], object]
+EventSink = Callable[[RawObserverEvent], object]
 
 
 class EventSource(Protocol):
@@ -126,9 +127,12 @@ class ObserverAdapter(Protocol):
     """Lifecycle contract for a provider-specific adapter package.
 
     The adapter owns all provider imports and callback/session differences. The
-    observer only receives normalized event mappings through ``sink``. Adapters
-    may additionally expose a ``capabilities`` mapping; older adapters remain
-    valid and are reported as unknown for provider-specific features.
+    sink accepts raw provider event mappings. ``ObserverEventMetadata`` names
+    the common envelope fields; family-specific observation records are
+    validated by their domain modules, and provider extension fields are
+    converted to JSON values before storage. Adapters may additionally expose
+    a ``capabilities`` mapping; older adapters remain valid and are reported as
+    unknown for provider-specific features.
     """
 
     def start(self, sink: EventSink) -> None:
@@ -141,10 +145,12 @@ class ObserverAdapter(Protocol):
 class CapabilitySource(Protocol):
     """Optional adapter surface for provider capability declarations."""
 
+    # opaque-boundary: Adapters may expose provider-specific capability values.
     @property
     def capabilities(self) -> Mapping[str, object]:
         """Describe provider features available to the observer."""
         ...
+
 
 def _jsonable(value: object) -> JsonValue:
     return to_json_value(value)
@@ -157,7 +163,7 @@ def _text(value: object) -> str | None:
     return text or None
 
 
-def _first_text(event: Mapping[str, object], *names: str) -> str | None:
+def _first_text(event: Mapping[str, JsonValue], *names: str) -> str | None:
     for name in names:
         value = _text(event.get(name))
         if value:
@@ -165,33 +171,36 @@ def _first_text(event: Mapping[str, object], *names: str) -> str | None:
     return None
 
 
-def _event_family(event: Mapping[str, object]) -> str:
+def _event_family(event: Mapping[str, JsonValue]) -> str:
     # Family is always explicit. In particular, this does not classify an
     # event from an HLA class name or a provider-specific naming convention.
     return _first_text(event, "family") or "generic"
 
 
-def _source_name(event: Mapping[str, object]) -> str:
+def _source_name(event: Mapping[str, JsonValue]) -> str:
     return _first_text(event, "source", "connection") or "unknown"
 
 
-def _event_type(event: Mapping[str, object]) -> str:
+def _event_type(event: Mapping[str, JsonValue]) -> str:
     return _first_text(event, "event_type", "kind") or "event.raw"
 
 
-def _object_key(event: Mapping[str, object]) -> str | None:
+def _object_key(event: Mapping[str, JsonValue]) -> str | None:
     supplied = event.get("object_key")
     if isinstance(supplied, str) and supplied.strip():
         return supplied  # An explicit opaque key is not a display label.
     return _first_text(event, "object_key", "object_handle", "object_name")
 
 
-def _interaction_key(event: Mapping[str, object]) -> str | None:
-    return _first_text(event, "interaction_key", "interaction_handle", "interaction_class")
+def _interaction_key(event: Mapping[str, JsonValue]) -> str | None:
+    return _first_text(
+        event, "interaction_key", "interaction_handle", "interaction_class"
+    )
 
 
-def _federate_name(event: Mapping[str, object]) -> str | None:
-    return event_federate(event)
+def _federate_name(event: EventRecord) -> str | None:
+    perspective = participant_event_perspective(event_participant_metadata(event))
+    return perspective.label if perspective else None
 
 
 def _copy_mapping(value: object) -> JsonObject:
@@ -200,30 +209,42 @@ def _copy_mapping(value: object) -> JsonObject:
     return {str(key): to_json_value(item) for key, item in value.items()}
 
 
-def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
+# opaque-boundary: Validate raw adapter events before JSON-compatible normalization.
+def _normalise_event(event: RawObserverEvent, sequence: int) -> EventRecord:
+    """Validate common metadata and normalize family/provider extension fields."""
     if not isinstance(event, Mapping):
         raise TypeError("observer events must be mappings")
+    if any(not isinstance(field, str) for field in event):
+        raise TypeError("observer event field names must be strings")
+    for field in ("event_type", "kind", "family", "source", "connection"):
+        value = event.get(field)
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"{field} must be a string")
     for field in ("federate", "participant"):
         value = event.get(field)
         if value is not None and not isinstance(value, (str, Mapping)):
-            raise TypeError(f"{field} must be a label or a named JSON metadata record")
+            raise TypeError(f"{field} must be a label or a named metadata record")
+        if isinstance(value, Mapping) and any(
+            not isinstance(name, str) for name in value
+        ):
+            raise TypeError(f"{field} metadata field names must be strings")
     for field in ("federation", "federate_name", "participant_name", "object_key"):
         value = event.get(field)
         if value is not None and not isinstance(value, str):
             raise TypeError(f"{field} must be a string")
     if event.get("session_id") is not None:
         identity_text(event.get("session_id"), limit=256)
-    participant_attribution(event)
+    participant_event_metadata(event)
     object_context(event)
     time_data(event)  # Validate explicit observations before any batch mutation.
-    declaration_data(event)
-    relationship_data(event)
-    coordination_data(event)
-    interaction_flow_data(event)
-    ownership_data(event)
-    region_data(event)
-    mom_data(event)
-    fom_data(event)
+    declaration_observation = declaration_data(event)
+    relationship_observation = relationship_data(event)
+    coordination_observation = coordination_data(event)
+    interaction_flow_observation = interaction_flow_data(event)
+    ownership_observation = ownership_data(event)
+    region_observation = region_data(event)
+    mom_observation = mom_data(event)
+    fom_observation = fom_data(event)
     normalized = _copy_mapping(event)
     event_type = _event_type(normalized)
     if len(event_type) > 256:
@@ -235,6 +256,14 @@ def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
         source=_source_name(normalized),
         observed_at=time.time(),
         extensions=normalized,
+        fom_observation=fom_observation,
+        mom_observation=mom_observation,
+        declaration_observation=declaration_observation,
+        relationship_observation=relationship_observation,
+        coordination_observation=coordination_observation,
+        interaction_flow_observation=interaction_flow_observation,
+        ownership_observation=ownership_observation,
+        region_observation=region_observation,
     )
 
 
@@ -246,7 +275,7 @@ def _status_for_event(event_type: str) -> str:
     return "active"
 
 
-def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspection]:
+def _derive_objects(events: Iterable[EventRecord]) -> list[ObjectInspection]:
     rows: dict[tuple[str | None, str | None, str], ObjectInspection] = {}
     for event in events:
         key = _object_key(event)
@@ -262,7 +291,11 @@ def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspec
         ):
             continue
         row = rows.setdefault(
-            (context.identity_namespace if context else None, context.federation_id if context else None, key),
+            (
+                context.identity_namespace if context else None,
+                context.federation_id if context else None,
+                key,
+            ),
             ObjectInspection(
                 object_key=key,
                 object_name=_first_text(event, "object_name") or key,
@@ -295,7 +328,7 @@ def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspec
     return sorted(rows.values(), key=lambda row: row.object_key)
 
 
-def _derive_interactions(events: Iterable[Mapping[str, object]]) -> list[InteractionInspection]:
+def _derive_interactions(events: Iterable[EventRecord]) -> list[InteractionInspection]:
     rows: list[InteractionInspection] = []
     for event in events:
         key = _interaction_key(event)
@@ -319,16 +352,18 @@ def _derive_interactions(events: Iterable[Mapping[str, object]]) -> list[Interac
                 parameters=_copy_mapping(event.get("parameters")),
                 tag=to_json_value(event.get("tag")),
                 observed_at=_timestamp(event.get("observed_at")) or 0.0,
-                perspective=event_perspective(event),
+                perspective=participant_event_perspective(
+                    event_participant_metadata(event)
+                ),
             )
         )
     return rows[-250:]
 
 
-def _derive_federates(events: Iterable[Mapping[str, object]]) -> list[FederateInspection]:
+def _derive_federates(events: Iterable[EventRecord]) -> list[FederateInspection]:
     rows: dict[str, FederateInspection] = {}
     for event in events:
-        perspective = event_perspective(event)
+        perspective = participant_event_perspective(event_participant_metadata(event))
         event_type = _event_type(event)
         if perspective is None:
             continue
@@ -347,7 +382,15 @@ def _derive_federates(events: Iterable[Mapping[str, object]]) -> list[FederateIn
         row.federate = perspective.label
         row.perspective = perspective
         row.role = _first_text(event, "role") or row.role
-        row.handle = (perspective.attribution.participant.handle if perspective.attribution else None) or _first_text(event, "federate_handle", "participant_handle") or row.handle
+        row.handle = (
+            (
+                perspective.attribution.participant.handle
+                if perspective.attribution
+                else None
+            )
+            or _first_text(event, "federate_handle", "participant_handle")
+            or row.handle
+        )
         row.source = _source_name(event)
         row.status = _status_for_event(event_type)
         row.last_seen = _timestamp(event.get("observed_at"))
@@ -359,9 +402,7 @@ def _derive_metrics(events: Iterable[EventRecord]) -> LiveMetrics:
     types = Counter(_event_type(event) for event in events)
     families = Counter(_event_family(event) for event in events)
     sources = Counter(_source_name(event) for event in events)
-    timestamps = [
-        event.observed_at for event in events
-    ]
+    timestamps = [event.observed_at for event in events]
     elapsed = max(timestamps) - min(timestamps) if len(timestamps) > 1 else 0.0
     error_count = sum(
         count
@@ -387,38 +428,47 @@ def _sequence(value: object) -> int:
 
 
 def _timestamp(value: object) -> float | None:
-    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+    return (
+        float(value)
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+        else None
+    )
 
 
 def build_event_schema() -> JsonObject:
     """Return the stable JSON schema advertised by the HTTP service."""
 
-    return to_json_object({
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://umbra.invalid/observer/event-schema.json",
-        "title": "Umbra Runtime Observer Event",
-        "contract_version": OBSERVER_CONTRACT_VERSION,
-        "schema_version": OBSERVER_SCHEMA_VERSION,
-        "description": "Provider-neutral event envelope; unknown fields are retained.",
-        "type": "object",
-        "required": ["event_type"],
-        "properties": {
-            "sequence": {"type": "integer", "minimum": 1},
-            "event_type": {"type": "string"},
-            "family": {"type": "string", "description": "Explicit caller-defined grouping."},
-            "source": {"type": "string"},
-            "observed_at": {"type": "number"},
-            "connection": {"type": "string"},
-            "federation": {"type": "string"},
-            "federate": {"type": ["string", "object"]},
-            "object_key": {"type": "string"},
-            "interaction_key": {"type": "string"},
-            "attributes": {"type": "object"},
-            "parameters": {"type": "object"},
-            "details": {"type": "object"},
-        },
-        "event_types": list(EVENT_TYPES),
-    })
+    return to_json_object(
+        {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://umbra.invalid/observer/event-schema.json",
+            "title": "Umbra Runtime Observer Event",
+            "contract_version": OBSERVER_CONTRACT_VERSION,
+            "schema_version": OBSERVER_SCHEMA_VERSION,
+            "description": "Provider-neutral event envelope; unknown fields are retained.",
+            "type": "object",
+            "required": ["event_type"],
+            "properties": {
+                "sequence": {"type": "integer", "minimum": 1},
+                "event_type": {"type": "string"},
+                "family": {
+                    "type": "string",
+                    "description": "Explicit caller-defined grouping.",
+                },
+                "source": {"type": "string"},
+                "observed_at": {"type": "number"},
+                "connection": {"type": "string"},
+                "federation": {"type": "string"},
+                "federate": {"type": ["string", "object"]},
+                "object_key": {"type": "string"},
+                "interaction_key": {"type": "string"},
+                "attributes": {"type": "object"},
+                "parameters": {"type": "object"},
+                "details": {"type": "object"},
+            },
+            "event_types": list(EVENT_TYPES),
+        }
+    )
 
 
 class CallbackEventSource:
@@ -438,7 +488,8 @@ class CallbackEventSource:
             if sink in self._sinks:
                 self._sinks.remove(sink)
 
-    def emit(self, event: Mapping[str, object]) -> None:
+    # opaque-boundary: Forward the provider's raw event to registered observers.
+    def emit(self, event: RawObserverEvent) -> None:
         with self._lock:
             sinks = tuple(self._sinks)
         for sink in sinks:
@@ -459,6 +510,7 @@ class ObserverStore:
     tells clients when their cursor has fallen behind the retained window.
     """
 
+    # opaque-boundary: Initial capability data comes from arbitrary adapters.
     def __init__(
         self,
         *,
@@ -491,29 +543,65 @@ class ObserverStore:
             raise ValueError("max_events must be at least 1")
         if max_batch_size < 1:
             raise ValueError("max_batch_size must be at least 1")
-        if isinstance(max_time_requests, bool) or not isinstance(max_time_requests, int) or max_time_requests < 1:
+        if (
+            isinstance(max_time_requests, bool)
+            or not isinstance(max_time_requests, int)
+            or max_time_requests < 1
+        ):
             raise ValueError("max_time_requests must be a positive integer")
-        if isinstance(max_declarations, bool) or not isinstance(max_declarations, int) or max_declarations < 1:
+        if (
+            isinstance(max_declarations, bool)
+            or not isinstance(max_declarations, int)
+            or max_declarations < 1
+        ):
             raise ValueError("max_declarations must be a positive integer")
-        if isinstance(max_relationships, bool) or not isinstance(max_relationships, int) or max_relationships < 1:
+        if (
+            isinstance(max_relationships, bool)
+            or not isinstance(max_relationships, int)
+            or max_relationships < 1
+        ):
             raise ValueError("max_relationships must be a positive integer")
-        if isinstance(max_coordination, bool) or not isinstance(max_coordination, int) or max_coordination < 1:
+        if (
+            isinstance(max_coordination, bool)
+            or not isinstance(max_coordination, int)
+            or max_coordination < 1
+        ):
             raise ValueError("max_coordination must be a positive integer")
-        if isinstance(max_coordination_transitions, bool) or not isinstance(max_coordination_transitions, int) or max_coordination_transitions < 1:
+        if (
+            isinstance(max_coordination_transitions, bool)
+            or not isinstance(max_coordination_transitions, int)
+            or max_coordination_transitions < 1
+        ):
             raise ValueError("max_coordination_transitions must be a positive integer")
-        if isinstance(max_interaction_flow, bool) or not isinstance(max_interaction_flow, int) or max_interaction_flow < 1:
+        if (
+            isinstance(max_interaction_flow, bool)
+            or not isinstance(max_interaction_flow, int)
+            or max_interaction_flow < 1
+        ):
             raise ValueError("max_interaction_flow must be a positive integer")
-        for name, value in (("max_ownership_states", max_ownership_states), ("max_ownership_requests", max_ownership_requests),
-                            ("max_ownership_transitions", max_ownership_transitions), ("max_regions", max_regions),
-                            ("max_region_transitions", max_region_transitions), ("max_mom_reports", max_mom_reports),
-                            ("max_mom_transitions", max_mom_transitions), ("max_fom_elements", max_fom_elements),
-                            ("max_fom_transitions", max_fom_transitions)):
+        for name, value in (
+            ("max_ownership_states", max_ownership_states),
+            ("max_ownership_requests", max_ownership_requests),
+            ("max_ownership_transitions", max_ownership_transitions),
+            ("max_regions", max_regions),
+            ("max_region_transitions", max_region_transitions),
+            ("max_mom_reports", max_mom_reports),
+            ("max_mom_transitions", max_mom_transitions),
+            ("max_fom_elements", max_fom_elements),
+            ("max_fom_transitions", max_fom_transitions),
+        ):
             if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
         self._evidence = EvidenceBudget(max_evidence_bytes, max_evidence_record_bytes)
         self._context_budget = EvidenceBudget(256 * 1024, 128 * 1024)
-        self._events = EvidenceQueue[EventRecord]("events", max_events, self._evidence,
-                                                 lambda row: row.to_json(), unit="envelopes", contiguous=True)
+        self._events = EvidenceQueue[EventRecord](
+            "events",
+            max_events,
+            self._evidence,
+            lambda row: row.to_json(),
+            unit="envelopes",
+            contiguous=True,
+        )
         self._max_events = max_events
         self._max_batch_size = max_batch_size
         self._next_sequence = 1
@@ -523,23 +611,56 @@ class ObserverStore:
         self._dropped_events = 0
         self._cleared_events = 0
         self._status = "idle"
-        self._context = EvidenceIndex[str, JsonValue]("context", 128, self._context_budget, lambda key, value: {key: value}, unit="keys")
+        self._context = EvidenceIndex[str, JsonValue](
+            "context",
+            128,
+            self._context_budget,
+            lambda key, value: {key: value},
+            unit="keys",
+        )
         # These indexes are intentionally independent from the bounded event
         # deque. A long-running observer must not forget a live object or
         # participant merely because its older event history was evicted.
-        self._objects = EvidenceIndex[tuple[str | None, str | None, str], ObjectInspection]("objects", max_objects, self._evidence, lambda _, row: row.to_json())
-        self._object_views = ObjectViews(max_events, max_object_perspectives, budget=self._evidence)
-        self._time_views = TimeViews(max_time_requests, max_time_snapshots, budget=self._evidence)
+        self._objects = EvidenceIndex[
+            tuple[str | None, str | None, str], ObjectInspection
+        ]("objects", max_objects, self._evidence, lambda _, row: row.to_json())
+        self._object_views = ObjectViews(
+            max_events, max_object_perspectives, budget=self._evidence
+        )
+        self._time_views = TimeViews(
+            max_time_requests, max_time_snapshots, budget=self._evidence
+        )
         self._declarations = DeclarationViews(max_declarations, budget=self._evidence)
-        self._relationships = RelationshipViews(max_relationships, budget=self._evidence)
-        self._coordination = CoordinationViews(max_coordination, max_coordination_transitions, budget=self._evidence)
-        self._interaction_flow = InteractionFlowViews(max_interaction_flow, budget=self._evidence)
-        self._ownership = OwnershipViews(max_ownership_states, max_ownership_requests, max_ownership_transitions, budget=self._evidence)
-        self._regions = RegionViews(max_regions, max_region_transitions, budget=self._evidence)
-        self._mom = MomViews(max_mom_reports, max_mom_transitions, budget=self._evidence)
-        self._fom = FomViews(max_fom_elements, max_fom_transitions, budget=self._evidence)
-        self._federates = EvidenceIndex[str, FederateInspection]("federates", max_federates, self._evidence, lambda _, row: row.to_json())
-        self._interactions = EvidenceQueue[InteractionInspection]("interactions", 250, self._evidence, lambda row: row.to_json())
+        self._relationships = RelationshipViews(
+            max_relationships, budget=self._evidence
+        )
+        self._coordination = CoordinationViews(
+            max_coordination, max_coordination_transitions, budget=self._evidence
+        )
+        self._interaction_flow = InteractionFlowViews(
+            max_interaction_flow, budget=self._evidence
+        )
+        self._ownership = OwnershipViews(
+            max_ownership_states,
+            max_ownership_requests,
+            max_ownership_transitions,
+            budget=self._evidence,
+        )
+        self._regions = RegionViews(
+            max_regions, max_region_transitions, budget=self._evidence
+        )
+        self._mom = MomViews(
+            max_mom_reports, max_mom_transitions, budget=self._evidence
+        )
+        self._fom = FomViews(
+            max_fom_elements, max_fom_transitions, budget=self._evidence
+        )
+        self._federates = EvidenceIndex[str, FederateInspection](
+            "federates", max_federates, self._evidence, lambda _, row: row.to_json()
+        )
+        self._interactions = EvidenceQueue[InteractionInspection](
+            "interactions", 250, self._evidence, lambda row: row.to_json()
+        )
         self._adapters: dict[int, tuple[ObserverAdapter, str, str]] = {}
         self._manual_capabilities: dict[str, CapabilityRecord] = normalize_capabilities(
             capabilities,
@@ -562,28 +683,56 @@ class ObserverStore:
 
     def alert_report(self, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
         with self._condition:
-            return {"contract_version": OBSERVER_CONTRACT_VERSION,
-                    **self._alerts.report(self._dropped_events + self._events.dropped, commands)}
+            return {
+                "contract_version": OBSERVER_CONTRACT_VERSION,
+                **self._alerts.report(
+                    self._dropped_events + self._events.dropped, commands
+                ),
+            }
 
-    def configure_alerts(self, rules: Sequence[AlertRuleSpec], expected_revision: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+    def configure_alerts(
+        self,
+        rules: Sequence[AlertRuleSpec],
+        expected_revision: int,
+        commands: CommandWatch = NO_COMMAND_WATCH,
+    ) -> JsonObject:
         with self._condition:
-            self._alerts.configure(rules, expected_revision, self._dropped_events + self._events.dropped)
+            self._alerts.configure(
+                rules, expected_revision, self._dropped_events + self._events.dropped
+            )
             return self.alert_report(commands)
 
-    def reset_alert(self, rule_id: str, expected_revision: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+    def reset_alert(
+        self,
+        rule_id: str,
+        expected_revision: int,
+        commands: CommandWatch = NO_COMMAND_WATCH,
+    ) -> JsonObject:
         with self._condition:
-            self._alerts.configure(tuple(row.spec for row in self._alerts.runs.values()), expected_revision,
-                                   self._dropped_events + self._events.dropped, reset_id=rule_id)
+            self._alerts.configure(
+                tuple(row.spec for row in self._alerts.runs.values()),
+                expected_revision,
+                self._dropped_events + self._events.dropped,
+                reset_id=rule_id,
+            )
             return self.alert_report(commands)
 
-    def acknowledge_alert(self, evidence_id: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+    def acknowledge_alert(
+        self, evidence_id: int, commands: CommandWatch = NO_COMMAND_WATCH
+    ) -> JsonObject:
         with self._condition:
             self._alerts.acknowledge(evidence_id)
             return self.alert_report(commands)
 
     def set_context(self, **values: object) -> JsonObject:
         with self._condition:
-            self._apply_context_locked({str(key): _jsonable(value) for key, value in values.items() if value is not None})
+            self._apply_context_locked(
+                {
+                    str(key): _jsonable(value)
+                    for key, value in values.items()
+                    if value is not None
+                }
+            )
             self._capture_locked("metadata")
             return to_json_object(dict(self._context))
 
@@ -594,12 +743,19 @@ class ObserverStore:
         if len(status_text.encode("utf-8")) > 256:
             raise ValueError("status exceeds 256 UTF-8 bytes")
         with self._condition:
-            self._apply_context_locked({str(key): _jsonable(value) for key, value in context.items() if value is not None})
+            self._apply_context_locked(
+                {
+                    str(key): _jsonable(value)
+                    for key, value in context.items()
+                    if value is not None
+                }
+            )
             self._status = status_text
             self._capture_locked("metadata")
             self._condition.notify_all()
             return self._state_locked(include_events=False)
 
+    # opaque-boundary: Accept provider capability manifests before normalization.
     def set_capabilities(
         self,
         capabilities: Mapping[str, object],
@@ -628,17 +784,21 @@ class ObserverStore:
         with self._condition:
             return self._capabilities_locked()
 
-    def publish(self, event: Mapping[str, object]) -> JsonObject:
+    # opaque-boundary: Accept raw provider events at the observer's public ingress.
+    def publish(self, event: RawObserverEvent) -> JsonObject:
         with self._condition:
             normalized = _normalise_event(event, self._next_sequence)
             self._append_locked([normalized])
             self._condition.notify_all()
             return to_json_object(normalized.to_json())
 
-    def publish_many(self, events: Iterable[Mapping[str, object]]) -> int:
+    # opaque-boundary: Validate each raw provider event before batch insertion.
+    def publish_many(self, events: Iterable[RawObserverEvent]) -> int:
         rows = list(events)
         if len(rows) > self._max_batch_size:
-            raise ValueError(f"event batch exceeds max_batch_size ({self._max_batch_size})")
+            raise ValueError(
+                f"event batch exceeds max_batch_size ({self._max_batch_size})"
+            )
         if not rows:
             return 0
         with self._condition:
@@ -749,7 +909,9 @@ class ObserverStore:
         if first_error is not None:
             raise first_error
 
-    def events(self, *, after_sequence: int = 0, limit: int | None = None) -> list[JsonObject]:
+    def events(
+        self, *, after_sequence: int = 0, limit: int | None = None
+    ) -> list[JsonObject]:
         with self._condition:
             return self._events_locked(after_sequence=after_sequence, limit=limit)
 
@@ -775,7 +937,10 @@ class ObserverStore:
         family_filter = {str(value) for value in families} if families else None
         source_filter = {str(value) for value in sources} if sources else None
         with self._condition:
-            reset = instance_id is not None and (instance_id != self._instance_id or after_sequence >= self._next_sequence)
+            reset = instance_id is not None and (
+                instance_id != self._instance_id
+                or after_sequence >= self._next_sequence
+            )
             if reset:
                 after_sequence = 0
             retained = list(self._events)
@@ -790,27 +955,39 @@ class ObserverStore:
             rows = tuple(candidates[:limit])
             first_sequence = retained[0].sequence if retained else 0
             last_sequence = retained[-1].sequence if retained else 0
-            gap = bool(first_sequence and after_sequence < first_sequence - 1 or not retained and after_sequence < self._next_sequence - 1)
+            gap = bool(
+                first_sequence
+                and after_sequence < first_sequence - 1
+                or not retained
+                and after_sequence < self._next_sequence - 1
+            )
             next_after = rows[-1].sequence if rows else after_sequence
             if gap and not rows:
                 next_after = first_sequence - 1 if retained else self._next_sequence - 1
-            document = to_json_object(EventPage(
-                events=rows,
-                next_after=next_after,
-                has_more=len(candidates) > len(rows),
-                gap=gap,
-                first_retained_sequence=first_sequence,
-                last_sequence=last_sequence,
-                retained_events=len(retained),
-                dropped_events=self._dropped_events + self._events.dropped,
-                cleared_events=self._cleared_events,
-                next_sequence=self._next_sequence,
-            ).to_json(OBSERVER_CONTRACT_VERSION))
-            document["observer_lifetime"] = {"instance_id": self._instance_id, "revision": self._revision}
+            document = to_json_object(
+                EventPage(
+                    events=rows,
+                    next_after=next_after,
+                    has_more=len(candidates) > len(rows),
+                    gap=gap,
+                    first_retained_sequence=first_sequence,
+                    last_sequence=last_sequence,
+                    retained_events=len(retained),
+                    dropped_events=self._dropped_events + self._events.dropped,
+                    cleared_events=self._cleared_events,
+                    next_sequence=self._next_sequence,
+                ).to_json(OBSERVER_CONTRACT_VERSION)
+            )
+            document["observer_lifetime"] = {
+                "instance_id": self._instance_id,
+                "revision": self._revision,
+            }
             document["reset"] = reset
             return document
 
-    def wait_for_events(self, *, after_sequence: int = 0, timeout: float = 15.0) -> list[JsonObject]:
+    def wait_for_events(
+        self, *, after_sequence: int = 0, timeout: float = 15.0
+    ) -> list[JsonObject]:
         deadline = time.monotonic() + max(timeout, 0.0)
         with self._condition:
             while not any(event.sequence > after_sequence for event in self._events):
@@ -825,7 +1002,9 @@ class ObserverStore:
     def wait_for_change(self, revision: int, *, timeout: float = 15.0) -> None:
         """Wait for any observable mutation, including an empty clear/metadata."""
         with self._condition:
-            self._condition.wait_for(lambda: self._revision != revision, timeout=max(0.0, timeout))
+            self._condition.wait_for(
+                lambda: self._revision != revision, timeout=max(0.0, timeout)
+            )
 
     def clear(self) -> None:
         with self._condition:
@@ -860,46 +1039,79 @@ class ObserverStore:
         """
         with self._condition:
             provenance = self._capabilities_locked().get("participant_provenance")
-            return to_json_object({
-                "contract_version": OBSERVER_CONTRACT_VERSION,
-                "participant_provenance": provenance is not None and provenance.get("state") in {"available", "partial"},
-                "retention": self._retention_locked().to_json(),
-                "federate_roster": [row.to_json() for row in sorted(self._federates.values(), key=lambda row: row.federate)],
-                "normalized_events": [event.to_json() for event in self._events],
-                "storage": self._storage_locked(),
-            })
+            return to_json_object(
+                {
+                    "contract_version": OBSERVER_CONTRACT_VERSION,
+                    "participant_provenance": provenance is not None
+                    and provenance.get("state") in {"available", "partial"},
+                    "retention": self._retention_locked().to_json(),
+                    "federate_roster": [
+                        row.to_json()
+                        for row in sorted(
+                            self._federates.values(), key=lambda row: row.federate
+                        )
+                    ],
+                    "normalized_events": [event.to_json() for event in self._events],
+                    "storage": self._storage_locked(),
+                }
+            )
 
     def runtime_summary(self) -> JsonObject:
         """Health/metrics fields only, without walking any inspector history."""
         with self._condition:
-            return to_json_object({
-                "contract_version": OBSERVER_CONTRACT_VERSION,
-                "schema_version": OBSERVER_SCHEMA_VERSION,
-                "status": self._status,
-                "live_metrics": self._metrics_locked().to_json(),
-                "retention": self._retention_locked().to_json(),
-                "adapters": [row.to_json() for row in self._adapters_locked()],
-                "capabilities": self._capabilities_locked(),
-            })
+            return to_json_object(
+                {
+                    "contract_version": OBSERVER_CONTRACT_VERSION,
+                    "schema_version": OBSERVER_SCHEMA_VERSION,
+                    "status": self._status,
+                    "live_metrics": self._metrics_locked().to_json(),
+                    "retention": self._retention_locked().to_json(),
+                    "adapters": [row.to_json() for row in self._adapters_locked()],
+                    "capabilities": self._capabilities_locked(),
+                }
+            )
 
-    def start_capture(self, label: str, *, replace_id: str | None = None, max_frames: int = 600,
-                      max_bytes: int = 16 * 1024 * 1024, storage_format: StorageFormat = "full-v1") -> CaptureInfo:
+    def start_capture(
+        self,
+        label: str,
+        *,
+        replace_id: str | None = None,
+        max_frames: int = 600,
+        max_bytes: int = 16 * 1024 * 1024,
+        storage_format: StorageFormat = "full-v1",
+    ) -> CaptureInfo:
         """Start one process-local journal; replacing retained data requires its ID."""
         with self._condition:
-            if self._capture is not None and (self._capture.info().active or replace_id != self._capture.recording_id):
-                raise CaptureConflict("A recording is active or retained. Stop/export it and explicitly replace its recording ID.")
+            if self._capture is not None and (
+                self._capture.info().active or replace_id != self._capture.recording_id
+            ):
+                raise CaptureConflict(
+                    "A recording is active or retained. Stop/export it and explicitly replace its recording ID."
+                )
             manifest = self._capabilities_locked()
-            contract = build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION, capabilities=manifest)
+            contract = build_contract_document(
+                EVENT_TYPES,
+                event_schema_version=OBSERVER_SCHEMA_VERSION,
+                capabilities=manifest,
+            )
             # Ordinary discovery normalizes capability declarations. A capture
             # also preserves the exact aggregated owners/reporter observations.
             contract["capabilities"] = to_json_value(manifest)
             if storage_format not in ("full-v1", "compact-v2"):
                 raise ValueError("Unsupported recording storage format.")
-            buffer_type = CompactCaptureBuffer if storage_format == "compact-v2" else CaptureBuffer
-            candidate = buffer_type(label, contract, max_frames=max_frames, max_bytes=max_bytes)
+            buffer_type = (
+                CompactCaptureBuffer
+                if storage_format == "compact-v2"
+                else CaptureBuffer
+            )
+            candidate = buffer_type(
+                label, contract, max_frames=max_frames, max_bytes=max_bytes
+            )
             candidate.append(self._state_locked(include_events=True), "start")
             if not candidate.info().frame_count:
-                raise ValueError("The initial observer snapshot does not fit the recording budget or is not valid JSON.")
+                raise ValueError(
+                    "The initial observer snapshot does not fit the recording budget or is not valid JSON."
+                )
             self._capture = candidate
             return candidate.info()
 
@@ -925,36 +1137,57 @@ class ObserverStore:
 
     def _require_capture_locked(self, recording_id: str) -> CaptureBuffer:
         if self._capture is None or self._capture.recording_id != recording_id:
-            raise CaptureConflict("That recording is no longer retained by this backend.")
+            raise CaptureConflict(
+                "That recording is no longer retained by this backend."
+            )
         return self._capture
 
-    def _capture_locked(self, change: CaptureChange, arrivals: list[EventRecord] | None = None) -> None:
+    def _capture_locked(
+        self, change: CaptureChange, arrivals: Sequence[EventRecord] | None = None
+    ) -> None:
         # Commit a mutation cut even when optional recording is not enabled.
         # Timer/stop journal frames capture a cut; they do not mutate live data.
         if change not in {"checkpoint", "stop"}:
             self._revision += 1
             self._condition.notify_all()
         if self._capture is not None and self._capture.info().active:
-            self._capture.append(self._state_locked(include_events=True), change,
-                                 [event.to_json() for event in arrivals] if arrivals else None)
+            self._capture.append(
+                self._state_locked(include_events=True),
+                change,
+                [event.to_json() for event in arrivals] if arrivals else None,
+            )
 
-    def _events_locked(self, *, after_sequence: int, limit: int | None) -> list[JsonObject]:
-        rows = [to_json_object(event.to_json()) for event in self._events if event.sequence > max(after_sequence, 0)]
+    def _events_locked(
+        self, *, after_sequence: int, limit: int | None
+    ) -> list[JsonObject]:
+        rows = [
+            to_json_object(event.to_json())
+            for event in self._events
+            if event.sequence > max(after_sequence, 0)
+        ]
         if limit is not None:
             rows = rows[: max(limit, 0)]
         return rows
 
-    def _append_locked(self, normalized: list[EventRecord]) -> None:
+    def _append_locked(self, normalized: Sequence[EventRecord]) -> None:
         for event in normalized:
             self._events.append(event)
             self._next_sequence += 1
             self._update_indexes_locked(event)
             if self._alerts.runs:
-                perspective = event_perspective(event)
-                session = event.get("session_id")
-                self._alerts.observe(AlertScope(event.source, _first_text(event, "federation"),
-                    _federate_name(event), perspective.session_id if perspective else session if isinstance(session, str) else None,
-                    perspective), event.event_type, event.sequence)
+                metadata = event_participant_metadata(event)
+                perspective = participant_event_perspective(metadata)
+                self._alerts.observe(
+                    AlertScope(
+                        event.source,
+                        _first_text(event, "federation"),
+                        _federate_name(event),
+                        perspective.session_id if perspective else metadata.session_id,
+                        perspective,
+                    ),
+                    event.event_type,
+                    event.sequence,
+                )
             self._context.update(
                 {
                     key: value
@@ -976,8 +1209,12 @@ class ObserverStore:
         self._capture_locked("events", normalized)
 
     def _update_indexes_locked(self, event: EventRecord) -> None:
-        self._time_views.record(event, _federate_name(event), _first_text(event, "federation"))
-        self._declarations.record(event, _federate_name(event), _first_text(event, "federation"))
+        self._time_views.record(
+            event, _federate_name(event), _first_text(event, "federation")
+        )
+        self._declarations.record(
+            event, _federate_name(event), _first_text(event, "federation")
+        )
         self._relationships.record(event)
         self._coordination.record(event)
         self._interaction_flow.record(event)
@@ -990,7 +1227,9 @@ class ObserverStore:
         for incoming in objects:
             key = incoming.cache_key
             current = self._objects.get(key)
-            if current is None or (current.status == "removed" and event.event_type == "object.discovered"):
+            if current is None or (
+                current.status == "removed" and event.event_type == "object.discovered"
+            ):
                 self._objects[key] = incoming
                 continue
             object_name = _first_text(event, "object_name")
@@ -1016,7 +1255,9 @@ class ObserverStore:
             self._objects.refresh(key)
 
         for incoming in _derive_federates([event]):
-            key = incoming.perspective.key if incoming.perspective else incoming.federate
+            key = (
+                incoming.perspective.key if incoming.perspective else incoming.federate
+            )
             current = self._federates.get(key)
             if current is None:
                 self._federates[key] = incoming
@@ -1025,7 +1266,11 @@ class ObserverStore:
             current.federate = incoming.federate
             current.perspective = incoming.perspective
             current.handle = incoming.handle or current.handle
-            if not (current.status in {"resigned", "reporting-ended"} and current.perspective is not None and current.perspective.attribution is not None):
+            if not (
+                current.status in {"resigned", "reporting-ended"}
+                and current.perspective is not None
+                and current.perspective.attribution is not None
+            ):
                 current.status = incoming.status
             current.source = incoming.source
             current.last_seen = incoming.last_seen
@@ -1033,7 +1278,9 @@ class ObserverStore:
 
         if event.event_type == "session.disconnected":
             for key, current in tuple(self._federates.items()):
-                if current.perspective is not None and perspective_ended(current.perspective, event):
+                if current.perspective is not None and participant_event_ended(
+                    current.perspective, event_participant_metadata(event)
+                ):
                     if current.status != "resigned":
                         current.status = "reporting-ended"
                     self._federates.refresh(key)
@@ -1055,22 +1302,44 @@ class ObserverStore:
 
     def _adapters_locked(self) -> list[AdapterStatus]:
         rows: list[AdapterStatus] = []
-        for key, (_, name, status) in sorted(self._adapters.items(), key=lambda entry: entry[1][1]):
+        for key, (_, name, status) in sorted(
+            self._adapters.items(), key=lambda entry: entry[1][1]
+        ):
             capabilities: tuple[str, ...] = ()
             if self._adapter_capabilities.get(key):
                 capabilities = tuple(sorted(self._adapter_capabilities[key]))
-            rows.append(AdapterStatus(name=name, status=status, capabilities=capabilities))
+            rows.append(
+                AdapterStatus(name=name, status=status, capabilities=capabilities)
+            )
         return rows
 
     def _capabilities_locked(self) -> dict[str, JsonObject]:
-        adapter_features = {name for manifest in self._adapter_capabilities.values() for name in manifest}
-        optional_inspectors = {"declarations", "relationships", "synchronization", "persistence_inspection", "time_inspection", "interaction_flow", "ownership_inspection", "regions_inspection", "mom_inspection", "fom_inspection"}
+        adapter_features = {
+            name
+            for manifest in self._adapter_capabilities.values()
+            for name in manifest
+        }
+        optional_inspectors = {
+            "declarations",
+            "relationships",
+            "synchronization",
+            "persistence_inspection",
+            "time_inspection",
+            "interaction_flow",
+            "ownership_inspection",
+            "regions_inspection",
+            "mom_inspection",
+            "fom_inspection",
+        }
         effective = merge_capabilities(
             # Accepting a normalized model is infrastructure support, not
             # contrary evidence that an explicitly unsupported RTI feature is
             # partially available. Aggregate actual reporters with each other.
-            {name: value for name, value in OBSERVER_CAPABILITIES.items()
-             if name not in optional_inspectors or name not in adapter_features},
+            {
+                name: value
+                for name, value in OBSERVER_CAPABILITIES.items()
+                if name not in optional_inspectors or name not in adapter_features
+            },
             *self._adapter_capabilities.values(),
         )
         # Store/application declarations are authoritative. This is what lets
@@ -1079,36 +1348,64 @@ class ObserverStore:
         for name, manifest in self._manual_capabilities.items():
             effective[name] = merge_capabilities({name: manifest})[name]
         return {
-            name: capability.to_json()
-            for name, capability in sorted(effective.items())
+            name: capability.to_json() for name, capability in sorted(effective.items())
         }
 
     def _validate_metadata_locked(self) -> None:
-        encoded = json.dumps(self._capabilities_locked(), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+        encoded = json.dumps(
+            self._capabilities_locked(),
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+        )
         if len(encoded.encode("utf-8")) > 128 * 1024:
             raise ValueError("aggregated capability metadata exceeds 128 KiB")
-        adapters = json.dumps([row.to_json() for row in self._adapters_locked()], ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+        adapters = json.dumps(
+            [row.to_json() for row in self._adapters_locked()],
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+        )
         if len(adapters.encode("utf-8")) > 128 * 1024:
             raise ValueError("aggregated adapter metadata exceeds 128 KiB")
 
     def _apply_context_locked(self, updates: JsonObject) -> None:
         # Explicit operator/app updates are admitted atomically. Event-derived
         # context is observation evidence and instead reports whole-key expiry.
-        candidate = {key: value for key, value in self._context.items() if key not in updates}
+        candidate = {
+            key: value for key, value in self._context.items() if key not in updates
+        }
         candidate.update(updates)
         if len(candidate) > self._context.capacity:
             raise ValueError("context exceeds 128 retained keys")
-        sizes = [len(json.dumps({key: value}, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")) + 64
-                 for key, value in candidate.items()]
-        if any(size > self._context_budget.max_record_bytes for size in sizes) or sum(sizes) > self._context_budget.max_bytes:
+        sizes = [
+            len(
+                json.dumps(
+                    {key: value},
+                    ensure_ascii=False,
+                    allow_nan=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            )
+            + 64
+            for key, value in candidate.items()
+        ]
+        if (
+            any(size > self._context_budget.max_record_bytes for size in sizes)
+            or sum(sizes) > self._context_budget.max_bytes
+        ):
             raise ValueError("context update exceeds its encoded key/total byte budget")
         for key in tuple(self._context):
             del self._context[key]
         self._context.update(candidate)
 
     def _metrics_locked(self) -> LiveMetrics:
-        return replace(_derive_metrics(self._events), object_count=len(self._objects),
-                       interaction_count=len(self._interactions), federate_count=len(self._federates))
+        return replace(
+            _derive_metrics(self._events),
+            object_count=len(self._objects),
+            interaction_count=len(self._interactions),
+            federate_count=len(self._federates),
+        )
 
     def _state_locked(self, *, include_events: bool) -> JsonObject:
         events = tuple(self._events)
@@ -1122,40 +1419,49 @@ class ObserverStore:
             key=lambda row: row.federate,
         )
         metrics = self._metrics_locked()
-        state = to_json_object({
-            "contract_version": OBSERVER_CONTRACT_VERSION,
-            "observer_lifetime": {"instance_id": self._instance_id, "revision": self._revision},
-            "schema_version": OBSERVER_SCHEMA_VERSION,
-            "status": self._status,
-            "context": dict(self._context),
-            "live_metrics": metrics.to_json(),
-            "retention": self._retention_locked().to_json(),
-            "adapters": [row.to_json() for row in self._adapters_locked()],
-            "capabilities": self._capabilities_locked(),
-            "storage": self._storage_locked(),
-            "federate_roster": [row.to_json() for row in federates],
-            "inspectors": {
-                "objects": [row.to_json() for row in objects],
-                "interactions": [row.to_json() for row in interactions],
-                "object_observations": self._object_views.to_json(self._retention_locked()),
-                "time": self._time_views.to_json(),
-                "declarations": self._declarations.to_json(),
-                "relationships": self._relationships.to_json(),
-                "coordination": self._coordination.to_json(),
-                "interaction_flow": self._interaction_flow.to_json(),
-                "ownership": self._ownership.to_json(),
-                "regions": self._regions.to_json(),
-                "mom": self._mom.to_json(),
-                "fom": self._fom.to_json(),
-            },
-        })
+        state = to_json_object(
+            {
+                "contract_version": OBSERVER_CONTRACT_VERSION,
+                "observer_lifetime": {
+                    "instance_id": self._instance_id,
+                    "revision": self._revision,
+                },
+                "schema_version": OBSERVER_SCHEMA_VERSION,
+                "status": self._status,
+                "context": dict(self._context),
+                "live_metrics": metrics.to_json(),
+                "retention": self._retention_locked().to_json(),
+                "adapters": [row.to_json() for row in self._adapters_locked()],
+                "capabilities": self._capabilities_locked(),
+                "storage": self._storage_locked(),
+                "federate_roster": [row.to_json() for row in federates],
+                "inspectors": {
+                    "objects": [row.to_json() for row in objects],
+                    "interactions": [row.to_json() for row in interactions],
+                    "object_observations": self._object_views.to_json(
+                        self._retention_locked()
+                    ),
+                    "time": self._time_views.to_json(),
+                    "declarations": self._declarations.to_json(),
+                    "relationships": self._relationships.to_json(),
+                    "coordination": self._coordination.to_json(),
+                    "interaction_flow": self._interaction_flow.to_json(),
+                    "ownership": self._ownership.to_json(),
+                    "regions": self._regions.to_json(),
+                    "mom": self._mom.to_json(),
+                    "fom": self._fom.to_json(),
+                },
+            }
+        )
         if include_events:
             state["normalized_events"] = [event.to_json() for event in events]
         return to_json_object(state)
 
     def _storage_locked(self) -> JsonObject:
-        return {"evidence": self._evidence.coverage(),
-                "context": self._context_budget.coverage()}
+        return {
+            "evidence": self._evidence.coverage(),
+            "context": self._context_budget.coverage(),
+        }
 
 
 __all__ = [

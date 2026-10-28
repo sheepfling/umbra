@@ -1,5 +1,7 @@
 #include "tck_main_scenarios.hpp"
 
+#include <chrono>
+
 namespace hla_rti_cpp_tck::detail {
 
 void scenarioConnection(Options const& options, rti::CallbackModel model) {
@@ -12,7 +14,7 @@ void scenarioConnection(Options const& options, rti::CallbackModel model) {
         description + " returned an invalid additional-settings result code");
   };
   auto exerciseConnectOverload =
-      [&](std::string const& description, auto const& connect) {
+      [&](std::string const& description, auto const& connect, bool expectIgnoredSettings) {
         rti::RTIambassadorFactory factory;
         auto ambassador = factory.createRTIambassador();
         require(
@@ -21,6 +23,11 @@ void scenarioConnection(Options const& options, rti::CallbackModel model) {
         Recorder recorder;
         auto const result = connect(*ambassador, recorder);
         requireConfigurationResult(result, description);
+        if (expectIgnoredSettings) {
+          require(
+              result.additionalSettingsResult == rti::SETTINGS_IGNORED,
+              description + " did not report SETTINGS_IGNORED without additional settings");
+        }
         ambassador->disconnect();
       };
   auto emptyConfiguration = rti::RtiConfiguration::createConfiguration();
@@ -42,33 +49,56 @@ void scenarioConnection(Options const& options, rti::CallbackModel model) {
       "base connect overload",
       [model](rti::RTIambassador& ambassador, rti::FederateAmbassador& federate) {
         return ambassador.connect(federate, model);
-      });
+      },
+      true);
   exerciseConnectOverload(
       "configuration connect overload",
       [model, &emptyConfiguration](
           rti::RTIambassador& ambassador, rti::FederateAmbassador& federate) {
         return ambassador.connect(federate, model, emptyConfiguration);
-      });
+      },
+      true);
   exerciseConnectOverload(
       "credentials connect overload",
       [model, &noCredentials](
           rti::RTIambassador& ambassador, rti::FederateAmbassador& federate) {
         return ambassador.connect(federate, model, noCredentials);
-      });
+      },
+      true);
   exerciseConnectOverload(
       "configuration and credentials connect overload",
       [model, &emptyConfiguration, &noCredentials](
           rti::RTIambassador& ambassador, rti::FederateAmbassador& federate) {
         return ambassador.connect(
             federate, model, emptyConfiguration, noCredentials);
-      });
+      },
+      true);
   exerciseConnectOverload(
       "adapter configuration and HLAnoCredentials connect overload",
       [model, &adapterConfiguration, &noCredentials](
           rti::RTIambassador& ambassador, rti::FederateAmbassador& federate) {
         return ambassador.connect(
             federate, model, adapterConfiguration, noCredentials);
-      });
+      },
+      options.additionalSettings.empty());
+
+  {
+    rti::RTIambassadorFactory factory;
+    auto ambassador = factory.createRTIambassador();
+    require(
+        static_cast<bool>(ambassador),
+        "disconnect lifecycle check did not create a standard RTIambassador");
+    Recorder recorder;
+    auto const firstConnection = ambassador->connect(recorder, model);
+    requireConfigurationResult(firstConnection, "first Connect before Disconnect");
+    ambassador->disconnect();
+    auto const secondConnection = ambassador->connect(recorder, model);
+    requireConfigurationResult(secondConnection, "Connect after Disconnect");
+    require(
+        secondConnection.additionalSettingsResult == rti::SETTINGS_IGNORED,
+        "Connect after Disconnect did not report SETTINGS_IGNORED");
+    ambassador->disconnect();
+  }
 
   {
     rti::RTIambassadorFactory factory;
@@ -84,9 +114,11 @@ void scenarioConnection(Options const& options, rti::CallbackModel model) {
         },
         L"UnsupportedCallbackModel",
         "unsupported callback model");
-    requireConfigurationResult(
-        ambassador->connect(recorder, model),
-        "connect after unsupported callback model");
+    auto const result = ambassador->connect(recorder, model);
+    requireConfigurationResult(result, "connect after unsupported callback model");
+    require(
+        result.additionalSettingsResult == rti::SETTINGS_IGNORED,
+        "connect after unsupported callback model did not report SETTINGS_IGNORED");
     ambassador->disconnect();
   }
 
@@ -229,18 +261,23 @@ void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
   connectAndJoin(owner, member, options, federation, options.fom);
 
   waitForConnectionLossAndSignal(member, options, "ordinary connection-loss cleanup");
+  owner.rtiAmbassador().listFederationExecutionMembers(federation);
+  waitFor(owner, [&] {
+    return owner.recorder().listsMembers(
+        federation, {options.ownerFederateName}, 1U);
+  }, options, "the disconnected federate is no longer joined");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().listFederationExecutions());
+      },
+      L"NotConnected",
+      "listing federation executions after connection loss");
 
   rti::InteractionClassHandle interactionClass =
       owner.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
   require(interactionClass.isValid(), "The surviving member could not resolve an interaction class");
   owner.rtiAmbassador().sendInteraction(
       interactionClass, rti::ParameterHandleValueMap{}, rti::VariableLengthData{});
-  try {
-    member.disconnect();
-  } catch (...) {
-    // Some providers transition the lost member to a disconnected state
-    // before delivering connectionLost. Cleanup is best effort after loss.
-  }
   owner.resign(rti::NO_ACTION);
   owner.disconnect();
 }
@@ -624,6 +661,31 @@ void scenarioConnectionLossAutomaticCancelPendingAcquisitionContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioConnectionLossAutomaticCancelPendingAcquisition(options, model);
+}
+
+void scenarioConnectionUnknownConfigurationFallback(
+    Options const& options,
+    rti::CallbackModel model) {
+  static_cast<void>(options);
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  require(
+      static_cast<bool>(ambassador),
+      "unknown-configuration fallback did not create a standard RTIambassador");
+
+  auto const nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+  auto const unknownName = std::wstring(L"hla-rti-tck-unknown-configuration-") +
+      std::to_wstring(nonce);
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(unknownName);
+  Recorder recorder;
+  auto const result = ambassador->connect(recorder, model, configuration);
+  require(
+      result.additionalSettingsResult == rti::SETTINGS_IGNORED ||
+          result.additionalSettingsResult == rti::SETTINGS_FAILED_TO_PARSE ||
+          result.additionalSettingsResult == rti::SETTINGS_APPLIED,
+      "unknown configuration returned an invalid additional-settings result code");
+  ambassador->disconnect();
 }
 
 std::vector<std::pair<std::string, rti::CallbackModel>> callbackModels(Options const& options) {

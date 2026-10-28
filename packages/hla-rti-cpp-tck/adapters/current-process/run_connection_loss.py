@@ -17,8 +17,15 @@ import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from pathlib import Path
 
+from tck_evidence import (
+    TckEvidencePayload,
+    combine_tck_evidence,
+    empty_tck_evidence,
+    load_tck_evidence,
+)
 
 DEFAULT_FOM = (
     Path(__file__).resolve().parents[4]
@@ -77,7 +84,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--member-name", default="package-process-receiver")
     parser.add_argument("--federate-type", default="package-process-type")
     parser.add_argument("--owner-configuration-name", default="package-process-sender")
-    parser.add_argument("--member-configuration-name", default="package-process-receiver")
+    parser.add_argument(
+        "--member-configuration-name", default="package-process-receiver"
+    )
     parser.add_argument("--configuration-name", default="")
     parser.add_argument("--additional-settings", default="")
     parser.add_argument(
@@ -94,8 +103,13 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def wait_for_port(directory: Path, timeout_s: float) -> int:
+def wait_for_port(
+    directory: Path,
+    timeout_s: float,
+    fixture: subprocess.Popen[bytes],
+) -> int:
     port_path = directory / "port.txt"
+    error_path = directory / "public-server-loss.error"
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
         try:
@@ -104,8 +118,22 @@ def wait_for_port(directory: Path, timeout_s: float) -> int:
             port = 0
         if 0 < port <= 65535:
             return port
+        exit_code = fixture.poll()
+        if exit_code is not None:
+            detail = (
+                error_path.read_text(encoding="utf-8", errors="replace").strip()
+                if error_path.is_file()
+                else "no fixture error detail was written"
+            )
+            raise RuntimeError(
+                "The provider loss fixture exited with code "
+                f"{exit_code} before publishing a listening port: {detail}"
+            )
         time.sleep(0.1)
-    raise RuntimeError("The provider loss fixture did not publish a listening port")
+    raise RuntimeError(
+        "The provider loss fixture did not publish a listening port within "
+        f"{timeout_s:g} seconds and remained running"
+    )
 
 
 def wait_for_fixture(process: subprocess.Popen[bytes], timeout_s: float) -> int:
@@ -191,7 +219,7 @@ def run_one(
     callback_model: str,
     scenario_id: str,
     root: Path,
-) -> tuple[int, dict[str, object], ET.Element]:
+) -> tuple[int, TckEvidencePayload, ET.Element]:
     marker_directory = root / callback_model
     marker_directory.mkdir()
     results = marker_directory / "results.json"
@@ -239,9 +267,13 @@ def run_one(
     fixture: subprocess.Popen[bytes] | None = None
     try:
         fixture = subprocess.Popen(
-            [str(arguments.process_fixture), "public-server-loss", str(marker_directory)]
+            [
+                str(arguments.process_fixture),
+                "public-server-loss",
+                str(marker_directory),
+            ]
         )
-        port = wait_for_port(marker_directory, arguments.startup_timeout_s)
+        port = wait_for_port(marker_directory, arguments.startup_timeout_s, fixture)
         try:
             tck_result = subprocess.run(
                 tck_command(
@@ -262,8 +294,12 @@ def run_one(
                 f"The portable TCK did not finish {scenario_id} [{callback_model}] "
                 f"within {arguments.scenario_timeout_s:g} seconds"
             ) from error
-        payload = json.loads(results.read_text(encoding="utf-8")) if results.is_file() else {}
-        junit_root = ET.parse(junit).getroot() if junit.is_file() else ET.Element("testsuite")
+        payload = (
+            load_tck_evidence(results) if results.is_file() else empty_tck_evidence()
+        )
+        junit_root = (
+            ET.parse(junit).getroot() if junit.is_file() else ET.Element("testsuite")
+        )
         if tck_result.returncode != 0:
             fixture_error = marker_directory / "public-server-loss.error"
             receiver_closed = marker_directory / "receiver-closed.ok"
@@ -289,7 +325,9 @@ def run_one(
                 )
             return int(tck_result.returncode), payload, junit_root
         if not marker.is_file():
-            raise RuntimeError("The TCK did not write the connection-loss completion marker")
+            raise RuntimeError(
+                "The TCK did not write the connection-loss completion marker"
+            )
         fixture_status = wait_for_fixture(fixture, arguments.fixture_timeout_s)
         fixture = None
         if fixture_status != 0:
@@ -309,17 +347,11 @@ def run_one(
 
 def write_combined_evidence(
     arguments: argparse.Namespace,
-    payloads: list[dict[str, object]],
-    junit_roots: list[ET.Element],
+    payloads: Sequence[TckEvidencePayload],
+    junit_roots: Sequence[ET.Element],
 ) -> None:
     if arguments.results is not None and payloads:
-        combined = dict(payloads[0])
-        combined["callback_model"] = arguments.callback_model
-        combined["results"] = [
-            result
-            for payload in payloads
-            for result in payload.get("results", [])
-        ]
+        combined = combine_tck_evidence(payloads, arguments.callback_model)
         arguments.results.parent.mkdir(parents=True, exist_ok=True)
         arguments.results.write_text(
             json.dumps(combined, indent=2, sort_keys=True) + "\n",
@@ -327,10 +359,16 @@ def write_combined_evidence(
         )
     if arguments.junit is not None and junit_roots:
         test_count = sum(int(root.attrib.get("tests", "0")) for root in junit_roots)
-        failure_count = sum(int(root.attrib.get("failures", "0")) for root in junit_roots)
+        failure_count = sum(
+            int(root.attrib.get("failures", "0")) for root in junit_roots
+        )
         combined_root = ET.Element(
             "testsuite",
-            {"name": "hla-rti-cpp-tck", "tests": str(test_count), "failures": str(failure_count)},
+            {
+                "name": "hla-rti-cpp-tck",
+                "tests": str(test_count),
+                "failures": str(failure_count),
+            },
         )
         for root in junit_roots:
             combined_root.extend(list(root))
@@ -354,9 +392,13 @@ def run(arguments: argparse.Namespace) -> int:
 
     root = Path(tempfile.mkdtemp(prefix="hla-rti-cpp-tck-"))
     try:
-        models = ("evoked", "immediate") if arguments.callback_model == "both" else (arguments.callback_model,)
+        models = (
+            ("evoked", "immediate")
+            if arguments.callback_model == "both"
+            else (arguments.callback_model,)
+        )
         exit_code = 0
-        payloads: list[dict[str, object]] = []
+        payloads: list[TckEvidencePayload] = []
         junit_roots: list[ET.Element] = []
         for callback_model in models:
             code, payload, junit_root = run_one(
@@ -366,7 +408,7 @@ def run(arguments: argparse.Namespace) -> int:
                 root,
             )
             exit_code = exit_code or code
-            if payload:
+            if payload.document:
                 payloads.append(payload)
             junit_roots.append(junit_root)
         write_combined_evidence(arguments, payloads, junit_roots)
@@ -378,7 +420,7 @@ def run(arguments: argparse.Namespace) -> int:
 def main() -> int:
     try:
         return run(parse_arguments())
-    except (OSError, RuntimeError, ValueError) as error:
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
         print(f"connection-loss adapter failed: {error}", file=sys.stderr)
         return 1
 

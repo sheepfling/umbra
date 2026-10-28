@@ -147,7 +147,8 @@ TEST_CASE(
     "Embedded service reporting records failed local-delete object-instance invocations",
     "[integration][development-profile][federation-management][object-management]"
     "[mom][service-report-file][service-reporting][service-failure]"
-    "[local-delete-failure][rti.service.local-delete-failure-matrix]") {
+    "[local-delete-failure][lane.local-delete-failure]"
+    "[rti.service.local-delete-failure-matrix]") {
   using TestFederateAmbassador = rti1516_2025::NullFederateAmbassador;
   TestFederateAmbassador ownerReports;
   ReportingFederateAmbassador requesterReports;

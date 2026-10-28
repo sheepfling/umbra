@@ -473,6 +473,7 @@ TEST_CASE(
         rti1516_2025::OrderType sentOrder,
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const*) override {
+      std::lock_guard lock(mutex);
       ++receivedInteractionCount;
       callbackOrder.push_back('I');
       receivedInteractionClass = interactionClass;
@@ -484,23 +485,31 @@ TEST_CASE(
               dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
         receivedInteractionTimes.push_back(integerTime->getTime());
       }
+      callbacksChanged.notify_all();
     }
 
     void timeRegulationEnabled(rti1516_2025::LogicalTime const&) override {
+      std::lock_guard lock(mutex);
       ++timeRegulationEnabledCount;
+      callbacksChanged.notify_all();
     }
 
     void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+      std::lock_guard lock(mutex);
       ++timeConstrainedEnabledCount;
+      callbacksChanged.notify_all();
     }
 
     void timeAdvanceGrant(rti1516_2025::LogicalTime const&) override {
+      std::lock_guard lock(mutex);
       ++timeAdvanceGrantCount;
+      callbacksChanged.notify_all();
     }
 
     void flushQueueGrant(
         rti1516_2025::LogicalTime const& time,
         rti1516_2025::LogicalTime const& optimisticTime) override {
+      std::lock_guard lock(mutex);
       ++flushQueueGrantCount;
       callbackOrder.push_back('G');
       flushQueueGrantImplementation = time.implementationName();
@@ -513,8 +522,24 @@ TEST_CASE(
               dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&optimisticTime)) {
         flushQueueGrantOptimisticValue = integerOptimisticTime->getTime();
       }
+      callbacksChanged.notify_all();
     }
 
+    void waitForFlushQueueProgress(
+        std::size_t expectedInteractions,
+        std::size_t expectedGrants) {
+      std::unique_lock lock(mutex);
+      REQUIRE(callbacksChanged.wait_for(
+          lock,
+          std::chrono::seconds(5),
+          [this, expectedInteractions, expectedGrants] {
+            return receivedInteractionCount >= expectedInteractions &&
+                flushQueueGrantCount >= expectedGrants;
+          }));
+    }
+
+    std::mutex mutex;
+    std::condition_variable callbacksChanged;
     std::size_t receivedInteractionCount = 0U;
     std::vector<std::int64_t> receivedInteractionTimes;
     rti1516_2025::InteractionClassHandle receivedInteractionClass;
@@ -883,6 +908,7 @@ TEST_CASE(
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
     }
+    receiverFederate.waitForFlushQueueProgress(4U, 1U);
     REQUIRE(receiverFederate.receivedInteractionCount == 4U);
     REQUIRE(receiverFederate.flushQueueGrantCount == 1U);
     REQUIRE(
@@ -919,6 +945,7 @@ TEST_CASE(
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
     }
+    receiverFederate.waitForFlushQueueProgress(4U, 2U);
     REQUIRE(receiverFederate.receivedInteractionCount == 4U);
     REQUIRE(receiverFederate.flushQueueGrantCount == 2U);
     REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'G'});

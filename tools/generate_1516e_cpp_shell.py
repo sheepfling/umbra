@@ -15,9 +15,10 @@ import re
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HEADER = ROOT / "third_party" / "ieee1516.1-2010" / "include" / "RTI" / "RTIambassador.h"
+DEFAULT_HEADER = (
+    ROOT / "third_party" / "ieee1516.1-2010" / "include" / "RTI" / "RTIambassador.h"
+)
 DEFAULT_OUTPUT = ROOT / "cpp" / "generated" / "rti_ambassador_shell_2010.hpp"
 
 
@@ -37,7 +38,9 @@ def _declarations(header: Path) -> list[str]:
             raise ValueError(f"unexpected pure virtual declaration: {declaration}")
         declarations.append(declaration.removeprefix("virtual "))
     if len(declarations) != 151:
-        raise ValueError(f"expected 151 pure virtual services, found {len(declarations)}")
+        raise ValueError(
+            f"expected 151 pure virtual services, found {len(declarations)}"
+        )
     return declarations
 
 
@@ -49,7 +52,7 @@ def _render(declarations: list[str]) -> str:
         "#pragma once",
         "",
         "#include <RTI/RTI1516.h>",
-        "#include \"internal/runtime/reference_2010.hpp\"",
+        '#include "internal/runtime/reference_2010.hpp"',
         "",
         "namespace rti1516e {",
         "namespace umbra_binding_detail {",
@@ -66,7 +69,7 @@ def _render(declarations: list[str]) -> str:
                 (
                     f"  {declaration} override {{",
                     "    if (connected_) {",
-                    "      throw AlreadyConnected(L\"Umbra IEEE 1516.1-2010 binding is already connected.\");",
+                    '      throw AlreadyConnected(L"Umbra IEEE 1516.1-2010 binding is already connected.");',
                     "    }",
                     "    connected_ = true;",
                     "    federateAmbassador_ = &federateAmbassador;",
@@ -83,11 +86,11 @@ def _render(declarations: list[str]) -> str:
                     "    if (!connected_) {",
                     "      // The official 2010 C++ disconnect declaration does not",
                     "      // permit NotConnected in its exception specification.",
-                    "      throw RTIinternalError(L\"Umbra IEEE 1516.1-2010 binding is not connected.\");",
+                    '      throw RTIinternalError(L"Umbra IEEE 1516.1-2010 binding is not connected.");',
                     "    }",
                     "    if (joined_) {",
                     "      umbra_binding_detail::ReferenceRuntime2010::instance().disconnect(this);",
-                    "      throw FederateIsExecutionMember(L\"A federate must resign before disconnecting.\");",
+                    '      throw FederateIsExecutionMember(L"A federate must resign before disconnecting.");',
                     "    }",
                     "    connected_ = false;",
                     "    federateAmbassador_ = nullptr;",
@@ -98,351 +101,433 @@ def _render(declarations: list[str]) -> str:
             continue
         if declaration.startswith("void createFederationExecution ("):
             if "std::vector" in declaration:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
+                        "  }",
+                        "",
+                    )
+                )
             else:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
+                        "  }",
+                        "",
+                    )
+                )
             continue
         if declaration.startswith("void createFederationExecutionWithMIM ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().createFederation(federationExecutionName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void destroyFederationExecution ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().destroyFederation(federationExecutionName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().destroyFederation(federationExecutionName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void listFederationExecutions ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().listFederations(*federateAmbassador_);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().listFederations(*federateAmbassador_);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("FederateHandle joinFederationExecution ("):
             if "federateName" in declaration:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    federateHandle_ = umbra_binding_detail::ReferenceRuntime2010::instance().join(this, *federateAmbassador_, federateName, federateType, federationExecutionName);",
-                    "    joined_ = true;",
-                    "    return federateHandle_;",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    federateHandle_ = umbra_binding_detail::ReferenceRuntime2010::instance().join(this, *federateAmbassador_, federateName, federateType, federationExecutionName);",
+                        "    joined_ = true;",
+                        "    return federateHandle_;",
+                        "  }",
+                        "",
+                    )
+                )
             else:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    federateHandle_ = umbra_binding_detail::ReferenceRuntime2010::instance().join(this, *federateAmbassador_, L\"\", federateType, federationExecutionName);",
-                    "    joined_ = true;",
-                    "    return federateHandle_;",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        '    federateHandle_ = umbra_binding_detail::ReferenceRuntime2010::instance().join(this, *federateAmbassador_, L"", federateType, federationExecutionName);',
+                        "    joined_ = true;",
+                        "    return federateHandle_;",
+                        "  }",
+                        "",
+                    )
+                )
             continue
         if declaration.startswith("void registerFederationSynchronizationPoint ("):
             if "FederateHandleSet" in declaration:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    umbra_binding_detail::ReferenceRuntime2010::instance().registerFederationSynchronizationPoint(this, label, theUserSuppliedTag, synchronizationSet);",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    umbra_binding_detail::ReferenceRuntime2010::instance().registerFederationSynchronizationPoint(this, label, theUserSuppliedTag, synchronizationSet);",
+                        "  }",
+                        "",
+                    )
+                )
             else:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    umbra_binding_detail::ReferenceRuntime2010::instance().registerFederationSynchronizationPoint(this, label, theUserSuppliedTag);",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    umbra_binding_detail::ReferenceRuntime2010::instance().registerFederationSynchronizationPoint(this, label, theUserSuppliedTag);",
+                        "  }",
+                        "",
+                    )
+                )
             continue
         if declaration.startswith("void synchronizationPointAchieved ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().synchronizationPointAchieved(this, label, successfully);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().synchronizationPointAchieved(this, label, successfully);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void resignFederationExecution ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().resign(this, resignAction);",
-                "    joined_ = false;",
-                "    federateHandle_ = FederateHandle();",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().resign(this, resignAction);",
+                    "    joined_ = false;",
+                    "    federateHandle_ = FederateHandle();",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void publishObjectClassAttributes ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().publishObjectClassAttributes(this, theClass, attributeList);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().publishObjectClassAttributes(this, theClass, attributeList);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unpublishObjectClassAttributes ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishObjectClassAttributes(this, theClass, attributeList);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishObjectClassAttributes(this, theClass, attributeList);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unpublishObjectClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishObjectClass(this, theClass);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishObjectClass(this, theClass);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void publishInteractionClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().publishInteractionClass(this, theInteraction);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().publishInteractionClass(this, theInteraction);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unpublishInteractionClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishInteractionClass(this, theInteraction);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unpublishInteractionClass(this, theInteraction);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void subscribeObjectClassAttributes ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().subscribeObjectClassAttributes(this, theClass, attributeList);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().subscribeObjectClassAttributes(this, theClass, attributeList);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unsubscribeObjectClassAttributes ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeObjectClassAttributes(this, theClass, attributeList);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeObjectClassAttributes(this, theClass, attributeList);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unsubscribeObjectClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeObjectClass(this, theClass);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeObjectClass(this, theClass);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void subscribeInteractionClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().subscribeInteractionClass(this, theClass);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().subscribeInteractionClass(this, theClass);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void unsubscribeInteractionClass ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeInteractionClass(this, theClass);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().unsubscribeInteractionClass(this, theClass);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("ObjectInstanceHandle registerObjectInstance ("):
             if "std::wstring const" in declaration:
-                body.extend((
-                    f"  {declaration} override {{",
-                    "    requireConnected();",
-                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().registerObjectInstance(this, theClass, &theObjectInstanceName);",
-                    "  }",
-                    "",
-                ))
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    return umbra_binding_detail::ReferenceRuntime2010::instance().registerObjectInstance(this, theClass, &theObjectInstanceName);",
+                        "  }",
+                        "",
+                    )
+                )
             else:
-                body.extend((
+                body.extend(
+                    (
+                        f"  {declaration} override {{",
+                        "    requireConnected();",
+                        "    return umbra_binding_detail::ReferenceRuntime2010::instance().registerObjectInstance(this, theClass, nullptr);",
+                        "  }",
+                        "",
+                    )
+                )
+            continue
+        if (
+            declaration.startswith("void updateAttributeValues (")
+            and "LogicalTime const" not in declaration
+        ):
+            body.extend(
+                (
                     f"  {declaration} override {{",
                     "    requireConnected();",
-                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().registerObjectInstance(this, theClass, nullptr);",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().updateAttributeValues(this, theObject, theAttributeValues, theUserSuppliedTag);",
                     "  }",
                     "",
-                ))
+                )
+            )
             continue
-        if declaration.startswith("void updateAttributeValues (") and "LogicalTime const" not in declaration:
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().updateAttributeValues(this, theObject, theAttributeValues, theUserSuppliedTag);",
-                "  }",
-                "",
-            ))
-            continue
-        if declaration.startswith("void sendInteraction (") and "LogicalTime const" not in declaration:
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().sendInteraction(this, theInteraction, theParameterValues, theUserSuppliedTag);",
-                "  }",
-                "",
-            ))
+        if (
+            declaration.startswith("void sendInteraction (")
+            and "LogicalTime const" not in declaration
+        ):
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().sendInteraction(this, theInteraction, theParameterValues, theUserSuppliedTag);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("void queryAttributeOwnership ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    umbra_binding_detail::ReferenceRuntime2010::instance().queryAttributeOwnership(this, theObject, theAttribute);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    umbra_binding_detail::ReferenceRuntime2010::instance().queryAttributeOwnership(this, theObject, theAttribute);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("bool isAttributeOwnedByFederate ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().isAttributeOwnedByFederate(this, theObject, theAttribute);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().isAttributeOwnedByFederate(this, theObject, theAttribute);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("ObjectClassHandle getObjectClassHandle ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectClassHandle(this, theName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectClassHandle(this, theName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("FederateHandle getFederateHandle ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getFederateHandle(this, theName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getFederateHandle(this, theName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getFederateName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getFederateName(this, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getFederateName(this, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getObjectClassName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectClassName(this, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectClassName(this, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getObjectInstanceName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectInstanceName(this, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getObjectInstanceName(this, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("AttributeHandle getAttributeHandle ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getAttributeHandle(this, whichClass, theAttributeName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getAttributeHandle(this, whichClass, theAttributeName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getAttributeName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getAttributeName(this, whichClass, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getAttributeName(this, whichClass, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("InteractionClassHandle getInteractionClassHandle ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getInteractionClassHandle(this, theName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getInteractionClassHandle(this, theName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getInteractionClassName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getInteractionClassName(this, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getInteractionClassName(this, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("ParameterHandle getParameterHandle ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getParameterHandle(this, whichClass, theName);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getParameterHandle(this, whichClass, theName);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         if declaration.startswith("std::wstring getParameterName ("):
-            body.extend((
-                f"  {declaration} override {{",
-                "    requireConnected();",
-                "    return umbra_binding_detail::ReferenceRuntime2010::instance().getParameterName(this, whichClass, theHandle);",
-                "  }",
-                "",
-            ))
+            body.extend(
+                (
+                    f"  {declaration} override {{",
+                    "    requireConnected();",
+                    "    return umbra_binding_detail::ReferenceRuntime2010::instance().getParameterName(this, whichClass, theHandle);",
+                    "  }",
+                    "",
+                )
+            )
             continue
         body.extend(
             (
@@ -462,17 +547,17 @@ def _render(declarations: list[str]) -> str:
             "  CallbackModel callbackModel_ = HLA_IMMEDIATE;",
             "",
             "  void requireConnected() const throw (NotConnected) {",
-            "    if (!connected_) throw NotConnected(L\"The IEEE 1516.1-2010 shell is not connected.\");",
+            '    if (!connected_) throw NotConnected(L"The IEEE 1516.1-2010 shell is not connected.");',
             "  }",
             "",
             "  [[noreturn]] static void unavailable() throw (RTIinternalError) {",
             "    throw RTIinternalError(",
-            "        L\"Umbra's IEEE 1516.1-2010 C++ binding does not implement this service.\");",
+            '        L"Umbra\'s IEEE 1516.1-2010 C++ binding does not implement this service.");',
             "  }",
             "};",
             "",
-        "}  // namespace umbra_binding_detail",
-        "}  // namespace rti1516e",
+            "}  // namespace umbra_binding_detail",
+            "}  // namespace rti1516e",
             "",
         )
     )

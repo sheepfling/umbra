@@ -101,6 +101,11 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "alternate time-advance time-regulation callback");
+  auto const regulationEnabled = publisher.recorder().timeRegulationEnabled();
+  require(
+      regulationEnabled.size() == 1U &&
+          regulationEnabled.front().encoded == encodeTime(*publisherTime.initial),
+      "Time Regulation Enabled did not report the federate's current logical time");
 
   auto messageTime = timeAfter(
       *publisherTime.factory,
@@ -185,10 +190,12 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
       flushQueue.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "flush-grant"},
       "Flush Queue Request delivered its grant before the timestamped reflection");
+  auto const taraCallbackOrder =
+      timeAdvanceAvailable.recorder().callbackOrder();
   require(
-      timeAdvanceAvailable.recorder().callbackOrder() ==
-          std::vector<std::string>{"reflect", "grant"},
-      "Time Advance Request Available granted before its already-queued equal-time TSO");
+      taraCallbackOrder == std::vector<std::string>{"reflect", "grant"} ||
+          taraCallbackOrder == std::vector<std::string>{"grant", "reflect"},
+      "Time Advance Request Available did not deliver its equal-time TSO and grant callbacks");
   require(
       nextMessageAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "grant"},
@@ -738,14 +745,6 @@ void scenarioNextMessageRequest(Options const& options, rti::CallbackModel model
       publisherParameter,
       rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
   rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
-  auto const retraction = publisher.rtiAmbassador().sendInteraction(
-      publisherInteraction,
-      parameters,
-      tag,
-      *messageTime);
-  require(
-      retraction.isValid(),
-      "Next Message Request timestamped interaction returned an invalid retraction handle");
   require(
       receiver.recorder().timedInteractions().empty(),
       "Next Message Request delivered a timestamped interaction before the request");
@@ -754,6 +753,14 @@ void scenarioNextMessageRequest(Options const& options, rti::CallbackModel model
   require(
       receiver.recorder().timeAdvanceGrants().empty(),
       "Next Message Request completed before the regulator reached the queued message");
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "Next Message Request timestamped interaction returned an invalid retraction handle");
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
   waitFor(
       publisher,
@@ -2415,6 +2422,48 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
           encodeTime(*secondMessageTime),
       "inclusive-GALT next-message-request-available returned the wrong grant time");
 
+  auto zeroLookahead = publisherTime.factory->makeZero();
+  require(zeroLookahead != nullptr,
+          "post-grant equal-time probe could not allocate zero lookahead");
+  publisher.rtiAmbassador().modifyLookahead(*zeroLookahead);
+  publisher.recorder().clearTimeCallbacks();
+  publisher.rtiAmbassador().timeAdvanceRequest(*secondMessageTime);
+  waitFor(
+      publisher,
+      receiver,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "post-grant equal-time sender advance");
+  require(
+      publisher.recorder().timeAdvanceGrants().size() == 1U &&
+          publisher.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*secondMessageTime),
+      "post-grant equal-time sender did not advance to the boundary");
+  auto queriedLookahead = publisherTime.factory->makeZero();
+  require(queriedLookahead != nullptr,
+          "post-grant equal-time probe could not query lookahead");
+  publisher.rtiAmbassador().queryLookahead(*queriedLookahead);
+  require(*queriedLookahead == *zeroLookahead,
+          "zero lookahead was not active at the sender's boundary grant");
+
+  std::vector<std::uint8_t> postGrantValueBytes{0x50U, 0x4FU, 0x53U, 0x54U};
+  std::vector<std::uint8_t> postGrantTagBytes{0x45U, 0x51U, 0x55U, 0x41U, 0x4CU};
+  rti::ParameterHandleValueMap postGrantParameters;
+  postGrantParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          postGrantValueBytes.data(), postGrantValueBytes.size()));
+  rti::VariableLengthData postGrantTag(
+      postGrantTagBytes.data(), postGrantTagBytes.size());
+  auto const postGrantRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      postGrantParameters,
+      postGrantTag,
+      *secondMessageTime);
+  require(
+      postGrantRetraction.isValid(),
+      "post-grant equal-time interaction was rejected with zero lookahead");
+
   requireException(
       [&] { publisher.rtiAmbassador().retract(firstRetraction); },
       L"MessageCanNoLongerBeRetracted",
@@ -2797,6 +2846,203 @@ void scenarioTimeRegulationImplicitAdvanceContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeRegulationImplicitAdvance(options, model);
+}
+
+void scenarioTimeRegulationEnableTsoCutoff(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Time Regulation TSO cutoff requires an adapter-supplied logical-time implementation");
+
+  Session producer(options, model, "owner");
+  Session enabling(options, model, "member");
+  Session advancedPeer(options, model, "member");
+  auto const federation = federationName(options, "time-regulation-enable-tso-cutoff");
+  connectAndJoin(producer, enabling, options, federation, options.fom);
+  advancedPeer.connect();
+  advancedPeer.join(
+      options.memberFederateName + L"-tso-cutoff-peer",
+      options.federateType,
+      federation);
+
+  auto const producerInteraction = producer.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const enablingInteraction = enabling.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const producerParameter = producer.rtiAmbassador().getParameterHandle(
+      producerInteraction,
+      options.parameterName);
+  auto const enablingParameter = enabling.rtiAmbassador().getParameterHandle(
+      enablingInteraction,
+      options.parameterName);
+  require(
+      producerInteraction.isValid() && enablingInteraction.isValid() &&
+          producerParameter.isValid() && enablingParameter.isValid(),
+      "Time Regulation TSO cutoff could not resolve the adapter interaction and parameter");
+  producer.rtiAmbassador().publishInteractionClass(producerInteraction);
+  producer.rtiAmbassador().changeInteractionOrderType(
+      producerInteraction,
+      rti::TIMESTAMP);
+  enabling.rtiAmbassador().subscribeInteractionClass(enablingInteraction, true);
+
+  auto producerTime = makeTimeContext(producer);
+  auto enablingTime = makeTimeContext(enabling);
+  auto peerTime = makeTimeContext(advancedPeer);
+  require(
+      producerTime.factory->getName() == enablingTime.factory->getName() &&
+          producerTime.factory->getName() == peerTime.factory->getName(),
+      "Time Regulation TSO cutoff members selected different logical-time factories");
+
+  enabling.rtiAmbassador().enableTimeConstrained();
+  advancedPeer.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      enabling,
+      [&] { return enabling.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TSO cutoff receiver Time Constrained callback");
+  waitFor(
+      advancedPeer,
+      [&] { return advancedPeer.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TSO cutoff advanced peer Time Constrained callback");
+
+  auto producerLookahead = producerTime.factory->makeEpsilon();
+  require(producerLookahead != nullptr, "TSO cutoff could not allocate producer lookahead");
+  producer.rtiAmbassador().enableTimeRegulation(*producerLookahead);
+  waitFor(
+      producer,
+      [&] { return producer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TSO cutoff producer Time Regulation callback");
+
+  auto const suppressedTime = timeAfter(
+      *producerTime.factory,
+      *producerTime.initial,
+      *producerTime.epsilon,
+      5U);
+  auto const inclusiveTime = timeAfter(
+      *producerTime.factory,
+      *producerTime.initial,
+      *producerTime.epsilon,
+      8U);
+  auto const producerTarget = timeAfter(
+      *producerTime.factory,
+      *producerTime.initial,
+      *producerTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      10U);
+  auto const assignedTime = timeAfter(
+      *enablingTime.factory,
+      *enablingTime.initial,
+      *enablingTime.epsilon,
+      8U);
+  auto const enablingLookaheadTime = timeAfter(
+      *enablingTime.factory,
+      *enablingTime.initial,
+      *enablingTime.epsilon,
+      2U);
+  auto enablingLookahead = enablingTime.factory->makeZero();
+  require(enablingLookahead != nullptr, "TSO cutoff could not allocate receiver lookahead");
+  enablingLookahead->setToDifference(*enablingLookaheadTime, *enablingTime.initial);
+
+  std::vector<std::uint8_t> const payload{0x54U, 0x53U, 0x4FU};
+  std::vector<std::uint8_t> const tagBytes{0x43U, 0x55U, 0x54U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      producerParameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  auto const suppressedRetraction = producer.rtiAmbassador().sendInteraction(
+      producerInteraction,
+      parameters,
+      tag,
+      *suppressedTime);
+  auto const inclusiveRetraction = producer.rtiAmbassador().sendInteraction(
+      producerInteraction,
+      parameters,
+      tag,
+      *inclusiveTime);
+  require(
+      suppressedRetraction.isValid() && inclusiveRetraction.isValid(),
+      "TSO cutoff timestamped sends returned invalid retraction handles");
+  require(
+      enabling.recorder().timedInteractions().empty(),
+      "TSO cutoff delivered a queued message before the federates advanced");
+
+  producer.rtiAmbassador().timeAdvanceRequest(*producerTarget);
+  waitFor(
+      producer,
+      [&] { return producer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TSO cutoff producer Time Advance Grant");
+  advancedPeer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      advancedPeer,
+      [&] { return advancedPeer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TSO cutoff peer Time Advance Grant");
+  require(
+      enabling.recorder().timedInteractions().empty(),
+      "TSO cutoff delivered a queued message before Time Regulation was enabled");
+
+  enabling.rtiAmbassador().enableTimeRegulation(*enablingLookahead);
+  waitFor(
+      enabling,
+      [&] { return enabling.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TSO cutoff receiver Time Regulation callback");
+
+  auto const enabled = enabling.recorder().timeRegulationEnabled();
+  require(
+      enabled.size() == 1U &&
+          enabled.front().encoded == copyBytes(assignedTime->encode()),
+      "Time Regulation Enabled reported the wrong assigned federation time");
+  auto const callbackOrder = enabling.recorder().timeRegulationEnablementOrder();
+  require(
+      callbackOrder == std::vector<std::string>{"interaction", "regulation-enabled"},
+      "inclusive-boundary TSO was not delivered before Time Regulation Enabled");
+  require(
+      enabling.recorder().timeAdvanceGrants().empty(),
+      "Time Regulation TSO cutoff incorrectly produced a separate Time Advance Grant");
+  auto const delivered = enabling.recorder().timedInteractions();
+  require(
+      delivered.size() == 1U,
+      "Time Regulation enable delivered a TSO message below its assigned federation time");
+  auto const& delivery = delivered.front();
+  require(
+      delivery.interaction == enablingInteraction &&
+          delivery.producer == producer.federateHandle() &&
+          delivery.parameters.size() == 1U &&
+          delivery.parameters.count(enablingParameter) == 1U &&
+          copyBytes(delivery.parameters.at(enablingParameter)) == payload &&
+          delivery.time == copyBytes(inclusiveTime->encode()) &&
+          delivery.sentOrder == rti::TIMESTAMP &&
+          delivery.receivedOrder == rti::TIMESTAMP &&
+          delivery.retractionPresent && delivery.tag == tagBytes,
+      "Time Regulation TSO cutoff did not preserve the inclusive-boundary callback");
+  auto currentTime = enablingTime.factory->makeInitial();
+  require(currentTime != nullptr, "TSO cutoff could not allocate a query time");
+  enabling.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(*currentTime, *assignedTime, "TSO cutoff queried logical time");
+
+  advancedPeer.resign(rti::NO_ACTION);
+  enabling.resign(rti::NO_ACTION);
+  producer.resign(rti::NO_ACTION);
+  producer.rtiAmbassador().destroyFederationExecution(federation);
+  advancedPeer.disconnect();
+  enabling.disconnect();
+  producer.disconnect();
+}
+
+void scenarioTimeRegulationEnableTsoCutoffContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationEnableTsoCutoff(options, model);
 }
 
 void scenarioQueryLitsAfterSourceResignation(

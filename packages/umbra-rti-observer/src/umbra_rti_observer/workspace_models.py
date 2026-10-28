@@ -14,14 +14,39 @@ from .schemas import ObserverModel
 WORKSPACE_VERSION = "umbra-observer-workspace-v1"
 LIBRARY_VERSION = "umbra-observer-workspace-library-v1"
 MAX_WORKSPACE_BYTES, MAX_LIBRARY_BYTES, MAX_SAVED = 65536, 524288, 12
-ViewName: TypeAlias = Literal["federation", "federates", "objects", "declarations", "topology", "interactions",
-    "ownership", "regions", "mom", "fom", "time", "synchronization", "persistence", "events", "inspectors", "recordings", "alerts", "actions", "diagnostics"]
+ViewName: TypeAlias = Literal[
+    "federation",
+    "federates",
+    "objects",
+    "declarations",
+    "topology",
+    "interactions",
+    "ownership",
+    "regions",
+    "mom",
+    "fom",
+    "time",
+    "synchronization",
+    "persistence",
+    "events",
+    "inspectors",
+    "recordings",
+    "alerts",
+    "actions",
+    "diagnostics",
+]
 FilterKey = Annotated[str, StringConstraints(max_length=8192)]
 SearchText = Annotated[str, StringConstraints(max_length=2048)]
 # Spell out Unicode White_Space: model validation and JavaScript disagree
 # about \S for NEXT LINE and BOM, so the portable schema must not use \S.
-WorkspaceName = Annotated[str, StringConstraints(min_length=1, max_length=128,
-    pattern=r"[^\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]")]
+WorkspaceName = Annotated[
+    str,
+    StringConstraints(
+        min_length=1,
+        max_length=128,
+        pattern=r"[^\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]",
+    ),
+]
 
 
 class WorkspaceModel(ObserverModel):
@@ -133,7 +158,9 @@ class FederateListSettings(WorkspaceModel):
 class FederateWorkspaceSettings(WorkspaceModel):
     participant: Annotated[str, StringConstraints(min_length=1, max_length=8192)]
     events: EventViewSettings = Field(default_factory=EventViewSettings)
-    declarations: DeclarationViewSettings = Field(default_factory=DeclarationViewSettings)
+    declarations: DeclarationViewSettings = Field(
+        default_factory=DeclarationViewSettings
+    )
     time: TimeViewSettings = Field(default_factory=TimeViewSettings)
 
 
@@ -147,15 +174,27 @@ class WorkspaceSettings(WorkspaceModel):
     federate_events: EventViewSettings = Field(default_factory=EventViewSettings)
     objects: ObjectViewSettings = Field(default_factory=ObjectViewSettings)
     object_charts: Annotated[Sequence[ObjectChartChoice], Field(max_length=64)] = ()
-    declarations: DeclarationViewSettings = Field(default_factory=DeclarationViewSettings)
-    federate_declarations: DeclarationViewSettings = Field(default_factory=DeclarationViewSettings)
+    declarations: DeclarationViewSettings = Field(
+        default_factory=DeclarationViewSettings
+    )
+    federate_declarations: DeclarationViewSettings = Field(
+        default_factory=DeclarationViewSettings
+    )
     time: TimeViewSettings = Field(default_factory=TimeViewSettings)
     federate_time: TimeViewSettings = Field(default_factory=TimeViewSettings)
-    federate_views: Annotated[Sequence[FederateWorkspaceSettings], Field(max_length=64)] = ()
+    federate_views: Annotated[
+        Sequence[FederateWorkspaceSettings], Field(max_length=64)
+    ] = ()
     topology: TopologyViewSettings = Field(default_factory=TopologyViewSettings)
-    interactions: InteractionViewSettings = Field(default_factory=InteractionViewSettings)
-    synchronization: CoordinationViewSettings = Field(default_factory=CoordinationViewSettings)
-    persistence: CoordinationViewSettings = Field(default_factory=CoordinationViewSettings)
+    interactions: InteractionViewSettings = Field(
+        default_factory=InteractionViewSettings
+    )
+    synchronization: CoordinationViewSettings = Field(
+        default_factory=CoordinationViewSettings
+    )
+    persistence: CoordinationViewSettings = Field(
+        default_factory=CoordinationViewSettings
+    )
     ownership: OwnershipViewSettings = Field(default_factory=OwnershipViewSettings)
     regions: RegionViewSettings = Field(default_factory=RegionViewSettings)
     mom: MomViewSettings = Field(default_factory=MomViewSettings)
@@ -169,13 +208,22 @@ class WorkspaceSettings(WorkspaceModel):
             raise ValueError("numeric chart targets must be unique within a workspace")
         participants = [row.participant for row in self.federate_views]
         if len(set(participants)) != len(participants):
-            raise ValueError("saved federate perspectives must be unique within a workspace")
+            raise ValueError(
+                "saved federate perspectives must be unique within a workspace"
+            )
         _bounded(self.model_dump(mode="json"), MAX_WORKSPACE_BYTES)
         return self
 
 
 def _bounded(value: object, limit: int) -> None:
-    if len(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")) > limit:
+    if (
+        len(
+            json.dumps(
+                value, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+            ).encode("utf-8")
+        )
+        > limit
+    ):
         raise ValueError("workspace configuration exceeds its encoded-byte limit")
 
 
@@ -209,5 +257,7 @@ def default_library() -> WorkspaceLibrary:
 
 
 class WorkspaceDefaultsResponse(WorkspaceModel):
-    contract_version: Literal["umbra-observer-contract-v1"] = "umbra-observer-contract-v1"
+    contract_version: Literal["umbra-observer-contract-v1"] = (
+        "umbra-observer-contract-v1"
+    )
     library: WorkspaceLibrary

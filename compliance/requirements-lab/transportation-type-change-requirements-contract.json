@@ -3,18 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract traces the bounded embedded IEEE 1516.1-2025 transportation-type control slice. Attribute defaults are per-federate and prospective, registered instance attributes capture their effective type, accepted instance changes commit at Confirm Attribute Transportation Type Change, and queries report the current effective type. The pinned Lab labels the one-confirmation sentence as 6.27 although it precedes that heading and belongs to 6.26 (RL-325); the canonical-section override below preserves its immutable candidate ID. A focused filesystem process-restart companion now proves one class-level default transportation declaration rehydrates in a fresh registry as part of the typed object-class declaration ledger; instance-level transport changes and broader durable recovery remain separate. Interaction changes apply to future ordinary and regional sends for the invoking publisher and commit at confirmation. The implementation accepts both predefined HLAreliable/HLAbestEffort and execution-scoped FOM transportation types resolved from the composed federation catalog. Save/restore beyond this bounded declaration companion, update-rate policy, remote transport, protected review, catalog evidence, JUnit evidence, and conformance remain outside this contract.",
-  "canonical_standard_section_overrides": [
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-6.27",
-      "canonical_clause_id": "clause-6.26",
-      "source_heading": "6.26 Confirm Attribute Transportation Type Change service",
-      "source_path": "content/clauses/06-object-management-page-141.tex",
-      "known_issue_id": "RL-325"
-    }
-  ],
+  "notes": "This contract traces the bounded embedded IEEE 1516.1-2025 transportation-type control slice. Attribute defaults are per-federate and prospective, registered instance attributes capture their effective type, accepted instance changes commit at Confirm Attribute Transportation Type Change, and queries report the current effective type. The pinned Lab labels the one-confirmation sentence as 6.27 although it precedes that heading and belongs to 6.26 (RL-325); the canonical-section override below preserves its immutable candidate ID. The page-143 Report Attribute Transportation Type fragments are split and mislabeled as \u00a76.29.1 (RL-384); source-backed overrides below map both immutable IDs to \u00a76.29. A focused filesystem process-restart companion now proves one class-level default transportation declaration rehydrates in a fresh registry as part of the typed object-class declaration ledger; instance-level transport changes and broader durable recovery remain separate. Interaction changes apply to future ordinary and regional sends for the invoking publisher and commit at confirmation. The implementation accepts both predefined HLAreliable/HLAbestEffort and execution-scoped FOM transportation types resolved from the composed federation catalog. Save/restore beyond this bounded declaration companion, update-rate policy, remote transport, protected review, catalog evidence, JUnit evidence, and conformance remain outside this contract. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-attribute-transport-initializes-from-fdd-or-federate-default",
@@ -41,7 +30,7 @@
     {
       "id": "umbra-attribute-transport-resets-after-ownership-transfer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l150-40",
-      "clause_id": "clause-6.25.1",
+      "clause_id": "clause-6.25",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification",
       "tests": [
@@ -147,13 +136,64 @@
     {
       "id": "umbra-attribute-transport-query-reports-current-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
-      "clause_id": "clause-6.29.1",
+      "clause_id": "clause-6.29",
       "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::effectiveAttributeTransportationName",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
         "cpp/tests/ieee1516_2025_custom_transportation_type_controls_catch2.cpp::Embedded transportation-type controls accept declared FOM transportation handles"
       ]
+    },
+    {
+      "id": "umbra-unowned-attribute-transport-query-uses-fdd-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l162-44",
+      "clause_id": "clause-6.29",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::effectiveAttributeTransportationName",
+      "tests": [
+        "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults"
+      ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "transportation-type-change-requirements-contract.json",
+        "owned_id": "umbra-attribute-transport-resets-after-ownership-transfer",
+        "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l150-40",
+        "previous_clause_id": "clause-6.25.1",
+        "reviewed_clause_id": "clause-6.25"
+      }
+    ],
+    "retired_overrides": [
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-6.27",
+        "canonical_clause_id": "clause-6.26",
+        "source_heading": "6.26 Confirm Attribute Transportation Type Change service",
+        "source_path": "content/clauses/06-object-management-page-141.tex",
+        "known_issue_id": "RL-325"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-6.29.1",
+        "canonical_clause_id": "clause-6.29",
+        "source_heading": "6.29 Report Attribute Transportation Type service",
+        "source_path": "content/clauses/06-object-management-page-143.tex",
+        "known_issue_id": "RL-384"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l162-44",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-6.29.1",
+        "canonical_clause_id": "clause-6.29",
+        "source_heading": "6.29 Report Attribute Transportation Type service",
+        "source_path": "content/clauses/06-object-management-page-143.tex",
+        "known_issue_id": "RL-384"
+      }
+    ]
+  }
 }

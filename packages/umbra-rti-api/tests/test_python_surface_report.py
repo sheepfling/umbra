@@ -4,7 +4,9 @@ import json
 import tempfile
 import unittest
 from dataclasses import replace
+from datetime import date, datetime, time
 from pathlib import Path
+from typing import TypeAlias, cast
 
 import tomllib
 from umbra_rti_test_support import (
@@ -28,6 +30,29 @@ from umbra_rti_test_support import (
 
 from tools.verify_python_surface_report import verify
 
+TomlScalar: TypeAlias = bool | int | float | str | date | datetime | time
+TomlValue: TypeAlias = TomlScalar | list["TomlValue"] | dict[str, "TomlValue"]
+TomlTable: TypeAlias = dict[str, TomlValue]
+
+
+def toml_table(value: object, *, context: str) -> TomlTable:
+    if not isinstance(value, dict) or any(not isinstance(key, str) for key in value):
+        raise TypeError(f"{context} must be a TOML table")
+    return cast(TomlTable, value)
+
+
+def nested_toml_table(document: TomlTable, *keys: str) -> TomlTable:
+    current = document
+    for key in keys:
+        value = current.get(key)
+        if not isinstance(value, dict) or any(
+            not isinstance(name, str) for name in value
+        ):
+            path = ".".join(keys)
+            raise AssertionError(f"TOML table path {path!r} is missing or malformed")
+        current = cast(TomlTable, value)
+    return current
+
 
 class PythonSurfaceReportTest(unittest.TestCase):
     def test_package_metadata_keeps_edition_groups_and_wheel_roots_isolated(
@@ -37,47 +62,58 @@ class PythonSurfaceReportTest(unittest.TestCase):
 
         package_root = Path(__file__).parents[2]
 
-        def metadata(package: str) -> dict[str, object]:
+        def metadata(package: str) -> TomlTable:
             with (package_root / package / "pyproject.toml").open("rb") as stream:
-                return tomllib.load(stream)
+                return toml_table(
+                    tomllib.load(stream), context=f"{package}/pyproject.toml"
+                )
 
         api = metadata("umbra-rti-api")
-        api_project = api["project"]
-        self.assertEqual(api_project["name"], "hla-rti-api")  # type: ignore[index]
+        api_project = nested_toml_table(api, "project")
+        self.assertEqual(api_project["name"], "hla-rti-api")
         self.assertEqual(
-            api["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"],  # type: ignore[index]
+            nested_toml_table(api, "tool", "hatch", "build", "targets", "wheel")[
+                "packages"
+            ],
             ["src/hla"],
         )
 
         jpype = metadata("umbra-rti-jpype")
-        jpype_project = jpype["project"]
-        self.assertEqual(jpype_project["name"], "umbra-rti-jpype")  # type: ignore[index]
+        jpype_project = nested_toml_table(jpype, "project")
+        self.assertEqual(jpype_project["name"], "umbra-rti-jpype")
+        jpype_entry_points = nested_toml_table(jpype_project, "entry-points")
         self.assertEqual(
-            jpype_project["entry-points"]["hla.rti1516e.factories"],  # type: ignore[index]
+            jpype_entry_points["hla.rti1516e.factories"],
             {"java-2010": "umbra._java.rti1516e:Java2010RtiFactory"},
         )
         self.assertEqual(
-            set(jpype_project["entry-points"]["hla.rti1516_2025.factories"]),  # type: ignore[index]
-            {"java", "umbra-jni"},
+            jpype_entry_points["hla.rti1516_2025.factories"],
+            {
+                "java": "umbra._java.rti1516_2025:JavaRtiFactory",
+                "umbra-jni": "umbra._java.rti1516_2025:UmbraJniRtiFactory",
+            },
         )
         self.assertEqual(
-            jpype["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"],  # type: ignore[index]
+            nested_toml_table(jpype, "tool", "hatch", "build", "targets", "wheel")[
+                "packages"
+            ],
             ["src/umbra"],
         )
 
         native = metadata("umbra-rti-native")
-        native_project = native["project"]
-        self.assertEqual(native_project["name"], "umbra-rti-native")  # type: ignore[index]
+        native_project = nested_toml_table(native, "project")
+        self.assertEqual(native_project["name"], "umbra-rti-native")
+        native_entry_points = nested_toml_table(native_project, "entry-points")
         self.assertEqual(
-            native_project["entry-points"]["hla.rti1516e.factories"],  # type: ignore[index]
+            native_entry_points["hla.rti1516e.factories"],
             {"UmbraNative2010": "umbra._native.rti1516e:Native2010RtiFactory"},
         )
         self.assertEqual(
-            native_project["entry-points"]["hla.rti1516_2025.factories"],  # type: ignore[index]
+            native_entry_points["hla.rti1516_2025.factories"],
             {"Umbra": "umbra._native.rti1516_2025:UmbraRtiFactory"},
         )
         self.assertEqual(
-            native["tool"]["scikit-build"]["wheel"]["packages"],  # type: ignore[index]
+            nested_toml_table(native, "tool", "scikit-build", "wheel")["packages"],
             ["src/umbra"],
         )
 
@@ -151,8 +187,12 @@ class PythonSurfaceReportTest(unittest.TestCase):
 
         root = Path(__file__).parents[3]
         catalog = json.loads(
-            (root / "compliance" / "catalogs" / "python-surface-completeness-catalog.json")
-            .read_text(encoding="utf-8")
+            (
+                root
+                / "compliance"
+                / "catalogs"
+                / "python-surface-completeness-catalog.json"
+            ).read_text(encoding="utf-8")
         )
         expected = {
             "2010": (
@@ -455,15 +495,11 @@ class PythonSurfaceReportTest(unittest.TestCase):
             10,
         )
         self.assertEqual(
-            matrices["callback-overload-carriers"]["editions"]["2010"][
-                "vector_count"
-            ],
+            matrices["callback-overload-carriers"]["editions"]["2010"]["vector_count"],
             CALLBACK_OVERLOAD_COUNTS["2010"] * 2,
         )
         self.assertEqual(
-            matrices["callback-overload-carriers"]["editions"]["2025"][
-                "vector_count"
-            ],
+            matrices["callback-overload-carriers"]["editions"]["2025"]["vector_count"],
             CALLBACK_OVERLOAD_COUNTS["2025"] * 2,
         )
         self.assertEqual(matrices["save-restore-outcomes"]["vector_count"], 720)
@@ -475,9 +511,7 @@ class PythonSurfaceReportTest(unittest.TestCase):
             4,
         )
         self.assertEqual(matrices["provider-extension-wire"]["vector_count"], 15)
-        self.assertEqual(
-            matrices["vendor-time-arithmetic-surface"]["vector_count"], 7
-        )
+        self.assertEqual(matrices["vendor-time-arithmetic-surface"]["vector_count"], 7)
         self.assertIn(
             "packages/umbra-rti-jpype/tests/test_java_provider.py"
             "#test_java_provider_preserves_custom_2025_time_factory_and_arithmetic",
@@ -489,7 +523,8 @@ class PythonSurfaceReportTest(unittest.TestCase):
             next(
                 item["evidence"]
                 for item in result["coverage_dimensions"]
-                if item["id"] == "vendor-specific-floating-and-non-time-malformed-matrices"
+                if item["id"]
+                == "vendor-specific-floating-and-non-time-malformed-matrices"
             ),
         )
         self.assertIn(
@@ -622,7 +657,10 @@ class PythonSurfaceReportTest(unittest.TestCase):
             result = verify(path)
         self.assertEqual(result["status"], "fail")
         self.assertTrue(
-            any("needs a roundtrip_catalog path" in finding for finding in result["findings"])
+            any(
+                "needs a roundtrip_catalog path" in finding
+                for finding in result["findings"]
+            )
         )
 
     def test_report_accepts_method_qualified_coverage_evidence(self) -> None:

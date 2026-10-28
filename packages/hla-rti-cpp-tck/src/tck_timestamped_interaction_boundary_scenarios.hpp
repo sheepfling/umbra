@@ -30,6 +30,10 @@ void scenarioTimestampedInteractionTarStrictTimestampCutoffContract(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarInclusiveTargetDelivery(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarPostGrantCutoff(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarPostGrantCutoffContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPublicationSendTransition(Options const&, rti::CallbackModel);
@@ -58,6 +62,10 @@ void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContractPortable(
 void scenarioTimestampedInteractionTarEqualBoundaryPortable(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarInclusiveTargetDeliveryContractPortable(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarPostGrantCutoffPortable(
     Options const&, rti::CallbackModel);

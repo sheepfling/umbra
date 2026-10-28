@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include "hla_test_names.hpp"
 
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
@@ -84,9 +85,9 @@ TEST_CASE(
   auto const publisherHandle = publisher->joinFederationExecution(
       L"package-discovery-publisher", L"publisher", federationName);
   auto const publisherClass = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.Employee.Server");
+      umbra::test::hla::wide::fom::employee_server);
   auto const publisherAttribute = publisher->getAttributeHandle(
-      publisherClass, L"Efficiency");
+      publisherClass, umbra::test::hla::wide::fixture::efficiency);
   REQUIRE(publisherClass.isValid());
   REQUIRE(publisherAttribute.isValid());
   publisher->publishObjectClassAttributes(
@@ -97,9 +98,9 @@ TEST_CASE(
   subscriber->joinFederationExecution(
       L"package-discovery-subscriber", L"subscriber", federationName);
   auto const subscriberClass = subscriber->getObjectClassHandle(
-      L"HLAobjectRoot.Employee.Server");
+      umbra::test::hla::wide::fom::employee_server);
   auto const subscriberAttribute = subscriber->getAttributeHandle(
-      subscriberClass, L"Efficiency");
+      subscriberClass, umbra::test::hla::wide::fixture::efficiency);
   REQUIRE(subscriberClass.isValid());
   REQUIRE(subscriberAttribute.isValid());
   drainCallbacks(*subscriber);

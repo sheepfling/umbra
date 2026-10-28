@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
+#include "hla_test_names.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 #include "ieee1516_2025_federation_listing_test_support.hpp"
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
@@ -262,13 +263,13 @@ TEST_CASE(
            L"HLAreturnedArgument",
            L"HLAexception",
            L"HLAserialNumber",
-           L"HLAfederate"}) {
+           umbra::test::hla::wide::standard::federate}) {
     auto const parameter = observer->getParameterHandle(reportClass, name);
     REQUIRE(parameter.isValid());
     predefinedReportParameters.push_back(parameter);
   }
   auto const extensionParameter = observer->getParameterHandle(
-      reportClass, L"UmbraExtensionReportPayload");
+      reportClass, umbra::test::hla::wide::fixture::umbra_extension_report_payload);
   REQUIRE(extensionParameter.isValid());
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
 

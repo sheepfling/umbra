@@ -3,12 +3,12 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-runtime-foundation-not-conformance-evidence",
-  "notes": "This contract records Umbra's private federation-owned input boundary for its no-TSO GALT/LITS calculator, limited TAR scheduler, and later full time-management work. A runtime-backed Join Federation Execution commits membership and its selected LogicalTime state together; a snapshot exposes the composed FDD definition plus current/pending time, role, lookahead, and zero-lookahead timestamp-boundary state for every runtime-backed member. The separate scheduler contract consumes this boundary for limited GALT/NRG TAR release. This foundation alone is not an implementation of TSO queueing, full time coordination, JUnit evidence, protected review, package support, or a conformance claim.",
+  "notes": "This contract records Umbra's private federation-owned input boundary for its no-TSO GALT/LITS calculator, limited TAR scheduler, and later full time-management work. A runtime-backed Join Federation Execution commits membership and its selected LogicalTime state together; a snapshot exposes the composed FDD definition plus current/pending time, role, lookahead, and zero-lookahead timestamp-boundary state for every runtime-backed member. The separate scheduler contract consumes this boundary for limited GALT/NRG TAR release. This foundation alone is not an implementation of TSO queueing, full time coordination, JUnit evidence, protected review, package support, or a conformance claim. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
   "requirements": [
     {
       "id": "umbra-federation-time-snapshot-is-galt-input-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/federation/federation_registry.hpp",
       "source_symbol": "FederationTimeExecutionSnapshot",
       "tests": [
@@ -19,12 +19,32 @@
     {
       "id": "umbra-federation-time-snapshot-retains-regulation-lookahead-input",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/time/federate_time_state.hpp",
       "source_symbol": "FederateTimeSnapshot",
       "tests": [
         "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator retains a coherent federation-owned time input set"
       ]
     }
-  ]
+  ],
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [
+      {
+        "contract": "federation-time-coordination-foundation-requirements-contract.json",
+        "owned_id": "umbra-federation-time-snapshot-is-galt-input-boundary",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.6"
+      },
+      {
+        "contract": "federation-time-coordination-foundation-requirements-contract.json",
+        "owned_id": "umbra-federation-time-snapshot-retains-regulation-lookahead-input",
+        "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+        "previous_clause_id": "clause-8",
+        "reviewed_clause_id": "clause-8.1.5"
+      }
+    ],
+    "retired_overrides": []
+  }
 }

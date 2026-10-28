@@ -12,8 +12,11 @@ param(
     [switch]$RunJavaTck,
     [string]$JavaTckClassesDirectory,
     [string]$JavaTckFomPath,
+    [string]$JavaTckMimPath,
     [string]$JavaTckTimeImplementation = "HLAinteger64Time",
-    [string]$JavaTckProfilePath
+    [string]$JavaTckProfilePath,
+    [string]$JavaTckResultsPath,
+    [string[]]$JavaTckJvmArgument = @()
 )
 
 Set-StrictMode -Version Latest
@@ -182,18 +185,34 @@ if ($RunJavaTck) {
         $JavaTckFomPath = Join-Path $repositoryRoot "third_party\ieee1516.2-2025\resources\examples\RestaurantFOMmodule-2025.xml"
     }
     $tckFom = (Resolve-Path -LiteralPath $JavaTckFomPath -ErrorAction Stop).Path
+    if ([string]::IsNullOrWhiteSpace($JavaTckMimPath)) {
+        $JavaTckMimPath = Join-Path $repositoryRoot "third_party\ieee1516.2-2025\resources\mim\HLAstandardMIM-2025.xml"
+    }
+    $tckMim = (Resolve-Path -LiteralPath $JavaTckMimPath -ErrorAction Stop).Path
+    if ([string]::IsNullOrWhiteSpace($JavaTckResultsPath)) {
+        $JavaTckResultsPath = Join-Path (Split-Path -Parent $tckClassesPath) "java-tck-results.json"
+    } else {
+        $JavaTckResultsPath = [System.IO.Path]::GetFullPath($JavaTckResultsPath)
+    }
+    $tckResultsParent = Split-Path -Parent $JavaTckResultsPath
+    if (-not [string]::IsNullOrWhiteSpace($tckResultsParent)) {
+        New-Item -ItemType Directory -Force -Path $tckResultsParent | Out-Null
+    }
     $tckClasspath = $apiPath + [System.IO.Path]::PathSeparator + $bridgePath +
         [System.IO.Path]::PathSeparator + $tckClassesPath
     $tckArguments = @(
         "-Dumbra.rti.jni.library=$nativePath",
         "-Dhla.rti.tck.fom=$tckFom",
+        "-Dhla.rti.tck.mim=$tckMim",
         "-Dhla.rti.tck.time=$JavaTckTimeImplementation",
         "-Dhla.rti.tck.apiJar=$apiPath",
         "-Dhla.rti.tck.providerJars=$bridgePath",
         "-Dhla.rti.tck.provider=umbra-jni",
-        "-cp", $tckClasspath,
-        "org.hla.rti.tck.RtiTckMain"
+        "-Dhla.rti.tck.results=$JavaTckResultsPath"
     )
+    if ($JavaTckJvmArgument) {
+        $tckArguments += $JavaTckJvmArgument
+    }
     if ([string]::IsNullOrWhiteSpace($JavaTckProfilePath)) {
         $repositoryProfile = Join-Path $repositoryRoot "packages\umbra-rti-java-tck\profiles\umbra-jni.properties"
         if (Test-Path -LiteralPath $repositoryProfile -PathType Leaf) {
@@ -202,21 +221,24 @@ if ($RunJavaTck) {
     }
     if (-not [string]::IsNullOrWhiteSpace($JavaTckProfilePath)) {
         $tckProfile = (Resolve-Path -LiteralPath $JavaTckProfilePath -ErrorAction Stop).Path
-        $tckArguments = @(
-            "-Dumbra.rti.jni.library=$nativePath",
-            "-Dhla.rti.tck.fom=$tckFom",
-            "-Dhla.rti.tck.time=$JavaTckTimeImplementation",
-            "-Dhla.rti.tck.apiJar=$apiPath",
-            "-Dhla.rti.tck.providerJars=$bridgePath",
-            "-Dhla.rti.tck.provider=umbra-jni",
-            "-Dhla.rti.tck.capabilityProfile=$tckProfile",
-            "-cp", $tckClasspath,
-            "org.hla.rti.tck.RtiTckMain"
-        )
+        $tckArguments += "-Dhla.rti.tck.capabilityProfile=$tckProfile"
     }
+    $tckArguments += @("-cp", $tckClasspath, "org.hla.rti.tck.RtiTckMain")
     & java @tckArguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "Provider-neutral Java RTI TCK failed with exit code $LASTEXITCODE"
+    $tckExitCode = $LASTEXITCODE
+    if (Test-Path -LiteralPath $JavaTckResultsPath -PathType Leaf) {
+        $tckEvidence = Get-Content -LiteralPath $JavaTckResultsPath -Raw | ConvertFrom-Json
+        $tckScenarios = @($tckEvidence.scenarios)
+        $passed = @($tckScenarios | Where-Object { $_.status -eq "pass" }).Count
+        $failed = @($tckScenarios | Where-Object { $_.status -eq "fail" }).Count
+        $unsupported = @($tckScenarios | Where-Object { $_.status -eq "unsupported" }).Count
+        Write-Host "Java TCK results: $passed passed, $failed failed, $unsupported unsupported."
+        Write-Host "Java TCK evidence: $JavaTckResultsPath"
+    } elseif ($tckExitCode -eq 0) {
+        throw "Java TCK exited successfully but did not create its evidence file: $JavaTckResultsPath"
+    }
+    if ($tckExitCode -ne 0) {
+        throw "Provider-neutral Java RTI TCK failed with exit code $tckExitCode"
     }
 }
 

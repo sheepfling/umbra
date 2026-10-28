@@ -3,34 +3,38 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "source-backed-canonical-section-correction-not-conformance-evidence",
-  "notes": "RL-340 documents two pinned Requirements Lab subsection-boundary extraction defects. Keep the immutable requirement IDs and exported labels intact; resolve their canonical sections from the full page headings. These corrections improve traceability and do not assert validation or conformance.",
-  "canonical_standard_section_overrides": [
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l146-44",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-9.5.4",
-      "canonical_clause_id": "clause-9.5.3",
-      "source_heading": "9.5.3 Preconditions",
-      "source_path": "output/semantic/content-block-content-15161-page-229.tex",
-      "known_issue_id": "RL-340"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-9.6.6",
-      "canonical_clause_id": "clause-9.6.3",
-      "source_heading": "9.6.3 Preconditions",
-      "source_path": "output/semantic/content-block-content-15161-page-231.tex",
-      "known_issue_id": "RL-340"
-    },
-    {
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l20-5",
-      "document_id": "hla-1516.1-2025",
-      "exported_clause_id": "clause-9.5.4",
-      "canonical_clause_id": "clause-9.6",
-      "source_heading": "9.6 Associate Regions For Updates service",
-      "source_path": "output/semantic/content-block-content-15161-page-230.tex",
-      "known_issue_id": "RL-341"
-    }
-  ]
+  "notes": "RL-340 documents two pinned Requirements Lab subsection-boundary extraction defects. Keep the immutable requirement IDs and exported labels intact; resolve their canonical sections from the full page headings. These corrections improve traceability and do not assert validation or conformance. The 2026-10-26 reviewed Lab backflow pin carries corrected source section labels; retired Umbra overrides are recorded in backflow_section_sync.",
+  "backflow_section_sync": {
+    "lab_revision": "de86ea1f0688f6fe22dbd74b823812ff5d2ebc54",
+    "updated_requirements": [],
+    "retired_overrides": [
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l146-44",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-9.5.4",
+        "canonical_clause_id": "clause-9.5.3",
+        "source_heading": "9.5.3 Preconditions",
+        "source_path": "output/semantic/content-block-content-15161-page-229.tex",
+        "known_issue_id": "RL-340"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-9.6.6",
+        "canonical_clause_id": "clause-9.6.3",
+        "source_heading": "9.6.3 Preconditions",
+        "source_path": "output/semantic/content-block-content-15161-page-231.tex",
+        "known_issue_id": "RL-340"
+      },
+      {
+        "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l20-5",
+        "document_id": "hla-1516.1-2025",
+        "exported_clause_id": "clause-9.5.4",
+        "canonical_clause_id": "clause-9.6",
+        "source_heading": "9.6 Associate Regions For Updates service",
+        "source_path": "output/semantic/content-block-content-15161-page-230.tex",
+        "known_issue_id": "RL-341"
+      }
+    ]
+  }
 }

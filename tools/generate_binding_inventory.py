@@ -14,13 +14,16 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Literal, TypedDict, cast
 
+# TODO this seems super fragile.. we should be using a proper library to read C++ ? lizard ?? This should have been flagged by alphus
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 HEADER_ROOT = REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "include"
 DEFAULT_OUTPUT = REPOSITORY_ROOT / "compliance" / "standards" / "binding-inventory.json"
-HEADER_DIGESTS = REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "header-digests.json"
+HEADER_DIGESTS = (
+    REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "header-digests.json"
+)
 
 _CLASSES = (
     ("rti1516_2025::RTIambassador", "RTI/RTIambassador.h", 181),
@@ -30,7 +33,45 @@ _BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 _LINE_COMMENT = re.compile(r"//[^\n]*")
 # A pure-virtual declaration cannot cross a semicolon. This excludes the
 # non-pure virtual destructors that precede the service declarations.
-_PURE_VIRTUAL = re.compile(r"\bvirtual\b(?P<declaration>(?:(?!;).)*?)=\s*0\s*;", re.DOTALL)
+_PURE_VIRTUAL = re.compile(
+    r"\bvirtual\b(?P<declaration>(?:(?!;).)*?)=\s*0\s*;", re.DOTALL
+)
+
+
+class _DigestEntryInput(TypedDict, total=False):
+    path: object
+    sha256: object
+
+
+class _DigestManifestInput(TypedDict, total=False):
+    schema_version: object
+    files: object
+
+
+class BindingMember(TypedDict):
+    ordinal: int
+    name: str
+    signature: str
+
+
+BindingClass = TypedDict(
+    "BindingClass",
+    {
+        "class": str,
+        "header": str,
+        "sha256": str,
+        "pure_virtual_member_count": int,
+        "members": list[BindingMember],
+    },
+)
+
+
+class BindingInventory(TypedDict):
+    schema_version: Literal[1]
+    kind: Literal["ieee1516.1-2025-binding-inventory"]
+    notes: str
+    classes: list[BindingClass]
+    total_pure_virtual_member_count: int
 
 
 def _compact(value: str) -> str:
@@ -45,10 +86,10 @@ def _member_name(signature: str) -> str:
     return match.group(1)
 
 
-def _pure_virtual_members(header_path: Path) -> list[dict[str, object]]:
+def _pure_virtual_members(header_path: Path) -> list[BindingMember]:
     source = header_path.read_text(encoding="utf-8")
     source = _LINE_COMMENT.sub("", _BLOCK_COMMENT.sub("", source))
-    members: list[dict[str, object]] = []
+    members: list[BindingMember] = []
     for ordinal, match in enumerate(_PURE_VIRTUAL.finditer(source), start=1):
         signature = _compact(match.group("declaration"))
         members.append(
@@ -63,27 +104,39 @@ def _pure_virtual_members(header_path: Path) -> list[dict[str, object]]:
 
 def _digest_by_path() -> dict[str, str]:
     try:
-        manifest = json.loads(HEADER_DIGESTS.read_text(encoding="utf-8"))
+        value: object = json.loads(HEADER_DIGESTS.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ValueError(f"cannot read header digest manifest: {error}") from error
+
+    if not isinstance(value, dict):
+        raise TypeError("header digest manifest must contain a JSON object")
+    manifest = cast(_DigestManifestInput, value)
     files = manifest.get("files")
-    if manifest.get("schema_version") != 1 or not isinstance(files, list):
+    if manifest.get("schema_version") != 1:
         raise ValueError("header digest manifest has an unsupported shape")
+    if not isinstance(files, list):
+        raise TypeError("header digest manifest.files must be an array")
     digests: dict[str, str] = {}
-    for entry in files:
-        if not isinstance(entry, dict):
-            raise ValueError("header digest manifest has a non-object entry")
+    for index, value in enumerate(files):
+        context = f"header digest manifest.files[{index}]"
+        if not isinstance(value, dict):
+            raise TypeError(f"{context} must be a JSON object")
+        entry = cast(_DigestEntryInput, value)
         path = entry.get("path")
         digest = entry.get("sha256")
-        if not isinstance(path, str) or not isinstance(digest, str):
-            raise ValueError("header digest manifest has an invalid entry")
+        if not isinstance(path, str) or not path:
+            raise ValueError(f"{context}.path must be a non-empty string")
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ValueError(f"{context}.sha256 must be a lowercase SHA-256 digest")
+        if path in digests:
+            raise ValueError(f"{context}.path duplicates {path!r}")
         digests[path] = digest
     return digests
 
 
-def build_inventory() -> dict[str, Any]:
+def build_inventory() -> BindingInventory:
     digests = _digest_by_path()
-    classes: list[dict[str, object]] = []
+    classes: list[BindingClass] = []
     for class_name, relative_header, expected_count in _CLASSES:
         path = HEADER_ROOT / relative_header
         members = _pure_virtual_members(path)
@@ -95,7 +148,9 @@ def build_inventory() -> dict[str, Any]:
         actual_digest = hashlib.sha256(path.read_bytes()).hexdigest()
         expected_digest = digests.get(relative_header)
         if actual_digest != expected_digest:
-            raise ValueError(f"{relative_header}: digest does not match the committed baseline")
+            raise ValueError(
+                f"{relative_header}: digest does not match the committed baseline"
+            )
         classes.append(
             {
                 "class": class_name,
@@ -119,14 +174,16 @@ def build_inventory() -> dict[str, Any]:
     }
 
 
-def _serialized(value: dict[str, Any]) -> str:
+def _serialized(value: BindingInventory) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--check", action="store_true", help="Fail if the committed inventory drifts")
+    parser.add_argument(
+        "--check", action="store_true", help="Fail if the committed inventory drifts"
+    )
     args = parser.parse_args()
 
     try:
@@ -146,7 +203,7 @@ def main() -> int:
         output.write_text(expected, encoding="utf-8")
         print(f"wrote IEEE binding inventory to {output}")
         return 0
-    except (OSError, ValueError) as error:
+    except (OSError, TypeError, ValueError) as error:
         print(f"binding inventory: {error}", file=sys.stderr)
         return 2
 

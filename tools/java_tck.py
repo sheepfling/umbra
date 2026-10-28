@@ -12,8 +12,7 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Any
-
+from typing import Any, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "compliance" / "catalogs" / "java-tck-scenario-catalog.json"
@@ -21,19 +20,196 @@ DEFAULT_BUNDLE = ROOT / ".compliance" / "corpus-bundle.json"
 DEFAULT_OUTPUT = ROOT / ".compliance" / "java-tck-coverage.json"
 
 
+class _JavaTckScenarioOptional(TypedDict, total=False):
+    mapping_classification: str
+    selected_requirements_lab_requirement_ids: object
+    standard_sections: object
+    requirement_mappings: object
+    exclusion: str
+
+
+class JavaTckScenario(_JavaTckScenarioOptional):
+    id: str
+    category: str
+    title: str
+    java_test: str
+    default_status: str
+    api_methods: list[str]
+    requirement_ids: list[str]
+    contract_refs: list[str]
+
+
+class _JavaTckCatalogOptional(TypedDict, total=False):
+    exclusions: object
+
+
+class JavaTckCatalog(_JavaTckCatalogOptional):
+    schema_version: int
+    kind: str
+    scenarios: list[JavaTckScenario]
+
+
+class ContractRequirement(TypedDict):
+    id: str
+    requirements_lab_requirement_id: str | None
+    clause_id: str | None
+    contract: str
+
+
+class _JavaApiSurfaceOptional(TypedDict, total=False):
+    id: str
+    signature: str
+
+
+class JavaApiSurface(_JavaApiSurfaceOptional):
+    owner: str
+    language: str
+    name: str
+
+
+class _JavaEvidenceScenarioOptional(TypedDict, total=False):
+    status: str
+    message: str
+
+
+class JavaEvidenceScenario(_JavaEvidenceScenarioOptional):
+    id: str
+
+
+class _JavaTckEvidenceOptional(TypedDict, total=False):
+    provider: str
+    scenarios: list[JavaEvidenceScenario]
+
+
+class JavaTckEvidence(_JavaTckEvidenceOptional):
+    kind: str
+
+
+class LoadedEvidence(TypedDict):
+    path: str
+    data: JavaTckEvidence
+
+
+class JavaTckValidation(TypedDict):
+    valid: bool
+    findings: list[str]
+    scenario_count: int
+    requirements_lab_java_api_surface_count: int
+    portable_exclusions: object
+
+
+class ProviderScenarioStatus(TypedDict):
+    provider: str
+    status: str
+    artifact: str
+
+
+ProviderSummary = TypedDict(
+    "ProviderSummary",
+    {"pass": int, "fail": int, "unsupported": int, "not_applicable": int},
+)
+
+
+class ProviderResult(TypedDict):
+    provider: str
+    artifact: str
+    summary: ProviderSummary
+
+
+class JavaEvidenceRecord(TypedDict):
+    id: str
+    kind: str
+    status: str
+    execution_mode: str
+    provider: str
+    artifact: str
+    scenario_id: str
+    requirement_ids: list[str]
+    mapping_classification: str | None
+    api_methods: list[str]
+    notes: str
+
+
+class TckRequirementRecord(TypedDict):
+    id: str
+    tck_scenario_id: str
+    clause_id: None
+    requirements_lab_requirement_ids: list[str]
+    standard_api_methods: list[str]
+    provider_statuses: list[ProviderScenarioStatus]
+    exclusion: str | None
+
+
+class ComplianceRecord(ContractRequirement):
+    tck_scenario_id: str
+    stable_requirement_ids: list[str]
+    standard_api_methods: list[str]
+    provider_statuses: list[ProviderScenarioStatus]
+    exclusion: str | None
+
+
+class ApiSurfaceRecord(TypedDict):
+    requirements_lab_api_surface_id: str | None
+    owner: str | None
+    language: str | None
+    signature: str | None
+    tck_scenario_id: str
+    standard_api_method: str
+
+
+class JavaTckExport(TypedDict):
+    schema_version: int
+    kind: str
+    document_id: str
+    standard: str
+    catalog: str
+    requirements_lab_bundle: str | None
+    providers: list[ProviderResult]
+    scenarios: list[JavaTckScenario]
+    api_surfaces: list[ApiSurfaceRecord]
+    requirements: list[TckRequirementRecord]
+    compliance_records: list[ComplianceRecord]
+    evidence: list[JavaEvidenceRecord]
+    jpype_evidence: list[object]
+    exclusions: object
+
+
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_catalog(path: Path = CATALOG) -> dict[str, Any]:
+def load_catalog(path: Path = CATALOG) -> JavaTckCatalog:
     catalog = load_json(path)
-    if catalog.get("schema_version") != 1 or catalog.get("kind") != "portable-java-tck-catalog":
+    if not isinstance(catalog, dict):
+        raise TypeError(f"Java TCK catalog must be an object: {path}")
+    if (
+        catalog.get("schema_version") != 1
+        or catalog.get("kind") != "portable-java-tck-catalog"
+    ):
         raise ValueError(f"unsupported Java TCK catalog: {path}")
     scenarios = catalog.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios:
         raise ValueError("Java TCK catalog must contain scenarios")
+    normalized_scenarios: list[JavaTckScenario] = []
+    for item in scenarios:
+        if not isinstance(item, dict):
+            raise TypeError("Java TCK scenarios must be objects")
+        for field in ("api_methods", "requirement_ids", "contract_refs"):
+            if not isinstance(item.get(field), list) or any(
+                not isinstance(value, str) for value in item[field]
+            ):
+                raise TypeError(
+                    f"{item.get('id', '<unknown>')} must have string {field}"
+                )
+        for field in ("mapping_classification", "exclusion"):
+            if field in item and not isinstance(item[field], str):
+                raise TypeError(f"{item.get('id', '<unknown>')} has invalid {field}")
+        normalized_scenarios.append(cast(JavaTckScenario, item))
+    catalog["scenarios"] = normalized_scenarios
     ids = [item.get("id") for item in scenarios]
-    if any(not isinstance(item, str) or not item for item in ids) or len(ids) != len(set(ids)):
+    if any(not isinstance(item, str) or not item for item in ids) or len(ids) != len(
+        set(ids)
+    ):
         raise ValueError("Java TCK scenario IDs must be unique non-empty strings")
     for scenario in scenarios:
         for field in ("category", "title", "java_test", "default_status"):
@@ -72,73 +248,109 @@ def load_catalog(path: Path = CATALOG) -> dict[str, Any]:
         for ref in scenario["contract_refs"]:
             if not (ROOT / "compliance" / "requirements-lab" / ref).is_file():
                 raise ValueError(f"{scenario['id']} references absent contract {ref}")
-    return catalog
+    return cast(JavaTckCatalog, catalog)
 
 
-def contract_requirements(refs: list[str]) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
+def contract_requirements(refs: list[str]) -> list[ContractRequirement]:
+    records: list[ContractRequirement] = []
     for ref in refs:
         data = load_json(ROOT / "compliance" / "requirements-lab" / ref)
         if ref.endswith("-requirements-contract.json"):
             for requirement in data.get("requirements", []):
+                identifier = requirement.get("id")
+                if not isinstance(identifier, str) or not identifier:
+                    continue
+                lab_id = requirement.get("requirements_lab_requirement_id")
+                clause_id = requirement.get("clause_id")
                 records.append(
                     {
-                        "id": requirement.get("id"),
-                        "requirements_lab_requirement_id": requirement.get(
-                            "requirements_lab_requirement_id"
-                        ),
-                        "clause_id": requirement.get("clause_id"),
+                        "id": identifier,
+                        "requirements_lab_requirement_id": lab_id
+                        if isinstance(lab_id, str)
+                        else None,
+                        "clause_id": clause_id if isinstance(clause_id, str) else None,
                         "contract": f"compliance/requirements-lab/{ref}",
                     }
                 )
         else:
             for mapping in data.get("mappings", []):
-                records.append(
-                    {
-                        "id": mapping.get("id"),
-                        "requirements_lab_requirement_id": None,
-                        "clause_id": None,
-                        "contract": f"compliance/requirements-lab/{ref}",
-                    }
-                )
-    unique: dict[str, dict[str, Any]] = {}
+                identifier = mapping.get("id")
+                if isinstance(identifier, str) and identifier:
+                    records.append(
+                        {
+                            "id": identifier,
+                            "requirements_lab_requirement_id": None,
+                            "clause_id": None,
+                            "contract": f"compliance/requirements-lab/{ref}",
+                        }
+                    )
+    unique: dict[str, ContractRequirement] = {}
     for record in records:
-        if record["id"]:
-            unique.setdefault(record["id"], record)
+        unique.setdefault(record["id"], record)
     return sorted(unique.values(), key=lambda item: item["id"])
 
 
-def java_surfaces(bundle_path: Path) -> list[dict[str, Any]]:
+def java_surfaces(bundle_path: Path) -> list[JavaApiSurface]:
     if not bundle_path.is_file():
         return []
     bundle = load_json(bundle_path)
     document = next(
-        (item for item in bundle.get("documents", []) if item.get("document_id") == "hla-1516.1-2025"),
+        (
+            item
+            for item in bundle.get("documents", [])
+            if item.get("document_id") == "hla-1516.1-2025"
+        ),
         None,
     )
     if document is None:
         raise ValueError("Requirements Lab bundle has no hla-1516.1-2025 document")
-    return [item for item in document.get("api_surfaces", []) if item.get("language") == "java"]
+    surfaces: list[JavaApiSurface] = []
+    for item in document.get("api_surfaces", []):
+        if item.get("language") != "java":
+            continue
+        if not isinstance(item.get("owner"), str) or not isinstance(
+            item.get("name"), str
+        ):
+            raise TypeError("Java API surfaces must have string owner and name fields")
+        surfaces.append(cast(JavaApiSurface, item))
+    return surfaces
 
 
 def lab_requirement_ids(bundle_path: Path) -> set[str]:
     if not bundle_path.is_file():
         return set()
     bundle = load_json(bundle_path)
+    if not isinstance(bundle, dict):
+        return set()
+    documents = bundle.get("documents")
+    if not isinstance(documents, list):
+        return set()
     document = next(
-        (item for item in bundle.get("documents", []) if item.get("document_id") == "hla-1516.1-2025"),
+        (
+            item
+            for item in documents
+            if isinstance(item, dict) and item.get("document_id") == "hla-1516.1-2025"
+        ),
         None,
     )
-    if document is None:
+    if not isinstance(document, dict):
         return set()
-    return {
-        item.get("id")
-        for item in document.get("requirements", [])
-        if isinstance(item, dict) and isinstance(item.get("id"), str)
-    }
+    requirements = document.get("requirements")
+    if not isinstance(requirements, list):
+        return set()
+    identifiers: set[str] = set()
+    for item in requirements:
+        if not isinstance(item, dict):
+            continue
+        identifier = item.get("id")
+        if isinstance(identifier, str):
+            identifiers.add(identifier)
+    return identifiers
 
 
-def scenario_for_surface(surface: dict[str, Any], scenarios: list[dict[str, Any]]) -> dict[str, Any]:
+def scenario_for_surface(
+    surface: JavaApiSurface, scenarios: list[JavaTckScenario]
+) -> JavaTckScenario:
     name = surface.get("name", "")
     owner = surface.get("owner", "")
     candidates = [f"{owner}.{name}", name]
@@ -156,13 +368,31 @@ def scenario_for_surface(surface: dict[str, Any], scenarios: list[dict[str, Any]
     )
 
 
-def load_results(paths: list[Path]) -> list[dict[str, Any]]:
-    results: list[dict[str, Any]] = []
+def load_results(paths: list[Path]) -> list[LoadedEvidence]:
+    results: list[LoadedEvidence] = []
     for path in paths:
         data = load_json(path)
         if data.get("kind") != "java-rti-tck-evidence":
             raise ValueError(f"not Java TCK evidence: {path}")
-        results.append({"path": str(path), "data": data})
+        scenarios = data.get("scenarios", [])
+        if not isinstance(scenarios, list):
+            raise TypeError(f"Java TCK scenarios must be a list: {path}")
+        for scenario in scenarios:
+            if not isinstance(scenario, dict) or not isinstance(
+                scenario.get("id"), str
+            ):
+                raise TypeError(f"Java TCK scenario results need string IDs: {path}")
+            if "status" in scenario and not isinstance(scenario["status"], str):
+                raise ValueError(
+                    f"Java TCK scenario result status must be a string: {path}"
+                )
+            if "message" in scenario and not isinstance(scenario["message"], str):
+                raise ValueError(
+                    f"Java TCK scenario result message must be a string: {path}"
+                )
+        if "provider" in data and not isinstance(data["provider"], str):
+            raise ValueError(f"Java TCK provider name must be a string: {path}")
+        results.append({"path": str(path), "data": cast(JavaTckEvidence, data)})
     return results
 
 
@@ -187,16 +417,22 @@ def validate_sources() -> list[str]:
     for path in source_root.rglob("*.java"):
         text = path.read_text(encoding="utf-8")
         if not any(package_pattern.match(line) for line in text.splitlines()):
-            findings.append(f"portable Java TCK source has a non-portable package: {path}")
+            findings.append(
+                f"portable Java TCK source has a non-portable package: {path}"
+            )
         for line_number, line in enumerate(text.splitlines(), start=1):
             match = import_pattern.match(line)
             if match is None:
                 continue
             imported = match.group(1)
-            if not (
-                imported.startswith(("java.", "javax.", "org.w3c.dom.", "org.xml.sax."))
-                or imported == "hla.rti1516_2025"
-                or imported.startswith("hla.rti1516_2025.")
+            if imported != "hla.rti1516_2025" and not imported.startswith(
+                (
+                    "java.",
+                    "javax.",
+                    "org.w3c.dom.",
+                    "org.xml.sax.",
+                    "hla.rti1516_2025.",
+                )
             ):
                 findings.append(
                     f"portable Java TCK imports outside the JDK or standard 2025 API "
@@ -211,7 +447,7 @@ def validate_sources() -> list[str]:
     return findings
 
 
-def validate(catalog_path: Path, bundle_path: Path) -> dict[str, Any]:
+def validate(catalog_path: Path, bundle_path: Path) -> JavaTckValidation:
     catalog = load_catalog(catalog_path)
     findings = validate_sources()
     scenarios = catalog["scenarios"]
@@ -238,7 +474,7 @@ def export(
     results_paths: list[Path],
     output: Path,
     jpype_results_paths: list[Path] | None = None,
-) -> dict[str, Any]:
+) -> JavaTckExport:
     catalog = load_catalog(catalog_path)
     if not bundle_path.is_file():
         raise ValueError(
@@ -250,9 +486,9 @@ def export(
     scenarios = catalog["scenarios"]
     results = load_results(results_paths)
     scenario_by_id = {item["id"]: item for item in scenarios}
-    provider_scenario_statuses: dict[str, list[dict[str, Any]]] = {}
-    provider_results: list[dict[str, Any]] = []
-    evidence: list[dict[str, Any]] = []
+    provider_scenario_statuses: dict[str, list[ProviderScenarioStatus]] = {}
+    provider_results: list[ProviderResult] = []
+    evidence: list[JavaEvidenceRecord] = []
     for result in results:
         data = result["data"]
         provider = data.get("provider", "unknown")
@@ -272,10 +508,22 @@ def export(
                 "provider": provider,
                 "artifact": result["path"],
                 "summary": {
-                    "pass": sum(item.get("status") == "pass" for item in scenario_results.values()),
-                    "fail": sum(item.get("status") == "fail" for item in scenario_results.values()),
-                    "unsupported": sum(item.get("status") == "unsupported" for item in scenario_results.values()),
-                    "not_applicable": sum(item.get("status") == "not applicable" for item in scenario_results.values()),
+                    "pass": sum(
+                        item.get("status") == "pass"
+                        for item in scenario_results.values()
+                    ),
+                    "fail": sum(
+                        item.get("status") == "fail"
+                        for item in scenario_results.values()
+                    ),
+                    "unsupported": sum(
+                        item.get("status") == "unsupported"
+                        for item in scenario_results.values()
+                    ),
+                    "not_applicable": sum(
+                        item.get("status") == "not applicable"
+                        for item in scenario_results.values()
+                    ),
                 },
             }
         )
@@ -291,20 +539,28 @@ def export(
                         == "api-contract-only-not-normative-conformance"
                         else "integration-test"
                     ),
-                    "status": "passed" if status == "pass" else "failed" if status == "fail" else "blocked",
-                    "execution_mode": "real" if status in {"pass", "fail"} else "unknown",
+                    "status": "passed"
+                    if status == "pass"
+                    else "failed"
+                    if status == "fail"
+                    else "blocked",
+                    "execution_mode": "real"
+                    if status in {"pass", "fail"}
+                    else "unknown",
                     "provider": provider,
                     "artifact": result["path"],
                     "scenario_id": scenario_id,
                     "requirement_ids": scenario["requirement_ids"],
                     "mapping_classification": scenario.get("mapping_classification"),
                     "api_methods": scenario["api_methods"],
-                    "notes": item.get("message", "No provider result was supplied") if item else "No provider result was supplied",
+                    "notes": item.get("message", "No provider result was supplied")
+                    if item
+                    else "No provider result was supplied",
                 }
             )
-    requirement_records: list[dict[str, Any]] = []
-    tck_requirement_records: list[dict[str, Any]] = []
-    api_surface_records: list[dict[str, Any]] = []
+    requirement_records: list[ComplianceRecord] = []
+    tck_requirement_records: list[TckRequirementRecord] = []
+    api_surface_records: list[ApiSurfaceRecord] = []
     known_lab_requirement_ids = lab_requirement_ids(bundle_path)
     for scenario in scenarios:
         lab_records = contract_requirements(scenario["contract_refs"])
@@ -312,7 +568,7 @@ def export(
             {
                 item["requirements_lab_requirement_id"]
                 for item in lab_records
-                if item.get("requirements_lab_requirement_id")
+                if item["requirements_lab_requirement_id"] is not None
             }
         )
         for stable_id in scenario["requirement_ids"]:
@@ -327,7 +583,9 @@ def export(
                         else linked_lab_ids
                     ),
                     "standard_api_methods": scenario["api_methods"],
-                    "provider_statuses": provider_scenario_statuses.get(scenario["id"], []),
+                    "provider_statuses": provider_scenario_statuses.get(
+                        scenario["id"], []
+                    ),
                     "exclusion": scenario.get("exclusion"),
                 }
             )
@@ -338,7 +596,9 @@ def export(
                     "tck_scenario_id": scenario["id"],
                     "stable_requirement_ids": scenario["requirement_ids"],
                     "standard_api_methods": scenario["api_methods"],
-                    "provider_statuses": provider_scenario_statuses.get(scenario["id"], []),
+                    "provider_statuses": provider_scenario_statuses.get(
+                        scenario["id"], []
+                    ),
                     "exclusion": scenario.get("exclusion"),
                 }
             )
@@ -354,7 +614,7 @@ def export(
                 "standard_api_method": f"{surface.get('owner')}.{surface.get('name')}",
             }
         )
-    artifact = {
+    artifact: JavaTckExport = {
         "schema_version": 1,
         "kind": "java-rti-tck-compliance-export",
         "document_id": "hla-1516.1-2025",
@@ -371,7 +631,9 @@ def export(
         "exclusions": catalog.get("exclusions", []),
     }
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     return artifact
 
 
@@ -390,8 +652,14 @@ def main() -> int:
         return 0 if validation["valid"] else 2
     if not args.results:
         parser.error("export requires at least one --results artifact")
-    artifact = export(args.catalog, args.bundle, args.results, args.output, args.jpype_results)
-    print(json.dumps({"output": str(args.output), "providers": artifact["providers"]}, indent=2))
+    artifact = export(
+        args.catalog, args.bundle, args.results, args.output, args.jpype_results
+    )
+    print(
+        json.dumps(
+            {"output": str(args.output), "providers": artifact["providers"]}, indent=2
+        )
+    )
     return 0
 
 

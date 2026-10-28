@@ -23,7 +23,7 @@ quick entry point. The checked-in roadmap index and Catch2 plan are the bounded 
 `tools/query_rti_work.py` to jump from a roadmap item or focused lane to its
 native tests and exact 2025 clause/subsection mappings:
 
-```powershell
+~~~powershell
 python tools/query_rti_work.py work --compact
 python tools/query_rti_work.py work transport-and-conformance --compact
 python tools/query_rti_work.py queue --summary --compact
@@ -114,11 +114,12 @@ python tools/query_rti_work.py requirement hla-1516.1-2025:clause-8.22.3 --compa
 python tools/query_rti_work.py section hla-1516.1-2025:clause-9.13.1 --summary
 python tools/query_rti_work.py source cpp/tests/external_2010_fom_catch2.cpp --summary --limit 20
 python tools/query_rti_work.py unmapped --disposition unclassified --summary --limit 20
-```
+~~~
 
 `work` follows the active `next_work_id` pointer and prints one bounded
 implementation slice with its baseline test, source location, requirement IDs,
-canonical 2025 sections, and exact lane/check commands. `item` joins indexed roadmap tags to Catch2 cases, `lane` keeps a test slice
+canonical 2025 sections, and exact lane/check commands. `item` joins indexed roadmap tags to Catch2 cases, `lane` keeps
+a test slice
 independently runnable, `requirement` accepts a Lab identifier, contract,
 or document query, and `section` selects one exact standard clause/subsection. Run the Requirements-Lab
 re-sync only when the pinned 2025 export changes; normal implementation work
@@ -481,7 +482,8 @@ report-file identities. Query it directly with
 `python tools/query_rti_work.py lane public-process-restart-mixed-confirmation-delivered --compact`
 or
 `python tools/query_rti_work.py test "Embedded public fresh-registry restore preserves mixed delivered negotiated confirmations and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE" --compact`.
-The public asymmetric mixed negotiated-confirmation companion is now green under both callback models (274 assertions). It
+The public asymmetric mixed negotiated-confirmation companion is now green under both callback models (274 assertions).
+It
 preserves the delivered regular owner confirmation without replay, rebinds
 exactly one pending If Available confirmation after a fresh registry, completes
 one grouped Confirm Divestiture transfer, and preserves distinct immutable
@@ -2238,14 +2240,23 @@ connected-but-unjoined boundary. The paired
 `compliance/requirements-lab/order-type-requirements-contract.json` files keep this source/API
 traceability distinct from validation or conformance evidence. The adjacent
 `compliance/requirements-lab/order-type-control-api-contract.json` and
-`compliance/requirements-lab/order-type-control-requirements-contract.json` contracts now pin
+`compliance/requirements-lab/order-type-control-requirements-contract.json` contracts pin
 `changeAttributeOrderType`, `changeDefaultAttributeOrderType`, and
-`changeInteractionOrderType`. Their Catch2 lifecycle cases prove prospective
-class defaults, per-instance overrides, publisher-scoped interaction order,
-mixed immediate/TSO callback fields, and a negotiated ownership transfer that
-resets the old instance override to the acquiring federate's default. The If
-Available and remaining ownership-disposition variants still need dedicated
-order-aware public cases.
+`changeInteractionOrderType`. The mapped focused Catch2 case proves prospective
+class defaults, per-instance overrides, per-federate default isolation, and
+publisher-scoped interaction order, including the observed sent/received order
+fields. A separate explicitly unmapped public-API case verifies that after
+ownership transfer the acquiring federate's RECEIVE class default controls its
+later update. Neither case is counted toward §8.25.3 because the page-213
+candidates are incomplete/mixed (RL-374). The mapped case also verifies the
+FDD-seeded default on an instance registered before an explicit class-default
+change and checks `ObjectClassNotDefined`/`AttributeNotDefined` for an unknown
+class handle and an unavailable attribute; these assertions are not counted as
+§8.25.3 coverage. A third explicitly unmapped case sets inherited `Name` order
+through the derived `Server` handle and verifies it applies to a future base
+`Employee` instance; it exposed and fixed a registry bug that had keyed the
+default to the invocation class. The If Available and other
+ownership-disposition variants still need separate order-aware public cases.
 
 The time-management kernel now contains a private `TsoMessageQueue` and
 federation-owned `FederationTimeCoordinator`. Catch2 uses the official 2025
@@ -4214,11 +4225,11 @@ an uncited reproduction and a skipped identifier fail, and a historical edit
 is rejected. Neither command changes the checked-in observation log.
 
 The default-package smoke test configures a fresh client project against the
-installed SDK, not the source tree.  It currently verifies the official
+installed SDK, not the source tree. It currently verifies the official
 `VariableLengthData` caller-copy, borrowed-storage/copy, invalid-handle,
 configuration-builder, ambassador-factory, and reference-time factory paths.
 The matching Catch2 tests cover `VariableLengthData` ownership replacement and
-custom deletion.  This is support-type/SDK-consumability evidence only; it is
+custom deletion. This is support-type/SDK-consumability evidence only; it is
 not a public service or conformance claim. The bounded
 RTI/encoding/BasicDataElements.h implementation has IEEE-source-derived
 byte-vector coverage for HLAinteger32BE, HLAunsignedInteger32BE,
@@ -5142,7 +5153,8 @@ Connect mapping to all four official overload-level API records and the
 dedicated CTest traceability guard validates that selection against the pinned
 2025 export. The Lab's aggregate mapping still cannot express that selection in
 its sidecar request, so the real Connect tests remain outside the catalog. The
-callback control methods and development-profile federate/object-class/interaction-class/attribute/parameter/object-instance lookup, listing,
+callback control methods and development-profile
+federate/object-class/interaction-class/attribute/parameter/object-instance lookup, listing,
 object discovery, and time reports have API-surface records but no Requirements-Lab implementation
 mapping, catalog record, or public package support, so they remain outside the
 catalog. The same is true of

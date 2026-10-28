@@ -272,6 +272,11 @@ void ProcessFederationClient::setTimeRoleEnableCompletionHandlers(
 }
 
 void ProcessFederationClient::dispatchPendingPushedEvents() {
+  dispatchPendingPushedEvents(false);
+}
+
+void ProcessFederationClient::dispatchPendingPushedEvents(
+    bool allowRequestOwnedSuppression) {
   std::unique_lock lock(transactionMutex_);
   if (!callbackBridge_ ||
       (dispatchDepth_ != 0U && dispatchOwner_ != std::this_thread::get_id())) {
@@ -286,7 +291,13 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
     }
   };
   try {
-    while (callbackBridge_ && !pendingEvents_.empty()) {
+    // Resign suppresses callback admission while waiting for any callback
+    // already in progress to finish. Recheck suppression between callbacks;
+    // otherwise this dispatcher could drain the whole queue and prevent the
+    // resigning service from reaching the server-side membership transition.
+    while (callbackBridge_ && !pendingEvents_.empty() &&
+           (allowRequestOwnedSuppression ||
+            callbackDispatchSuppressionDepth_ == 0U)) {
       auto bridge = callbackBridge_;
       auto event = std::move(pendingEvents_.front());
       pendingEvents_.pop_front();

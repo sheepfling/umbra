@@ -14,6 +14,10 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleCreate(request);
       case TransportServiceOperation::destroy_federation_execution:
         return handleDestroy(request);
+      case TransportServiceOperation::list_federation_execution_members:
+        return handleListFederationExecutionMembers(session, request);
+      case TransportServiceOperation::list_federation_executions:
+        return handleListFederationExecutions(session, request);
       case TransportServiceOperation::join_federation_execution:
         return handleJoin(session, request);
       case TransportServiceOperation::resign_federation_execution:

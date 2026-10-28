@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import re
-
+from pathlib import Path
 
 _CLASS = re.compile(r"public\s+(?:final\s+)?class\s+(\w+)\s+extends\s+(\w+)")
 
@@ -27,9 +26,9 @@ def render(source_root: Path) -> str:
         "from __future__ import annotations",
         "",
         "class RTIexception(Exception):",
-        '    \"\"\"Base class for every exception in the 2010 RTI API.\"\"\"',
+        '    """Base class for every exception in the 2010 RTI API."""',
         "",
-        "    def __init__(self, message: str = \"\", cause: BaseException | None = None) -> None:",
+        '    def __init__(self, message: str = "", cause: BaseException | None = None) -> None:',
         "        super().__init__(message)",
         "        self.cause = cause",
         "        if cause is not None:",
@@ -42,7 +41,7 @@ def render(source_root: Path) -> str:
         lines.extend(
             [
                 f"class {name}(RTIexception):",
-                f'    \"\"\"IEEE 1516e exception ``{name}``.\"\"\"',
+                f'    """IEEE 1516e exception ``{name}``."""',
                 "",
             ]
         )
@@ -53,11 +52,11 @@ def render(source_root: Path) -> str:
             "}",
             "_STANDARD_EXCEPTION_NAMES = frozenset(_EXCEPTION_TYPES)",
             "",
-            "def exceptionForName(name: str, message: str = \"\", cause: BaseException | None = None) -> RTIexception:",
-            "    \"\"\"Construct a standard exception by its Java simple class name.\"\"\"",
-            "    exception_type = _EXCEPTION_TYPES.get(name.rsplit(\".\", 1)[-1].rsplit(\"$\", 1)[-1])",
+            'def exceptionForName(name: str, message: str = "", cause: BaseException | None = None) -> RTIexception:',
+            '    """Construct a standard exception by its Java simple class name."""',
+            '    exception_type = _EXCEPTION_TYPES.get(name.rsplit(".", 1)[-1].rsplit("$", 1)[-1])',
             "    if exception_type is None:",
-            "        return RTIinternalError(message or f\"Unknown IEEE 1516e exception: {name}\", cause)",
+            '        return RTIinternalError(message or f"Unknown IEEE 1516e exception: {name}", cause)',
             "    return exception_type(message, cause)",
             "",
             "__all__ = [",

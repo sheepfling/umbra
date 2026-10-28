@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "hla_test_names.hpp"
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
 #include "internal/federation/federation_state_image.hpp"
 
@@ -111,8 +112,8 @@ TEST_CASE(
     suppressDeclarationRelevanceAdvisories(*owner);
     suppressDeclarationRelevanceAdvisories(*requester);
     auto const objectClass = owner->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-    sourceAttribute = owner->getAttributeHandle(objectClass, L"ReliableBaseA");
+        umbra::test::hla::wide::fom::attribute_fixture_child);
+    sourceAttribute = owner->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::reliable_base_a);
     REQUIRE(objectClass.isValid());
     REQUIRE(sourceAttribute.isValid());
     auto const sourceAttributeId =

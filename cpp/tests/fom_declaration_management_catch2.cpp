@@ -65,7 +65,7 @@ TEST_CASE(
   // declared attribute in the committed 2025 FOM, then round-trip both names.
   auto const employee = member->getObjectClassHandle(fixture_hla::fom::employee);
   auto const mimFederateClass =
-      member->getObjectClassHandle(L"HLAobjectRoot.HLAmanager.HLAfederate");
+      member->getObjectClassHandle(umbra::test::hla::wide::standard::manager_federate_object);
   auto const employeeName =
       member->getAttributeHandle(employee, fixture_hla::fixture::name);
   REQUIRE(employee.isValid());
@@ -250,7 +250,7 @@ TEST_CASE(
   auto const federationName = nextFederationName();
   auto const baseFom = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
   auto const extensionFom = testDataPath("reference-data-class-provider-fom.xml").wstring();
-  auto const baseClassName = std::wstring{L"HLAobjectRoot.Employee"};
+  auto const baseClassName = std::wstring{umbra::test::hla::wide::fom::employee};
   auto const extensionClassName = std::wstring{L"HLAobjectRoot.UmbraReferenceFixtureClass"};
 
   REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
@@ -430,10 +430,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(member->joinFederationExecution(
       L"parameter-merge-member", L"member", federationName));
   auto const interaction = member->getInteractionClassHandle(
-      L"HLAinteractionRoot.TckParameterMergeInteraction");
+      umbra::test::hla::wide::fom::tck_parameter_merge_interaction);
   REQUIRE(interaction.isValid());
-  REQUIRE(member->getParameterHandle(interaction, L"FirstValue").isValid());
-  REQUIRE(member->getParameterHandle(interaction, L"SecondValue").isValid());
+  REQUIRE(member->getParameterHandle(interaction, umbra::test::hla::wide::fixture::first_value).isValid());
+  REQUIRE(member->getParameterHandle(interaction, umbra::test::hla::wide::fixture::second_value).isValid());
   REQUIRE_NOTHROW(member->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
 
@@ -476,10 +476,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(member->joinFederationExecution(
       L"attribute-merge-member", L"member", federationName));
   auto const objectClass = member->getObjectClassHandle(
-      L"HLAobjectRoot.TckAttributeMergeObject");
+      umbra::test::hla::wide::fom::tck_attribute_merge_object);
   REQUIRE(objectClass.isValid());
-  auto const first = member->getAttributeHandle(objectClass, L"FirstValue");
-  auto const second = member->getAttributeHandle(objectClass, L"SecondValue");
+  auto const first = member->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::first_value);
+  auto const second = member->getAttributeHandle(objectClass, umbra::test::hla::wide::fixture::second_value);
   REQUIRE(first.isValid());
   REQUIRE(second.isValid());
   REQUIRE(first != second);
@@ -530,7 +530,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(member->joinFederationExecution(
       L"class-semantics-member", L"member", federationName));
   REQUIRE(member->getObjectClassHandle(
-      L"HLAobjectRoot.TckAttributeMergeObject").isValid());
+      umbra::test::hla::wide::fom::tck_attribute_merge_object).isValid());
   REQUIRE_NOTHROW(member->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(member->disconnect());

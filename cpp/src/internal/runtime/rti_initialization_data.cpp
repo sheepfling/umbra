@@ -20,6 +20,7 @@ namespace umbra::detail {
 namespace {
 
 constexpr std::string_view kAuthorizationSectionPrefix = "authorization.";
+constexpr std::string_view kDisabledAuthorizationService = "disabled";
 constexpr std::size_t kMaximumRidBytes = 64U * 1024U;
 constexpr std::size_t kMaximumPasswordBytes = 16U * 1024U;
 
@@ -32,9 +33,10 @@ struct AuthorizationProfile final {
   throw std::runtime_error(
       "Umbra could not read a valid, protected RTI initialization-data profile.");
 }
-
+// Keep this view-based trim local to the RID parser: its grammar trims only
+// ASCII space, tab, and carriage return around tokens.
 [[nodiscard]] std::string_view trimAscii(std::string_view value) noexcept {
-  auto isTrim = [](char character) {
+  auto isTrim = [](const char character) {
     return character == ' ' || character == '\t' || character == '\r';
   };
   while (!value.empty() && isTrim(value.front())) {
@@ -48,7 +50,7 @@ struct AuthorizationProfile final {
 
 [[nodiscard]] std::string readProtectedFile(
     std::filesystem::path const& path,
-    std::size_t maximumBytes) {
+    const std::size_t maximumBytes) {
   std::error_code error;
   auto const linkStatus = std::filesystem::symlink_status(path, error);
   if (error || !std::filesystem::is_regular_file(linkStatus) ||
@@ -82,6 +84,8 @@ struct AuthorizationProfile final {
   return contents;
 }
 
+// The implementation-defined RID profile grammar is documented in
+// docs/design/AUTHORIZATION-DESIGN.md.
 [[nodiscard]] std::map<std::string, AuthorizationProfile> parseProfiles(
     std::string const& contents) {
   std::map<std::string, AuthorizationProfile> profiles;
@@ -187,13 +191,15 @@ makeAuthorizerFactoryFromRtiInitializationData(
     }
     return {};
   }
-  if (*profile.service == "disabled") {
+  if (*profile.service == kDisabledAuthorizationService) {
     if (profile.globalPasswordFile) {
       invalidRid();
     }
     return {};
   }
-  if (*profile.service != "HLAauthorizer" || !profile.globalPasswordFile) {
+  auto const authorizerName = utf8FromWide(rti1516_2025::HLAauthorizerName);
+  if (!authorizerName || *profile.service != *authorizerName ||
+      !profile.globalPasswordFile) {
     invalidRid();
   }
 

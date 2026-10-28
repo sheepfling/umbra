@@ -326,7 +326,7 @@ NATIVE fromBits(BITS value) {
   return bitPreservingCast<NATIVE>(value);
 }
 
-std::uint16_t toBits16(Integer16 value) { return bitPreservingCast<std::uint16_t>(value); }
+std::uint16_t toBits16(const Integer16 value) { return bitPreservingCast<std::uint16_t>(value); }
 Integer16 fromBits16(std::uint16_t value) { return bitPreservingCast<Integer16>(value); }
 std::uint32_t toBits32(Integer32 value) { return bitPreservingCast<std::uint32_t>(value); }
 Integer32 fromBits32(std::uint32_t value) { return bitPreservingCast<Integer32>(value); }
@@ -336,7 +336,8 @@ std::uint32_t toFloat32Bits(float value) { return bitPreservingCast<std::uint32_
 float fromFloat32Bits(std::uint32_t value) { return bitPreservingCast<float>(value); }
 std::uint64_t toFloat64Bits(double value) { return bitPreservingCast<std::uint64_t>(value); }
 double fromFloat64Bits(std::uint64_t value) { return bitPreservingCast<double>(value); }
-
+// Keep auto_ptr in the 2010 clone overrides: the pinned IEEE 1516.1-2010 API
+// declares DataElement::clone() with this exact return type.
 #define UMBRA_2010_DEFINE_FIXED(TYPE, IMPL, NATIVE, BYTES, TO_BITS, FROM_BITS, APPEND, READ) \
   TYPE::TYPE() : _impl(new IMPL()) {} \
   TYPE::TYPE(NATIVE const& value) : _impl(new IMPL()) { _impl->value.set(value); } \

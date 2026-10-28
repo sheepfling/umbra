@@ -1,28 +1,6 @@
 # Catch2 executable targets and test discovery registrations.
 # Included under the shared Catch2 target guard in the top-level build.
 
-    function(umbra_guard_catch2_debug_image_size target_name)
-      if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-         CMAKE_BUILD_TYPE STREQUAL "Debug" AND CMAKE_STRIP)
-        if(target_name STREQUAL "umbra_ieee1516_2025_catch2" OR
-           target_name STREQUAL "umbra_ieee1516_2025_connection_catch2")
-          # These large 2025 executables can exceed the Windows linker's
-          # temporary image budget before the post-build size guard can strip
-          # DWARF. Keep assertions and Catch2 source locations, but omit their
-          # oversized debug sections during linking.
-          target_link_options("${target_name}" PRIVATE "LINKER:--strip-debug")
-        endif()
-        add_custom_command(TARGET "${target_name}" POST_BUILD
-          COMMAND "${CMAKE_COMMAND}"
-            "-DUMBRACATCH2_EXECUTABLE=$<TARGET_FILE:${target_name}>"
-            "-DUMBRACATCH2_STRIP=${CMAKE_STRIP}"
-            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/strip_oversized_catch2_debug.cmake"
-          COMMENT "Checking MinGW Catch2 executable image size"
-          VERBATIM
-        )
-      endif()
-    endfunction()
-
     include(cmake/ieee1516_2025_connection_test_sources.cmake)
     add_executable(umbra_ieee1516_2025_catch2
       cpp/tests/ieee1516_2025_headers_catch2.cpp
@@ -169,6 +147,7 @@
             UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
           )
     endif()
+
   endif()
       if(UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
@@ -326,10 +305,10 @@
       umbra::authorizer
       Catch2::Catch2WithMain
     )
-    if(MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-      # The aggregate runner is only the full-suite dispatcher; focused test
-      # executables retain debug symbols for diagnosis.  Omitting DWARF from
-      # this one image keeps MinGW's linker working set within host limits.
+    if(MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug" AND
+       NOT UMBRA_FULL_DEBUG_TEST_EXECUTABLES)
+      # Routine grouped runners omit their own object-file DWARF. The
+      # dedicated full-debug static preset preserves it for investigation.
       target_compile_options(umbra_ieee1516_2025_catch2 PRIVATE -g0)
     endif()
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -348,9 +327,56 @@
         cpp/tests/ieee1516_2025_federation_management_interaction_declaration_catch2.cpp
       )
     endif()
-    # Preserve object-file debug info, but remove DWARF from any test image
-    # large enough to approach Windows' executable-image limit.
-    umbra_guard_catch2_debug_image_size(umbra_ieee1516_2025_catch2)
+    # The old single aggregate was already 244 MiB with no DWARF. Keep the
+    # existing source order (roughly grouped by behavior) but link bounded
+    # batches into a few runners. Each source still compiles once, and Catch2
+    # continues to register every case independently under the same prefix.
+    get_target_property(_umbra_aggregate_sources umbra_ieee1516_2025_catch2 SOURCES)
+    list(REMOVE_DUPLICATES _umbra_aggregate_sources)
+    list(LENGTH _umbra_aggregate_sources _umbra_aggregate_source_count)
+    set(_umbra_aggregate_offset 0)
+    set(_umbra_aggregate_group 1)
+    set(UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS)
+    while(_umbra_aggregate_offset LESS _umbra_aggregate_source_count)
+      math(EXPR _umbra_group_remaining
+        "${_umbra_aggregate_source_count} - ${_umbra_aggregate_offset}")
+      if(_umbra_group_remaining GREATER 96)
+        set(_umbra_group_length 96)
+      else()
+        set(_umbra_group_length "${_umbra_group_remaining}")
+      endif()
+      list(SUBLIST _umbra_aggregate_sources ${_umbra_aggregate_offset}
+        ${_umbra_group_length} _umbra_group_sources)
+      if(_umbra_aggregate_group EQUAL 1)
+        set_property(TARGET umbra_ieee1516_2025_catch2 PROPERTY
+          SOURCES "${_umbra_group_sources}")
+      else()
+        set(_umbra_group_target
+          "umbra_2025_g${_umbra_aggregate_group}_catch2")
+        add_executable("${_umbra_group_target}" ${_umbra_group_sources})
+        foreach(_umbra_group_property IN ITEMS
+            COMPILE_DEFINITIONS COMPILE_FEATURES COMPILE_OPTIONS
+            INCLUDE_DIRECTORIES LINK_LIBRARIES LINK_OPTIONS)
+          get_target_property(_umbra_group_value umbra_ieee1516_2025_catch2
+            "${_umbra_group_property}")
+          if(_umbra_group_value)
+            set_property(TARGET "${_umbra_group_target}" PROPERTY
+              "${_umbra_group_property}" "${_umbra_group_value}")
+          endif()
+        endforeach()
+        get_target_property(_umbra_group_dependencies
+          umbra_ieee1516_2025_catch2 MANUALLY_ADDED_DEPENDENCIES)
+        if(_umbra_group_dependencies)
+          add_dependencies("${_umbra_group_target}" ${_umbra_group_dependencies})
+        endif()
+        list(APPEND UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS
+          "${_umbra_group_target}")
+      endif()
+      math(EXPR _umbra_aggregate_offset
+        "${_umbra_aggregate_offset} + ${_umbra_group_length}")
+      math(EXPR _umbra_aggregate_group "${_umbra_aggregate_group} + 1")
+    endwhile()
+
     # Register every Catch2 case independently, and expose its existing tags
     # as CTest labels.  This makes the tag taxonomy usable through both
     # `ctest -L` and the named development targets below without duplicating a
@@ -391,6 +417,14 @@
       # when the Catch2 executable changes, before any lane runs.
       DISCOVERY_MODE POST_BUILD
     )
+    foreach(_umbra_group_target IN LISTS UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS)
+      catch_discover_tests("${_umbra_group_target}"
+        TEST_PREFIX "umbra.ieee1516_2025.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endforeach()
     if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
       catch_discover_tests(umbra_public_fresh_registry_transportation_restore_catch2
         TEST_PREFIX "umbra.ieee1516_2025.catch2."
@@ -439,9 +473,33 @@
         DISCOVERY_MODE POST_BUILD
       )
     endif()
+    if(TARGET umbra_connection_lost_no_action_immediate_catch2)
+      catch_discover_tests(umbra_connection_lost_no_action_immediate_catch2
+        TEST_PREFIX "umbra.ieee1516_2025.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     if(TARGET umbra_ieee1516_2025_connection_catch2)
       catch_discover_tests(umbra_ieee1516_2025_connection_catch2
         TEST_PREFIX "umbra.ieee1516_2025.connection_catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_process_class_request_tso_response_catch2)
+      catch_discover_tests(umbra_process_class_request_tso_response_catch2
+        TEST_PREFIX "umbra.process_class_request_tso_response.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_process_class_request_tso_response_cross_process_catch2)
+      catch_discover_tests(umbra_process_class_request_tso_response_cross_process_catch2
+        TEST_PREFIX "umbra.process_class_request_tso_response_cross_process.catch2."
         ADD_TAGS_AS_LABELS
         ${_umbra_catch_discovery_properties}
         DISCOVERY_MODE POST_BUILD
@@ -2285,6 +2343,34 @@
       )
     endif()
 
+    # Keep the official time-representation selection case independently
+    # buildable; the aggregate 2025 Catch2 executable is intentionally broad.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_ieee1516_2025_public_float64_time_representation_catch2
+        cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp
+      )
+      target_compile_features(umbra_ieee1516_2025_public_float64_time_representation_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_ieee1516_2025_public_float64_time_representation_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_ieee1516_2025_public_float64_time_representation_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_ieee1516_2025_public_float64_time_representation_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        umbra::fedtime
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_ieee1516_2025_public_float64_time_representation_catch2
+        TEST_PREFIX "umbra.ieee1516_2025.public_float64_time_representation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
     # Focused IEEE 1516.1-2025 embedded federation-management tests share one build recipe.
     function(umbra_add_focused_2025_federation_management_catch2 name)
       set(target "umbra_${name}_catch2")
@@ -2293,7 +2379,7 @@
       target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/cpp" "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src")
       target_compile_definitions(${target} PRIVATE
         UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}" UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1)
-      target_link_libraries(${target} PRIVATE umbra_fom_validation_backend umbra::rti Catch2::Catch2WithMain)
+      target_link_libraries(${target} PRIVATE umbra_fom_validation_backend umbra::rti umbra::fedtime Catch2::Catch2WithMain)
       catch_discover_tests(${target} TEST_PREFIX "umbra.${name}.catch2." ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD)
     endfunction()
@@ -2303,6 +2389,32 @@
           remove_object_instance_service_report timestamped_remove_object_instance_service_report join_advisory_switch_seed advisories_use_known_class_switch support_switch_state join_automatic_resign_directive ieee1516_2025_ddm_regional_association_failure_file ieee1516_2025_ddm_regional_async_delivery ieee1516_2025_timestamped_regional_interaction_reenable ieee1516_2025_timestamped_regional_interaction_flush_queue_context ieee1516_2025_regional_tso_suppressed_callback ieee1516_2025_tso_regional_no_overlap_designator ieee1516_2025_request_retraction_delivered_regional_interaction_fanout ieee1516_2025_time_role_enable_callback_gating ieee1516_2025_modify_lookahead_increase_and_gradual_decrease ieee1516_2025_query_galt_lits_other_regulator_pending_advances)
         umbra_add_focused_2025_federation_management_catch2(${name})
       endforeach()
+      umbra_add_focused_2025_federation_management_catch2(ieee1516_2025_public_integer64_time_representation)
+      if(NOT UMBRA_BUILD_SHARED_LIBRARIES)
+        add_executable(umbra_ieee1516_2025_custom_time_factory_catch2
+          cpp/tests/ieee1516_2025_custom_time_factory_catch2.cpp
+        )
+        target_compile_features(umbra_ieee1516_2025_custom_time_factory_catch2 PRIVATE cxx_std_20)
+        target_include_directories(umbra_ieee1516_2025_custom_time_factory_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(umbra_ieee1516_2025_custom_time_factory_catch2 PRIVATE
+          STATIC_FEDTIME
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+          UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(umbra_ieee1516_2025_custom_time_factory_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          Catch2::Catch2WithMain
+        )
+        catch_discover_tests(umbra_ieee1516_2025_custom_time_factory_catch2
+          TEST_PREFIX "umbra.ieee1516_2025.custom_time_factory.catch2."
+          ADD_TAGS_AS_LABELS
+          DISCOVERY_MODE POST_BUILD
+        )
+      endif()
       # Keep this owner-side Provide Attribute Value Update behavior test
       # independently buildable instead of compiling it only through the
       # large aggregate 2025 Catch2 executable.
@@ -2706,4 +2818,25 @@
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
+    endif()
+
+    # In the static profile the RTI calls the separately linked standard
+    # LogicalTimeFactoryFactory hook. Test executables use Umbra's reference
+    # fedtime provider unless they explicitly supply their own implementation.
+    if(NOT UMBRA_BUILD_SHARED_LIBRARIES)
+      get_property(_umbra_catch2_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+      foreach(_umbra_catch2_target IN LISTS _umbra_catch2_targets)
+        get_property(_umbra_catch2_target_type TARGET "${_umbra_catch2_target}"
+          PROPERTY TYPE)
+        if(_umbra_catch2_target_type STREQUAL "EXECUTABLE" AND
+           NOT _umbra_catch2_target STREQUAL
+               "umbra_ieee1516_2025_custom_time_factory_catch2")
+          get_property(_umbra_catch2_links TARGET "${_umbra_catch2_target}"
+            PROPERTY LINK_LIBRARIES)
+          if("umbra::rti" IN_LIST _umbra_catch2_links AND
+             NOT "umbra::fedtime" IN_LIST _umbra_catch2_links)
+            target_link_libraries("${_umbra_catch2_target}" PRIVATE umbra::fedtime)
+          endif()
+        endif()
+      endforeach()
     endif()

@@ -5,23 +5,30 @@ from __future__ import annotations
 import argparse
 import ast
 import json
-from pathlib import Path
 import sys
-from typing import Any
-
+from pathlib import Path
+from typing import TypeAlias, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "java-2010-tck-scenario-catalog.json"
+DEFAULT_CATALOG = (
+    ROOT / "compliance" / "catalogs" / "java-2010-tck-scenario-catalog.json"
+)
 DEFAULT_BUNDLE = ROOT / ".compliance" / "corpus-bundle-v0.1.0.a1-all.json"
 DEFAULT_PYTHON_SOURCE = ROOT / "packages" / "umbra-rti-api" / "src" / "hla" / "rti1516e"
 
+JsonScalar: TypeAlias = str | int | float | bool | None
+JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonObject: TypeAlias = dict[str, JsonValue]
 
-def _load(path: Path) -> dict[str, Any]:
+
+def _load(path: Path) -> JsonObject:
     with path.open(encoding="utf-8") as stream:
-        value = json.load(stream)
-    if not isinstance(value, dict):
+        decoded: object = json.load(stream)
+    if not isinstance(decoded, dict) or not all(
+        isinstance(key, str) for key in decoded
+    ):
         raise ValueError(f"{path} must contain a JSON object")
-    return value
+    return cast(JsonObject, decoded)
 
 
 def _python_api_inventory(source_root: Path) -> dict[str, set[str]]:
@@ -53,30 +60,41 @@ def _python_api_inventory(source_root: Path) -> dict[str, set[str]]:
 
 
 def _api_reference_findings(
-    catalog: dict[str, Any], python_source: Path = DEFAULT_PYTHON_SOURCE
+    catalog: JsonObject, python_source: Path = DEFAULT_PYTHON_SOURCE
 ) -> list[str]:
     """Return catalog references that are absent from the Python contract."""
 
     inventory = _python_api_inventory(python_source)
     findings: list[str] = []
     scenarios = catalog.get("scenarios", [])
-    for scenario in scenarios:
-        if not isinstance(scenario, dict):
+    if not isinstance(scenarios, list):
+        return findings
+    for raw_scenario in scenarios:
+        if not isinstance(raw_scenario, dict) or not all(
+            isinstance(key, str) for key in raw_scenario
+        ):
             continue
+        scenario = cast(JsonObject, raw_scenario)
         scenario_id = scenario.get("id", "<unknown scenario>")
+        if not isinstance(scenario_id, str):
+            scenario_id = "<unknown scenario>"
         references = scenario.get("api_methods", [])
         if not isinstance(references, list):
             continue
         for reference in references:
             if not isinstance(reference, str) or not reference:
-                findings.append(f"{scenario_id}: api_methods contains a non-empty string requirement")
+                findings.append(
+                    f"{scenario_id}: api_methods contains a non-empty string requirement"
+                )
                 continue
 
             # A bare type name (for example ``CallbackModel``) is a valid
             # catalog reference even though it has no method suffix.
             if "." not in reference:
                 if reference not in inventory:
-                    findings.append(f"{scenario_id}: unknown 2010 API class in {reference!r}")
+                    findings.append(
+                        f"{scenario_id}: unknown 2010 API class in {reference!r}"
+                    )
                 continue
 
             # Fully-qualified exception/type names are type references rather
@@ -88,7 +106,9 @@ def _api_reference_findings(
 
             owner, separator, method = reference.partition(".")
             if not separator or owner not in inventory:
-                findings.append(f"{scenario_id}: unknown 2010 API class in {reference!r}")
+                findings.append(
+                    f"{scenario_id}: unknown 2010 API class in {reference!r}"
+                )
                 continue
             if method == "*":
                 continue
@@ -113,20 +133,31 @@ def verify(
     kind = catalog.get("kind")
     if kind == "portable-python-tck-catalog":
         if source_boundary != "packages/umbra-rti-java-tck-2010/jpype_smoke.py":
-            findings.append("Python catalog source boundary must be the JPype smoke runner")
+            findings.append(
+                "Python catalog source boundary must be the JPype smoke runner"
+            )
     elif source_boundary != "packages/umbra-rti-java-tck-2010":
-        findings.append("Java catalog source boundary must be the 2010 Java TCK package")
+        findings.append(
+            "Java catalog source boundary must be the 2010 Java TCK package"
+        )
     document_id = catalog.get("document_id")
     documents = bundle.get("documents")
     if not isinstance(document_id, str) or not isinstance(documents, list):
         return findings + ["catalog document_id or bundle documents are invalid"]
-    documents_by_id = {item.get("document_id"): item for item in documents if isinstance(item, dict)}
+    documents_by_id: dict[str, JsonObject] = {}
+    for item in documents:
+        if not isinstance(item, dict) or not all(isinstance(key, str) for key in item):
+            continue
+        document_record = cast(JsonObject, item)
+        bundle_document_id = document_record.get("document_id")
+        if isinstance(bundle_document_id, str):
+            documents_by_id[bundle_document_id] = document_record
     document = documents_by_id.get(document_id)
-    if not isinstance(document, dict):
+    if document is None:
         return findings + [f"Requirements Lab document {document_id!r} is absent"]
-    requirements = {item.get("id") for item in document.get("requirements", []) if isinstance(item, dict)}
-    mappings = {item.get("id") for item in document.get("mappings", []) if isinstance(item, dict)}
-    transitions = {item.get("id") for item in document.get("transitions", []) if isinstance(item, dict)}
+    requirements = _record_ids(document, "requirements", findings)
+    mappings = _record_ids(document, "mappings", findings)
+    transitions = _record_ids(document, "transitions", findings)
     scenarios = catalog.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios:
         return findings + ["catalog scenarios must be a non-empty array"]
@@ -136,10 +167,13 @@ def verify(
         findings.append(f"Python 2010 API inventory could not be checked: {error}")
     seen: set[str] = set()
     for scenario in scenarios:
-        if not isinstance(scenario, dict):
+        if not isinstance(scenario, dict) or not all(
+            isinstance(key, str) for key in scenario
+        ):
             findings.append("catalog contains a non-object scenario")
             continue
-        scenario_id = scenario.get("id")
+        scenario_record = cast(JsonObject, scenario)
+        scenario_id = scenario_record.get("id")
         if not isinstance(scenario_id, str):
             findings.append("scenario id must be a string")
             continue
@@ -151,16 +185,42 @@ def verify(
             ("requirements_lab_mapping_ids", mappings),
             ("transition_ids", transitions),
         ):
-            values = scenario.get(field, [])
+            values = scenario_record.get(field, [])
             if not isinstance(values, list):
                 findings.append(f"{scenario_id}: {field} must be an array")
                 continue
-            findings.extend(
-                f"{scenario_id}: {field} references missing {value!r}"
-                for value in values
-                if value not in allowed
-            )
+            for value in values:
+                if not isinstance(value, str):
+                    findings.append(f"{scenario_id}: {field} contains a non-string id")
+                elif value not in allowed:
+                    findings.append(
+                        f"{scenario_id}: {field} references missing {value!r}"
+                    )
     return findings
+
+
+def _record_ids(document: JsonObject, field: str, findings: list[str]) -> set[str]:
+    records = document.get(field, [])
+    if not isinstance(records, list):
+        findings.append(f"Requirements Lab document {field} must be an array")
+        return set()
+    identifiers: set[str] = set()
+    for index, record in enumerate(records):
+        if not isinstance(record, dict) or not all(
+            isinstance(key, str) for key in record
+        ):
+            findings.append(
+                f"Requirements Lab document {field}[{index}] must be an object"
+            )
+            continue
+        identifier = record.get("id")
+        if not isinstance(identifier, str):
+            findings.append(
+                f"Requirements Lab document {field}[{index}].id must be a string"
+            )
+            continue
+        identifiers.add(identifier)
+    return identifiers
 
 
 def main() -> int:

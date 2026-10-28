@@ -168,7 +168,7 @@ TEST_CASE(
       server,
       fixture_hla::fixture::efficiency);
   auto const privilegeToDelete = publisher->getAttributeHandle(
-      server, L"HLAprivilegeToDeleteObject");
+      server, umbra::test::hla::wide::standard::privilege_to_delete_object);
   REQUIRE(server.isValid());
   REQUIRE(efficiency.isValid());
   REQUIRE(privilegeToDelete.isValid());
@@ -272,7 +272,7 @@ TEST_CASE(
   auto const efficiency = oldOwner->getAttributeHandle(
       server, fixture_hla::fixture::efficiency);
   auto const privilegeToDelete = oldOwner->getAttributeHandle(
-      server, L"HLAprivilegeToDeleteObject");
+      server, umbra::test::hla::wide::standard::privilege_to_delete_object);
   REQUIRE(server.isValid());
   REQUIRE(efficiency.isValid());
   REQUIRE(privilegeToDelete.isValid());
@@ -401,7 +401,7 @@ TEST_CASE(
   auto const efficiency = owner->getAttributeHandle(
       server, fixture_hla::fixture::efficiency);
   auto const privilegeToDelete = owner->getAttributeHandle(
-      server, L"HLAprivilegeToDeleteObject");
+      server, umbra::test::hla::wide::standard::privilege_to_delete_object);
   REQUIRE(server.isValid());
   REQUIRE(efficiency.isValid());
   REQUIRE(privilegeToDelete.isValid());

@@ -122,7 +122,8 @@ evoked. Its source candidates retain the coalesced-page ownership defect under
 RL-078. The following §4.30 `InitiateFederateRestore` record uses that same
 recipient-local file and serial sequence, preserving the type-53 `Federation
 save label`, type-15 `Joined federate designator`, and type-53 `Federate name`
-before `initiateFederateRestore()` can be evoked. `Federate Restore Complete` records §4.31's required type-6 `Federate restore-success
+before `initiateFederateRestore()` can be evoked. `Federate Restore Complete` records §4.31's required type-6 `Federate
+restore-success
 indicator`: `federateRestoreComplete()` selects `true`, and
 `federateRestoreNotComplete()` selects `false`, while both use the one
 `FederateRestoreComplete` service name before their respective Federation
@@ -880,7 +881,7 @@ conditional/non-initial values, or a complete standard producer mapping.
   `HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation`,
   its `HLAfederate` and `HLAserviceGroup` dimensions, seven parameters, and
   receive-order / reliable delivery.
-- The official 2025 C++ headers remain the public ABI authority.  Umbra must
+- The official 2025 C++ headers remain the public ABI authority. Umbra must
   not publish a parallel public MOM or encoding API.
 
 ### Exception-report source and implementation audit (2026-09-22)
@@ -954,10 +955,10 @@ Its private point region has:
 - a private identity, so public region services cannot modify, delete, or use
   the endpoint as a caller-supplied update region.
 
-The endpoint is not an ordinary federate-originated interaction.  In
+The endpoint is not an ordinary federate-originated interaction. In
 particular, it must not pass through public `sendInteraction`: that path
 requires caller publication and caller-owned regions, and would recursively
-report the report itself.  A registry-owned reporting planner must instead
+report the report itself. A registry-owned reporting planner must instead
 perform MIM class/parameter lookup, regional subscription selection, and
 callback-time revalidation directly.
 
@@ -966,25 +967,25 @@ callback-time revalidation directly.
 1. A successful or failed HLA service invocation to or from a joined federate
    is reportable only when that federate's Service Reporting switch is enabled.
 2. The subject federate's counter starts at zero and is incremented once for
-   every report actually accepted for emission.  It is independent for each
+   every report actually accepted for emission. It is independent for each
    joined membership and is never advanced by an unsent report.
    An interaction-selected invocation with no eligible recipient is therefore
    suppressed before serial reservation; disabling the file sink cannot create
    a visible serial gap when no interaction sink can receive the report.
 3. Report interactions use reliable, receive-order delivery and never trigger
-   another report.  They bypass the subject's Service Reporting switch during
+   another report. They bypass the subject's Service Reporting switch during
    their own delivery.
-4. Regional subscriptions are selected against the private point region.  The
+4. Regional subscriptions are selected against the private point region. The
    normal DDM predicate and callback-time subscription recheck remain the
    common source of truth; the report endpoint is an additional internal
    producer form, not a relaxed special case.
 5. A subject federate cannot become a report recipient for itself through the
-   excluded exact subscription.  The existing two-way interlock remains the
+   excluded exact subscription. The existing two-way interlock remains the
    admission boundary and must be preserved atomically.
 6. `HLAsendServiceReportsToFile` selects the required sink: when enabled for
    the subject federate, the generated interaction is recorded in that
    federate's unique service-report file **instead of** being sent to
-   subscribers.  File naming/location remains implementation-defined, but
+   subscribers. File naming/location remains implementation-defined, but
    bypassing either sink is not permitted.
 
 ## Filesystem report-file foundation
@@ -1578,12 +1579,12 @@ The intended implementation order is:
    per-ambassador scheduler for `HLA_IMMEDIATE`, with independent target-local
    deadlines verified for two simultaneous joined-federate MOM objects under
    both callback models; the remaining
-    periodic/conditional attributes (including
-    traffic/statistical values beyond the bounded deletable-object,
-    successful-update-count, updated-object-count, registered-object-count,
-    deleted-object-count, removed-object-count, discovered-object-count,
-    interaction-send, and interaction-receive
-    projections)
+   periodic/conditional attributes (including
+   traffic/statistical values beyond the bounded deletable-object,
+   successful-update-count, updated-object-count, registered-object-count,
+   deleted-object-count, removed-object-count, discovered-object-count,
+   interaction-send, and interaction-receive
+   projections)
    remain open. The nine event-driven switch
    projections and four bounded temporal-state projections remain the other
    bounded subset.
@@ -1618,14 +1619,14 @@ federated application state: restoring a federation snapshot cannot rewind it
 or reuse a number already written to that federate's immutable report file.
 
 The standard argument-list is a variable array of the MIM's fixed-record
-`HLAargument` type (not a variant record).  Umbra now has the first private
+`HLAargument` type (not a variant record). Umbra now has the first private
 MIM encoder and byte-vector tests for that record plus all seven individual
 report parameters. The 1516.2 Requirements Lab's `HLAvariableArray` source
 requires a signed `HLAinteger32BE` **element count**, followed by properly
 padded elements; it is not a byte-length prefix. Umbra applies that rule to
 both `HLAargumentList` and the `HLAunicodeString` data element used by MOM
 parameters. The public binding also now implements the required
-integer, boolean, and Unicode primitives.  Each argument's Unicode value is
+integer, boolean, and Unicode primitives. Each argument's Unicode value is
 the Table 5 JSON-like textual depiction for its `HLAargumentType`; that table
 must be modeled before a service wrapper is admitted. This remains an
 encoding foundation: the registry now plans a private normalized endpoint and
@@ -1724,7 +1725,7 @@ that interoperability has been demonstrated.
 The original §11.5.1 prose confirms the MIM wire representation: both
 `HLAsuppliedArguments` and `HLAreturnedArgument` use the `HLAargument` fixed
 record, a void or failed service uses the `Null` argument type, and multiple
-returns use an appropriate composite `HLAargumentType`.  The interaction
+returns use an appropriate composite `HLAargumentType`. The interaction
 encoder follows that shared source rule.
 
 There is deliberately no generic `ServiceReportRecord` file formatter. Table
@@ -2263,7 +2264,7 @@ decision rather than making an unmarked embedded-profile choice.
    outcomes. Keep proving the seven encoded parameters and serial behavior
    through Catch2 and the exact-JAR JPype lane.
 5. Add the source/API and Requirements Lab contracts only for that concrete
-   behavior.  Do not promote a catalog/JUnit/validation record until the Lab
+   behavior. Do not promote a catalog/JUnit/validation record until the Lab
    workflow has accepted real test evidence.
 6. Extend report coverage service family by service family, retain the
    established file writer identity across switch changes, and continue the

@@ -127,7 +127,9 @@ def _cpp_violations(path: Path) -> list[str]:
 def _violation_path(violation: str, root: Path) -> str | None:
     location = violation.split(": ", 1)[0]
     candidate = location.rsplit(":", 1)
-    raw_path = candidate[0] if len(candidate) == 2 and candidate[1].isdigit() else location
+    raw_path = (
+        candidate[0] if len(candidate) == 2 and candidate[1].isdigit() else location
+    )
     path = Path(raw_path)
     try:
         return path.resolve().relative_to(root).as_posix()
@@ -139,7 +141,9 @@ def _load_baseline(path: Path) -> dict[str, int]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError(f"unable to read symbolic-name baseline {path}: {error}") from error
+        raise ValueError(
+            f"unable to read symbolic-name baseline {path}: {error}"
+        ) from error
     if not isinstance(data, dict) or data.get("schema_version") != 1:
         raise ValueError(f"unsupported symbolic-name baseline schema: {path}")
     counts = data.get("known_violation_counts")
@@ -181,11 +185,12 @@ def main() -> int:
         for violation in _python_violations(path)
     ]
     violations.extend(
-        violation
-        for path in _cpp_files(root)
-        for violation in _cpp_violations(path)
+        violation for path in _cpp_files(root) for violation in _cpp_violations(path)
     )
-    baseline_path = args.baseline or root / "docs" / "development" / "hla-symbolic-name-baseline.json"
+    baseline_path = (
+        args.baseline
+        or root / "docs" / "development" / "hla-symbolic-name-baseline.json"
+    )
     try:
         baseline = {} if args.strict else _load_baseline(baseline_path)
     except ValueError as error:

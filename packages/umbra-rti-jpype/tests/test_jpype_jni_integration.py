@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import ast
 import base64
-import importlib.util
+import inspect
 import json
 import math
 import os
-from pathlib import Path
 import re
 import shutil
 import struct
@@ -18,7 +17,40 @@ import tempfile
 import time
 import unittest
 import zipfile
+from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Set as AbstractSet
+from itertools import groupby
+from pathlib import Path
+from typing import Any, NamedTuple, TypeAlias, TypedDict, cast
 from uuid import uuid4
+
+JsonScalar: TypeAlias = str | int | float | bool | None
+JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonObject: TypeAlias = dict[str, JsonValue]
+
+
+class _FederationJoinArguments(TypedDict):
+    federateName: str
+
+
+class _FederationJoinWithAdditionalFomArguments(_FederationJoinArguments, total=False):
+    additionalFomModules: list[str]
+
+
+class _RuntimeServiceOverride(NamedTuple):
+    service_name: str
+    original: Callable[..., object]
+
+
+class _ReflectedCallbackMethod(NamedTuple):
+    callback_name: str
+    method: Any
+
+
+class _CallbackOverloadGroup(NamedTuple):
+    callback_name: str
+    overloads: list[Any]
+
 
 from hla.rti1516_2025 import (
     AttributeHandle,
@@ -31,21 +63,21 @@ from hla.rti1516_2025 import (
     DimensionHandleSet,
     FederateAmbassador,
     FederateHandle,
-    FederateHandleSet,
     FederateHandleSaveStatusPair,
+    FederateHandleSet,
     FederateRestoreStatus,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
     FederationExecutionMemberInformation,
     FederationExecutionMemberInformationSet,
-    HLAinteger64Interval,
-    InteractionClassHandle,
     HLAfloat64Interval,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
-    InteractionClassHandleSet,
+    HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
+    InteractionClassHandle,
+    InteractionClassHandleSet,
     MessageRetractionHandle,
     ObjectClassHandle,
     ObjectInstanceHandle,
@@ -57,102 +89,91 @@ from hla.rti1516_2025 import (
     RegionHandle,
     RegionHandleSet,
     ResignAction,
-    RtiConfiguration,
-    RTIambassador,
     RestoreFailureReason,
     RestoreStatus,
+    RTIambassador,
+    RtiConfiguration,
     SaveFailureReason,
     SaveStatus,
     ServiceGroup,
     SynchronizationPointFailureReason,
     TransportationTypeHandle,
 )
-from umbra_rti_test_support import (
-    CALLBACK_OVERLOAD_COUNTS,
-    CallbackDeliveryObservation,
-    HLA_FIXTURES,
-    HLA_FOM,
-    HLA_MOM,
-    HLA_TYPES,
-    ProviderBindingParityConformanceMixin,
-    assert_callback_delivery_parity,
-    iter_callback_provenance_matrix,
-    iter_data_element_value_matrix,
-    iter_extendable_variant_wire_matrix,
-    iter_vendor_data_element_encode_matrix,
-    iter_vendor_data_element_wire_matrix,
+from hla.rti1516_2025.auth import Credentials, HLAnoCredentials
+from hla.rti1516_2025.encoding import (
+    DataElementFactory,
+    DecoderException,
+    EncoderException,
+    EncoderFactory,
 )
 from hla.rti1516_2025.exceptions import (
     AlreadyConnected,
-    AsynchronousDeliveryAlreadyEnabled,
     AsynchronousDeliveryAlreadyDisabled,
+    AsynchronousDeliveryAlreadyEnabled,
     AttributeAcquisitionWasNotRequested,
-    AttributeAlreadyBeingDivested,
     AttributeAlreadyBeingAcquired,
+    AttributeAlreadyBeingDivested,
     AttributeDivestitureWasNotRequested,
     AttributeNotDefined,
     AttributeNotOwned,
     CallNotAllowedFromWithinCallback,
     CouldNotDecode,
     CouldNotOpenFOM,
-    FederateIsExecutionMember,
-    FederateInternalError,
-    FederateHasNotBegunSave,
+    FederateAlreadyExecutionMember,
     FederateHandleNotKnown,
+    FederateHasNotBegunSave,
+    FederateInternalError,
+    FederateIsExecutionMember,
     FederateNameAlreadyInUse,
     FederateNotExecutionMember,
     FederateOwnsAttributes,
     FederatesCurrentlyJoined,
+    FederateServiceInvocationsAreBeingReportedViaMOM,
     FederationExecutionAlreadyExists,
     FederationExecutionDoesNotExist,
-    FederateAlreadyExecutionMember,
-    FederateServiceInvocationsAreBeingReportedViaMOM,
     IllegalName,
+    IllegalTimeArithmetic,
     InconsistentFOM,
+    InteractionClassNotDefined,
     InteractionClassNotPublished,
     InteractionParameterNotDefined,
-    IllegalTimeArithmetic,
-    InvalidLogicalTime,
-    InvalidLogicalTimeInterval,
-    InvalidLookahead,
-    InvalidAttributeHandle,
+    InTimeAdvancingState,
     InvalidDimensionHandle,
     InvalidFederateHandle,
     InvalidInteractionClassHandle,
+    InvalidLogicalTime,
+    InvalidLogicalTimeInterval,
+    InvalidLookahead,
     InvalidMessageRetractionHandle,
-    InvalidOrderName,
-    InvalidOrderType,
     InvalidObjectClassHandle,
     InvalidObjectInstanceHandle,
-    InvalidParameterHandle,
+    InvalidOrderName,
     InvalidRangeBound,
     InvalidRegion,
     InvalidRegionContext,
-    InvalidUpdateRateDesignator,
     InvalidTransportationName,
     InvalidTransportationTypeHandle,
-    InTimeAdvancingState,
-    InteractionClassNotDefined,
+    InvalidUpdateRateDesignator,
     LogicalTimeAlreadyPassed,
     MessageCanNoLongerBeRetracted,
     NameNotFound,
     NameSetWasEmpty,
+    NotConnected,
     ObjectClassNotDefined,
     ObjectClassNotPublished,
-    NotConnected,
-    ObjectInstanceNotKnown,
     ObjectInstanceNameNotReserved,
-    ObjectClassRelevanceAdvisorySwitchIsOff,
+    ObjectInstanceNotKnown,
     OwnershipAcquisitionPending,
     RegionDoesNotContainSpecifiedDimension,
     RegionInUseForUpdateOrSubscription,
     RegionNotCreatedByThisFederate,
+    ReportServiceInvocationsAreSubscribed,
+    RequestForTimeConstrainedPending,
+    RequestForTimeRegulationPending,
     RestoreInProgress,
     RestoreNotInProgress,
     RestoreNotRequested,
-    ReportServiceInvocationsAreSubscribed,
-    RequestForTimeRegulationPending,
-    RequestForTimeConstrainedPending,
+    RTIexception,
     RTIinternalError,
     SaveInProgress,
     SaveNotInitiated,
@@ -164,16 +185,27 @@ from hla.rti1516_2025.exceptions import (
     TimeRegulationIsNotEnabled,
     Unauthorized,
 )
-from hla.rti1516_2025.auth import Credentials, HLAnoCredentials
-from hla.rti1516_2025.encoding import (
-    DataElementFactory,
-    DecoderException,
-    EncoderException,
-    EncoderFactory,
-)
 from umbra._java.rti1516_2025 import JavaRtiFactory
 from umbra._java.rti1516_2025.encoding import _JavaDataElement
 from umbra._java.rti1516_2025.provider import JavaRTIambassador
+from umbra_rti_test_support import (
+    CALLBACK_OVERLOAD_COUNTS,
+    HLA_FIXTURES,
+    HLA_FOM,
+    HLA_MOM,
+    HLA_TYPES,
+    CallbackDeliveryObservation,
+    ProviderBindingParityConformanceMixin,
+    assert_callback_delivery_parity,
+    iter_callback_provenance_matrix,
+    iter_data_element_value_matrix,
+    iter_extendable_variant_wire_matrix,
+    iter_vendor_data_element_encode_matrix,
+    iter_vendor_data_element_wire_matrix,
+)
+from umbra_rti_test_support import (
+    best_effort_cleanup as _best_effort_teardown,
+)
 
 try:
     from _jni_bridge_fixture import build_jni_bridge, jni_toolchain_available
@@ -184,8 +216,14 @@ except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).parent))
     from _jni_bridge_fixture import build_jni_bridge, jni_toolchain_available
 
+from _jni_factory_discovery import JniFactoryDiscoveryMixin
 
-JPYPE_AVAILABLE = importlib.util.find_spec("jpype") is not None
+try:
+    import jpype
+except ModuleNotFoundError:
+    jpype = None
+
+JPYPE_AVAILABLE = jpype is not None
 JNI_INTEGRATION_ENABLED = os.environ.get("UMBRA_ENABLE_JNI_INTEGRATION_TESTS") == "1"
 
 
@@ -229,6 +267,14 @@ class _FederateReferenceElementFactory(DataElementFactory):
         return self._encoder.createHLAvariableArray(_ByteElementFactory(self._encoder))
 
 
+class _ReceivedInteraction(NamedTuple):
+    interaction_class: InteractionClassHandle
+    parameter_values: ParameterHandleValueMap
+    tag: bytes
+    transportation_type: TransportationTypeHandle
+    producing_federate: FederateHandle
+
+
 class _JniCallbacks(FederateAmbassador):
     def __init__(self) -> None:
         self.connection_lost: list[str] = []
@@ -256,15 +302,7 @@ class _JniCallbacks(FederateAmbassador):
         self.restore_initiations: list[tuple[str, str, FederateHandle]] = []
         self.restore_completions = 0
         self.restore_failures: list[RestoreFailureReason] = []
-        self.received_interactions: list[
-            tuple[
-                InteractionClassHandle,
-                ParameterHandleValueMap,
-                bytes,
-                TransportationTypeHandle,
-                FederateHandle,
-            ]
-        ] = []
+        self.received_interactions: list[_ReceivedInteraction] = []
         self.discovered_objects: list[
             tuple[ObjectInstanceHandle, ObjectClassHandle, str, FederateHandle]
         ] = []
@@ -453,7 +491,7 @@ class _JniCallbacks(FederateAmbassador):
         receivedOrderType: OrderType | None = None,
         retraction: MessageRetractionHandle | None = None,
     ) -> None:
-        values = (
+        values = _ReceivedInteraction(
             interactionClass,
             parameterValues,
             bytes(userSuppliedTag),
@@ -772,14 +810,14 @@ class _JniCallbacks(FederateAmbassador):
     JNI_INTEGRATION_ENABLED and JPYPE_AVAILABLE and jni_toolchain_available(),
     "requires UMBRA_ENABLE_JNI_INTEGRATION_TESTS=1, JPype, a JDK, CMake, and PowerShell",
 )
-class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.TestCase):
+class JPypeJniIntegrationTest(
+    JniFactoryDiscoveryMixin, ProviderBindingParityConformanceMixin, unittest.TestCase
+):
     def make_factory(self) -> JavaRtiFactory:
         return self.factory
 
     @classmethod
     def setUpClass(cls) -> None:
-        import jpype
-
         if jpype.isJVMStarted():
             raise unittest.SkipTest(
                 "the JNI fixture classpath must be present before the JVM starts"
@@ -803,37 +841,36 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         # installed only for this test class and restored in tearDownClass so
         # normal provider behavior and focused tests remain unchanged.
         cls._runtime_service_calls: set[str] = set()
-        cls._runtime_service_originals: dict[str, object] = {}
+        cls._runtime_service_originals: list[_RuntimeServiceOverride] = []
         for service_name in RTIambassador.__abstractmethods__:
             original = getattr(JavaRTIambassador, service_name, None)
             if original is None or not callable(original):
                 continue
+            original_call = cast(Callable[..., object], original)
 
             def traced(
                 ambassador: JavaRTIambassador,
                 *arguments: object,
                 __name: str = service_name,
-                __original: object = original,
+                __original: Callable[..., object] = original_call,
                 **keywords: object,
             ) -> object:
                 cls._runtime_service_calls.add(__name)
-                return __original(ambassador, *arguments, **keywords)  # type: ignore[operator]
+                return __original(ambassador, *arguments, **keywords)
 
-            cls._runtime_service_originals[service_name] = original
+            cls._runtime_service_originals.append(
+                _RuntimeServiceOverride(service_name, original_call)
+            )
             setattr(JavaRTIambassador, service_name, traced)
 
     @classmethod
     def tearDownClass(cls) -> None:
-        for service_name, original in getattr(
-            cls, "_runtime_service_originals", {}
-        ).items():
-            setattr(JavaRTIambassador, service_name, original)
+        for override in getattr(cls, "_runtime_service_originals", []):
+            setattr(JavaRTIambassador, override.service_name, override.original)
         super().tearDownClass()
 
     def test_jpype_ambassador_is_the_exact_2025_java_interface(self) -> None:
         """The adapter must consume the Java API interface, not a Python shadow."""
-        import jpype
-
         ambassador = self.factory.getRtiAmbassador()
         raw_ambassador = ambassador.unwrap_java_object()
         standard_interface = jpype.JClass("hla.rti1516_2025.RTIambassador").class_
@@ -841,8 +878,6 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
     def test_cpp_jni_java_jpype_basic_data_element_value_matrix(self) -> None:
         """Round-trip every shared 2025 basic value through Java and C++ JNI."""
-        import jpype
-
         # Initialize the standard provider once before requesting the raw
         # encoder.  This follows the normal factory -> ambassador lifecycle
         # used by the rest of this integration class and avoids asking JPype
@@ -935,7 +970,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 raw_decoded.encode(raw_encode_wrapper)
                 self.assertEqual(raw_encode_wrapper.getPos(), len(encoded) + 1)
                 self.assertEqual(raw_encode_wrapper.remaining(), 1)
-                self.assertEqual(bytes(raw_encode_buffer)[1 : len(encoded) + 1], encoded)
+                self.assertEqual(
+                    bytes(raw_encode_buffer)[1 : len(encoded) + 1], encoded
+                )
                 self.assertEqual(
                     int(raw_encode_buffer[raw_encode_wrapper.getPos()]) & 0xFF,
                     0xA5,
@@ -950,9 +987,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 self.assertIs(
                     python_element.encode(python_encode_wrapper), python_element
                 )
-                self.assertEqual(
-                    python_encode_wrapper.getPos(), len(encoded) + 1
-                )
+                self.assertEqual(python_encode_wrapper.getPos(), len(encoded) + 1)
                 self.assertEqual(python_encode_wrapper.remaining(), 1)
                 self.assertEqual(
                     bytes(python_encode_buffer)[1 : len(encoded) + 1], encoded
@@ -977,7 +1012,6 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 self.assertEqual(
                     bytes(short_python_buffer), b"\0" * max(len(encoded) - 1, 0)
                 )
-
 
     def test_cpp_jni_java_jpype_python_composite_creator_arguments(self) -> None:
         """Preserve 2025 composite creator overload arguments through JPype.
@@ -1034,9 +1068,6 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
     def test_cpp_jni_java_jpype_exact_federate_ambassador_surface(self) -> None:
         """Every exact Java callback name has an explicit JPype dispatcher."""
-        import jpype
-        import inspect
-
         from umbra._java.rti1516_2025._runtime import _FederateAmbassadorCallback
 
         ambassador = self.factory.getRtiAmbassador()
@@ -1112,8 +1143,6 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         carrier identity and values only; callback scheduling and RTI
         semantics remain provider-defined.
         """
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -1163,15 +1192,14 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     "hla.rti1516_2025.FederateAmbassador"
                 ).class_
                 callback_names = {
-                    str(method.getName())
-                    for method in callback_interface.getMethods()
+                    str(method.getName()) for method in callback_interface.getMethods()
                 }
                 for name in callback_names:
                     setattr(
                         callback,
                         name,
-                        lambda *arguments, _name=name, _callback=callback: _callback.calls.append(
-                            (_name, arguments)
+                        lambda *arguments, _name=name, _callback=callback: (
+                            _callback.calls.append((_name, arguments))
                         ),
                     )
                 ambassador.connect(callback, CallbackModel.HLA_EVOKED)
@@ -1195,9 +1223,25 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             callback_interface = jpype.JClass(
                 "hla.rti1516_2025.FederateAmbassador"
             ).class_
-            methods_by_name: dict[str, list[object]] = {}
-            for method in callback_interface.getMethods():
-                methods_by_name.setdefault(str(method.getName()), []).append(method)
+            reflected_methods = sorted(
+                (
+                    _ReflectedCallbackMethod(str(method.getName()), method)
+                    for method in callback_interface.getMethods()
+                ),
+                key=lambda item: item.callback_name,
+            )
+            methods_by_name: list[_CallbackOverloadGroup] = []
+            for callback_name, reflected_group in groupby(
+                reflected_methods, key=lambda item: item.callback_name
+            ):
+                overloads = sorted(
+                    (item.method for item in reflected_group),
+                    key=lambda method: tuple(
+                        str(parameter.getName())
+                        for parameter in method.getParameterTypes()
+                    ),
+                )
+                methods_by_name.append(_CallbackOverloadGroup(callback_name, overloads))
 
             handle_kinds = {
                 "FederateHandle": "FederateHandle",
@@ -1289,9 +1333,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     information_type = jpype.JClass(
                         "hla.rti1516_2025.FederationExecutionInformation"
                     )
-                    values.add(
-                        information_type("callback-federation", time_kind)
-                    )
+                    values.add(information_type("callback-federation", time_kind))
                     return values
                 if type_name.endswith("FederationExecutionMemberInformationSet"):
                     values = jpype.JClass(
@@ -1332,7 +1374,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     "callback matrix has no JNI carrier for " + type_name
                 )
 
-            def assert_python_value(java_type: object, value: object, time_kind: str) -> None:
+            def assert_python_value(
+                java_type: object, value: object, time_kind: str
+            ) -> None:
                 type_name = str(java_type.getName())  # type: ignore[attr-defined]
                 simple_name = type_name.rsplit(".", 1)[-1]
                 if type_name == "java.lang.String":
@@ -1348,7 +1392,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         else HLAinteger64Time
                     )
                     self.assertIsInstance(value, expected_type)
-                    self.assertEqual(value.getTime(), 7.5 if expected_type is HLAfloat64Time else 7)
+                    self.assertEqual(
+                        value.getTime(), 7.5 if expected_type is HLAfloat64Time else 7
+                    )
                 elif simple_name in handle_kinds:
                     self.assertEqual(type(value).__name__, simple_name)
                     self.assertEqual(value.encodedValue, encoded_handle(0x101))
@@ -1417,7 +1463,12 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     )
 
             expected_calls = 0
-            for route_index, (raw_ambassador, binding, callback, time_kind) in enumerate(
+            for route_index, (
+                raw_ambassador,
+                binding,
+                callback,
+                time_kind,
+            ) in enumerate(
                 zip(
                     raw_ambassadors,
                     bindings,
@@ -1427,30 +1478,23 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 )
             ):
                 del route_index
-                for callback_name in sorted(methods_by_name):
-                    overloads = sorted(
-                        methods_by_name[callback_name],
-                        key=lambda method: tuple(
-                            str(parameter.getName())
-                            for parameter in method.getParameterTypes()
-                        ),
-                    )
+                for overload_group in methods_by_name:
+                    callback_name = overload_group.callback_name
+                    overloads = overload_group.overloads
                     for overload_index, method in enumerate(overloads):
                         parameter_types = list(method.getParameterTypes())
                         arguments = tuple(
-                                raw_value(
-                                    raw_ambassador,
-                                    parameter_type,
-                                    time_kind,
-                                    0x101,
-                                )
+                            raw_value(
+                                raw_ambassador,
+                                parameter_type,
+                                time_kind,
+                                0x101,
+                            )
                             for index, parameter_type in enumerate(parameter_types)
                         )
                         before = len(callback.calls)
                         getattr(binding.target, callback_name)(*arguments)
-                        self.assertEqual(
-                            len(callback.calls), before + 1, callback_name
-                        )
+                        self.assertEqual(len(callback.calls), before + 1, callback_name)
                         returned_name, returned = callback.calls[-1]
                         self.assertEqual(returned_name, callback_name)
                         self.assertEqual(len(returned), len(parameter_types))
@@ -1469,12 +1513,10 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         expected_calls += 1
 
             reflected_overload_count = sum(
-                len(overloads) for overloads in methods_by_name.values()
+                len(group.overloads) for group in methods_by_name
             )
             self.assertEqual(len(methods_by_name), 56)
-            self.assertEqual(
-                reflected_overload_count, CALLBACK_OVERLOAD_COUNTS["2025"]
-            )
+            self.assertEqual(reflected_overload_count, CALLBACK_OVERLOAD_COUNTS["2025"])
             self.assertEqual(len(integer_callback.calls), reflected_overload_count)
             self.assertEqual(len(float_callback.calls), reflected_overload_count)
             self.assertEqual(expected_calls, reflected_overload_count * 2)
@@ -1482,22 +1524,16 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             for index in (1, 0):
                 ambassador = ambassadors[index]
                 if joined[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(
                             (integer_name, float_name)[index]
                         )
-                    except Exception:
-                        pass
                 if connected[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_callback_provenance_carriers(self) -> None:
@@ -1511,8 +1547,6 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         these checks prove both carrier construction and Python normalization
         without introducing a second callback contract.
         """
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -1598,9 +1632,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 ambassador.unwrap_java_object() for ambassador in ambassadors
             )
             bindings = (
-                integer_ambassador._runtime.bind_federate_ambassador(
-                    integer_callbacks
-                ),
+                integer_ambassador._runtime.bind_federate_ambassador(integer_callbacks),
                 float_ambassador._runtime.bind_federate_ambassador(float_callbacks),
             )
             secondary_bindings = (
@@ -1614,9 +1646,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
             vectors = iter_callback_provenance_matrix()
             actual: list[CallbackDeliveryObservation] = []
-            stream_positions = {name: 0 for name in (
-                "integer-a", "integer-b", "float-a", "float-b"
-            )}
+            stream_positions = {
+                name: 0 for name in ("integer-a", "integer-b", "float-a", "float-b")
+            }
 
             def invoke_and_record(
                 recipient: str,
@@ -1757,7 +1789,8 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     else (float_callbacks, float_secondary_callbacks)
                 )
                 target_pair = (
-                    (bindings[route_index].target, secondary_bindings[route_index].target)
+                    bindings[route_index].target,
+                    secondary_bindings[route_index].target,
                 )
                 recipient_pair = (
                     ("integer-a", "integer-b")
@@ -1775,9 +1808,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     else:
                         raw_regions = None
                         if vector.sent_region is not None:
-                            raw_regions = getattr(
-                                raw_ambassador, "getRegionHandleSetFactory"
-                            )().create()
+                            raw_regions = (
+                                raw_ambassador.getRegionHandleSetFactory().create()
+                            )
                             raw_regions.add(
                                 raw_handle(raw_ambassador, "RegionHandle", 37)
                             )
@@ -1816,7 +1849,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     for recipient, target, callback in zip(
                         recipient_pair, target_pair, callback_pair, strict=True
                     ):
-                        invoke_and_record(recipient, target, callback, vector, arguments)
+                        invoke_and_record(
+                            recipient, target, callback, vector, arguments
+                        )
 
             expected = tuple(
                 CallbackDeliveryObservation.from_vector(
@@ -1832,8 +1867,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                             for vector in vectors
                             if not (
                                 vector.timed
-                                and vector.time_implementation
-                                == HLA_TYPES.FLOAT64_TIME
+                                and vector.time_implementation == HLA_TYPES.FLOAT64_TIME
                             )
                         ),
                     ),
@@ -1855,22 +1889,16 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             for index in (1, 0):
                 ambassador = ambassadors[index]
                 if joined[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(
                             (integer_name, float_name)[index]
                         )
-                    except Exception:
-                        pass
                 if connected[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_regional_interaction_subscription_service_report_failures(
@@ -1903,11 +1931,12 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         region: RegionHandle | None = None
         invalid_region: RegionHandle | None = None
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -2042,25 +2071,17 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertIsNone(success_unsubscribe[HLA_MOM.EXCEPTION])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if region is not None:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_regional_subscription_failure_reaches_mom_callback(
@@ -2223,30 +2244,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -2468,30 +2479,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertEqual(len(observer_callbacks.received_interactions), 6)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -2776,30 +2777,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertEqual(len(observer_callbacks.received_interactions), 6)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -2977,30 +2968,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertEqual(len(observer_callbacks.received_interactions), 3)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -3346,51 +3327,45 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     and variant == "regional"
                     and consumer_region is not None
                 ):
-                    try:
+                    with _best_effort_teardown(
+                        "consumer.unsubscribeInteractionClassWithRegions"
+                    ):
                         consumer.unsubscribeInteractionClassWithRegions(
                             consumer.getInteractionClassHandle(
                                 HLA_FOM.TRANSPORTATION_REGIONAL_INTERACTION
                             ),
                             RegionHandleSet([consumer_region]),
                         )
-                    except Exception:
-                        pass
                 for ambassador, region in (
                     (consumer, consumer_region),
                     (producer, producer_region),
                 ):
                     if region is not None:
-                        try:
+                        with _best_effort_teardown("ambassador.deleteRegion"):
                             ambassador.deleteRegion(region)
-                        except Exception:
-                            pass
                 for ambassador, joined in (
                     (consumer, consumer_joined),
                     (producer, producer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(
                                 ResignAction.NO_ACTION
                                 if variant == "regional"
                                 else ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                             )
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("producer.destroyFederationExecution"):
                         producer.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (consumer, consumer_connected),
                     (producer, producer_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for variant in ("ordinary", "timestamped", "regional"):
@@ -3699,21 +3674,15 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         finally:
             for ambassador, is_joined in zip(ambassadors, joined):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, is_connected in zip(ambassadors, connected):
                 if is_connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_order_defaults_instance_override_and_interaction_scope(
@@ -3975,103 +3944,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertIsNone(interaction_report[4])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
             publisher._implementation.close()
-
-    def test_jni_factory_is_discovered_by_the_exact_2025_java_serviceloader(
-        self,
-    ) -> None:
-        """Prove Python reaches the bridge through Java's standard factory API."""
-        import jpype
-
-        java_factory = self.factory.unwrap_java_factory()
-        standard_factory = jpype.JClass("hla.rti1516_2025.RtiFactory").class_
-        self.assertTrue(standard_factory.isAssignableFrom(java_factory.getClass()))
-        self.assertEqual(str(java_factory.rtiName()), self.factory.JAVA_FACTORY_NAME)
-        self.assertTrue(str(java_factory.rtiVersion()))
-
-        # The object returned by the Java ServiceLoader must itself create the
-        # standard RTIambassador interface that the Python provider wraps.  A
-        # bespoke Python/C++ shortcut would bypass this exact Java surface.
-        java_ambassador = java_factory.getRtiAmbassador()
-        standard_ambassador = jpype.JClass("hla.rti1516_2025.RTIambassador").class_
-        self.assertTrue(
-            standard_ambassador.isAssignableFrom(java_ambassador.getClass())
-        )
-        java_ambassador.close()
-
-    def test_jni_factory_is_discovered_by_standard_java_no_arg_serviceloader(
-        self,
-    ) -> None:
-        """The bridge is usable through the normal no-argument factory API."""
-        import jpype
-
-        # The configured Python adapter uses the named standard overload to
-        # avoid ambiguity when an application class path contains several
-        # providers.  With only the independent IEEE API and Umbra bridge on
-        # this class path, the ordinary Java no-argument ServiceLoader route
-        # must discover the same C++ provider too.
-        self.factory.getRtiAmbassador()
-        factory_factory = jpype.JClass("hla.rti1516_2025.RtiFactoryFactory")
-        java_factory = factory_factory.getRtiFactory()
-        self.assertEqual(str(java_factory.rtiName()), self.factory.JAVA_FACTORY_NAME)
-        standard_factory = jpype.JClass("hla.rti1516_2025.RtiFactory").class_
-        self.assertTrue(standard_factory.isAssignableFrom(java_factory.getClass()))
-        java_ambassador = java_factory.getRtiAmbassador()
-        try:
-            standard_ambassador = jpype.JClass("hla.rti1516_2025.RTIambassador").class_
-            self.assertTrue(
-                standard_ambassador.isAssignableFrom(java_ambassador.getClass())
-            )
-        finally:
-            java_ambassador.close()
-
-    def test_cpp_jni_java_jpype_standard_java_close_releases_native_state(self) -> None:
-        """The Java AutoCloseable extension must own the C++ ambassador lifetime."""
-        import jpype
-
-        ambassador = self.factory.getRtiAmbassador()
-        raw_ambassador = ambassador.unwrap_java_object()
-        try:
-            # Invoke close on the exact Java proxy rather than on the Python
-            # adapter's private implementation handle.
-            raw_ambassador.close()
-            with self.assertRaises(jpype.JClass("java.lang.IllegalStateException")):
-                raw_ambassador.listFederationExecutions()
-            # Native destruction is idempotent, so Java try-with-resources and
-            # the Python adapter's cleanup path may safely overlap.
-            raw_ambassador.close()
-        finally:
-            ambassador._implementation.close()
-
-    def test_jni_factory_probe_reads_standard_identity_without_ambassador(self) -> None:
-        probe = self.factory.probe()
-
-        self.assertIs(probe.factory, self.factory)
-        self.assertEqual(probe.rti_name, self.factory.JAVA_FACTORY_NAME)
-        self.assertTrue(probe.rti_version)
-        self.assertEqual(
-            probe.configuration.classpath,
-            (str(self.artifacts.api_jar), str(self.artifacts.bridge_jar)),
-        )
 
     def test_cpp_jni_java_jpype_generic_from_jar_route(self) -> None:
         """Use the generic JavaRtiFactory onboarding path for the JNI bridge."""
@@ -4118,20 +4004,14 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             joined = True
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_generic_vendor_jar_route_in_fresh_jvm(self) -> None:
@@ -4345,8 +4225,6 @@ finally:
 
     def test_cpp_jni_java_jpype_standard_authorizer_service(self) -> None:
         """The Java authorization ServiceLoader delegates policy to C++."""
-        import jpype
-
         self.factory.getRtiAmbassador()
         system = jpype.java.lang.System
         property_name = "umbra.rti.jni.authorizer.password"
@@ -4495,8 +4373,6 @@ finally:
             dimension_set.add(dimension)
             region = raw_ambassador.createRegion(dimension_set)
             federate = raw_ambassador.getFederateHandle("jni-standard-encoder")
-            import jpype
-
             # Obtain a live C++ retraction handle through the exact standard
             # Java timestamped-interaction overload.  This is the one handle
             # domain whose value cannot be created from a name lookup.
@@ -4877,9 +4753,11 @@ finally:
                 (HLA_TYPES.INTEGER64_LE, raw_encoder.createHLAinteger64LE, b"\0" * 7),
             )
             for name, create_signed, malformed in signed_decoder_cases:
-                with self.subTest(decoder=name):
-                    with self.assertRaises(java_decoder_exception):
-                        create_signed().decode(malformed)
+                with (
+                    self.subTest(decoder=name),
+                    self.assertRaises(java_decoder_exception),
+                ):
+                    create_signed().decode(malformed)
 
             # The same cursor contract must hold for a native composite, not
             # just a primitive.  Its child alignment and decoded length stay
@@ -5026,7 +4904,7 @@ finally:
             data_element_type = jpype.JClass("hla.rti1516_2025.encoding.DataElement")
             variable_factory = jpype.JProxy(
                 "hla.rti1516_2025.encoding.DataElementFactory",
-                dict(createElement=lambda index: raw_encoder.createHLAinteger32BE()),
+                {"createElement": lambda index: raw_encoder.createHLAinteger32BE()},
             )
             variable_values = jpype.JArray(data_element_type)(
                 [
@@ -5338,9 +5216,7 @@ finally:
                 python_time_element.encode(python_time_encode_cursor),
                 python_time_element,
             )
-            self.assertEqual(
-                python_time_encode_cursor.getPos(), 1 + len(time_encoded)
-            )
+            self.assertEqual(python_time_encode_cursor.getPos(), 1 + len(time_encoded))
             self.assertEqual(python_time_encode_cursor.remaining(), 1)
             self.assertEqual(
                 bytes(python_time_encode_buffer)[1 : len(time_encoded) + 1],
@@ -5388,22 +5264,16 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
                 ambassador.disconnect()
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_raw_java_byte_wrapper_malformed_scalars(self) -> None:
         """Preserve C++ decoder failures through the exact Java cursor API."""
-        import jpype
-
         encoder = self.factory.unwrap_java_encoder_factory()
         byte_wrapper_type = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")
         decoder_exception = jpype.JClass("hla.rti1516_2025.encoding.DecoderException")
@@ -5473,8 +5343,6 @@ finally:
         self,
     ) -> None:
         """Preserve C++ variable-array count/padding through raw Java cursors."""
-        import jpype
-
         raw_encoder = self.factory.unwrap_java_encoder_factory()
         python_encoder = self.factory.getEncoderFactory()
         data_element_type = jpype.JClass("hla.rti1516_2025.encoding.DataElement")
@@ -5483,7 +5351,7 @@ finally:
 
         java_factory = jpype.JProxy(
             "hla.rti1516_2025.encoding.DataElementFactory",
-            dict(createElement=lambda index: raw_encoder.createHLAfloat64BE()),
+            {"createElement": lambda index: raw_encoder.createHLAfloat64BE()},
         )
         raw_values = jpype.JArray(data_element_type)(
             [raw_encoder.createHLAfloat64BE(-2.5)]
@@ -5518,18 +5386,17 @@ finally:
             expected + b"\0",  # exact byte[] overload rejects trailing data
         )
         for malformed in malformed_values:
-            with self.subTest(malformed=malformed.hex()):
-                with self.assertRaises(decoder_exception):
-                    raw_encoder.createHLAvariableArray(
-                        java_factory, jpype.JArray(data_element_type)([])
-                    ).decode(
-                        jpype.JArray(jpype.JByte)(
-                            [
-                                value if value < 128 else value - 256
-                                for value in malformed
-                            ]
-                        )
+            with (
+                self.subTest(malformed=malformed.hex()),
+                self.assertRaises(decoder_exception),
+            ):
+                raw_encoder.createHLAvariableArray(
+                    java_factory, jpype.JArray(data_element_type)([])
+                ).decode(
+                    jpype.JArray(jpype.JByte)(
+                        [value if value < 128 else value - 256 for value in malformed]
                     )
+                )
 
         class _Float64ElementFactory(DataElementFactory):
             def createElement(self, index: int):
@@ -5547,8 +5414,6 @@ finally:
         self,
     ) -> None:
         """Keep mapped variant alignment and unknown discriminants C++-owned."""
-        import jpype
-
         raw_encoder = self.factory.unwrap_java_encoder_factory()
         raw_record = raw_encoder.createHLAvariantRecord(raw_encoder.createHLAoctet())
         raw_record.setVariant(
@@ -5617,8 +5482,6 @@ finally:
 
     def test_cpp_jni_java_jpype_raw_java_composite_alignment_and_padding(self) -> None:
         """Preserve C++ fixed-record/array padding through Java cursors."""
-        import jpype
-
         raw_encoder = self.factory.unwrap_java_encoder_factory()
         python_encoder = self.factory.getEncoderFactory()
         byte_wrapper_type = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")
@@ -5748,8 +5611,6 @@ finally:
 
     def test_cpp_jni_java_jpype_raw_java_extendable_variant_malformed(self) -> None:
         """Keep provider-specific variant decoding C++-owned through Java."""
-        import jpype
-
         encoder = self.factory.unwrap_java_encoder_factory()
         decoder_exception = jpype.JClass("hla.rti1516_2025.encoding.DecoderException")
         byte_wrapper_type = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")
@@ -5769,9 +5630,7 @@ finally:
         # overload before the malformed decode matrix, preserving a
         # non-zero offset and caller-owned trailing byte.
         encode_buffer = jpype.JArray(jpype.JByte)(
-            [0]
-            + [value if value < 0x80 else value - 0x100 for value in valid]
-            + [0x66]
+            [0] + [value if value < 0x80 else value - 0x100 for value in valid] + [0x66]
         )
         encode_cursor = byte_wrapper_type(encode_buffer, 1, len(valid) + 1)
         source.encode(encode_cursor)
@@ -5789,21 +5648,15 @@ finally:
             python_encoder.createHLAinteger32BE(7),
         )
         python_encode_buffer = jpype.JArray(jpype.JByte)(
-            [0]
-            + [value if value < 0x80 else value - 0x100 for value in valid]
-            + [0x66]
+            [0] + [value if value < 0x80 else value - 0x100 for value in valid] + [0x66]
         )
         python_encode_cursor = byte_wrapper_type(
             python_encode_buffer, 1, len(valid) + 1
         )
-        self.assertIs(
-            python_source.encode(python_encode_cursor), python_source
-        )
+        self.assertIs(python_source.encode(python_encode_cursor), python_source)
         self.assertEqual(python_encode_cursor.getPos(), 1 + len(valid))
         self.assertEqual(python_encode_cursor.remaining(), 1)
-        self.assertEqual(
-            bytes(python_encode_buffer)[1 : len(valid) + 1], valid
-        )
+        self.assertEqual(bytes(python_encode_buffer)[1 : len(valid) + 1], valid)
         self.assertEqual(
             int(python_encode_buffer[python_encode_cursor.getPos()]) & 0xFF,
             0x66,
@@ -5889,15 +5742,11 @@ finally:
         self,
     ) -> None:
         """Keep an unknown Java DataElement raw at the Python boundary."""
-        import jpype
-
         # Start the JVM through the standard factory path before resolving the
         # provider-owned probe class.  This keeps the test's class path and
         # native-library setup identical to the normal adapter route.
         self.factory.getRtiAmbassador()
-        probe = jpype.JClass(
-            "org.umbra.jni.rti1516_2025.NativeSmokeTest"
-        )
+        probe = jpype.JClass("org.umbra.jni.rti1516_2025.NativeSmokeTest")
         raw = probe.vendorDataElementCarrier()
         element = _JavaDataElement(raw, self.factory._runtime)
         self.assertEqual(type(element).__name__, "_JavaDataElement")
@@ -5922,9 +5771,7 @@ finally:
             python_record.appendElement(element)
         self.assertEqual(python_record.size(), 0)
 
-        byte_wrapper_type = jpype.JClass(
-            "hla.rti1516_2025.encoding.ByteWrapper"
-        )
+        byte_wrapper_type = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")
         encode_buffer = jpype.JArray(jpype.JByte)([0] * 6)
         encode_cursor = byte_wrapper_type(encode_buffer, 1, 4)
         self.assertIs(element.encode(encode_cursor), element)
@@ -5936,9 +5783,7 @@ finally:
             with self.subTest(encode_vector=vector.case_id):
                 raw_target = probe.vendorDataElementCarrier()
                 raw_buffer = jpype.JArray(jpype.JByte)(vector.backing)
-                raw_cursor = byte_wrapper_type(
-                    raw_buffer, vector.offset, vector.length
-                )
+                raw_cursor = byte_wrapper_type(raw_buffer, vector.offset, vector.length)
                 raw_before = bytes(raw_buffer)
                 if vector.valid:
                     raw_target.encode(raw_cursor)
@@ -5946,9 +5791,7 @@ finally:
                     expected[vector.offset : vector.offset + 4] = b"abcd"
                     self.assertEqual(bytes(raw_buffer), bytes(expected))
                     self.assertEqual(raw_cursor.getPos(), vector.offset + 4)
-                    self.assertEqual(
-                        raw_cursor.remaining(), vector.length - 4
-                    )
+                    self.assertEqual(raw_cursor.remaining(), vector.length - 4)
                 else:
                     with self.assertRaises(java_encoder_exception):
                         raw_target.encode(raw_cursor)
@@ -5964,16 +5807,10 @@ finally:
                 )
                 python_before = bytes(python_buffer)
                 if vector.valid:
-                    self.assertIs(
-                        python_target.encode(python_cursor), python_target
-                    )
+                    self.assertIs(python_target.encode(python_cursor), python_target)
                     self.assertEqual(bytes(python_buffer), bytes(expected))
-                    self.assertEqual(
-                        python_cursor.getPos(), vector.offset + 4
-                    )
-                    self.assertEqual(
-                        python_cursor.remaining(), vector.length - 4
-                    )
+                    self.assertEqual(python_cursor.getPos(), vector.offset + 4)
+                    self.assertEqual(python_cursor.remaining(), vector.length - 4)
                 else:
                     with self.assertRaises(EncoderException):
                         python_target.encode(python_cursor)
@@ -6111,19 +5948,19 @@ finally:
                 )
         finally:
             if creator_connected:
-                try:
+                with _best_effort_teardown(
+                    "creator.resignFederationExecution; creator.disconnect"
+                ):
                     if creator_joined:
                         creator.resignFederationExecution(ResignAction.NO_ACTION)
                     creator.disconnect()
-                except Exception:
-                    pass
             if joiner_connected:
-                try:
+                with _best_effort_teardown(
+                    "joiner.resignFederationExecution; joiner.disconnect"
+                ):
                     if joiner_joined:
                         joiner.resignFederationExecution(ResignAction.NO_ACTION)
                     joiner.disconnect()
-                except Exception:
-                    pass
             creator._implementation.close()
             joiner._implementation.close()
 
@@ -6184,29 +6021,21 @@ finally:
             self.assertFalse(base.getInteractionRelevanceAdvisorySwitch())
         finally:
             if extension_joined:
-                try:
+                with _best_effort_teardown("extension.resignFederationExecution"):
                     extension.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if base_joined:
-                try:
+                with _best_effort_teardown("base.resignFederationExecution"):
                     base.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("base.destroyFederationExecution"):
                     base.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (extension, extension_connected),
                 (base, base_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_preparation_failures_preserve_state(
@@ -6271,25 +6100,17 @@ finally:
             self.assertTrue(handle.encodedValue)
         finally:
             if applicant_joined:
-                try:
+                with _best_effort_teardown("applicant.resignFederationExecution"):
                     applicant.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if applicant_connected:
-                try:
+                with _best_effort_teardown("applicant.disconnect"):
                     applicant.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             applicant._implementation.close()
             owner._implementation.close()
 
@@ -6345,30 +6166,20 @@ finally:
             self.assertTrue(base.getAdvisoriesUseKnownClassSwitch())
         finally:
             if joiner_joined:
-                try:
+                with _best_effort_teardown("joiner.resignFederationExecution"):
                     joiner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if base_joined:
-                try:
+                with _best_effort_teardown("base.resignFederationExecution"):
                     base.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("base.destroyFederationExecution"):
                     base.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if joiner_connected:
-                try:
+                with _best_effort_teardown("joiner.disconnect"):
                     joiner.disconnect()
-                except Exception:
-                    pass
             if base_connected:
-                try:
+                with _best_effort_teardown("base.disconnect"):
                     base.disconnect()
-                except Exception:
-                    pass
             joiner._implementation.close()
             base._implementation.close()
 
@@ -6418,28 +6229,20 @@ finally:
             created = False
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_logical_time_encoder_rejects_cross_factory_values(
         self,
     ) -> None:
         """Keep standard logical-time data elements typed by C++'s factory."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -6540,28 +6343,22 @@ finally:
                 (integer_ambassador, integer_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             for ambassador, created, name in (
                 (float_ambassador, float_created, float_name),
                 (integer_ambassador, integer_created, integer_name),
             ):
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(name)
-                    except Exception:
-                        pass
             for ambassador, connected in (
                 (float_ambassador, float_connected),
                 (integer_ambassador, integer_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federate_lookup_preserves_departed_designator(
@@ -6677,26 +6474,20 @@ finally:
         finally:
             for index, ambassador in enumerate(ambassadors):
                 if joined[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created[0] and connected[1]:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if created[1] and connected[3]:
-                try:
+                with _best_effort_teardown(
+                    "foreign_creator.destroyFederationExecution"
+                ):
                     foreign_creator.destroyFederationExecution(foreign_federation_name)
-                except Exception:
-                    pass
             for index, ambassador in enumerate(ambassadors):
                 if connected[index]:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_membership_reentry_rejects_callback_call(self) -> None:
@@ -6714,7 +6505,7 @@ finally:
         class _ReentrantCallbacks(FederateAmbassador):
             def __init__(self) -> None:
                 self.ambassador: RTIambassador | None = None
-                self.errors: list[Exception] = []
+                self.errors: list[CallNotAllowedFromWithinCallback] = []
 
             def reportFederationExecutions(
                 self, report: FederationExecutionInformationSet
@@ -6723,21 +6514,21 @@ finally:
                 assert self.ambassador is not None
                 try:
                     self.ambassador.connect(self, CallbackModel.HLA_EVOKED)
-                except Exception as error:
+                except CallNotAllowedFromWithinCallback as error:
                     self.errors.append(error)
                 try:
                     self.ambassador.disconnect()
-                except Exception as error:
+                except CallNotAllowedFromWithinCallback as error:
                     self.errors.append(error)
                 try:
                     self.ambassador.joinFederationExecution(
                         "jni-reentrant-join-type", federation_name
                     )
-                except Exception as error:
+                except CallNotAllowedFromWithinCallback as error:
                     self.errors.append(error)
                 try:
                     self.ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception as error:
+                except CallNotAllowedFromWithinCallback as error:
                     self.errors.append(error)
 
         ambassador = self.factory.getRtiAmbassador()
@@ -6772,26 +6563,18 @@ finally:
             joined = False
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_services_require_connection(self) -> None:
         """Preserve C++ NotConnected across the exact standard Java lifecycle calls."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -6848,8 +6631,6 @@ finally:
         self,
     ) -> None:
         """Exercise C++ transport-loss cleanup through the standard Java callback."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -6866,7 +6647,7 @@ finally:
         lost_callbacks = _JniCallbacks()
         survivor_callbacks = _JniCallbacks()
         lost_connected = survivor_connected = created = False
-        lost_joined = survivor_joined = False
+        survivor_joined = False
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
             configuration = (
@@ -6885,7 +6666,6 @@ finally:
             lost.joinFederationExecution(
                 "jni-lost", federation_name, federateName="jni-lost"
             )
-            lost_joined = True
             survivor.joinFederationExecution(
                 "jni-survivor",
                 federation_name,
@@ -6973,32 +6753,22 @@ finally:
             )
         finally:
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_transport_loss_callback(self) -> None:
         """Deliver C++ ConnectionLost through the standard immediate callback model."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7013,7 +6783,7 @@ finally:
         lost_callbacks = _JniCallbacks()
         survivor_callbacks = _JniCallbacks()
         lost_connected = survivor_connected = created = False
-        lost_joined = survivor_joined = False
+        survivor_joined = False
         try:
             lost.connect(lost_callbacks, CallbackModel.HLA_IMMEDIATE)
             lost_connected = True
@@ -7028,7 +6798,6 @@ finally:
                 federation_name,
                 federateName="jni-immediate-lost",
             )
-            lost_joined = True
             survivor.joinFederationExecution(
                 "jni-immediate-survivor",
                 federation_name,
@@ -7075,25 +6844,17 @@ finally:
             )
         finally:
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
@@ -7101,8 +6862,6 @@ finally:
         self,
     ) -> None:
         """Deliver HLAreportFederateLost synchronously under HLA_IMMEDIATE."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7128,7 +6887,7 @@ finally:
             )
             created = True
             lost_federate_name = "jni-immediate-lost-mom-source"
-            lost_federate = lost.joinFederationExecution(
+            lost.joinFederationExecution(
                 lost_federate_name,
                 federation_name,
                 federateName=lost_federate_name,
@@ -7208,30 +6967,20 @@ finally:
             self.assertEqual(fault_element.getValue(), fault)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             observer._implementation.close()
 
@@ -7239,8 +6988,6 @@ finally:
         self,
     ) -> None:
         """Decode C++ HLAreportFederateLost through the exact Java API."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7266,7 +7013,7 @@ finally:
             )
             created = True
             lost_federate_name = "jni-federate-lost-report-source"
-            lost_federate = lost.joinFederationExecution(
+            lost.joinFederationExecution(
                 "jni-federate-lost-report-source",
                 federation_name,
                 federateName=lost_federate_name,
@@ -7388,30 +7135,20 @@ finally:
             self.assertEqual(fault_element.getValue(), fault)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             observer._implementation.close()
 
@@ -7419,8 +7156,6 @@ finally:
         self,
     ) -> None:
         """Carry the TSO cutoff timestamp through MOM and application callbacks."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7562,30 +7297,20 @@ finally:
             self.assertEqual(surviving_callbacks.time_advance_grants[-1].getTime(), 6)
         finally:
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -7593,8 +7318,6 @@ finally:
         self,
     ) -> None:
         """Preserve C++ DDM filtering for a regional HLAreportFederateLost callback."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7611,7 +7334,7 @@ finally:
         matching_callbacks = _JniCallbacks()
         disjoint_callbacks = _JniCallbacks()
         lost_connected = matching_connected = disjoint_connected = False
-        lost_joined = matching_joined = disjoint_joined = created = False
+        matching_joined = disjoint_joined = created = False
         matching_region: RegionHandle | None = None
         disjoint_region: RegionHandle | None = None
         report_class: InteractionClassHandle | None = None
@@ -7631,7 +7354,6 @@ finally:
                 federation_name,
                 federateName="jni-regional-federate-lost-source",
             )
-            lost_joined = True
             matching.joinFederationExecution(
                 "jni-regional-federate-lost-matching", federation_name
             )
@@ -7694,8 +7416,6 @@ finally:
             self.assertTrue(
                 bool(fault_method.invoke(None, lost.unwrap_java_object(), fault))
             )
-            lost_joined = False
-
             # The standard evoked callback is filtered by the source federate
             # coordinate, even though the report has no source-region designator.
             self.assertFalse(matching.evokeCallback(0.0))
@@ -7715,61 +7435,45 @@ finally:
             self.assertEqual(disjoint_callbacks.regional_interactions, [])
         finally:
             if matching_joined:
-                try:
+                with _best_effort_teardown(
+                    "matching.unsubscribeInteractionClassWithRegions; RegionHandleSet"
+                ):
                     if matching_region is not None and report_class is not None:
                         matching.unsubscribeInteractionClassWithRegions(
                             report_class, RegionHandleSet([matching_region])
                         )
-                except Exception:
-                    pass
             if disjoint_joined:
-                try:
+                with _best_effort_teardown(
+                    "disjoint.unsubscribeInteractionClassWithRegions; RegionHandleSet"
+                ):
                     if disjoint_region is not None and report_class is not None:
                         disjoint.unsubscribeInteractionClassWithRegions(
                             report_class, RegionHandleSet([disjoint_region])
                         )
-                except Exception:
-                    pass
             if matching_region is not None:
-                try:
+                with _best_effort_teardown("matching.deleteRegion"):
                     matching.deleteRegion(matching_region)
-                except Exception:
-                    pass
             if disjoint_region is not None:
-                try:
+                with _best_effort_teardown("disjoint.deleteRegion"):
                     disjoint.deleteRegion(disjoint_region)
-                except Exception:
-                    pass
             if matching_joined:
-                try:
+                with _best_effort_teardown("matching.resignFederationExecution"):
                     matching.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if disjoint_joined:
-                try:
+                with _best_effort_teardown("disjoint.resignFederationExecution"):
                     disjoint.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("matching.destroyFederationExecution"):
                     matching.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if matching_connected:
-                try:
+                with _best_effort_teardown("matching.disconnect"):
                     matching.disconnect()
-                except Exception:
-                    pass
             if disjoint_connected:
-                try:
+                with _best_effort_teardown("disjoint.disconnect"):
                     disjoint.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             matching._implementation.close()
             disjoint._implementation.close()
@@ -7778,8 +7482,6 @@ finally:
         self,
     ) -> None:
         """Filter immediate HLAreportFederateLost delivery by source region."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -7904,40 +7606,34 @@ finally:
                     (disjoint, disjoint_region, joined[2]),
                 ):
                     if is_joined and region is not None:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.unsubscribeInteractionClassWithRegions"
+                        ):
                             ambassador.unsubscribeInteractionClassWithRegions(
                                 report_class, RegionHandleSet([region])
                             )
-                        except Exception:
-                            pass
             for ambassador, region in (
                 (matching, matching_region),
                 (disjoint, disjoint_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for index in (1, 2, 0):
                 if joined[index]:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassadors[index].resignFederationExecution"
+                    ):
                         ambassadors[index].resignFederationExecution(
                             ResignAction.NO_ACTION
                         )
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("matching.destroyFederationExecution"):
                     matching.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, is_connected in zip(ambassadors, connected):
                 if is_connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             for ambassador in ambassadors:
                 ambassador._implementation.close()
 
@@ -7945,8 +7641,6 @@ finally:
         self,
     ) -> None:
         """Preserve C++ last-known-time TSO delivery through the standard Java route."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -8064,30 +7758,20 @@ finally:
             self.assertEqual(len(surviving_callbacks.timestamped_interactions), 1)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8095,8 +7779,6 @@ finally:
         self,
     ) -> None:
         """Deliver a TSO strictly before the lost publisher's cutoff boundary."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -8209,30 +7891,20 @@ finally:
             self.assertEqual(surviving_callbacks.time_advance_grants[-1].getTime(), 6)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8240,8 +7912,6 @@ finally:
         self,
     ) -> None:
         """Schedule cutoff TSO delivery when the survivor requests time after loss."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -8358,30 +8028,20 @@ finally:
             self.assertEqual(surviving_callbacks.time_advance_grants[-1].getTime(), 6)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8389,8 +8049,6 @@ finally:
         self,
     ) -> None:
         """Preserve C++ last-known-time timestamped deletion through Java/JPype."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -8525,30 +8183,20 @@ finally:
             self.assertEqual(len(surviving_callbacks.timestamped_removals), 1)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8556,8 +8204,6 @@ finally:
         self,
     ) -> None:
         """Preserve C++ last-known-time timestamped reflection through Java/JPype."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -8701,30 +8347,20 @@ finally:
             self.assertEqual(len(surviving_callbacks.timestamped_reflections), 1)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8732,7 +8368,6 @@ finally:
         self,
     ) -> None:
         """Suppress a stale regional cutoff reflection but retain cleanup."""
-        import jpype
 
         class OrderedCallbacks(_JniCallbacks):
             def __init__(self) -> None:
@@ -8919,7 +8554,9 @@ finally:
             self.assertEqual(lost_callbacks.connection_lost, [fault])
         finally:
             if surviving_joined and receiver_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "surviving.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     surviving.unsubscribeObjectClassAttributesWithRegions(
                         surviving.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         AttributeSetRegionSetPairList(
@@ -8940,43 +8577,27 @@ finally:
                             ]
                         ),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("surviving.deleteRegion"):
                     surviving.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("lost.deleteRegion"):
                     lost.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -8984,7 +8605,6 @@ finally:
         self,
     ) -> None:
         """Drain one lost-source TSO to each pending Java survivor."""
-        import jpype
 
         class OrderedCallbacks(_JniCallbacks):
             def __init__(self) -> None:
@@ -9185,25 +8805,19 @@ finally:
                 ("lost", lost),
             ):
                 if joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("first.destroyFederationExecution"):
                     first.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for name, ambassador in (
                 ("second", second),
                 ("first", first),
                 ("lost", lost),
             ):
                 if connected[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             lost._implementation.close()
             first._implementation.close()
             second._implementation.close()
@@ -9212,7 +8826,6 @@ finally:
         self,
     ) -> None:
         """Deliver a queued directed TSO at the lost federate's cutoff."""
-        import jpype
 
         class OrderedCallbacks(_JniCallbacks):
             def __init__(self) -> None:
@@ -9399,30 +9012,20 @@ finally:
             lost_connected = False
         finally:
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -9430,7 +9033,6 @@ finally:
         self,
     ) -> None:
         """Suppress a stale directed cutoff while retaining automatic cleanup."""
-        import jpype
 
         class OrderedCallbacks(_JniCallbacks):
             def __init__(self) -> None:
@@ -9520,7 +9122,6 @@ finally:
             surviving_interaction = surviving.getInteractionClassHandle(
                 HLA_FOM.DIRECTED_FIXTURE_INTERACTION
             )
-            reliable = lost.getTransportationTypeHandle(HLA_MOM.RELIABLE)
             directed_classes = InteractionClassHandleSet([lost_interaction])
             surviving_directed_classes = InteractionClassHandleSet(
                 [surviving_interaction]
@@ -9626,30 +9227,20 @@ finally:
             lost_connected = False
         finally:
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
@@ -9657,7 +9248,6 @@ finally:
         self,
     ) -> None:
         """Suppress a queued directed cutoff after explicit unsubscription."""
-        import jpype
 
         class OrderedCallbacks(_JniCallbacks):
             def __init__(self) -> None:
@@ -9845,37 +9435,25 @@ finally:
             lost_connected = False
         finally:
             if surviving_joined:
-                try:
+                with _best_effort_teardown("surviving.resignFederationExecution"):
                     surviving.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("surviving.destroyFederationExecution"):
                     surviving.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if surviving_connected:
-                try:
+                with _best_effort_teardown("surviving.disconnect"):
                     surviving.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             surviving._implementation.close()
 
     def test_cpp_jni_java_jpype_transport_loss_delete_objects_cleanup(self) -> None:
         """Apply the standard DELETE_OBJECTS directive during C++ transport loss."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -9984,37 +9562,25 @@ finally:
                 survivor.getObjectInstanceHandle(object_name)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
     def test_cpp_jni_java_jpype_transport_loss_unconditional_divest(self) -> None:
         """Preserve a lost object's ownership through C++ unconditional divestiture."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -10063,9 +9629,7 @@ finally:
             survivor_efficiency = survivor.getAttributeHandle(
                 survivor_class, HLA_FIXTURES.EFFICIENCY
             )
-            lost_delete_privilege = lost.getAttributeHandle(
-                lost_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT
-            )
+            lost.getAttributeHandle(lost_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT)
             lost.publishObjectClassAttributes(
                 lost_class, AttributeHandleSet([lost_efficiency])
             )
@@ -10142,30 +9706,20 @@ finally:
             )
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
@@ -10173,8 +9727,6 @@ finally:
         self,
     ) -> None:
         """Apply the bounded NO_ACTION policy when a transport loss removes an owner."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -10223,9 +9775,7 @@ finally:
             survivor_efficiency = survivor.getAttributeHandle(
                 survivor_class, HLA_FIXTURES.EFFICIENCY
             )
-            lost_privilege = lost.getAttributeHandle(
-                lost_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT
-            )
+            lost.getAttributeHandle(lost_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT)
             survivor_privilege = survivor.getAttributeHandle(
                 survivor_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT
             )
@@ -10321,37 +9871,25 @@ finally:
             lost_connected = False
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
     def test_cpp_jni_java_jpype_transport_loss_delete_then_divest(self) -> None:
         """Exercise C++ delete-then-divest cleanup for two owned-object paths."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -10505,30 +10043,20 @@ finally:
                 survivor.getObjectInstanceHandle(deleted_name)
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
@@ -10536,8 +10064,6 @@ finally:
         self,
     ) -> None:
         """Apply the combined automatic-resign directive through JNI."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -10705,32 +10231,22 @@ finally:
             )
         finally:
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             lost._implementation.close()
             survivor._implementation.close()
 
@@ -10883,30 +10399,20 @@ finally:
                 survivor.getObjectInstanceHandle(deleted_name)
         finally:
             if departing_joined:
-                try:
+                with _best_effort_teardown("departing.resignFederationExecution"):
                     departing.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("departing.destroyFederationExecution"):
                     departing.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if departing_connected:
-                try:
+                with _best_effort_teardown("departing.disconnect"):
                     departing.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             departing._implementation.close()
             survivor._implementation.close()
 
@@ -10930,9 +10436,9 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_records(suffix: str) -> list[dict[str, object]]:
+        def decode_records(suffix: str) -> list[JsonObject]:
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -10941,7 +10447,7 @@ finally:
                     break
                 record, consumed = decoder.raw_decode(suffix, cursor)
                 self.assertIsInstance(record, dict)
-                records.append(record)
+                records.append(cast(JsonObject, record))
                 cursor = consumed
             return records
 
@@ -11001,26 +10507,18 @@ finally:
             self.assertIsNone(record[HLA_MOM.EXCEPTION])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_forced_resignation_callback_and_rejoin(self) -> None:
         """Exercise RTI-originated Federate Resigned through exact Java callbacks."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -11246,37 +10744,25 @@ finally:
 
         finally:
             if forced_joined:
-                try:
+                with _best_effort_teardown("forced.resignFederationExecution"):
                     forced.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("forced.destroyFederationExecution"):
                     forced.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if forced_connected:
-                try:
+                with _best_effort_teardown("forced.disconnect"):
                     forced.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             forced._implementation.close()
             survivor._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_forced_resignation_callback(self) -> None:
         """Deliver C++ FederateResigned synchronously through the standard Java callback."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -11362,30 +10848,20 @@ finally:
             forced_joined = False
         finally:
             if forced_joined:
-                try:
+                with _best_effort_teardown("forced.resignFederationExecution"):
                     forced.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("forced.destroyFederationExecution"):
                     forced.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if forced_connected:
-                try:
+                with _best_effort_teardown("forced.disconnect"):
                     forced.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             forced._implementation.close()
             survivor._implementation.close()
 
@@ -11421,8 +10897,6 @@ finally:
             # Invoke the official Java two-argument overloads directly once.
             # The public Python adapter normally supplies the optional logical
             # time name, so this keeps the Java-only overloads observable too.
-            import jpype
-
             raw_ambassador = ambassador.unwrap_java_object()
             raw_federation_name = f"{federation_name}-raw-java"
             raw_fom_module = (
@@ -11523,7 +10997,9 @@ finally:
                     self.assertTrue(federate_name)
                 else:
                     federate_name = f"jni-resign-{index}"
-                    join_kwargs: dict[str, object] = {"federateName": federate_name}
+                    join_kwargs: _FederationJoinWithAdditionalFomArguments = {
+                        "federateName": federate_name
+                    }
                     if index == 1:
                         # Supply a compatible extension at join time so the
                         # Java String[] join overload must materialize its
@@ -11563,7 +11039,9 @@ finally:
             created = False
         finally:
             if connected:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.resignFederationExecution; ambassador.destroyFederationExecution; ambassador.disconnect"
+                ):
                     if joined:
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
                     if created:
@@ -11571,8 +11049,6 @@ finally:
                     if extension_created:
                         ambassador.destroyFederationExecution(extension_federation_name)
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_list_callbacks_both_models(self) -> None:
@@ -11694,25 +11170,17 @@ finally:
 
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("member.resignFederationExecution"):
                     member.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("creator.destroyFederationExecution"):
                     creator.destroyFederationExecution(first_federation)
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("creator.destroyFederationExecution"):
                     creator.destroyFederationExecution(second_federation)
-                except Exception:
-                    pass
             if connected:
                 for ambassador in (evoked, immediate, creator, member):
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             for ambassador in (evoked, immediate, disconnected, creator, member):
                 ambassador._implementation.close()
 
@@ -11770,20 +11238,14 @@ finally:
                     self.assertEqual(len(callbacks.time_advance_grants), 1)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -11890,32 +11352,22 @@ finally:
             )
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     if survivor_joined:
                         survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             survivor._implementation.close()
 
@@ -11974,9 +11426,7 @@ finally:
             peer_efficiency = peer.getAttributeHandle(
                 peer_class, HLA_FIXTURES.EFFICIENCY
             )
-            owner_delete_privilege = owner.getAttributeHandle(
-                owner_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT
-            )
+            owner.getAttributeHandle(owner_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT)
             peer_delete_privilege = peer.getAttributeHandle(
                 peer_class, HLA_MOM.PRIVILEGE_TO_DELETE_OBJECT
             )
@@ -12036,32 +11486,22 @@ finally:
             created = False
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -12137,22 +11577,20 @@ finally:
             created = False
         finally:
             if connected:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.resignFederationExecution; ambassador.destroyFederationExecution; ambassador.disconnect"
+                ):
                     if joined:
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
                     if created:
                         ambassador.destroyFederationExecution(federation_name)
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_final_transport_loss_forces_delete_and_name_reuse(
         self,
     ) -> None:
         """Apply the final-member directive-two override through JNI."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -12245,28 +11683,20 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_transport_loss_cancels_pending_ownership_acquisition(
         self,
     ) -> None:
         """Cancel stale ownership work before it reaches the surviving owner."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -12410,40 +11840,26 @@ finally:
             )
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             lost._implementation.close()
             survivor._implementation.close()
@@ -12452,8 +11868,6 @@ finally:
         self,
     ) -> None:
         """Cancel both queued owner callbacks when a negotiated acquirer is lost."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "third_party"
@@ -12571,30 +11985,20 @@ finally:
             )
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if lost_joined:
-                try:
+                with _best_effort_teardown("lost.resignFederationExecution"):
                     lost.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if lost_connected:
-                try:
+                with _best_effort_teardown("lost.disconnect"):
                     lost.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             lost._implementation.close()
 
@@ -12686,24 +12090,22 @@ finally:
             created = False
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown(
+                    "owner.resignFederationExecution; owner.disconnect"
+                ):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
                     owner.disconnect()
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown(
+                    "requester.resignFederationExecution; requester.disconnect"
+                ):
                     if requester_joined:
                         requester.resignFederationExecution(ResignAction.NO_ACTION)
                     requester.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             owner._implementation.close()
             requester._implementation.close()
 
@@ -12780,24 +12182,22 @@ finally:
             created = False
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown(
+                    "owner.resignFederationExecution; owner.disconnect"
+                ):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
                     owner.disconnect()
-                except Exception:
-                    pass
             if resigning_connected:
-                try:
+                with _best_effort_teardown(
+                    "resigning.resignFederationExecution; resigning.disconnect"
+                ):
                     if resigning_joined:
                         resigning.resignFederationExecution(ResignAction.NO_ACTION)
                     resigning.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             owner._implementation.close()
             resigning._implementation.close()
 
@@ -12872,24 +12272,22 @@ finally:
             created = False
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown(
+                    "owner.resignFederationExecution; owner.disconnect"
+                ):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown(
+                    "peer.resignFederationExecution; peer.disconnect"
+                ):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
                     peer.disconnect()
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -13022,30 +12420,20 @@ finally:
             created = False
         finally:
             if resigning_joined:
-                try:
+                with _best_effort_teardown("resigning.resignFederationExecution"):
                     resigning.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if survivor_joined:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("survivor.destroyFederationExecution"):
                     survivor.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if resigning_connected:
-                try:
+                with _best_effort_teardown("resigning.disconnect"):
                     resigning.disconnect()
-                except Exception:
-                    pass
             if survivor_connected:
-                try:
+                with _best_effort_teardown("survivor.disconnect"):
                     survivor.disconnect()
-                except Exception:
-                    pass
             resigning._implementation.close()
             survivor._implementation.close()
 
@@ -13219,30 +12607,22 @@ finally:
             owner.releaseMultipleObjectInstanceNames(ObjectInstanceNameSet())
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (peer, peer_connected),
                 (owner, owner_connected),
                 (unjoined, unjoined_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             peer._implementation.close()
             owner._implementation.close()
             unjoined._implementation.close()
@@ -13522,32 +12902,22 @@ finally:
             )
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -13676,32 +13046,22 @@ finally:
             self.assertIn(("restore-complete", None), peer_callbacks.events)
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -13770,7 +13130,7 @@ finally:
             region = owner.createRegion(DimensionHandleSet([dimension]))
             owner.setRangeBounds(region, dimension, RangeBounds(0, 10))
             owner.commitRegionModifications(RegionHandleSet([region]))
-            time_factory = owner.getTimeFactory()
+            owner.getTimeFactory()
 
             save_label = "jni-two-member-interlock-save"
             owner.requestFederationSave(save_label)
@@ -13831,9 +13191,11 @@ finally:
                 ),
             )
             for service_name, operation in save_operations:
-                with self.subTest(phase="save", service=service_name):
-                    with self.assertRaises(SaveInProgress):
-                        operation()
+                with (
+                    self.subTest(phase="save", service=service_name),
+                    self.assertRaises(SaveInProgress),
+                ):
+                    operation()
 
             owner.federateSaveBegun()
             peer.federateSaveBegun()
@@ -13908,9 +13270,11 @@ finally:
                 ),
             )
             for service_name, operation in restore_operations:
-                with self.subTest(phase="restore", service=service_name):
-                    with self.assertRaises(RestoreInProgress):
-                        operation()
+                with (
+                    self.subTest(phase="restore", service=service_name),
+                    self.assertRaises(RestoreInProgress),
+                ):
+                    operation()
 
             owner.federateRestoreComplete()
             drain()
@@ -13928,35 +13292,23 @@ finally:
             owner.queryLogicalTime()
         finally:
             if region is not None:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(region)
-                except Exception:
-                    pass
             if peer_connected and peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_connected and owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -14122,35 +13474,23 @@ finally:
             )
         finally:
             if owner_joined and object_instance is not None:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if acquirer_connected:
-                try:
+                with _best_effort_teardown("acquirer.disconnect"):
                     acquirer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             acquirer._implementation.close()
             owner._implementation.close()
 
@@ -14284,30 +13624,20 @@ finally:
                 owner.getKnownObjectClassHandle(object_instance)
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -14511,32 +13841,22 @@ finally:
             )
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.DELETE_OBJECTS_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             owner._implementation.close()
 
@@ -14719,49 +14039,38 @@ finally:
                 RegionHandleSet([RegionHandle(source_region.encodedValue)]),
             )
         finally:
-            if subscriber_joined:
-                if subscriber_region is not None and subscriber_interaction is not None:
-                    try:
-                        subscriber.unsubscribeInteractionClassWithRegions(
-                            subscriber_interaction,
-                            RegionHandleSet([subscriber_region]),
-                        )
-                    except Exception:
-                        pass
-                    try:
-                        subscriber.deleteRegion(subscriber_region)
-                    except Exception:
-                        pass
+            if (
+                subscriber_joined
+                and subscriber_region is not None
+                and subscriber_interaction is not None
+            ):
+                with _best_effort_teardown(
+                    "subscriber.unsubscribeInteractionClassWithRegions"
+                ):
+                    subscriber.unsubscribeInteractionClassWithRegions(
+                        subscriber_interaction,
+                        RegionHandleSet([subscriber_region]),
+                    )
+                with _best_effort_teardown("subscriber.deleteRegion"):
+                    subscriber.deleteRegion(subscriber_region)
             if publisher_joined and source_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(source_region)
-                except Exception:
-                    pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             publisher._implementation.close()
 
@@ -14906,20 +14215,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_restore_reschedules_pending_time_advance(
@@ -15050,20 +14353,14 @@ finally:
             self.assertEqual(callbacks.time_advance_grants[-1].getTime(), 6)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_nrg_constrained_tar_role_transitions(self) -> None:
@@ -15169,30 +14466,20 @@ finally:
                     )
             finally:
                 if regulator_joined:
-                    try:
+                    with _best_effort_teardown("regulator.resignFederationExecution"):
                         regulator.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("receiver.destroyFederationExecution"):
                         receiver.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if regulator_connected:
-                    try:
+                    with _best_effort_teardown("regulator.disconnect"):
                         regulator.disconnect()
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 regulator._implementation.close()
                 receiver._implementation.close()
 
@@ -15294,30 +14581,20 @@ finally:
             assert_invalid_time_queries()
         finally:
             if regulator_joined:
-                try:
+                with _best_effort_teardown("regulator.resignFederationExecution"):
                     regulator.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("receiver.destroyFederationExecution"):
                     receiver.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if regulator_connected:
-                try:
+                with _best_effort_teardown("regulator.disconnect"):
                     regulator.disconnect()
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             regulator._implementation.close()
             receiver._implementation.close()
 
@@ -15418,40 +14695,26 @@ finally:
             self.assertEqual(query_time(observer.queryLITS), 6)
         finally:
             if right_joined:
-                try:
+                with _best_effort_teardown("right_regulator.resignFederationExecution"):
                     right_regulator.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if left_joined:
-                try:
+                with _best_effort_teardown("left_regulator.resignFederationExecution"):
                     left_regulator.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if right_connected:
-                try:
+                with _best_effort_teardown("right_regulator.disconnect"):
                     right_regulator.disconnect()
-                except Exception:
-                    pass
             if left_connected:
-                try:
+                with _best_effort_teardown("left_regulator.disconnect"):
                     left_regulator.disconnect()
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             right_regulator._implementation.close()
             left_regulator._implementation.close()
             observer._implementation.close()
@@ -15530,30 +14793,20 @@ finally:
             self.assertEqual(regulator_callbacks.time_advance_grants[-1].getTime(), 1)
         finally:
             if regulator_joined:
-                try:
+                with _best_effort_teardown("regulator.resignFederationExecution"):
                     regulator.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("receiver.destroyFederationExecution"):
                     receiver.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if regulator_connected:
-                try:
+                with _best_effort_teardown("regulator.disconnect"):
                     regulator.disconnect()
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             regulator._implementation.close()
             receiver._implementation.close()
 
@@ -15629,20 +14882,14 @@ finally:
             self.assertEqual(ambassador.queryLookahead().getInterval(), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_additional_fom_cannot_change_nrg_switch(self) -> None:
@@ -15712,30 +14959,20 @@ finally:
             self.assertEqual(receiver_callbacks.time_advance_grants, [])
         finally:
             if applicant_joined:
-                try:
+                with _best_effort_teardown("applicant.resignFederationExecution"):
                     applicant.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("receiver.destroyFederationExecution"):
                     receiver.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if applicant_connected:
-                try:
+                with _best_effort_teardown("applicant.disconnect"):
                     applicant.disconnect()
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             applicant._implementation.close()
             receiver._implementation.close()
 
@@ -15779,20 +15016,14 @@ finally:
             created = False
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_restore_reschedules_pending_flush_queue(
@@ -15888,20 +15119,14 @@ finally:
             self.assertEqual(callbacks.flush_queue_grants[-1][0].getTime(), 7)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_restore_reschedules_all_advance_variants(
@@ -16052,20 +15277,14 @@ finally:
                 self.assertEqual(callbacks.time_advance_grants[-1].getTime(), 6)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -16154,21 +15373,15 @@ finally:
             self.assertEqual(callbacks.restore_completions, 1)
         finally:
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     if joined:
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_two_member_synchronization_barrier(self) -> None:
@@ -16410,32 +15623,22 @@ finally:
             )
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -16622,37 +15825,25 @@ finally:
             owner_joined = False
         finally:
             if unjoined_connected:
-                try:
+                with _best_effort_teardown("unjoined.disconnect"):
                     unjoined.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             unconnected._implementation.close()
             unjoined._implementation.close()
             owner._implementation.close()
@@ -16667,8 +15858,6 @@ finally:
         names, so the external lane checks the exact intersection instead of
         skipping the boundary altogether.
         """
-        import jpype
-
         exception_header = (
             Path(__file__).parents[3]
             / "third_party"
@@ -16805,8 +15994,6 @@ finally:
 
     def test_jni_invocation_handler_routes_external_standard_signatures(self) -> None:
         """Audit the loaded IEEE Java interface, not only the local fixture."""
-        import jpype
-
         # JavaRtiFactory starts the configured JVM lazily when its first
         # ambassador is requested; reflection must inspect that exact class
         # loader rather than importing JPype before startup.
@@ -16856,8 +16043,6 @@ finally:
 
     def test_jni_encoder_factory_routes_external_standard_signatures(self) -> None:
         """Audit every external 2025 EncoderFactory creator overload."""
-        import jpype
-
         # Start the exact configured JVM before asking JPype for the external
         # class.  This also makes the focused test runnable by itself rather
         # than relying on another integration vector to initialize JPype.
@@ -16998,8 +16183,6 @@ finally:
         # before relying on the fixture text for the remaining native/JPype
         # marshalling checks.
         if os.environ.get("UMBRA_JNI_JAVA_API_JAR"):
-            import jpype
-
             probe = self.factory.getRtiAmbassador()
             try:
                 external_interface = jpype.JClass(
@@ -17224,8 +16407,6 @@ finally:
         # ``connect`` and ``joinFederationExecution`` intentionally delegate
         # their overload matrix to helpers, so their helper entry points are
         # checked separately below.
-        import jpype
-
         # This audit is intentionally runnable on its own.  Most integration
         # vectors start JPype while constructing an ambassador, but a source
         # coverage test must not depend on unittest method ordering.
@@ -17380,7 +16561,6 @@ finally:
             integer_java_interval = integer_java_factory.makeInterval(1)
             self.assertEqual(integer_java_time.getValue(), 1 << 53)
             self.assertEqual(integer_java_interval.getValue(), 1)
-            import jpype
 
             def encode_java_time(value):
                 encoded = jpype.JArray(jpype.JByte)([0] * int(value.encodedLength()))
@@ -17444,8 +16624,6 @@ finally:
 
     def test_cpp_jni_java_jpype_float64_time_decode_boundaries(self) -> None:
         """Preserve C++ float64 decode errors through raw Java and Python."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -17543,8 +16721,6 @@ finally:
 
     def test_cpp_jni_java_jpype_integer64_time_decode_boundaries(self) -> None:
         """Preserve signed HLAinteger64Time decoding through raw Java and Python."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -17799,28 +16975,18 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
-            try:
+            with _best_effort_teardown("receiver.disconnect"):
                 receiver.disconnect()
-            except Exception:
-                pass
-            try:
+            with _best_effort_teardown("owner.disconnect"):
                 owner.disconnect()
-            except Exception:
-                pass
             receiver._implementation.close()
             owner._implementation.close()
 
@@ -17914,20 +17080,14 @@ finally:
             self.assertEqual(peer_callbacks.saved_count, 1)
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             peer.disconnect()
             owner.disconnect()
             peer._implementation.close()
@@ -18050,30 +17210,20 @@ finally:
             self.assertEqual(second_callbacks.saved_count, 1)
         finally:
             if second_joined:
-                try:
+                with _best_effort_teardown("second.resignFederationExecution"):
                     second.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if first_joined:
-                try:
+                with _best_effort_teardown("first.resignFederationExecution"):
                     first.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (second, first, owner):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timed_save_admits_constrained_members_before_owner(
@@ -18214,30 +17364,20 @@ finally:
             self.assertEqual(second_callbacks.saved_count, 1)
         finally:
             if second_joined:
-                try:
+                with _best_effort_teardown("second.resignFederationExecution"):
                     second.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if first_joined:
-                try:
+                with _best_effort_teardown("first.resignFederationExecution"):
                     first.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (second, first, owner):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timed_save_combines_available_and_next_message_members(
@@ -18384,30 +17524,20 @@ finally:
             self.assertEqual(next_message_callbacks.saved_count, 1)
         finally:
             if next_message_joined:
-                try:
+                with _best_effort_teardown("next_message.resignFederationExecution"):
                     next_message.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if available_joined:
-                try:
+                with _best_effort_teardown("available.resignFederationExecution"):
                     available.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (next_message, available, owner):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timed_save_defers_each_member_for_queued_tso(
@@ -18569,30 +17699,20 @@ finally:
             self.assertEqual(delayed_callbacks.saved_count, 1)
         finally:
             if delayed_joined:
-                try:
+                with _best_effort_teardown("delayed.resignFederationExecution"):
                     delayed.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if ready_joined:
-                try:
+                with _best_effort_teardown("ready.resignFederationExecution"):
                     ready.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (delayed, ready, owner):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_float64_timed_save_waits_for_constrained_boundary(
@@ -18708,20 +17828,14 @@ finally:
             self.assertEqual(peer_callbacks.saved_count, 1)
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             peer.disconnect()
             owner.disconnect()
             peer._implementation.close()
@@ -18834,20 +17948,14 @@ finally:
             self.assertEqual(peer_callbacks.saved_count, 1)
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             peer.disconnect()
             owner.disconnect()
             peer._implementation.close()
@@ -18973,28 +18081,18 @@ finally:
             self.assertEqual(peer_callbacks.restore_completions, 1)
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
-            try:
+            with _best_effort_teardown("peer.disconnect"):
                 peer.disconnect()
-            except Exception:
-                pass
-            try:
+            with _best_effort_teardown("owner.disconnect"):
                 owner.disconnect()
-            except Exception:
-                pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -19136,20 +18234,14 @@ finally:
         finally:
             for ambassador, is_joined in reversed(tuple(zip(ambassadors, joined))):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in reversed(ambassadors):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_timed_save_admits_all_advance_modes(
@@ -19292,20 +18384,14 @@ finally:
         finally:
             for ambassador, is_joined in reversed(tuple(zip(ambassadors, joined))):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in reversed(ambassadors):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timed_save_mixes_flush_queue_and_tar_boundaries(
@@ -19421,20 +18507,14 @@ finally:
         finally:
             for ambassador, is_joined in reversed(tuple(zip(ambassadors, joined))):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in reversed(ambassadors):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_immediate_timed_save_mixes_flush_queue_and_tar_boundaries(
@@ -19547,20 +18627,14 @@ finally:
         finally:
             for ambassador, is_joined in reversed(tuple(zip(ambassadors, joined))):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in reversed(ambassadors):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timed_save_covers_nmr_and_nmra_boundaries(
@@ -19603,7 +18677,7 @@ finally:
                 receiver.evokeCallback(0.0)
 
         def event_index(
-            events: list[tuple[str, object]], expected: tuple[str, object]
+            events: Sequence[tuple[str, object]], expected: tuple[str, object]
         ) -> int:
             return events.index(expected)
 
@@ -19689,28 +18763,18 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 2)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
-            try:
+            with _best_effort_teardown("receiver.disconnect"):
                 receiver.disconnect()
-            except Exception:
-                pass
-            try:
+            with _best_effort_teardown("owner.disconnect"):
                 owner.disconnect()
-            except Exception:
-                pass
             receiver._implementation.close()
             owner._implementation.close()
 
@@ -19834,20 +18898,14 @@ finally:
         finally:
             for ambassador, is_joined in reversed(tuple(zip(ambassadors, joined))):
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in reversed(ambassadors):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_flush_queue_timestamped_save_boundary(self) -> None:
@@ -19996,20 +19054,14 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -20150,20 +19202,14 @@ finally:
                 drain_until(lambda: (grant_kind, next_target) in callbacks.events)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for variant in variants:
@@ -20325,20 +19371,14 @@ finally:
                 self.assertEqual(ambassador.queryLogicalTime().getTime(), 6)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for variant_name, service_name in variants:
@@ -20512,20 +19552,14 @@ finally:
                 self.assertEqual(callbacks.flush_queue_grants[-1][0].getTime(), 7)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for callback_model in (
@@ -20628,20 +19662,14 @@ finally:
             self.assertEqual(peer_callbacks.saved_count, 1)
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             peer.disconnect()
             owner.disconnect()
             peer._implementation.close()
@@ -20776,20 +19804,14 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -20939,20 +19961,14 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -21076,20 +20092,14 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 7)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -21120,7 +20130,7 @@ finally:
                             "jni-reentrant-tso-save", self.save_time
                         )
                         self.save_accepted = True
-                    except Exception:
+                    except RTIexception:
                         self.save_accepted = False
                 super().receiveInteraction(*arguments)
 
@@ -21243,20 +20253,14 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -21287,7 +20291,7 @@ finally:
                             "jni-immediate-reentrant-tso-save", self.save_time
                         )
                         self.save_accepted = True
-                    except Exception:
+                    except RTIexception:
                         self.save_accepted = False
                 super().receiveInteraction(*arguments)
 
@@ -21403,20 +20407,14 @@ finally:
             self.assertEqual(receiver_callbacks.saved_count, 1)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -21490,15 +20488,11 @@ finally:
             self.assertEqual(ambassador.queryLookahead().getInterval(), 2)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             ambassador.disconnect()
             ambassador._implementation.close()
 
@@ -21585,15 +20579,11 @@ finally:
             self.assertEqual(ambassador.queryLookahead().getInterval(), 2)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             ambassador.disconnect()
             ambassador._implementation.close()
 
@@ -21667,15 +20657,11 @@ finally:
             self.assertEqual(restored_lookahead.getInterval(), 2.0)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             ambassador.disconnect()
             ambassador._implementation.close()
 
@@ -21779,35 +20765,23 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [retraction])
         finally:
             if receiver_joined and receiver_interaction is not None:
-                try:
+                with _best_effort_teardown("receiver.unsubscribeInteractionClass"):
                     receiver.unsubscribeInteractionClass(receiver_interaction)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -21926,37 +20900,25 @@ finally:
                 and receiver_class is not None
                 and receiver_attributes is not None
             ):
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class, receiver_attributes
                     )
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -22067,37 +21029,25 @@ finally:
                 and receiver_class is not None
                 and receiver_attributes is not None
             ):
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class, receiver_attributes
                     )
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -22238,44 +21188,32 @@ finally:
                 and receiver_interaction is not None
                 and receiver_marker is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassDirectedInteractions"
+                ):
                     receiver.unsubscribeObjectClassDirectedInteractions(
                         receiver_class,
                         InteractionClassHandleSet([receiver_interaction]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class, AttributeHandleSet([receiver_marker])
                     )
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -22398,20 +21336,14 @@ finally:
             drain_until(lambda: callbacks.flush_queue_grants[-1][0].getTime() == 7.0)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_restore_reschedules_float64_pending_available_request(
@@ -22580,20 +21512,14 @@ finally:
                 self.assertEqual(ambassador.queryLogicalTime().getTime(), 7.0)
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for callback_model in (
@@ -22692,20 +21618,14 @@ finally:
             self.assertEqual(ambassador.queryLogicalTime().getTime(), 7.0)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_retraction_suppresses_queued_fanout(self) -> None:
@@ -22835,42 +21755,28 @@ finally:
             )
         finally:
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if constrained_connected:
-                try:
+                with _best_effort_teardown("constrained.disconnect"):
                     constrained.disconnect()
-                except Exception:
-                    pass
             if immediate_connected:
-                try:
+                with _best_effort_teardown("immediate.disconnect"):
                     immediate.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             constrained._implementation.close()
             immediate._implementation.close()
             publisher._implementation.close()
@@ -22955,15 +21861,11 @@ finally:
                 ambassador.retract(post_save)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             ambassador.disconnect()
             ambassador._implementation.close()
 
@@ -23338,48 +22240,34 @@ finally:
                 and receiver_region is not None
                 and receiver_interaction is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -23475,20 +22363,14 @@ finally:
             self.assertTrue(decoded[1][1].startswith("InvalidMessageRetractionHandle"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             observer.disconnect()
             publisher.disconnect()
             observer._implementation.close()
@@ -23720,53 +22602,43 @@ finally:
                 and first_class is not None
                 and first_attributes is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "first_receiver.unsubscribeObjectClassAttributes"
+                ):
                     first_receiver.unsubscribeObjectClassAttributes(
                         first_class, first_attributes
                     )
-                except Exception:
-                    pass
             if (
                 second_joined
                 and second_class is not None
                 and second_attributes is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "second_receiver.unsubscribeObjectClassAttributes"
+                ):
                     second_receiver.unsubscribeObjectClassAttributes(
                         second_class, second_attributes
                     )
-                except Exception:
-                    pass
             if second_joined:
-                try:
+                with _best_effort_teardown("second_receiver.resignFederationExecution"):
                     second_receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if first_joined:
-                try:
+                with _best_effort_teardown("first_receiver.resignFederationExecution"):
                     first_receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (second_receiver, second_connected),
                 (first_receiver, first_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_restore_preserves_terminal_default_region_interaction(
@@ -23901,42 +22773,30 @@ finally:
                 and receiver_region is not None
                 and receiver_interaction is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver_interaction, RegionHandleSet([receiver_region])
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -23995,7 +22855,7 @@ finally:
             publisher_parameter = publisher.getParameterHandle(
                 publisher_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
-            receiver_parameter = receiver.getParameterHandle(
+            receiver.getParameterHandle(
                 receiver_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
@@ -24096,47 +22956,33 @@ finally:
                 and receiver_region is not None
                 and receiver_interaction is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver_interaction, RegionHandleSet([receiver_region])
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -24308,58 +23154,42 @@ finally:
                 and receiver_region is not None
                 and receiver_pairs is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver_class, receiver_pairs
                     )
-                except Exception:
-                    pass
             if (
                 object_instance is not None
                 and publisher_joined
                 and publisher_pairs is not None
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -24416,7 +23246,6 @@ finally:
             receiver_attribute = receiver.getAttributeHandle(
                 receiver_class, HLA_FIXTURES.FLAVOR
             )
-            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             receiver_dimension = receiver.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             receiver_attributes = AttributeHandleSet([receiver_attribute])
@@ -24506,42 +23335,30 @@ finally:
                 publisher.retract(post_save)
         finally:
             if receiver_joined and receiver_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver_class, receiver_pairs
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -24713,44 +23530,32 @@ finally:
                 and receiver_marker is not None
                 and receiver_interaction is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassDirectedInteractions"
+                ):
                     receiver.unsubscribeObjectClassDirectedInteractions(
                         receiver_class,
                         InteractionClassHandleSet([receiver_interaction]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class, AttributeHandleSet([receiver_marker])
                     )
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -24857,22 +23662,16 @@ finally:
                 ambassador.getObjectInstanceHandle(object_name)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_restore_reinstates_live_explicit_source_regional_attribute(
@@ -25096,59 +23895,43 @@ finally:
                 and receiver_region is not None
                 and receiver_pairs is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         receiver_pairs,
                     )
-                except Exception:
-                    pass
             if (
                 object_instance is not None
                 and publisher_joined
                 and publisher_pairs is not None
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -25337,34 +24120,28 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(interaction_name),
                         RegionHandleSet([receiver_region])
                         if receiver_region is not None
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -25599,33 +24376,27 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassDirectedInteractions"
+                ):
                     receiver.unsubscribeObjectClassDirectedInteractions(
                         receiver_class,
                         InteractionClassHandleSet([receiver_interaction]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class, AttributeHandleSet([receiver_marker])
                     )
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -25720,7 +24491,6 @@ finally:
             )
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             receiver_attributes = AttributeHandleSet([receiver_attribute])
-            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             receiver_dimension = receiver.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, publisher_attributes
@@ -25843,32 +24613,26 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_joined and receiver_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         receiver_pairs,
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -26062,7 +24826,7 @@ finally:
                 and receiver_class is not None
                 and attributes is not None
             ):
-                try:
+                with _best_effort_teardown("receiver.unsubscribeObjectClassAttributes"):
                     receiver.unsubscribeObjectClassAttributes(
                         receiver_class,
                         AttributeHandleSet(
@@ -26076,22 +24840,16 @@ finally:
                             ]
                         ),
                     )
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -26269,8 +25027,6 @@ finally:
             java_time_factory = ambassador.unwrap_java_object().getTimeFactory()
             java_time = java_time_factory.makeTime(0.5)
             java_interval = java_time_factory.makeInterval(0.25)
-            import jpype
-
             java_illegal_time_arithmetic = jpype.JClass(
                 "hla.rti1516_2025.exceptions.IllegalTimeArithmetic"
             )
@@ -26424,9 +25180,9 @@ finally:
                 encode_buffer = java_byte_array(
                     b"\0" + (b"\0" * len(encoded)) + b"\x66"
                 )
-                encode_cursor = jpype.JClass(
-                    "hla.rti1516_2025.encoding.ByteWrapper"
-                )(encode_buffer, 1, len(encoded) + 1)
+                encode_cursor = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")(
+                    encode_buffer, 1, len(encoded) + 1
+                )
                 element.encode(encode_cursor)
                 self.assertEqual(encode_cursor.getPos(), 1 + len(encoded))
                 self.assertEqual(encode_cursor.remaining(), 1)
@@ -26462,33 +25218,31 @@ finally:
             self.assertEqual(python_interval_element.getOctetBoundary(), 1)
             self.assertEqual(python_time_element.toByteArray(), raw_time_bytes)
             self.assertEqual(python_interval_element.toByteArray(), raw_interval_bytes)
-            byte_wrapper_type = jpype.JClass(
-                "hla.rti1516_2025.encoding.ByteWrapper"
-            )
+            byte_wrapper_type = jpype.JClass("hla.rti1516_2025.encoding.ByteWrapper")
             for element, encoded in (
                 (python_time_element, raw_time_bytes),
                 (python_interval_element, raw_interval_bytes),
             ):
                 decode_buffer = java_byte_array(b"\0" + encoded + b"\x66")
-                decode_cursor = byte_wrapper_type(
-                    decode_buffer, 1, len(encoded) + 1
-                )
+                decode_cursor = byte_wrapper_type(decode_buffer, 1, len(encoded) + 1)
                 self.assertIs(element.decode(decode_cursor), element)
                 self.assertEqual(decode_cursor.getPos(), 1 + len(encoded))
                 self.assertEqual(decode_cursor.remaining(), 1)
-                self.assertEqual(int(decode_buffer[decode_cursor.getPos()]) & 0xFF, 0x66)
+                self.assertEqual(
+                    int(decode_buffer[decode_cursor.getPos()]) & 0xFF, 0x66
+                )
 
                 encode_buffer = java_byte_array(
                     b"\0" + (b"\0" * len(encoded)) + b"\x66"
                 )
-                encode_cursor = byte_wrapper_type(
-                    encode_buffer, 1, len(encoded) + 1
-                )
+                encode_cursor = byte_wrapper_type(encode_buffer, 1, len(encoded) + 1)
                 self.assertIs(element.encode(encode_cursor), element)
                 self.assertEqual(encode_cursor.getPos(), 1 + len(encoded))
                 self.assertEqual(encode_cursor.remaining(), 1)
                 self.assertEqual(bytes(encode_buffer)[1 : len(encoded) + 1], encoded)
-                self.assertEqual(int(encode_buffer[encode_cursor.getPos()]) & 0xFF, 0x66)
+                self.assertEqual(
+                    int(encode_buffer[encode_cursor.getPos()]) & 0xFF, 0x66
+                )
             java_zero = java_time_factory.makeZero()
             java_epsilon = java_time_factory.makeEpsilon()
             java_interval_sum = java_zero.add(java_epsilon)
@@ -26802,32 +25556,22 @@ finally:
             self.assertEqual(restored_peer_time.getTime(), 0.0)
         finally:
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     if owner_joined:
                         owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     if peer_joined:
                         peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -26930,8 +25674,6 @@ finally:
             java_time_factory = ambassador.unwrap_java_object().getTimeFactory()
             java_time = java_time_factory.makeTime(large_value)
             java_interval = java_time_factory.makeInterval(increment)
-            import jpype
-
             java_illegal_time_arithmetic = jpype.JClass(
                 "hla.rti1516_2025.exceptions.IllegalTimeArithmetic"
             )
@@ -27021,8 +25763,6 @@ finally:
 
     def test_cpp_jni_java_jpype_time_carrier_implementation_mismatch(self) -> None:
         """Preserve C++ time-carrier mismatch errors through standard Java."""
-        import jpype
-
         fom_module = (
             Path(__file__).parents[3]
             / "cpp"
@@ -27114,25 +25854,25 @@ finally:
             self.assertEqual(integer_callbacks.time_advance_grants[-1].getTime(), 3)
         finally:
             if float_joined:
-                try:
+                with _best_effort_teardown(
+                    "float_ambassador.resignFederationExecution"
+                ):
                     float_ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if integer_joined:
-                try:
+                with _best_effort_teardown(
+                    "integer_ambassador.resignFederationExecution"
+                ):
                     integer_ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if float_created:
-                try:
+                with _best_effort_teardown(
+                    "float_ambassador.destroyFederationExecution"
+                ):
                     float_ambassador.destroyFederationExecution(float_federation)
-                except Exception:
-                    pass
             if integer_created:
-                try:
+                with _best_effort_teardown(
+                    "integer_ambassador.destroyFederationExecution"
+                ):
                     integer_ambassador.destroyFederationExecution(integer_federation)
-                except Exception:
-                    pass
             if float_connected:
                 float_ambassador.disconnect()
             if integer_connected:
@@ -27255,15 +25995,11 @@ finally:
             self.assertTrue(peer.getSendServiceReportsToFileSwitch())
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
                 owner.destroyFederationExecution(federation_name)
             if peer_connected:
@@ -27314,15 +26050,11 @@ finally:
             file_connected = False
         finally:
             if empty_connected:
-                try:
+                with _best_effort_teardown("empty_ambassador.disconnect"):
                     empty_ambassador.disconnect()
-                except Exception:
-                    pass
             if file_connected:
-                try:
+                with _best_effort_teardown("file_ambassador.disconnect"):
                     file_ambassador.disconnect()
-                except Exception:
-                    pass
             empty_ambassador._implementation.close()
             file_ambassador._implementation.close()
 
@@ -27389,15 +26121,11 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
                 ambassador.disconnect()
             ambassador._implementation.close()
@@ -27482,30 +26210,20 @@ finally:
             self.assertEqual(peer_file.read_text(encoding="utf-8"), initial_peer)
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -27716,30 +26434,20 @@ finally:
             self.assertIsInstance(publisher_handle, FederateHandle)
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             publisher._implementation.close()
 
@@ -28022,30 +26730,20 @@ finally:
             self.assertIsNone(retraction_argument[HLA_MOM.ARGUMENT_VALUE])
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             publisher._implementation.close()
 
@@ -28242,7 +26940,7 @@ finally:
 
             def decode_timestamped_removal_report(
                 report_file: Path, before: str, expected_received_order: str
-            ) -> dict[str, object]:
+            ) -> JsonObject:
                 suffix = report_file.read_text(encoding="utf-8")[len(before) :]
                 record, consumed = json.JSONDecoder().raw_decode(suffix)
                 self.assertEqual(consumed, len(suffix))
@@ -28320,7 +27018,8 @@ finally:
                     retraction_argument[HLA_MOM.ARGUMENT_VALUE],
                     r"^MessageRetractionHandle<\d+>$",
                 )
-                return record
+                self.assertIsInstance(record, dict)
+                return cast(JsonObject, record)
 
             immediate_callbacks.report_before_callback = immediate_before
             immediate.evokeCallback(0.0)
@@ -28370,35 +27069,25 @@ finally:
             )
         finally:
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (constrained, constrained_connected),
                 (immediate, immediate_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_time_advance_grant(
@@ -28493,20 +27182,14 @@ finally:
             self.assertEqual(ambassador.queryLogicalTime().getTime(), 7)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_time_advance_available_grant(
@@ -28604,20 +27287,14 @@ finally:
             self.assertEqual(ambassador.queryLogicalTime().getTime(), 7)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_next_message_grant(
@@ -28773,32 +27450,22 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 7)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -28959,32 +27626,22 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 7)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -29136,30 +27793,20 @@ finally:
             )
         finally:
             if late_joined:
-                try:
+                with _best_effort_teardown("late.resignFederationExecution"):
                     late.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if late_connected:
-                try:
+                with _best_effort_teardown("late.disconnect"):
                     late.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             late._implementation.close()
             owner._implementation.close()
 
@@ -29378,30 +28025,20 @@ finally:
             )
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -29508,30 +28145,20 @@ finally:
             self.assertEqual(report_service, "SendInteraction")
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -29662,30 +28289,20 @@ finally:
             self.assertEqual(reflection[9], retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -29917,30 +28534,20 @@ finally:
             self.assertEqual(reflection[9], retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -30159,30 +28766,20 @@ finally:
             self.assertEqual(removal[6], retraction)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -30494,30 +29091,20 @@ finally:
             self.assertIsInstance(provider_handle, FederateHandle)
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if provider_joined:
-                try:
+                with _best_effort_teardown("provider.resignFederationExecution"):
                     provider.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("provider.destroyFederationExecution"):
                     provider.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if provider_connected:
-                try:
+                with _best_effort_teardown("provider.disconnect"):
                     provider.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             provider._implementation.close()
 
@@ -30684,30 +29271,20 @@ finally:
             self.assertEqual(ownership_report[2], owner_handle)
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -30885,30 +29462,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -31066,30 +29633,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -31256,30 +29813,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -31446,30 +29993,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -31608,30 +30145,20 @@ finally:
             self.assertEqual(len(subject_callbacks.time_regulation_enabled), 1)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -31729,20 +30256,14 @@ finally:
             self.assertEqual(len(callbacks.time_regulation_enabled), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_time_constrained_file_report_preserves_empty_payload(
@@ -31828,20 +30349,14 @@ finally:
             self.assertEqual(len(callbacks.time_constrained_enabled), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_support_switch_file_report_preserves_enum_payload(
@@ -31933,20 +30448,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_time_advance_file_report_preserves_logical_time(
@@ -32043,20 +30552,14 @@ finally:
             self.assertEqual(callbacks.time_advance_grants[0].getTime(), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_asynchronous_delivery_file_reports_preserve_void_shape(
@@ -32141,20 +30644,14 @@ finally:
             read_report(before_disable, "DisableAsynchronousDelivery", 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_time_constrained_report_precedes_callback(
@@ -32288,30 +30785,20 @@ finally:
             self.assertEqual(len(subject_callbacks.time_constrained_enabled), 1)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -32564,30 +31051,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -32667,20 +31144,14 @@ finally:
                     ambassador.disableTimeConstrained()
             finally:
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("ambassador.destroyFederationExecution"):
                         ambassador.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -32898,30 +31369,20 @@ finally:
             subject.abortFederationSave()
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -33020,7 +31481,7 @@ finally:
             after = report_file.read_text(encoding="utf-8")
             suffix = after[len(before) :]
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33062,30 +31523,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -33154,7 +31605,7 @@ finally:
             after_abort = report_file.read_text(encoding="utf-8")
             suffix = after_abort[len(before_abort) :]
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33188,20 +31639,14 @@ finally:
             self.assertEqual(len(callbacks.save_failures), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_save_completion_file_reports_preserve_callback_order(
@@ -33224,9 +31669,9 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_records(suffix: str) -> list[dict[str, object]]:
+        def decode_records(suffix: str) -> list[JsonObject]:
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33240,7 +31685,7 @@ finally:
                     )
                 record, consumed = decoder.raw_decode(suffix, cursor)
                 self.assertIsInstance(record, dict)
-                records.append(record)
+                records.append(cast(JsonObject, record))
                 cursor = consumed
             return records
 
@@ -33415,20 +31860,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_restore_completion_and_status_file_reports(
@@ -33451,9 +31890,9 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_records(suffix: str) -> list[dict[str, object]]:
+        def decode_records(suffix: str) -> list[JsonObject]:
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33467,11 +31906,11 @@ finally:
                     )
                 record, consumed = decoder.raw_decode(suffix, cursor)
                 self.assertIsInstance(record, dict)
-                records.append(record)
+                records.append(cast(JsonObject, record))
                 cursor = consumed
             return records
 
-        def assert_common(record: dict[str, object], service: str) -> None:
+        def assert_common(record: JsonObject, service: str) -> None:
             self.assertEqual(record[HLA_MOM.SERVICE], service)
             self.assertIsInstance(record[HLA_MOM.SERIAL_NUMBER], int)
             self.assertEqual(record[HLA_MOM.RETURNED_ARGUMENT], [None])
@@ -33726,20 +32165,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_abort_restore_file_report_precedes_callback(
@@ -33762,7 +32195,7 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_one(suffix: str) -> dict[str, object]:
+        def decode_one(suffix: str) -> JsonObject:
             decoder = json.JSONDecoder()
             cursor = 0
             while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33770,7 +32203,7 @@ finally:
             record, consumed = decoder.raw_decode(suffix, cursor)
             self.assertIsInstance(record, dict)
             self.assertEqual(suffix[consumed:].strip(), "")
-            return record
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -33851,20 +32284,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_save_file_report_preserves_overload(
@@ -33888,9 +32315,9 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_records(suffix: str) -> list[dict[str, object]]:
+        def decode_records(suffix: str) -> list[JsonObject]:
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             cursor = 0
             while cursor < len(suffix):
                 while cursor < len(suffix) and suffix[cursor].isspace():
@@ -33899,7 +32326,7 @@ finally:
                     break
                 record, consumed = decoder.raw_decode(suffix, cursor)
                 self.assertIsInstance(record, dict)
-                records.append(record)
+                records.append(cast(JsonObject, record))
                 cursor = consumed
             return records
 
@@ -33983,24 +32410,16 @@ finally:
             self.assertEqual(callbacks.timestamped_save_initiations[0][1].getTime(), 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.abortFederationSave"):
                     ambassador.abortFederationSave()
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_save_report_reaches_observer(self) -> None:
@@ -34163,30 +32582,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             owner._implementation.close()
 
@@ -34588,30 +32997,20 @@ finally:
             )
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -34789,30 +33188,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -35044,30 +33433,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if sender_joined:
-                try:
+                with _best_effort_teardown("sender.resignFederationExecution"):
                     sender.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("sender.destroyFederationExecution"):
                     sender.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if sender_connected:
-                try:
+                with _best_effort_teardown("sender.disconnect"):
                     sender.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             sender._implementation.close()
 
@@ -35229,30 +33608,20 @@ finally:
             self.assertEqual(callback[9], retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -35416,30 +33785,20 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [retraction])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -35654,30 +34013,20 @@ finally:
             self.assertEqual(callback[5], publisher_handle)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -35861,30 +34210,20 @@ finally:
             )
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -36068,30 +34407,20 @@ finally:
             self.assertEqual(received[4], publisher_handle)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -36249,20 +34578,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_interaction_transport_callback(
@@ -36404,20 +34727,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_acquisition_cancellation_callback(
@@ -36614,32 +34931,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -36837,32 +35144,22 @@ finally:
             self.assertEqual(owner_callbacks.ownership_divestiture_requests, [])
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -37069,32 +35366,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -37307,32 +35594,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -37529,32 +35806,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -37751,32 +36018,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -37982,32 +36239,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -38205,32 +36452,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -38429,32 +36666,22 @@ finally:
             )
         finally:
             if candidate_joined:
-                try:
+                with _best_effort_teardown("candidate.resignFederationExecution"):
                     candidate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if candidate_connected:
-                try:
+                with _best_effort_teardown("candidate.disconnect"):
                     candidate.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             candidate._implementation.close()
             owner._implementation.close()
 
@@ -38625,30 +36852,20 @@ finally:
             self.assertIn(second_handle, failed_set)
         finally:
             if second_joined:
-                try:
+                with _best_effort_teardown("second.resignFederationExecution"):
                     second.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if first_joined:
-                try:
+                with _best_effort_teardown("first.resignFederationExecution"):
                     first.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("first.destroyFederationExecution"):
                     first.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if second_connected:
-                try:
+                with _best_effort_teardown("second.disconnect"):
                     second.disconnect()
-                except Exception:
-                    pass
             if first_connected:
-                try:
+                with _best_effort_teardown("first.disconnect"):
                     first.disconnect()
-                except Exception:
-                    pass
             second._implementation.close()
             first._implementation.close()
 
@@ -38808,30 +37025,20 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 5)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -39015,32 +37222,22 @@ finally:
             )
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -39235,32 +37432,22 @@ finally:
             self.assertEqual(tag_argument[HLA_MOM.ARGUMENT_VALUE], "")
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -39393,20 +37580,14 @@ finally:
                     break
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_restore_success_callback(
@@ -39561,20 +37742,14 @@ finally:
             self.assertEqual(callbacks.restore_completions, 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_service_report_precedes_restore_failure_callback(
@@ -39700,20 +37875,14 @@ finally:
                 ambassador.federateRestoreComplete()
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_save_restore_mom_reports(self) -> None:
@@ -39813,20 +37982,14 @@ finally:
             self.assertEqual(callbacks.restore_completions, 1)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_joined_federate_mom_state_tracks_save_restore(
@@ -39961,35 +38124,23 @@ finally:
             require_state(before_restore_completion, 1)
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined or observer_joined:
-                try:
+                with _best_effort_teardown("drain"):
                     drain(5)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -40163,30 +38314,20 @@ finally:
             self.assertFalse(any(removed[2].encodedValue[4:]))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -40399,53 +38540,39 @@ finally:
                 and mom_class is not None
                 and matching_pairs is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "matching.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     matching.unsubscribeObjectClassAttributesWithRegions(
                         mom_class, matching_pairs
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("matching.deleteRegion"):
                     matching.deleteRegion(matching_region)
-                except Exception:
-                    pass
             if disjoint_region is not None and disjoint_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "disjoint.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     disjoint.unsubscribeObjectClassAttributesWithRegions(
                         disjoint.getObjectClassHandle(HLA_MOM.FEDERATE_OBJECT_CLASS),
                         disjoint_pairs,
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("disjoint.deleteRegion"):
                     disjoint.deleteRegion(disjoint_region)
-                except Exception:
-                    pass
             if disjoint_joined:
-                try:
+                with _best_effort_teardown("disjoint.resignFederationExecution"):
                     disjoint.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if matching_joined:
-                try:
+                with _best_effort_teardown("matching.resignFederationExecution"):
                     matching.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (disjoint, matching, subject):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_joined_federate_mom_conditional_reflections_track_current_state(
@@ -40910,29 +39037,21 @@ finally:
                 )
             finally:
                 if observer_joined:
-                    try:
+                    with _best_effort_teardown("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if subject_joined:
-                    try:
+                    with _best_effort_teardown("subject.resignFederationExecution"):
                         subject.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -41100,29 +39219,21 @@ finally:
                 )
             finally:
                 if subject_joined:
-                    try:
+                    with _best_effort_teardown("subject.resignFederationExecution"):
                         subject.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if observer_joined:
-                    try:
+                    with _best_effort_teardown("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -41291,29 +39402,21 @@ finally:
                 self.assertEqual(len(dict(direct[1])[advancing_attribute]), 4)
             finally:
                 if subject_joined:
-                    try:
+                    with _best_effort_teardown("subject.resignFederationExecution"):
                         subject.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if observer_joined:
-                    try:
+                    with _best_effort_teardown("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -41527,25 +39630,21 @@ finally:
                     (regulator, regulator_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (regulator, regulator_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -41773,25 +39872,21 @@ finally:
                     (observer, observer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("target.destroyFederationExecution"):
                         target.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (publisher, publisher_connected),
                     (target, target_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -41981,29 +40076,21 @@ finally:
                 request_count(0)
             finally:
                 if subject_joined:
-                    try:
+                    with _best_effort_teardown("subject.resignFederationExecution"):
                         subject.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if observer_joined:
-                    try:
+                    with _best_effort_teardown("observer.resignFederationExecution"):
                         observer.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -42218,25 +40305,21 @@ finally:
                     (observer, observer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("producer.destroyFederationExecution"):
                         producer.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (target, target_connected),
                     (producer, producer_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -42438,24 +40521,20 @@ finally:
                     (observer, observer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -42853,24 +40932,20 @@ finally:
                     (observer, observer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -43113,24 +41188,20 @@ finally:
                     (observer, observer_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("subject.destroyFederationExecution"):
                         subject.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (observer, observer_connected),
                     (subject, subject_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
@@ -43291,29 +41362,21 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (subject, subject_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
@@ -43447,29 +41510,21 @@ finally:
             self.assertIn(escaped_joined_fom, report_text)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (subject, subject_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_mom_membership_updates(
@@ -43586,29 +41641,21 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (subject, subject_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_mom_fom_module_updates(
@@ -43775,35 +41822,25 @@ finally:
             self.assertEqual(decode_unicode(direct_values[fdd_attribute]), updated_fdd)
         finally:
             if extension_joined:
-                try:
+                with _best_effort_teardown("extension.resignFederationExecution"):
                     extension.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (owner, owner_connected),
                 (extension, extension_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_federation_mom_save_name_and_time_updates(
@@ -43878,7 +41915,7 @@ finally:
                 return value.getValue()
 
             def assert_save_values(
-                values: dict[object, bytes],
+                values: Mapping[object, bytes],
                 *,
                 last_name: str,
                 next_name: str,
@@ -43898,7 +41935,7 @@ finally:
                 self.assertEqual(values[attributes[HLA_MOM.NEXT_SAVE_TIME]], next_time)
 
             def wait_for_values(
-                after: int, required: set[object]
+                after: int, required: AbstractSet[object]
             ) -> dict[object, bytes]:
                 for _ in range(30):
                     drain(1)
@@ -43992,29 +42029,21 @@ finally:
             )
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (peer, peer_connected),
                 (owner, owner_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
@@ -44183,32 +42212,22 @@ finally:
                 publisher.retract(best_effort_only)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -44391,45 +42410,29 @@ finally:
             self.assertEqual(reflections(reduced_callbacks)[-1][2], b"matrix-third-tag")
         finally:
             if publisher_joined and object_instance is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteObjectInstance"):
                     publisher.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             if default_joined:
-                try:
+                with _best_effort_teardown("default.resignFederationExecution"):
                     default.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if reduced_joined:
-                try:
+                with _best_effort_teardown("reduced.resignFederationExecution"):
                     reduced.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if default_connected:
-                try:
+                with _best_effort_teardown("default.disconnect"):
                     default.disconnect()
-                except Exception:
-                    pass
             if reduced_connected:
-                try:
+                with _best_effort_teardown("reduced.disconnect"):
                     reduced.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             default._implementation.close()
             reduced._implementation.close()
             publisher._implementation.close()
@@ -44579,35 +42582,23 @@ finally:
             self.assertEqual(reflection[9], retraction)
         finally:
             if owner_joined and object_instance is not None:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if acquirer_connected:
-                try:
+                with _best_effort_teardown("acquirer.disconnect"):
                     acquirer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             acquirer._implementation.close()
             owner._implementation.close()
 
@@ -44776,45 +42767,29 @@ finally:
             self.assertIsNone(reflection[9])
         finally:
             if owner_joined and object_instance is not None:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if acquirer_connected:
-                try:
+                with _best_effort_teardown("acquirer.disconnect"):
                     acquirer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             acquirer._implementation.close()
             owner._implementation.close()
@@ -44967,45 +42942,29 @@ finally:
             region = None
         finally:
             if subscription_region is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(subscription_region)
-                except Exception:
-                    pass
             if region is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(region)
-                except Exception:
-                    pass
             if foreign_joined:
-                try:
+                with _best_effort_teardown("foreign.resignFederationExecution"):
                     foreign.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if foreign_connected:
-                try:
+                with _best_effort_teardown("foreign.disconnect"):
                     foreign.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if unjoined_connected:
-                try:
+                with _best_effort_teardown("unjoined.disconnect"):
                     unjoined.disconnect()
-                except Exception:
-                    pass
             foreign._implementation.close()
             owner._implementation.close()
             unjoined._implementation.close()
@@ -45069,25 +43028,17 @@ finally:
             region = None
         finally:
             if region is not None and joined:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_dimension_handle_validation_exceptions(self) -> None:
@@ -45142,20 +43093,14 @@ finally:
                 ambassador.deleteRegion(valid_region)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_foreign_region_ownership_exceptions(self) -> None:
@@ -45222,40 +43167,26 @@ finally:
             )
         finally:
             if owner_region is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(owner_region)
-                except Exception:
-                    pass
             if peer_region is not None and peer_joined:
-                try:
+                with _best_effort_teardown("peer.deleteRegion"):
                     peer.deleteRegion(peer_region)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             peer._implementation.close()
 
@@ -45462,30 +43393,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -45744,33 +43665,25 @@ finally:
             self.assertEqual(observer_callbacks.timestamped_directed_interactions, [])
         finally:
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -46151,32 +44064,22 @@ finally:
             publisher.retract(retraction)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -46200,7 +44103,6 @@ finally:
         subject_connected = observer_connected = False
         subject_joined = observer_joined = False
         created = False
-        region = None
         try:
             subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
             subject_connected = True
@@ -46485,30 +44387,20 @@ finally:
             self.assertTrue(local_delete_exception.startswith("ObjectInstanceNotKnown"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -46927,43 +44819,26 @@ finally:
             self.assertTrue(exception.startswith("InvalidDimensionHandle"))
         finally:
             if local_region is not None and subject_joined:
-                try:
+                with _best_effort_teardown("subject.deleteRegion"):
                     subject.deleteRegion(local_region)
-                except Exception:
-                    pass
             if foreign_region is not None and observer_joined:
-                try:
+                with _best_effort_teardown("observer.deleteRegion"):
                     observer.deleteRegion(foreign_region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
-                    # The observer owns the intentionally registered object;
-                    # delete it as part of the standard resignation cleanup
-                    # so the federation cannot leak into later test cases.
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -47451,35 +45326,23 @@ finally:
             subject.abortFederationRestore()
         finally:
             if region is not None:
-                try:
+                with _best_effort_teardown("subject.deleteRegion"):
                     subject.deleteRegion(region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -47636,30 +45499,20 @@ finally:
             subject.abortFederationSave()
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -47736,30 +45589,20 @@ finally:
                         factory_method().decode(malformed)
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -47925,35 +45768,25 @@ finally:
                 owner.getAvailableDimensionsForInteractionClass(unknown_interaction)
         finally:
             if extension_joined:
-                try:
+                with _best_effort_teardown(
+                    "extension_joiner.resignFederationExecution"
+                ):
                     extension_joiner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if extension_connected:
-                try:
+                with _best_effort_teardown("extension_joiner.disconnect"):
                     extension_joiner.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if unjoined_connected:
-                try:
+                with _best_effort_teardown("unjoined.disconnect"):
                     unjoined.disconnect()
-                except Exception:
-                    pass
             extension_joiner._implementation.close()
             owner._implementation.close()
             unjoined._implementation.close()
@@ -47990,20 +45823,24 @@ finally:
                 (unjoined.getMessageRetractionHandleFactory, MessageRetractionHandle),
             )
             for factory_method, _handle_type in decoder_operations:
-                with self.subTest(
-                    state="not-connected", factory=factory_method.__name__
+                with (
+                    self.subTest(
+                        state="not-connected", factory=factory_method.__name__
+                    ),
+                    self.assertRaises(NotConnected),
                 ):
-                    with self.assertRaises(NotConnected):
-                        factory_method().decode(b"")
+                    factory_method().decode(b"")
 
             unjoined.connect(unjoined_callbacks, CallbackModel.HLA_EVOKED)
             unjoined_connected = True
             for factory_method, _handle_type in decoder_operations:
-                with self.subTest(
-                    state="connected-not-member", factory=factory_method.__name__
+                with (
+                    self.subTest(
+                        state="connected-not-member", factory=factory_method.__name__
+                    ),
+                    self.assertRaises(FederateNotExecutionMember),
                 ):
-                    with self.assertRaises(FederateNotExecutionMember):
-                        factory_method().decode(b"")
+                    factory_method().decode(b"")
 
             owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
             owner_connected = True
@@ -48085,11 +45922,13 @@ finally:
                 (owner.getMessageRetractionHandleFactory, MessageRetractionHandle),
             )
             for factory_method, _handle_type in owner_decoder_operations:
-                with self.subTest(
-                    state="joined-malformed", factory=factory_method.__name__
+                with (
+                    self.subTest(
+                        state="joined-malformed", factory=factory_method.__name__
+                    ),
+                    self.assertRaises(CouldNotDecode),
                 ):
-                    with self.assertRaises(CouldNotDecode):
-                        factory_method().decode(b"")
+                    factory_method().decode(b"")
 
             owner.deleteRegion(region)
             owner.resignFederationExecution(ResignAction.NO_ACTION)
@@ -48098,25 +45937,17 @@ finally:
             created = False
         finally:
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if unjoined_connected:
-                try:
+                with _best_effort_teardown("unjoined.disconnect"):
                     unjoined.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             unjoined._implementation.close()
             owner._implementation.close()
 
@@ -48262,30 +46093,20 @@ finally:
             self.assertEqual(len(normalized_groups), len(ServiceGroup))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -48406,30 +46227,20 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -48811,30 +46622,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.DELETE_OBJECTS)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -48927,30 +46728,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49043,30 +46834,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49161,30 +46942,20 @@ finally:
             self.assertTrue(exception.startswith("TimeRegulationAlreadyEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49273,30 +47044,20 @@ finally:
             self.assertTrue(exception.startswith("RequestForTimeRegulationPending"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49390,30 +47151,20 @@ finally:
             self.assertTrue(exception.startswith("TimeConstrainedAlreadyEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49501,30 +47252,20 @@ finally:
             self.assertTrue(exception.startswith("RequestForTimeConstrainedPending"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49612,30 +47353,20 @@ finally:
             self.assertTrue(exception.startswith("AsynchronousDeliveryAlreadyEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49747,30 +47478,20 @@ finally:
                 self.assertEqual(receiver_callbacks.time_advance_grants, [])
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -49861,30 +47582,20 @@ finally:
             self.assertTrue(exception.startswith("AsynchronousDeliveryAlreadyDisabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -49971,30 +47682,20 @@ finally:
             self.assertTrue(exception.startswith("TimeRegulationIsNotEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50081,30 +47782,20 @@ finally:
             self.assertTrue(exception.startswith("TimeConstrainedIsNotEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50191,30 +47882,20 @@ finally:
             self.assertTrue(exception.startswith("TimeRegulationIsNotEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50302,30 +47983,20 @@ finally:
             self.assertTrue(exception.startswith("TimeRegulationIsNotEnabled"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50421,30 +48092,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50568,30 +48229,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50717,30 +48368,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50829,30 +48470,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -50941,30 +48572,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51053,30 +48674,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51165,30 +48776,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51277,30 +48878,20 @@ finally:
             self.assertTrue(exception.startswith("InTimeAdvancingState"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51399,30 +48990,20 @@ finally:
             self.assertTrue(exception.startswith("InteractionClassNotPublished"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51518,30 +49099,20 @@ finally:
             self.assertTrue(exception.startswith("InteractionClassNotPublished"))
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51637,35 +49208,23 @@ finally:
             self.assertTrue(exception.startswith("InteractionClassNotPublished"))
         finally:
             if region is not None and subject_joined:
-                try:
+                with _best_effort_teardown("subject.deleteRegion"):
                     subject.deleteRegion(region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51771,35 +49330,23 @@ finally:
             self.assertTrue(exception.startswith("InteractionClassNotPublished"))
         finally:
             if region is not None and subject_joined:
-                try:
+                with _best_effort_teardown("subject.deleteRegion"):
                     subject.deleteRegion(region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -51984,30 +49531,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -52209,30 +49746,20 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -52392,33 +49919,25 @@ finally:
             )
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -52629,45 +50148,33 @@ finally:
             )
         finally:
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (receiver, receiver_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             receiver._implementation.close()
             publisher._implementation.close()
@@ -52905,45 +50412,33 @@ finally:
             )
         finally:
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (receiver, receiver_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             receiver._implementation.close()
             publisher._implementation.close()
@@ -53211,45 +50706,33 @@ finally:
             self.assertEqual(reflection[9], retraction)
         finally:
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (receiver, receiver_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             receiver._implementation.close()
             publisher._implementation.close()
@@ -53468,40 +50951,26 @@ finally:
             verify_report(2, InvalidRegion)
         finally:
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -53714,33 +51183,25 @@ finally:
             self.assertEqual(len(observer_callbacks.removed_objects), 1)
         finally:
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -53941,33 +51402,25 @@ finally:
             self.assertEqual(observer_callbacks.timestamped_removals, [])
         finally:
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -54233,43 +51686,31 @@ finally:
             self.assertEqual(observer_callbacks.timestamped_reflections, [])
         finally:
             if observer_region is not None:
-                try:
+                with _best_effort_teardown("observer.deleteRegion"):
                     observer.deleteRegion(observer_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -54506,40 +51947,26 @@ finally:
             verify_report(3, "4", InvalidLogicalTime)
         finally:
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -54792,45 +52219,33 @@ finally:
             self.assertEqual(receiver_callbacks.regional_reflections, [])
         finally:
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if observer_joined and report_class is not None:
-                try:
+                with _best_effort_teardown("observer.unsubscribeInteractionClass"):
                     observer.unsubscribeInteractionClass(report_class)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (observer, observer_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (observer, observer_connected),
                 (receiver, receiver_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             observer._implementation.close()
             receiver._implementation.close()
             publisher._implementation.close()
@@ -54897,12 +52312,12 @@ finally:
             ambassador.setServiceReportingSwitch(True)
             ambassador.setSendServiceReportsToFileSwitch(True)
 
-            def read_record(before: str) -> dict[str, object]:
+            def read_record(before: str) -> JsonObject:
                 suffix = report_file.read_text(encoding="utf-8")[len(before) :]
                 record, consumed = json.JSONDecoder().raw_decode(suffix)
                 self.assertEqual(consumed, len(suffix))
                 self.assertIsInstance(record, dict)
-                return record
+                return cast(JsonObject, record)
 
             before_subscribe = report_file.read_text(encoding="utf-8")
             ambassador.subscribeInteractionClassWithRegions(
@@ -54985,25 +52400,17 @@ finally:
             )
         finally:
             if region is not None:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_regional_send_interaction_file_report_preserves_region_set(
@@ -55194,47 +52601,35 @@ finally:
             self.assertEqual(callback[5], RegionHandleSet([publisher_region]))
         finally:
             if observer_joined and observer_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "observer.unsubscribeInteractionClassWithRegions"
+                ):
                     observer.unsubscribeInteractionClassWithRegions(
                         observer.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([observer_region]),
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (publisher, publisher_region),
                 (observer, observer_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             publisher._implementation.close()
 
@@ -55285,7 +52680,6 @@ finally:
             parameter = publisher.getParameterHandle(
                 interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
-            server_id = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             parameters = ParameterHandleValueMap({parameter: b"\xd3\x0f"})
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
@@ -55354,42 +52748,30 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_region is not None and receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             publisher._implementation.close()
             receiver._implementation.close()
 
@@ -55554,42 +52936,30 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 9)
         finally:
             if receiver_region is not None and receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -55720,44 +53090,32 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_region is not None and receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -55987,45 +53345,29 @@ finally:
                 (publisher, publisher_wrong_context_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             observer._implementation.close()
             publisher._implementation.close()
@@ -56353,47 +53695,33 @@ finally:
             )
         finally:
             if receiver_joined and receiver_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_joined and publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -56515,47 +53843,33 @@ finally:
             )
         finally:
             if receiver_joined and receiver_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_joined and publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -56752,26 +54066,18 @@ finally:
             )
         finally:
             for ambassador, region in regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             for ambassador, is_joined in joined.items():
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (y_disjoint, x_disjoint, overlap, publisher):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_two_dimensional_regional_object_matrix(
@@ -56994,31 +54300,21 @@ finally:
             )
         finally:
             if object_instance is not None and joined[publisher]:
-                try:
+                with _best_effort_teardown("publisher.deleteObjectInstance"):
                     publisher.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             for ambassador, region in regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             for ambassador, is_joined in joined.items():
                 if is_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (y_disjoint, x_disjoint, overlap, publisher):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_default_region_interaction_effectiveness(self) -> None:
@@ -57182,65 +54478,51 @@ finally:
             self.assertEqual(mixed_default[5], RegionHandleSet())
         finally:
             if mixed_joined and mixed_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "mixed.unsubscribeInteractionClassWithRegions"
+                ):
                     mixed.unsubscribeInteractionClassWithRegions(
                         mixed.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([mixed_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("mixed.unsubscribeInteractionClass"):
                     mixed.unsubscribeInteractionClass(
                         mixed.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("mixed.deleteRegion"):
                     mixed.deleteRegion(mixed_region)
-                except Exception:
-                    pass
             if regional_joined and regional_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "regional.unsubscribeInteractionClassWithRegions"
+                ):
                     regional.unsubscribeInteractionClassWithRegions(
                         regional.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([regional_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("regional.deleteRegion"):
                     regional.deleteRegion(regional_region)
-                except Exception:
-                    pass
             if publisher_joined and publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for ambassador, joined in (
                 (mixed, mixed_joined),
                 (regional, regional_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (mixed, mixed_connected),
                 (regional, regional_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
                 ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement(
@@ -57377,49 +54659,35 @@ finally:
             self.assertEqual(regional_received[4], publisher_federate)
         finally:
             if subscriber_joined and subscriber_region is not None:
-                try:
+                with _best_effort_teardown(
+                    "subscriber.unsubscribeInteractionClassWithRegions"
+                ):
                     subscriber.unsubscribeInteractionClassWithRegions(
                         subscriber.getInteractionClassHandle(
                             HLA_FOM.MAIN_COURSE_SERVED
                         ),
                         RegionHandleSet([subscriber_region]),
                     )
-                except Exception:
-                    pass
-                try:
+                with _best_effort_teardown("subscriber.deleteRegion"):
                     subscriber.deleteRegion(subscriber_region)
-                except Exception:
-                    pass
             if publisher_joined and publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             publisher._implementation.close()
 
@@ -57583,20 +54851,14 @@ finally:
             self.assertEqual(len(subscriber_callbacks.regional_interactions), 3)
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -57756,50 +55018,32 @@ finally:
             publisher_region = None
         finally:
             if subscriber_region is not None and subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.deleteRegion"):
                     subscriber.deleteRegion(subscriber_region)
-                except Exception:
-                    pass
             if publisher_region is not None and publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             observer._implementation.close()
             publisher._implementation.close()
@@ -57996,20 +55240,14 @@ finally:
             self.assertEqual(reflection[2], b"relaxed-object-boundary-tag")
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -58238,25 +55476,17 @@ finally:
             self.assertEqual(object_callbacks[0][2], b"strict-overlap-object-tag")
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador in (subscriber, publisher):
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             publisher._implementation.close()
 
@@ -58358,30 +55588,20 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -58527,32 +55747,22 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(
                             ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                         )
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -58699,30 +55909,20 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -58904,32 +56104,22 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(
                             ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                         )
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -59121,42 +56311,28 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(
                             ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                         )
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if receiver_region is not None:
-                    try:
+                    with _best_effort_teardown("receiver.deleteRegion"):
                         receiver.deleteRegion(receiver_region)
-                    except Exception:
-                        pass
                 if source_region is not None:
-                    try:
+                    with _best_effort_teardown("publisher.deleteRegion"):
                         publisher.deleteRegion(source_region)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -59375,49 +56551,35 @@ finally:
                 )
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown("receiver.resignFederationExecution"):
                         receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
                 if publisher_joined:
-                    try:
+                    with _best_effort_teardown("publisher.resignFederationExecution"):
                         publisher.resignFederationExecution(
                             ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                         )
-                    except Exception:
-                        pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 if publisher_pairs is not None and object_instance is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "publisher.unassociateRegionsForUpdates"
+                    ):
                         publisher.unassociateRegionsForUpdates(
                             object_instance, publisher_pairs
                         )
-                    except Exception:
-                        pass
                 if receiver_region is not None:
-                    try:
+                    with _best_effort_teardown("receiver.deleteRegion"):
                         receiver.deleteRegion(receiver_region)
-                    except Exception:
-                        pass
                 if source_region is not None:
-                    try:
+                    with _best_effort_teardown("publisher.deleteRegion"):
                         publisher.deleteRegion(source_region)
-                    except Exception:
-                        pass
                 if receiver_connected:
-                    try:
+                    with _best_effort_teardown("receiver.disconnect"):
                         receiver.disconnect()
-                    except Exception:
-                        pass
                 if publisher_connected:
-                    try:
+                    with _best_effort_teardown("publisher.disconnect"):
                         publisher.disconnect()
-                    except Exception:
-                        pass
                 receiver._implementation.close()
                 publisher._implementation.close()
 
@@ -59531,20 +56693,14 @@ finally:
             self.assertEqual(received[2], b"delayed-regional-tag")
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -59688,20 +56844,14 @@ finally:
             self.assertEqual(reflection[2], b"delayed-object-tag")
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -59882,20 +57032,14 @@ finally:
             self.assertEqual(reflection[9], second_retraction)
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -59972,7 +57116,6 @@ finally:
                 receiver_class, HLA_FIXTURES.FLAVOR
             )
             attributes = AttributeHandleSet([publisher_attribute])
-            receiver_attributes = AttributeHandleSet([receiver_attribute])
             publisher.publishObjectClassAttributes(publisher_class, attributes)
             publisher.changeDefaultAttributeOrderType(
                 publisher_class, attributes, OrderType.TIMESTAMP
@@ -60063,20 +57206,14 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -60209,20 +57346,14 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -60355,20 +57486,14 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -60449,7 +57574,6 @@ finally:
             publisher.changeDefaultAttributeOrderType(
                 publisher_class, publisher_attributes, OrderType.TIMESTAMP
             )
-            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             receiver_pairs: list[
                 tuple[RTIambassador, _JniCallbacks, AttributeSetRegionSetPairList]
             ] = []
@@ -60537,20 +57661,14 @@ finally:
         finally:
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -60802,46 +57920,34 @@ finally:
                 publisher.retract(default_retraction)
         finally:
             if explicit_object is not None and publisher_pairs is not None:
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         explicit_object, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, _, pairs in receiver_regions:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     ambassador.unsubscribeObjectClassAttributesWithRegions(
                         ambassador.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         pairs,
                     )
-                except Exception:
-                    pass
             for ambassador, region, _ in receiver_regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -60973,20 +58079,14 @@ finally:
                 self.assertEqual(entry[9], retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -61081,7 +58181,6 @@ finally:
                 immediate_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             parameter_values = ParameterHandleValueMap({parameter: b"DEFI"})
-            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             constrained_dimension = constrained.getDimensionHandle(
                 HLA_FIXTURES.SERVER_ID
             )
@@ -61164,53 +58263,41 @@ finally:
                 publisher.retract(retraction)
         finally:
             if constrained_region is not None and constrained_joined:
-                try:
+                with _best_effort_teardown(
+                    "constrained.unsubscribeInteractionClassWithRegions"
+                ):
                     constrained.unsubscribeInteractionClassWithRegions(
                         constrained.getInteractionClassHandle(
                             HLA_FOM.MAIN_COURSE_SERVED
                         ),
                         RegionHandleSet([constrained_region]),
                     )
-                except Exception:
-                    pass
             if immediate_region is not None and immediate_joined:
-                try:
+                with _best_effort_teardown(
+                    "immediate.unsubscribeInteractionClassWithRegions"
+                ):
                     immediate.unsubscribeInteractionClassWithRegions(
                         immediate.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([immediate_region]),
                     )
-                except Exception:
-                    pass
             if constrained_region is not None:
-                try:
+                with _best_effort_teardown("constrained.deleteRegion"):
                     constrained.deleteRegion(constrained_region)
-                except Exception:
-                    pass
             if immediate_region is not None:
-                try:
+                with _best_effort_teardown("immediate.deleteRegion"):
                     immediate.deleteRegion(immediate_region)
-                except Exception:
-                    pass
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             immediate.disconnect()
             constrained.disconnect()
             publisher.disconnect()
@@ -61285,20 +58372,14 @@ finally:
             self.assertEqual(callbacks.retraction_requests, [])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             publisher._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_attribute_update_without_recipient_preserves_retraction_ledger(
@@ -61372,22 +58453,16 @@ finally:
             self.assertEqual(callbacks.retraction_requests, [])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             publisher._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_interaction_retraction_and_resignation(
@@ -61562,25 +58637,17 @@ finally:
                 publisher.retract(immediate_only)
         finally:
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             constrained.disconnect()
             immediate.disconnect()
             publisher.disconnect()
@@ -61670,7 +58737,6 @@ finally:
             publisher_parameter = publisher.getParameterHandle(
                 interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
-            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             parameters = ParameterHandleValueMap(
@@ -61751,20 +58817,14 @@ finally:
         finally:
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -61934,28 +58994,22 @@ finally:
         finally:
             if receiver_joined:
                 if receiver_class is not None and receiver_attributes is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "receiver.unsubscribeObjectClassAttributes"
+                    ):
                         receiver.unsubscribeObjectClassAttributes(
                             receiver_class, receiver_attributes
                         )
-                    except Exception:
-                        pass
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
                 receiver.disconnect()
             if publisher_connected:
@@ -62187,42 +59241,28 @@ finally:
             self.assertEqual(constrained_callbacks.retraction_requests, [])
         finally:
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if constrained_connected:
-                try:
+                with _best_effort_teardown("constrained.disconnect"):
                     constrained.disconnect()
-                except Exception:
-                    pass
             if immediate_connected:
-                try:
+                with _best_effort_teardown("immediate.disconnect"):
                     immediate.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             constrained._implementation.close()
             immediate._implementation.close()
             publisher._implementation.close()
@@ -62301,22 +59341,16 @@ finally:
                 publisher.retract(retraction)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             publisher._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_object_deletion_reconstitutes_only_joined_owners(
@@ -62492,37 +59526,27 @@ finally:
             self.assertEqual(constrained_callbacks.retraction_requests, [])
         finally:
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if former_joined:
-                try:
+                with _best_effort_teardown("former_owner.resignFederationExecution"):
                     former_owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (constrained, constrained_connected),
                 (former_owner, former_connected),
                 (publisher, publisher_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             constrained._implementation.close()
             former_owner._implementation.close()
             publisher._implementation.close()
@@ -62701,20 +59725,14 @@ finally:
         finally:
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -62932,20 +59950,14 @@ finally:
         finally:
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -63108,25 +60120,17 @@ finally:
             self.assertEqual(survivor_callbacks.retraction_requests, [])
         finally:
             if joined["survivor"]:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if joined["departing"]:
-                try:
+                with _best_effort_teardown("departing.resignFederationExecution"):
                     departing.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             departing.disconnect()
             survivor.disconnect()
             publisher.disconnect()
@@ -63264,25 +60268,17 @@ finally:
                 publisher.retract(retraction)
         finally:
             if joined["survivor"]:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if joined["departing"]:
-                try:
+                with _best_effort_teardown("departing.resignFederationExecution"):
                     departing.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             departing.disconnect()
             survivor.disconnect()
             publisher.disconnect()
@@ -63405,25 +60401,17 @@ finally:
                 publisher.retract(retraction)
         finally:
             if joined["survivor"]:
-                try:
+                with _best_effort_teardown("survivor.resignFederationExecution"):
                     survivor.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if joined["departing"]:
-                try:
+                with _best_effort_teardown("departing.resignFederationExecution"):
                     departing.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             departing.disconnect()
             survivor.disconnect()
             publisher.disconnect()
@@ -63618,46 +60606,34 @@ finally:
             self.assertEqual(nmra_callbacks.time_advance_grants[0].getTime(), 7)
         finally:
             if object_instance is not None and publisher_pairs is not None:
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, _, pairs in receiver_regions:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     ambassador.unsubscribeObjectClassAttributesWithRegions(
                         ambassador.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         pairs,
                     )
-                except Exception:
-                    pass
             for ambassador, region, _ in receiver_regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -63820,60 +60796,44 @@ finally:
                 and receiver_class is not None
                 and receiver_pairs is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver_class, receiver_pairs
                     )
-                except Exception:
-                    pass
             if (
                 object_instance is not None
                 and publisher_joined
                 and publisher_pairs is not None
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -64060,40 +61020,30 @@ finally:
                 publisher.retract(third)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region])
                         if receiver_region
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -64304,40 +61254,34 @@ finally:
             )
         finally:
             if immediate_joined:
-                try:
+                with _best_effort_teardown(
+                    "immediate.unsubscribeInteractionClassWithRegions"
+                ):
                     immediate.unsubscribeInteractionClassWithRegions(
                         immediate.getInteractionClassHandle(interaction_name),
                         RegionHandleSet([immediate_region])
                         if immediate_region is not None
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (immediate, immediate_region),
                 (constrained, constrained_region),
                 (publisher, publisher_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (constrained, constrained_joined),
                 (immediate, immediate_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             constrained.disconnect()
             immediate.disconnect()
             publisher.disconnect()
@@ -64447,38 +61391,32 @@ finally:
             self.assertEqual(receiver_callbacks.retraction_requests, [])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(interaction_name),
                         RegionHandleSet([receiver_region])
                         if receiver_region is not None
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (receiver, receiver_region),
                 (publisher, publisher_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -64593,38 +61531,32 @@ finally:
             self.assertEqual(receiver_callbacks.timestamped_interactions, [])
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(interaction_name),
                         RegionHandleSet([receiver_region])
                         if receiver_region is not None
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (receiver, receiver_region),
                 (publisher, publisher_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (receiver, receiver_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -64823,12 +61755,12 @@ finally:
                 ),
             ):
                 if interaction_handle is not None and region is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassador.unsubscribeInteractionClassWithRegions"
+                    ):
                         ambassador.unsubscribeInteractionClassWithRegions(
                             interaction_handle, RegionHandleSet([region])
                         )
-                    except Exception:
-                        pass
             for ambassador, region in (
                 (fqr, fqr_region),
                 (tara, tara_region),
@@ -64836,10 +61768,8 @@ finally:
                 (publisher, publisher_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (nmra, nmra_joined),
                 (tara, tara_joined),
@@ -64847,15 +61777,11 @@ finally:
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             nmra.disconnect()
             tara.disconnect()
             fqr.disconnect()
@@ -65003,52 +61929,38 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region])
                         if receiver_region is not None
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -65218,40 +62130,30 @@ finally:
             self.assertEqual(receiver.queryLogicalTime().getTime(), 9)
         finally:
             if receiver_joined:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeInteractionClassWithRegions"
+                ):
                     receiver.unsubscribeInteractionClassWithRegions(
                         receiver.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED),
                         RegionHandleSet([receiver_region])
                         if receiver_region
                         else RegionHandleSet(),
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             receiver.disconnect()
             publisher.disconnect()
             receiver._implementation.close()
@@ -65441,7 +62343,9 @@ finally:
                 self.assertEqual(report[9], retraction)
             finally:
                 if receiver_joined:
-                    try:
+                    with _best_effort_teardown(
+                        "receiver.unsubscribeInteractionClassWithRegions"
+                    ):
                         receiver.unsubscribeInteractionClassWithRegions(
                             receiver.getInteractionClassHandle(
                                 HLA_FOM.MAIN_COURSE_SERVED
@@ -65450,40 +62354,32 @@ finally:
                             if receiver_region is not None
                             else RegionHandleSet(),
                         )
-                    except Exception:
-                        pass
                 for ambassador, region in (
                     (receiver, receiver_region),
                     (publisher, publisher_region),
                 ):
                     if region is not None:
-                        try:
+                        with _best_effort_teardown("ambassador.deleteRegion"):
                             ambassador.deleteRegion(region)
-                        except Exception:
-                            pass
                 for ambassador, joined in (
                     (receiver, receiver_joined),
                     (publisher, publisher_joined),
                 ):
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                 if created:
-                    try:
+                    with _best_effort_teardown("publisher.destroyFederationExecution"):
                         publisher.destroyFederationExecution(federation_name)
-                    except Exception:
-                        pass
                 for ambassador, connected in (
                     (receiver, receiver_connected),
                     (publisher, publisher_connected),
                 ):
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
                     ambassador._implementation.close()
 
         for regional in (False, True):
@@ -65663,43 +62559,35 @@ finally:
             )
             for receiver, region in region_subscriptions:
                 if joined[1 if receiver is tar_receiver else 2] and region is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "receiver.unsubscribeInteractionClassWithRegions"
+                    ):
                         receiver.unsubscribeInteractionClassWithRegions(
                             receiver.getInteractionClassHandle(
                                 HLA_FOM.MAIN_COURSE_SERVED
                             ),
                             RegionHandleSet([region]),
                         )
-                    except Exception:
-                        pass
-                    try:
+                    with _best_effort_teardown("receiver.deleteRegion"):
                         receiver.deleteRegion(region)
-                    except Exception:
-                        pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for index in (2, 1, 0):
                 if joined[index]:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassadors[index].resignFederationExecution"
+                    ):
                         ambassadors[index].resignFederationExecution(
                             ResignAction.NO_ACTION
                         )
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for index in (2, 1, 0):
                 if connected[index]:
-                    try:
+                    with _best_effort_teardown("ambassadors[index].disconnect"):
                         ambassadors[index].disconnect()
-                    except Exception:
-                        pass
                 ambassadors[index]._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_regional_object_update_survives_reenable(
@@ -65868,57 +62756,41 @@ finally:
                 and publisher_pairs is not None
                 and publisher_joined
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             if receiver_joined and receiver_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         receiver_pairs,
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -65985,7 +62857,6 @@ finally:
             )
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             receiver_attributes = AttributeHandleSet([receiver_attribute])
-            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             receiver_dimension = receiver.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, publisher_attributes
@@ -66066,45 +62937,33 @@ finally:
                 publisher.retract(retraction)
         finally:
             if receiver_joined and receiver_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "receiver.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     receiver.unsubscribeObjectClassAttributesWithRegions(
                         receiver.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         receiver_pairs,
                     )
-                except Exception:
-                    pass
             if receiver_region is not None:
-                try:
+                with _best_effort_teardown("receiver.deleteRegion"):
                     receiver.deleteRegion(receiver_region)
-                except Exception:
-                    pass
             if receiver_joined:
-                try:
+                with _best_effort_teardown("receiver.resignFederationExecution"):
                     receiver.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if receiver_connected:
-                try:
+                with _best_effort_teardown("receiver.disconnect"):
                     receiver.disconnect()
-                except Exception:
-                    pass
             if publisher_connected:
-                try:
+                with _best_effort_teardown("publisher.disconnect"):
                     publisher.disconnect()
-                except Exception:
-                    pass
             receiver._implementation.close()
             publisher._implementation.close()
 
@@ -66315,46 +63174,34 @@ finally:
                 publisher.retract(retraction)
         finally:
             if object_instance is not None and publisher_pairs is not None:
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, _, pairs in receiver_regions:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     ambassador.unsubscribeObjectClassAttributesWithRegions(
                         ambassador.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         pairs,
                     )
-                except Exception:
-                    pass
             for ambassador, region, _ in receiver_regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for ambassador, _, name in reversed(receivers):
                 if receiver_joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -66729,46 +63576,34 @@ finally:
                 publisher.retract(retraction)
         finally:
             if object_instance is not None and publisher_pairs is not None:
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, _, pairs in receiver_regions:
-                try:
+                with _best_effort_teardown(
+                    "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     ambassador.unsubscribeObjectClassAttributesWithRegions(
                         ambassador.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA),
                         pairs,
                     )
-                except Exception:
-                    pass
             for ambassador, region, _ in receiver_regions:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if publisher_region is not None:
-                try:
+                with _best_effort_teardown("publisher.deleteRegion"):
                     publisher.deleteRegion(publisher_region)
-                except Exception:
-                    pass
             for ambassador, _ in reversed(receivers):
                 if receiver_joined[id(ambassador)]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, _ in receivers:
                 ambassador.disconnect()
             publisher.disconnect()
@@ -66824,7 +63659,6 @@ finally:
             )
             owner_dimension = owner.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             requester_dimension = requester.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
-            owner_unrelated_dimension = owner.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             requester_unrelated_dimension = requester.getDimensionHandle(
                 HLA_FIXTURES.SERVER_ID
             )
@@ -66942,10 +63776,8 @@ finally:
             )
         finally:
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             for ambassador, region in (
                 (requester, requester_wrong_context),
                 (requester, requester_uncommitted),
@@ -66953,35 +63785,23 @@ finally:
                 (owner, owner_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -67383,32 +64203,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -67595,32 +64405,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -67789,32 +64589,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -67958,32 +64748,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -68156,32 +64936,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -68372,32 +65142,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -68524,13 +65284,14 @@ finally:
                         break
                 self.assertEqual(len(observer_callbacks.received_interactions), 1)
                 report = observer_callbacks.received_interactions[0]
-                self.assertEqual(report[0], report_class)
-                self.assertEqual(report[2], b"")
+                self.assertEqual(report.interaction_class, report_class)
+                self.assertEqual(report.tag, b"")
                 self.assertEqual(
-                    report[3], observer.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+                    report.transportation_type,
+                    observer.getTransportationTypeHandle(HLA_MOM.RELIABLE),
                 )
-                self.assertFalse(any(report[4].encodedValue[4:]))
-                values = dict(report[1])
+                self.assertFalse(any(report.producing_federate.encodedValue[4:]))
+                values = dict(report.parameter_values)
                 self.assertEqual(len(values), expected_parameter_count)
                 self.assertEqual(
                     bytes(values[report_object_parameter]),
@@ -68604,32 +65365,22 @@ finally:
             )
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -68753,7 +65504,7 @@ finally:
                 value.decode(payload)
                 return value.getValue()
 
-            def request_reports() -> list[tuple]:
+            def request_reports() -> list[_ReceivedInteraction]:
                 observer_callbacks.received_interactions.clear()
                 subject.sendInteraction(
                     request_class,
@@ -68770,13 +65521,14 @@ finally:
             reports = request_reports()
             saw_object = saw_interaction = saw_directed = False
             for report in reports:
-                self.assertEqual(report[2], b"")
+                self.assertEqual(report.tag, b"")
                 self.assertEqual(
-                    report[3], observer.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+                    report.transportation_type,
+                    observer.getTransportationTypeHandle(HLA_MOM.RELIABLE),
                 )
-                self.assertFalse(any(report[4].encodedValue[4:]))
-                values = dict(report[1])
-                if report[0] == object_report_class:
+                self.assertFalse(any(report.producing_federate.encodedValue[4:]))
+                values = dict(report.parameter_values)
+                if report.interaction_class == object_report_class:
                     saw_object = True
                     self.assertEqual(len(values), 3)
                     self.assertEqual(
@@ -68793,7 +65545,7 @@ finally:
                             bytes(privilege_to_delete.encodedValue),
                         },
                     )
-                elif report[0] == interaction_report_class:
+                elif report.interaction_class == interaction_report_class:
                     saw_interaction = True
                     self.assertEqual(len(values), 1)
                     self.assertEqual(
@@ -68801,7 +65553,7 @@ finally:
                         {bytes(observer_take_order.encodedValue)},
                     )
                 else:
-                    self.assertEqual(report[0], directed_report_class)
+                    self.assertEqual(report.interaction_class, directed_report_class)
                     saw_directed = True
                     self.assertEqual(len(values), 3)
                     self.assertEqual(
@@ -68825,8 +65577,8 @@ finally:
             reports = request_reports()
             saw_object = saw_interaction = saw_directed = False
             for report in reports:
-                values = dict(report[1])
-                if report[0] == object_report_class:
+                values = dict(report.parameter_values)
+                if report.interaction_class == object_report_class:
                     saw_object = True
                     self.assertEqual(len(values), 1)
                     self.assertEqual(
@@ -68834,14 +65586,14 @@ finally:
                     )
                     self.assertNotIn(object_report_class_parameter, values)
                     self.assertNotIn(object_report_attributes_parameter, values)
-                elif report[0] == interaction_report_class:
+                elif report.interaction_class == interaction_report_class:
                     saw_interaction = True
                     self.assertEqual(
                         decode_handle_list(values[interaction_report_list_parameter]),
                         set(),
                     )
                 else:
-                    self.assertEqual(report[0], directed_report_class)
+                    self.assertEqual(report.interaction_class, directed_report_class)
                     saw_directed = True
                     self.assertEqual(len(values), 2)
                     self.assertEqual(
@@ -68855,32 +65607,22 @@ finally:
             self.assertTrue(saw_object and saw_interaction and saw_directed)
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -69054,7 +65796,7 @@ finally:
                 value.decode(payload)
                 return value.getValue()
 
-            def request_reports(expected_count: int) -> list[tuple]:
+            def request_reports(expected_count: int) -> list[_ReceivedInteraction]:
                 observer_callbacks.received_interactions.clear()
                 subject.sendInteraction(
                     request_class,
@@ -69073,13 +65815,14 @@ finally:
             reports = request_reports(4)
             saw_active = saw_passive = saw_interactions = saw_directed = False
             for report in reports:
-                self.assertEqual(report[2], b"")
+                self.assertEqual(report.tag, b"")
                 self.assertEqual(
-                    report[3], observer.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+                    report.transportation_type,
+                    observer.getTransportationTypeHandle(HLA_MOM.RELIABLE),
                 )
-                self.assertFalse(any(report[4].encodedValue[4:]))
-                values = dict(report[1])
-                if report[0] == object_report_class:
+                self.assertFalse(any(report.producing_federate.encodedValue[4:]))
+                values = dict(report.parameter_values)
+                if report.interaction_class == object_report_class:
                     self.assertEqual(
                         decode_integer(values[object_report_count_parameter]), 2
                     )
@@ -69107,7 +65850,7 @@ finally:
                             attributes,
                             {bytes(observer_privilege_to_delete.encodedValue)},
                         )
-                elif report[0] == interaction_report_class:
+                elif report.interaction_class == interaction_report_class:
                     saw_interactions = True
                     self.assertEqual(
                         decode_interaction_subscriptions(
@@ -69119,7 +65862,7 @@ finally:
                         },
                     )
                 else:
-                    self.assertEqual(report[0], directed_report_class)
+                    self.assertEqual(report.interaction_class, directed_report_class)
                     saw_directed = True
                     self.assertEqual(
                         decode_integer(values[directed_report_count_parameter]), 1
@@ -69145,14 +65888,14 @@ finally:
             reports = request_reports(3)
             saw_object = saw_interactions = saw_directed = False
             for report in reports:
-                values = dict(report[1])
-                if report[0] == object_report_class:
+                values = dict(report.parameter_values)
+                if report.interaction_class == object_report_class:
                     saw_object = True
                     self.assertEqual(set(values), {object_report_count_parameter})
                     self.assertEqual(
                         decode_integer(values[object_report_count_parameter]), 0
                     )
-                elif report[0] == interaction_report_class:
+                elif report.interaction_class == interaction_report_class:
                     saw_interactions = True
                     self.assertEqual(
                         decode_interaction_subscriptions(
@@ -69161,7 +65904,7 @@ finally:
                         set(),
                     )
                 else:
-                    self.assertEqual(report[0], directed_report_class)
+                    self.assertEqual(report.interaction_class, directed_report_class)
                     saw_directed = True
                     self.assertEqual(
                         decode_integer(values[directed_report_count_parameter]), 0
@@ -69173,32 +65916,22 @@ finally:
             self.assertTrue(saw_object and saw_interactions and saw_directed)
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -69278,13 +66011,14 @@ finally:
                     break
             self.assertEqual(len(observer_callbacks.received_interactions), 1)
             report = observer_callbacks.received_interactions[0]
-            self.assertEqual(report[0], report_class)
-            self.assertEqual(report[2], b"")
+            self.assertEqual(report.interaction_class, report_class)
+            self.assertEqual(report.tag, b"")
             self.assertEqual(
-                report[3], observer.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+                report.transportation_type,
+                observer.getTransportationTypeHandle(HLA_MOM.RELIABLE),
             )
-            self.assertFalse(any(report[4].encodedValue[4:]))
-            values = dict(report[1])
+            self.assertFalse(any(report.producing_federate.encodedValue[4:]))
+            values = dict(report.parameter_values)
             self.assertEqual(set(values), set(report_parameters.values()))
             service = encoder.createHLAunicodeString()
             service.decode(values[report_parameters[HLA_MOM.SERVICE]])
@@ -69435,32 +66169,22 @@ finally:
             self.assertFalse(precondition_parameter_error.getValue())
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -69584,32 +66308,22 @@ finally:
                     self.assertTrue(parameter_error.getValue())
         finally:
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("subject.destroyFederationExecution"):
                     subject.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -69708,32 +66422,22 @@ finally:
             self.assertIn("Restaurant FOM Module", module.getValue())
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -69854,32 +66558,22 @@ finally:
             self.assertIn("Standard MOM", mim_data.getValue())
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -70046,32 +66740,22 @@ finally:
             self.assertEqual(request_points(), [])
         finally:
             if subject_joined:
-                try:
+                with _best_effort_teardown("subject.resignFederationExecution"):
                     subject.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if subject_connected:
-                try:
+                with _best_effort_teardown("subject.disconnect"):
                     subject.disconnect()
-                except Exception:
-                    pass
             observer._implementation.close()
             subject._implementation.close()
 
@@ -70336,10 +67020,8 @@ finally:
             )
         finally:
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(object_instance)
-                except Exception:
-                    pass
             for ambassador, region in (
                 (owner, owner_wrong_context),
                 (owner, owner_uncommitted),
@@ -70349,35 +67031,23 @@ finally:
                 (peer, peer_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -70474,32 +67144,22 @@ finally:
             self.assertEqual(request[2], b"")
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -70675,32 +67335,22 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -70814,9 +67464,6 @@ finally:
                 requester_class, HLA_FIXTURES.ORGANIC
             )
             owner_attributes = AttributeHandleSet([owner_flavor, owner_organic])
-            requester_attributes = AttributeHandleSet(
-                [requester_flavor, requester_organic]
-            )
             owner.publishObjectClassAttributes(owner_class, owner_attributes)
 
             owner_x = owner.getDimensionHandle(HLA_FIXTURES.UMBRA_REGION_X)
@@ -71069,17 +67716,15 @@ finally:
             )
         finally:
             if requester_joined and requester_pairs is not None:
-                try:
+                with _best_effort_teardown(
+                    "requester.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     requester.unsubscribeObjectClassAttributesWithRegions(
                         requester_class, requester_pairs
                     )
-                except Exception:
-                    pass
             if object_instance is not None and owner_joined and owner_pairs is not None:
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(object_instance, owner_pairs)
-                except Exception:
-                    pass
             for ambassador, region in (
                 (requester, requester_region_flavor),
                 (requester, requester_region_organic),
@@ -71087,24 +67732,18 @@ finally:
                 (owner, owner_region_organic),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (requester, requester_joined),
                 (owner, owner_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
                 requester.disconnect()
             if owner_connected:
@@ -71385,7 +68024,7 @@ finally:
                 len(owner_before_request) :
             ]
             owner_report_decoder = json.JSONDecoder()
-            owner_report_records: list[dict[str, object]] = []
+            owner_report_records: list[JsonObject] = []
             owner_report_offset = 0
             while owner_report_offset < len(owner_report_suffix):
                 owner_report_record, owner_report_consumed = (
@@ -71476,53 +68115,39 @@ finally:
             )
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown(
+                    "requester.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     requester.unsubscribeObjectClassAttributesWithRegions(
                         requester_class, requester_pairs
                     )
-                except Exception:
-                    pass
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(object_instance, owner_pairs)
-                except Exception:
-                    pass
             for ambassador, region in (
                 (requester, requester_region),
                 (owner, owner_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -71697,47 +68322,31 @@ finally:
                 and owner_joined
                 and owner_region is not None
             ):
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(regional_object, owner_pairs)
-                except Exception:
-                    pass
             if requester_joined and requester_region is not None:
-                try:
+                with _best_effort_teardown("requester.deleteRegion"):
                     requester.deleteRegion(requester_region)
-                except Exception:
-                    pass
             if owner_joined and owner_region is not None:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(owner_region)
-                except Exception:
-                    pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -71941,53 +68550,39 @@ finally:
                 owner.retract(owner_callbacks.response_retraction)
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown(
+                    "requester.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     requester.unsubscribeObjectClassAttributesWithRegions(
                         requester_class, requester_pairs
                     )
-                except Exception:
-                    pass
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(object_instance, owner_pairs)
-                except Exception:
-                    pass
             for ambassador, region in (
                 (requester, requester_region),
                 (owner, owner_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -72180,49 +68775,39 @@ finally:
                 and publisher_joined
                 and publisher_pairs is not None
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             if (
                 subscriber_joined
                 and subscriber_pairs is not None
                 and subscriber_class is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "subscriber.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     subscriber.unsubscribeObjectClassAttributesWithRegions(
                         subscriber_class, subscriber_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (subscriber, subscriber_region),
                 (publisher, publisher_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             publisher.disconnect()
             subscriber.disconnect()
             publisher._implementation.close()
@@ -72537,30 +69122,20 @@ finally:
             )
         finally:
             if disjoint_joined:
-                try:
+                with _best_effort_teardown("disjoint.resignFederationExecution"):
                     disjoint.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if overlap_joined:
-                try:
+                with _best_effort_teardown("overlap.resignFederationExecution"):
                     overlap.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             disjoint.disconnect()
             overlap.disconnect()
             publisher.disconnect()
@@ -72779,15 +69354,11 @@ finally:
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             mixed.disconnect()
             regional.disconnect()
             publisher.disconnect()
@@ -72995,22 +69566,16 @@ finally:
             )
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -73162,60 +69727,46 @@ finally:
             )
         finally:
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(
                         object_instance, disjoint_owner_pair
                     )
-                except Exception:
-                    pass
             if (
                 subscriber_joined
                 and subscriber_class is not None
                 and subscriber_pair is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "subscriber.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     subscriber.unsubscribeObjectClassAttributesWithRegions(
                         subscriber_class, subscriber_pair
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (subscriber, subscriber_region),
                 (owner, disjoint_owner_region),
                 (owner, owner_region),
             ):
                 if region is not None and owner_joined:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if subscriber_connected:
-                try:
+                with _best_effort_teardown("subscriber.disconnect"):
                     subscriber.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             subscriber._implementation.close()
             owner._implementation.close()
 
@@ -73421,20 +69972,14 @@ finally:
             )
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -73662,20 +70207,14 @@ finally:
             )
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -73932,25 +70471,17 @@ finally:
             )
         finally:
             if disjoint_joined:
-                try:
+                with _best_effort_teardown("disjoint.resignFederationExecution"):
                     disjoint.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if matching_joined:
-                try:
+                with _best_effort_teardown("matching.resignFederationExecution"):
                     matching.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             disjoint.disconnect()
             matching.disconnect()
             publisher.disconnect()
@@ -74028,9 +70559,6 @@ finally:
             )
             publisher_attributes = AttributeHandleSet(
                 [publisher_flavor, publisher_organic]
-            )
-            subscriber_attributes = AttributeHandleSet(
-                [subscriber_flavor, subscriber_organic]
             )
             publisher.publishObjectClassAttributes(
                 publisher_class, publisher_attributes
@@ -74232,20 +70760,14 @@ finally:
             self.assertEqual(len(subscriber_callbacks.regional_reflections), 4)
         finally:
             if subscriber_joined:
-                try:
+                with _best_effort_teardown("subscriber.resignFederationExecution"):
                     subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             subscriber.disconnect()
             publisher.disconnect()
             subscriber._implementation.close()
@@ -74542,25 +71064,21 @@ finally:
             self.assertEqual(len(organic_callbacks.regional_reflections), 2)
         finally:
             if organic_joined:
-                try:
+                with _best_effort_teardown(
+                    "organic_subscriber.resignFederationExecution"
+                ):
                     organic_subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if flavor_joined:
-                try:
+                with _best_effort_teardown(
+                    "flavor_subscriber.resignFederationExecution"
+                ):
                     flavor_subscriber.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             organic_subscriber.disconnect()
             flavor_subscriber.disconnect()
             publisher.disconnect()
@@ -74824,12 +71342,10 @@ finally:
                 and publisher_pairs is not None
                 and publisher_joined
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, object_class, pairs in (
                 (
                     lower,
@@ -74843,12 +71359,12 @@ finally:
                 ),
             ):
                 if object_class is not None and pairs is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                    ):
                         ambassador.unsubscribeObjectClassAttributesWithRegions(
                             object_class, pairs
                         )
-                    except Exception:
-                        pass
             for ambassador, region in (
                 (lower, lower_region),
                 (upper, upper_region),
@@ -74856,25 +71372,19 @@ finally:
                 (publisher, upper_source_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (upper, upper_joined),
                 (lower, lower_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             upper.disconnect()
             lower.disconnect()
             publisher.disconnect()
@@ -75173,12 +71683,10 @@ finally:
                 and publisher_pairs is not None
                 and publisher_joined
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, object_class, attribute, region in (
                 (
                     flavor_subscriber,
@@ -75198,13 +71706,13 @@ finally:
                     and attribute is not None
                     and region is not None
                 ):
-                    try:
+                    with _best_effort_teardown(
+                        "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                    ):
                         ambassador.unsubscribeObjectClassAttributesWithRegions(
                             object_class,
                             pair_list(ambassador, attribute, region),
                         )
-                    except Exception:
-                        pass
             for ambassador, region in (
                 (flavor_subscriber, flavor_region),
                 (organic_subscriber, organic_region),
@@ -75212,25 +71720,19 @@ finally:
                 (publisher, source_organic),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (organic_subscriber, organic_joined),
                 (flavor_subscriber, flavor_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             organic_subscriber.disconnect()
             flavor_subscriber.disconnect()
             publisher.disconnect()
@@ -75534,12 +72036,10 @@ finally:
                 and publisher_pairs is not None
                 and publisher_joined
             ):
-                try:
+                with _best_effort_teardown("publisher.unassociateRegionsForUpdates"):
                     publisher.unassociateRegionsForUpdates(
                         object_instance, publisher_pairs
                     )
-                except Exception:
-                    pass
             for ambassador, object_class, pairs in (
                 (
                     flavor_subscriber,
@@ -75553,12 +72053,12 @@ finally:
                 ),
             ):
                 if object_class is not None and pairs is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                    ):
                         ambassador.unsubscribeObjectClassAttributesWithRegions(
                             object_class, pairs
                         )
-                    except Exception:
-                        pass
             for ambassador, region in (
                 (flavor_subscriber, flavor_region),
                 (organic_subscriber, organic_region),
@@ -75566,25 +72066,19 @@ finally:
                 (publisher, source_organic),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (organic_subscriber, organic_joined),
                 (flavor_subscriber, flavor_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             organic_subscriber.disconnect()
             flavor_subscriber.disconnect()
             publisher.disconnect()
@@ -75770,25 +72264,19 @@ finally:
                 (publisher, source_upper),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined in (
                 (upper, upper_joined),
                 (lower, lower_joined),
                 (publisher, publisher_joined),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             upper.disconnect()
             lower.disconnect()
             publisher.disconnect()
@@ -75824,23 +72312,21 @@ finally:
         created = publisher_joined = subscriber_joined = False
         instance: ObjectInstanceHandle | None = None
 
-        def decode_appended_records(
-            before: str, report_file: Path
-        ) -> list[dict[str, object]]:
+        def decode_appended_records(before: str, report_file: Path) -> list[JsonObject]:
             suffix = report_file.read_text(encoding="utf-8")[len(before) :]
             decoder = json.JSONDecoder()
-            records: list[dict[str, object]] = []
+            records: list[JsonObject] = []
             offset = 0
             while offset < len(suffix):
                 record, consumed = decoder.raw_decode(suffix[offset:])
                 self.assertIsInstance(record, dict)
-                records.append(record)
+                records.append(cast(JsonObject, record))
                 offset += consumed
             self.assertEqual(offset, len(suffix))
             return records
 
         def assert_advisory_record(
-            record: dict[str, object],
+            record: JsonObject,
             service: str,
             argument_type: int,
             argument_name: str,
@@ -75916,7 +72402,6 @@ finally:
             subscriber_pay_rate = subscriber.getAttributeHandle(
                 subscriber_class, HLA_FIXTURES.PAY_RATE
             )
-            publisher_name_attributes = AttributeHandleSet([publisher_name])
             publisher_pay_rate_attributes = AttributeHandleSet([publisher_pay_rate])
             subscriber_name_attributes = AttributeHandleSet([subscriber_name])
             subscriber_pay_rate_attributes = AttributeHandleSet([subscriber_pay_rate])
@@ -76265,25 +72750,19 @@ finally:
                 ("owner", owner),
             ):
                 if joined[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for name, ambassador in (
                 ("second", second),
                 ("first", first),
                 ("owner", owner),
             ):
                 if connected[name]:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             owner._implementation.close()
             first._implementation.close()
             second._implementation.close()
@@ -76659,30 +73138,20 @@ finally:
             )
         finally:
             if candidate_joined:
-                try:
+                with _best_effort_teardown("candidate.resignFederationExecution"):
                     candidate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("candidate.destroyFederationExecution"):
                     candidate.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             if candidate_connected:
-                try:
+                with _best_effort_teardown("candidate.disconnect"):
                     candidate.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
             candidate._implementation.close()
 
@@ -76771,40 +73240,26 @@ finally:
             )
         finally:
             if late_joined:
-                try:
+                with _best_effort_teardown("late.resignFederationExecution"):
                     late.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if observer_joined:
-                try:
+                with _best_effort_teardown("observer.resignFederationExecution"):
                     observer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("observer.destroyFederationExecution"):
                     observer.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if late_connected:
-                try:
+                with _best_effort_teardown("late.disconnect"):
                     late.disconnect()
-                except Exception:
-                    pass
             if observer_connected:
-                try:
+                with _best_effort_teardown("observer.disconnect"):
                     observer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             late._implementation.close()
             observer._implementation.close()
             owner._implementation.close()
@@ -76910,35 +73365,27 @@ finally:
                 and instance is not None
                 and acquirer_unowned is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "acquirer.isAttributeOwnedByFederate; acquirer.unconditionalAttributeOwnershipDivestiture; AttributeHandleSet"
+                ):
                     if acquirer.isAttributeOwnedByFederate(instance, acquirer_unowned):
                         acquirer.unconditionalAttributeOwnershipDivestiture(
                             instance,
                             AttributeHandleSet([acquirer_unowned]),
                             b"mixed-if-available-cleanup",
                         )
-                except Exception:
-                    pass
             if instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(instance)
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             acquirer.disconnect()
             owner.disconnect()
             acquirer._implementation.close()
@@ -77126,35 +73573,27 @@ finally:
                 and instance is not None
                 and acquirer_unowned is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "acquirer.isAttributeOwnedByFederate; acquirer.unconditionalAttributeOwnershipDivestiture; AttributeHandleSet"
+                ):
                     if acquirer.isAttributeOwnedByFederate(instance, acquirer_unowned):
                         acquirer.unconditionalAttributeOwnershipDivestiture(
                             instance,
                             AttributeHandleSet([acquirer_unowned]),
                             b"mixed-regular-acquisition-cleanup",
                         )
-                except Exception:
-                    pass
             if instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.deleteObjectInstance"):
                     owner.deleteObjectInstance(instance)
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             acquirer.disconnect()
             owner.disconnect()
             acquirer._implementation.close()
@@ -77621,78 +74060,64 @@ finally:
                 and acquiring_pair is not None
                 and acquirer_joined
             ):
-                try:
+                with _best_effort_teardown("acquirer.unassociateRegionsForUpdates"):
                     acquirer.unassociateRegionsForUpdates(
                         object_instance, acquiring_pair
                     )
-                except Exception:
-                    pass
             if (
                 subscriber_joined
                 and subscriber_class is not None
                 and subscriber_pair is not None
             ):
-                try:
+                with _best_effort_teardown(
+                    "regional_subscriber.unsubscribeObjectClassAttributesWithRegions"
+                ):
                     regional_subscriber.unsubscribeObjectClassAttributesWithRegions(
                         subscriber_class, subscriber_pair
                     )
-                except Exception:
-                    pass
             if (
                 acquirer_joined
                 and acquirer_class is not None
                 and acquirer_attributes is not None
             ):
-                try:
+                with _best_effort_teardown("acquirer.unpublishObjectClassAttributes"):
                     acquirer.unpublishObjectClassAttributes(
                         acquirer_class, acquirer_attributes
                     )
-                except Exception:
-                    pass
             for ambassador, region in (
                 (regional_subscriber, subscriber_region),
                 (acquirer, acquiring_region),
                 (owner, former_owner_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if acquirer_joined:
-                try:
+                with _best_effort_teardown("acquirer.resignFederationExecution"):
                     acquirer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if subscriber_joined:
-                try:
+                with _best_effort_teardown(
+                    "regional_subscriber.resignFederationExecution"
+                ):
                     regional_subscriber.resignFederationExecution(
                         ResignAction.NO_ACTION
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (regional_subscriber, subscriber_connected),
                 (acquirer, acquirer_connected),
                 (owner, owner_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             regional_subscriber._implementation.close()
             acquirer._implementation.close()
             owner._implementation.close()
@@ -78030,56 +74455,46 @@ finally:
             )
         finally:
             if object_instance is not None and owner_joined:
-                try:
+                with _best_effort_teardown("owner.unassociateRegionsForUpdates"):
                     owner.unassociateRegionsForUpdates(object_instance, owner_pair)
-                except Exception:
-                    pass
             for ambassador, object_class, pairs, joined in (
                 (evoked, evoked_class, evoked_pair, evoked_joined),
                 (immediate, immediate_class, immediate_pair, immediate_joined),
             ):
                 if joined and object_class is not None and pairs is not None:
-                    try:
+                    with _best_effort_teardown(
+                        "ambassador.unsubscribeObjectClassAttributesWithRegions"
+                    ):
                         ambassador.unsubscribeObjectClassAttributesWithRegions(
                             object_class, pairs
                         )
-                    except Exception:
-                        pass
             for ambassador, region in (
                 (owner, owner_region),
                 (evoked, evoked_region),
                 (immediate, immediate_region),
             ):
                 if region is not None:
-                    try:
+                    with _best_effort_teardown("ambassador.deleteRegion"):
                         ambassador.deleteRegion(region)
-                    except Exception:
-                        pass
             for ambassador, joined, action in (
                 (evoked, evoked_joined, ResignAction.NO_ACTION),
                 (immediate, immediate_joined, ResignAction.NO_ACTION),
                 (owner, owner_joined, ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST),
             ):
                 if joined:
-                    try:
+                    with _best_effort_teardown("ambassador.resignFederationExecution"):
                         ambassador.resignFederationExecution(action)
-                    except Exception:
-                        pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             for ambassador, connected in (
                 (immediate, immediate_connected),
                 (evoked, evoked_connected),
                 (owner, owner_connected),
             ):
                 if connected:
-                    try:
+                    with _best_effort_teardown("ambassador.disconnect"):
                         ambassador.disconnect()
-                    except Exception:
-                        pass
             immediate._implementation.close()
             evoked._implementation.close()
             owner._implementation.close()
@@ -78505,27 +74920,19 @@ finally:
             )
         finally:
             if immediate_joined:
-                try:
+                with _best_effort_teardown("immediate.resignFederationExecution"):
                     immediate.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if constrained_joined:
-                try:
+                with _best_effort_teardown("constrained.resignFederationExecution"):
                     constrained.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if publisher_joined:
-                try:
+                with _best_effort_teardown("publisher.resignFederationExecution"):
                     publisher.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("publisher.destroyFederationExecution"):
                     publisher.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             constrained.disconnect()
             immediate.disconnect()
             publisher.disconnect()
@@ -78643,24 +75050,20 @@ finally:
                         self.assertEqual(epsilon.getInterval(), 1)
                 finally:
                     if joined:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.resignFederationExecution"
+                        ):
                             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                        except Exception:
-                            pass
                     if created:
-                        try:
+                        with _best_effort_teardown(
+                            "ambassador.destroyFederationExecution"
+                        ):
                             ambassador.destroyFederationExecution(federation_name)
-                        except Exception:
-                            pass
                     if connected:
-                        try:
+                        with _best_effort_teardown("ambassador.disconnect"):
                             ambassador.disconnect()
-                        except Exception:
-                            pass
-                    try:
+                    with _best_effort_teardown("ambassador._implementation.close"):
                         ambassador._implementation.close()
-                    except Exception:
-                        pass
 
     def test_cpp_jni_java_jpype_float_time_provider_edge_matrix(self) -> None:
         """Preserve the C++ float-time boundary rules through the Java carrier."""
@@ -78753,24 +75156,16 @@ finally:
                         factory.decodeLogicalTimeInterval(encoded)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
-            try:
+            with _best_effort_teardown("ambassador._implementation.close"):
                 ambassador._implementation.close()
-            except Exception:
-                pass
 
     def test_cpp_jni_java_jpype_malformed_encoder_payload_matrix(self) -> None:
         """Keep native decoder failures typed across the external Java API."""
@@ -78844,9 +75239,8 @@ finally:
             ),
         )
         for name, element, malformed in scalar_cases:
-            with self.subTest(name=name):
-                with self.assertRaises(DecoderException):
-                    element.decode(malformed)
+            with self.subTest(name=name), self.assertRaises(DecoderException):
+                element.decode(malformed)
 
         integer_factory = _Integer32ElementFactory(encoder)
         variable_array = encoder.createHLAvariableArray(integer_factory)
@@ -81222,30 +77616,20 @@ finally:
                 )
         finally:
             if target_joined:
-                try:
+                with _best_effort_teardown("target.resignFederationExecution"):
                     target.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if target_connected:
-                try:
+                with _best_effort_teardown("target.disconnect"):
                     target.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             target._implementation.close()
             owner._implementation.close()
 
@@ -81465,30 +77849,20 @@ finally:
             self.assertTrue(owner.getExceptionReportingSwitch())
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             peer._implementation.close()
             owner._implementation.close()
 
@@ -81572,25 +77946,17 @@ finally:
             self.assertTrue(owner.getServiceReportingSwitch())
         finally:
             if report_region is not None:
-                try:
+                with _best_effort_teardown("owner.deleteRegion"):
                     owner.deleteRegion(report_region)
-                except Exception:
-                    pass
             if joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             owner._implementation.close()
 
     def test_cpp_jni_java_jpype_local_delete_service_report_arguments(self) -> None:
@@ -81722,32 +78088,22 @@ finally:
                 requester.getKnownObjectClassHandle(object_instance)
         finally:
             if requester_joined:
-                try:
+                with _best_effort_teardown("requester.resignFederationExecution"):
                     requester.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if owner_joined:
-                try:
+                with _best_effort_teardown("owner.resignFederationExecution"):
                     owner.resignFederationExecution(
                         ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
                     )
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("owner.destroyFederationExecution"):
                     owner.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if requester_connected:
-                try:
+                with _best_effort_teardown("requester.disconnect"):
                     requester.disconnect()
-                except Exception:
-                    pass
             if owner_connected:
-                try:
+                with _best_effort_teardown("owner.disconnect"):
                     owner.disconnect()
-                except Exception:
-                    pass
             requester._implementation.close()
             owner._implementation.close()
 
@@ -81887,20 +78243,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_object_attribute_subscription_service_reports(
@@ -81931,11 +78281,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -82078,20 +78429,14 @@ finally:
             self.assertIsNone(whole_args[1][HLA_MOM.ARGUMENT_VALUE])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_directed_declaration_service_reports(self) -> None:
@@ -82126,11 +78471,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -82286,20 +78632,14 @@ finally:
             self.assertIsNone(whole_args[1][HLA_MOM.ARGUMENT_VALUE])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_directed_subscription_service_reports(self) -> None:
@@ -82334,11 +78674,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -82490,20 +78831,14 @@ finally:
             self.assertIsNone(whole_args[1][HLA_MOM.ARGUMENT_VALUE])
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_interaction_declaration_service_reports(self) -> None:
@@ -82534,11 +78869,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -82637,20 +78973,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_region_service_report_arguments(self) -> None:
@@ -82679,11 +79009,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -82814,20 +79145,14 @@ finally:
             ambassador.setSendServiceReportsToFileSwitch(True)
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_object_name_service_report_arguments(self) -> None:
@@ -82859,11 +79184,12 @@ finally:
         peer_callbacks = _JniCallbacks()
         peer_connected = peer_joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -83100,30 +79426,20 @@ finally:
             ambassador.releaseMultipleObjectInstanceNames(ObjectInstanceNameSet())
         finally:
             if peer_joined:
-                try:
+                with _best_effort_teardown("peer.resignFederationExecution"):
                     peer.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             if peer_connected:
-                try:
+                with _best_effort_teardown("peer.disconnect"):
                     peer.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
             peer._implementation.close()
 
@@ -83154,11 +79470,12 @@ finally:
         connected = created = joined = False
         region: RegionHandle | None = None
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         try:
             reports_directory.mkdir(parents=True, exist_ok=True)
@@ -83230,25 +79547,17 @@ finally:
             region = None
         finally:
             if region is not None and joined:
-                try:
+                with _best_effort_teardown("ambassador.deleteRegion"):
                     ambassador.deleteRegion(region)
-                except Exception:
-                    pass
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_regional_association_service_report_arguments(
@@ -83279,11 +79588,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         def pair_list(
             attributes: AttributeHandleSet, region_handle: RegionHandle
@@ -83416,20 +79726,14 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_regional_subscription_service_report_arguments(
@@ -83460,11 +79764,12 @@ finally:
         callbacks = _JniCallbacks()
         connected = created = joined = False
 
-        def decode_appended(before: str) -> dict[str, object]:
+        def decode_appended(before: str) -> JsonObject:
             appended = report_file.read_text(encoding="utf-8")[len(before) :]
             record, consumed = json.JSONDecoder().raw_decode(appended)
             self.assertEqual(consumed, len(appended))
-            return record
+            self.assertIsInstance(record, dict)
+            return cast(JsonObject, record)
 
         def pair_list(
             attributes: AttributeHandleSet, region_handle: RegionHandle
@@ -83711,18 +80016,12 @@ finally:
             )
         finally:
             if joined:
-                try:
+                with _best_effort_teardown("ambassador.resignFederationExecution"):
                     ambassador.resignFederationExecution(ResignAction.NO_ACTION)
-                except Exception:
-                    pass
             if created:
-                try:
+                with _best_effort_teardown("ambassador.destroyFederationExecution"):
                     ambassador.destroyFederationExecution(federation_name)
-                except Exception:
-                    pass
             if connected:
-                try:
+                with _best_effort_teardown("ambassador.disconnect"):
                     ambassador.disconnect()
-                except Exception:
-                    pass
             ambassador._implementation.close()

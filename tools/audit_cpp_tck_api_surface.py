@@ -14,13 +14,19 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import TypedDict
 
-
-METHOD_DECLARATION = re.compile(
-    r"\bvirtual\b[^;\n]*?\b([A-Za-z_]\w*)\s*\("
-)
+METHOD_DECLARATION = re.compile(r"\bvirtual\b[^;\n]*?\b([A-Za-z_]\w*)\s*\(")
 METHOD_REFERENCE = re.compile(r"\.\s*([A-Za-z_]\w*)\s*\(")
 FUNCTION_REFERENCE = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+
+
+class ScenarioRecord(TypedDict):
+    api_methods: list[str]
+
+
+class ScenarioCatalog(TypedDict):
+    scenarios: list[ScenarioRecord]
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,6 +54,41 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def parse_scenario_catalog(value: object) -> ScenarioCatalog:
+    """Validate and retain only the catalog fields this audit consumes."""
+    if not isinstance(value, dict):
+        raise TypeError("catalog root must be a JSON object")
+
+    raw_scenarios = value.get("scenarios")
+    if not isinstance(raw_scenarios, list):
+        raise TypeError("catalog.scenarios must be a JSON array")
+
+    scenarios: list[ScenarioRecord] = []
+    for scenario_index, raw_scenario in enumerate(raw_scenarios):
+        if not isinstance(raw_scenario, dict):
+            raise TypeError(
+                f"catalog.scenarios[{scenario_index}] must be a JSON object"
+            )
+
+        raw_api_methods = raw_scenario.get("api_methods")
+        if not isinstance(raw_api_methods, list):
+            raise TypeError(
+                f"catalog.scenarios[{scenario_index}].api_methods must be a JSON array"
+            )
+
+        api_methods: list[str] = []
+        for method_index, raw_method in enumerate(raw_api_methods):
+            if not isinstance(raw_method, str):
+                raise TypeError(
+                    "catalog.scenarios["
+                    f"{scenario_index}].api_methods[{method_index}] must be a string"
+                )
+            api_methods.append(raw_method)
+        scenarios.append({"api_methods": api_methods})
+
+    return {"scenarios": scenarios}
+
+
 def official_methods(header_text: str) -> set[str]:
     methods = set(METHOD_DECLARATION.findall(header_text))
     methods.discard("RTIambassador")
@@ -55,10 +96,10 @@ def official_methods(header_text: str) -> set[str]:
     return methods
 
 
-def catalog_methods(catalog: dict, prefix: str) -> set[str]:
+def catalog_methods(catalog: ScenarioCatalog, prefix: str) -> set[str]:
     methods: set[str] = set()
-    for scenario in catalog.get("scenarios", []):
-        for api_method in scenario.get("api_methods", []):
+    for scenario in catalog["scenarios"]:
+        for api_method in scenario["api_methods"]:
             if not api_method.startswith(prefix + "."):
                 continue
             method = api_method.split(".", 1)[1]
@@ -74,7 +115,12 @@ def main() -> int:
     args = parse_args()
     header_text = args.header.read_text(encoding="utf-8")
     federate_header_text = args.federate_header.read_text(encoding="utf-8")
-    catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
+    try:
+        catalog = parse_scenario_catalog(
+            json.loads(args.catalog.read_text(encoding="utf-8"))
+        )
+    except (TypeError, ValueError) as error:
+        raise SystemExit(f"invalid scenario catalog {args.catalog}: {error}") from error
     source_paths = (
         sorted(
             path

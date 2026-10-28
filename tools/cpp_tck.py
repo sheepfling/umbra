@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
-
+from typing import Any, TypedDict, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "cpp-tck-scenario-catalog.json"
@@ -79,6 +79,8 @@ PLATFORM_INCLUDES = {
 
 
 LOCAL_TCK_HEADERS = {
+    "tck_nmr_regional_timestamped_interaction.hpp",
+    "tck_timestamped_tso_message_set_router.hpp",
     "pending_negotiated_restore_tck.hpp",
     "service_report_creation_failure_tck.hpp",
     "tck_harness.hpp",
@@ -220,7 +222,6 @@ LOCAL_TCK_HEADERS = {
     "tck_tara_future_timestamped_object_deletion.hpp",
     "tck_portable_scenario_runner.hpp",
     "tck_timestamped_attribute_tara_router.hpp",
-    "tck_timestamped_object_deletion_router.hpp",
     "tck_timestamped_attribute_pending_tara.hpp",
     "tck_named_update_rate_subscription.hpp",
     "tck_default_rate_no_reduction.hpp",
@@ -281,37 +282,88 @@ SCENARIO_INVENTORY_PATTERN = re.compile(
 )
 
 
+class _ScenarioIdentity(TypedDict):
+    id: str
+    runner_id: str
+    default_status: str
+    promotion: str
+
+
+class CppTckScenario(_ScenarioIdentity, total=False):
+    callback_models: Sequence[str]
+
+
+class CppTckCatalog(TypedDict):
+    scenarios: list[CppTckScenario]
+    source_boundary: str
+
+
+class _EvidenceResultFields(TypedDict):
+    id: str
+    status: str
+    callback_model: str
+
+
+class CppTckEvidenceResult(_EvidenceResultFields, total=False):
+    message: str
+
+
+class PromotionCounts(TypedDict):
+    promoted: int
+    candidate: int
+
+
+class CppTckValidationSummary(TypedDict):
+    valid: bool
+    findings: list[str]
+    scenario_count: int
+    scenario_inventory_count: int
+    promotion_counts: PromotionCounts
+    source_boundary: str
+
+
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def callback_models_for_scenario(scenario: dict[str, Any]) -> tuple[str, ...]:
+def callback_models_for_scenario(scenario: CppTckScenario) -> tuple[str, ...]:
     models = scenario.get("callback_models", STANDARD_CALLBACK_MODELS)
     return tuple(models)
 
 
-def load_catalog(path: Path) -> dict[str, Any]:
+def load_catalog(path: Path) -> CppTckCatalog:
     catalog = load_json(path)
-    if catalog.get("schema_version") != 1 or catalog.get("kind") != "portable-cpp-tck-catalog":
+    if (
+        catalog.get("schema_version") != 1
+        or catalog.get("kind") != "portable-cpp-tck-catalog"
+    ):
         raise ValueError(f"unsupported C++ TCK catalog: {path}")
     scenarios = catalog.get("scenarios")
-    if not isinstance(scenarios, list) or not scenarios:
+    if (
+        not isinstance(scenarios, list)
+        or not scenarios
+        or any(not isinstance(item, dict) for item in scenarios)
+    ):
         raise ValueError("C++ TCK catalog must contain scenarios")
     ids = [item.get("id") for item in scenarios]
-    if any(not isinstance(item, str) or not item for item in ids) or len(ids) != len(set(ids)):
+    if any(not isinstance(item, str) or not item for item in ids) or len(ids) != len(
+        set(ids)
+    ):
         raise ValueError("C++ TCK scenario IDs must be unique non-empty strings")
     parity_catalog = catalog.get("parity_catalog")
     if not isinstance(parity_catalog, str) or not parity_catalog:
         raise ValueError("C++ TCK catalog must name its cross-language parity catalog")
-    if not isinstance(catalog.get("promotion_rule"), str) or not catalog["promotion_rule"]:
+    if (
+        not isinstance(catalog.get("promotion_rule"), str)
+        or not catalog["promotion_rule"]
+    ):
         raise ValueError("C++ TCK catalog must document its promotion rule")
     parity_path = ROOT / parity_catalog
     parity = load_json(parity_path)
     if parity.get("kind") != "portable-java-tck-catalog":
         raise ValueError(f"unsupported parity catalog: {parity_path}")
     parity_ids = {
-        item.get("id") for item in parity.get("scenarios", [])
-        if isinstance(item, dict)
+        item.get("id") for item in parity.get("scenarios", []) if isinstance(item, dict)
     }
     for scenario in scenarios:
         for field in (
@@ -376,7 +428,9 @@ def load_catalog(path: Path) -> dict[str, Any]:
             raise ValueError(f"{scenario['id']} has invalid default_status")
         if scenario["promotion"] not in {"promoted", "candidate"}:
             raise ValueError(f"{scenario['id']} has invalid promotion")
-        callback_models = scenario.get("callback_models", list(STANDARD_CALLBACK_MODELS))
+        callback_models = scenario.get(
+            "callback_models", list(STANDARD_CALLBACK_MODELS)
+        )
         if (
             not isinstance(callback_models, list)
             or not callback_models
@@ -397,7 +451,9 @@ def load_catalog(path: Path) -> dict[str, Any]:
         for reference in scenario["contract_refs"]:
             contract = ROOT / "compliance" / "requirements-lab" / reference
             if not contract.is_file():
-                raise ValueError(f"{scenario['id']} references absent contract {reference}")
+                raise ValueError(
+                    f"{scenario['id']} references absent contract {reference}"
+                )
         source, separator, symbol = scenario["cpp_test"].partition("#")
         if not separator or not symbol:
             raise ValueError(f"{scenario['id']} cpp_test must be source#symbol")
@@ -405,7 +461,9 @@ def load_catalog(path: Path) -> dict[str, Any]:
         if not source_path.is_file():
             raise ValueError(f"{scenario['id']} references absent source {source}")
         if symbol not in source_path.read_text(encoding="utf-8"):
-            raise ValueError(f"{scenario['id']} references absent source symbol {symbol}")
+            raise ValueError(
+                f"{scenario['id']} references absent source symbol {symbol}"
+            )
         if scenario["id"].startswith("java-tck."):
             if scenario["id"] not in parity_ids:
                 raise ValueError(
@@ -416,7 +474,9 @@ def load_catalog(path: Path) -> dict[str, Any]:
                     f"{scenario['id']} must reuse its Java TCK ID as runner_id"
                 )
         elif scenario["id"].startswith("cpp-tck.") and not scenario.get("parity"):
-            raise ValueError(f"{scenario['id']} must explain its parity extension status")
+            raise ValueError(
+                f"{scenario['id']} must explain its parity extension status"
+            )
     represented_java_ids = {
         scenario["id"]
         for scenario in scenarios
@@ -442,7 +502,7 @@ def load_catalog(path: Path) -> dict[str, Any]:
             "Java TCK run scenarios are missing from the C++ parity catalog: "
             + ", ".join(missing_java_ids)
         )
-    return catalog
+    return cast(CppTckCatalog, catalog)
 
 
 def validate_sources() -> list[str]:
@@ -460,33 +520,44 @@ def validate_sources() -> list[str]:
     )
     include_pattern = re.compile(r"^\s*#include\s+([<\"])([^>\"]+)[>\"]\s*$")
     for path in source.rglob("*"):
-        if path.suffix.lower() not in {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp"}:
+        if path.suffix.lower() not in {
+            ".c",
+            ".cc",
+            ".cpp",
+            ".cxx",
+            ".h",
+            ".hh",
+            ".hpp",
+        }:
             continue
         text = path.read_text(encoding="utf-8")
         lowered = text.lower()
         for token in forbidden_tokens:
             if token in lowered:
-                findings.append(f"portable C++ TCK contains forbidden token {token!r}: {path}")
+                findings.append(
+                    f"portable C++ TCK contains forbidden token {token!r}: {path}"
+                )
         for line_number, line in enumerate(text.splitlines(), start=1):
             match = include_pattern.match(line)
             if match is None:
                 continue
             delimiter, include = match.groups()
-            if (
-                delimiter == '"'
-                and not (
-                    (path.name == "portable_tck.cpp" and include == "main.cpp")
-                    or include in LOCAL_TCK_HEADERS
-                )
+            if delimiter == '"' and not (
+                (path.name == "portable_tck.cpp" and include == "main.cpp")
+                or include in LOCAL_TCK_HEADERS
             ):
-                findings.append(f"portable C++ TCK uses a local include at {path}:{line_number}: {include}")
+                findings.append(
+                    f"portable C++ TCK uses a local include at {path}:{line_number}: {include}"
+                )
             elif (
                 delimiter == "<"
                 and include not in OFFICIAL_API_HEADERS
                 and include not in STANDARD_HEADERS
                 and (path.name, include) not in PLATFORM_INCLUDES
             ):
-                findings.append(f"portable C++ TCK includes a non-standard header at {path}:{line_number}: {include}")
+                findings.append(
+                    f"portable C++ TCK includes a non-standard header at {path}:{line_number}: {include}"
+                )
     fom_directory = SOURCE_ROOT / "fom"
     required_fom_names = (
         "p0-tck.xml",
@@ -505,7 +576,10 @@ def validate_sources() -> list[str]:
         if not fom.is_file():
             findings.append(f"portable C++ TCK FOM is absent: {fom}")
     for fom_path in sorted(fom_directory.glob("*.xml")):
-        if any(token in fom_path.read_text(encoding="utf-8").lower() for token in forbidden_tokens):
+        if any(
+            token in fom_path.read_text(encoding="utf-8").lower()
+            for token in forbidden_tokens
+        ):
             findings.append(
                 f"portable C++ TCK FOM contains a forbidden provider token: {fom_path}"
             )
@@ -537,7 +611,7 @@ def scenario_inventory() -> list[str]:
     return inventory
 
 
-def validate_scenario_inventory(catalog: dict[str, Any]) -> list[str]:
+def validate_scenario_inventory(catalog: CppTckCatalog) -> list[str]:
     """Ensure the executable's default scenario inventory matches the catalog."""
     source_path = SOURCE_ROOT / "src" / "main.cpp"
     inventory = scenario_inventory()
@@ -571,14 +645,18 @@ def validate_scenario_inventory(catalog: dict[str, Any]) -> list[str]:
     return findings
 
 
-def validate(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
+def validate(catalog_path: Path = DEFAULT_CATALOG) -> CppTckValidationSummary:
     catalog = load_catalog(catalog_path)
     findings = validate_sources()
     findings.extend(validate_scenario_inventory(catalog))
     inventory_count = len(scenario_inventory())
-    promotion_counts = {
-        state: sum(1 for item in catalog["scenarios"] if item["promotion"] == state)
-        for state in ("promoted", "candidate")
+    promotion_counts: PromotionCounts = {
+        "promoted": sum(
+            1 for item in catalog["scenarios"] if item["promotion"] == "promoted"
+        ),
+        "candidate": sum(
+            1 for item in catalog["scenarios"] if item["promotion"] == "candidate"
+        ),
     }
     return {
         "valid": not findings,
@@ -590,7 +668,7 @@ def validate(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     }
 
 
-def is_expected_adapter_skip(result: dict[str, Any]) -> bool:
+def is_expected_adapter_skip(result: CppTckEvidenceResult) -> bool:
     return (
         result.get("status"),
         result.get("id"),
@@ -603,17 +681,36 @@ def is_expected_adapter_skip(result: dict[str, Any]) -> bool:
 
 def validate_results(
     path: Path,
-    catalog: dict[str, Any],
+    catalog: CppTckCatalog,
     promotion: str | None = None,
     scenario_ids: list[str] | None = None,
 ) -> list[str]:
-    data = load_json(path)
     findings: list[str] = []
+    data = load_json(path)
+    if not isinstance(data, dict):
+        return [f"evidence document must be an object: {path}"]
     if data.get("kind") != "hla-rti-cpp-tck-evidence":
         findings.append(f"not C++ TCK evidence: {path}")
     records = data.get("results")
-    if not isinstance(records, list):
-        return ["evidence results must be an array"]
+    if not isinstance(records, list) or any(
+        not isinstance(item, dict) for item in records
+    ):
+        return ["evidence results must be an array of objects"]
+    valid_records: list[CppTckEvidenceResult] = []
+    for record in records:
+        if any(
+            not isinstance(record.get(field), str)
+            for field in ("id", "status", "callback_model")
+        ):
+            findings.append(
+                "evidence result must contain string id, status, and callback_model fields"
+            )
+            continue
+        message = record.get("message")
+        if message is not None and not isinstance(message, str):
+            findings.append("evidence result message must be a string when present")
+            continue
+        valid_records.append(cast(CppTckEvidenceResult, record))
     selected = [
         item
         for item in catalog["scenarios"]
@@ -623,7 +720,9 @@ def validate_results(
         if len(set(scenario_ids)) != len(scenario_ids):
             raise ValueError("--scenario values must be unique")
         by_id = {item["id"]: item for item in catalog["scenarios"]}
-        unknown = [scenario_id for scenario_id in scenario_ids if scenario_id not in by_id]
+        unknown = [
+            scenario_id for scenario_id in scenario_ids if scenario_id not in by_id
+        ]
         if unknown:
             raise ValueError("unknown catalog scenario(s): " + ", ".join(unknown))
         selected = [by_id[scenario_id] for scenario_id in scenario_ids]
@@ -638,30 +737,30 @@ def validate_results(
                 )
     scenario_by_runner = {item["runner_id"]: item for item in selected}
     expected = set(scenario_by_runner)
-    actual = {item.get("id") for item in records}
+    actual = {item["id"] for item in valid_records}
     missing = sorted(expected - actual)
     if missing:
         findings.append("evidence is missing scenarios: " + ", ".join(missing))
     unexpected = sorted(actual - expected)
     if unexpected:
-        findings.append("evidence contains unexpected scenarios: " + ", ".join(unexpected))
-    seen: set[tuple[Any, Any]] = set()
-    for result in records:
-        if result.get("status") not in {"passed", "skipped", "failed"}:
-            findings.append(f"evidence has invalid result status: {result}")
-        if result.get("callback_model") not in {"evoked", "immediate"}:
-            findings.append(f"evidence has invalid callback model: {result}")
-        if result.get("id") not in expected:
-            continue
-        allowed_models = callback_models_for_scenario(
-            scenario_by_runner[result["id"]]
+        findings.append(
+            "evidence contains unexpected scenarios: " + ", ".join(unexpected)
         )
-        if result.get("callback_model") not in allowed_models:
+    seen: set[tuple[str, str]] = set()
+    for result in valid_records:
+        if result["status"] not in {"passed", "skipped", "failed"}:
+            findings.append(f"evidence has invalid result status: {result}")
+        if result["callback_model"] not in {"evoked", "immediate"}:
+            findings.append(f"evidence has invalid callback model: {result}")
+        if result["id"] not in expected:
+            continue
+        allowed_models = callback_models_for_scenario(scenario_by_runner[result["id"]])
+        if result["callback_model"] not in allowed_models:
             findings.append(
                 "evidence uses an undeclared callback model for "
-                f"{result.get('id')}: {result.get('callback_model')}"
+                f"{result['id']}: {result['callback_model']}"
             )
-        key = (result.get("id"), result.get("callback_model"))
+        key = (result["id"], result["callback_model"])
         if key in seen:
             findings.append(f"evidence contains duplicate scenario result: {key}")
         seen.add(key)
@@ -676,13 +775,12 @@ def validate_results(
             "evidence is missing scenario/callback results: "
             + ", ".join(f"{scenario}/{callback}" for scenario, callback in missing_keys)
         )
-    if any(result.get("status") == "failed" for result in records):
+    if any(result["status"] == "failed" for result in valid_records):
         findings.append("evidence contains failed scenarios")
     if promotion == "promoted" and any(
-        result.get("status") != "passed"
-        and not is_expected_adapter_skip(result)
-        for result in records
-        if result.get("id") in expected
+        result["status"] != "passed" and not is_expected_adapter_skip(result)
+        for result in valid_records
+        if result["id"] in expected
     ):
         findings.append("promoted evidence cannot contain skipped or failed scenarios")
     return findings
@@ -709,7 +807,9 @@ def main() -> int:
         result = validate(arguments.catalog)
         if arguments.results:
             catalog = load_catalog(arguments.catalog)
-            selected_promotion = None if arguments.promotion == "all" else arguments.promotion
+            selected_promotion = (
+                None if arguments.promotion == "all" else arguments.promotion
+            )
             result["findings"].extend(
                 validate_results(
                     arguments.results,

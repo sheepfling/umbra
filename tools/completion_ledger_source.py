@@ -16,7 +16,12 @@ def completion_ledger_source_pointer_findings(
 
     def checked_path(location: str) -> str | None:
         path_text, separator, line_text = location.rpartition(":")
-        if not separator or not path_text or not line_text.isdigit() or int(line_text) < 1:
+        if (
+            not separator
+            or not path_text
+            or not line_text.isdigit()
+            or int(line_text) < 1
+        ):
             return None
         path = Path(path_text)
         if path.is_absolute():
@@ -34,7 +39,12 @@ def completion_ledger_source_pointer_findings(
         plan_id = row.get("plan_id")
         historical = row.get("source_location")
         current = live_sources.get(plan_id) if isinstance(plan_id, str) else None
-        if not isinstance(historical, str) or not isinstance(current, str):
+        if (
+            not isinstance(historical, str)
+            or not historical.strip()
+            or not isinstance(current, str)
+            or not current.strip()
+        ):
             continue  # Retired or source-unlocated history remains audit-only.
         old_path = checked_path(historical)
         new_path = checked_path(current)
@@ -44,9 +54,13 @@ def completion_ledger_source_pointer_findings(
             )
         elif old_path != new_path:
             if reviewed_relocations.get(plan_id) != (old_path, new_path):
-                findings.append(f"{plan_id}: unreviewed source relocation: {historical} -> {current}")
+                findings.append(
+                    f"{plan_id}: unreviewed source relocation: {historical} -> {current}"
+                )
             else:
                 observed_relocations.add(plan_id)
     for plan_id in reviewed_relocations.keys() - observed_relocations:
-        findings.append(f"{plan_id}: reviewed source relocation no longer matches the ledger and plan")
+        findings.append(
+            f"{plan_id}: reviewed source relocation no longer matches the ledger and plan"
+        )
     return findings

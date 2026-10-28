@@ -242,7 +242,7 @@ TEST_CASE(
       1U,
       objectValue,
       L"4",
-      L"InvalidLogicalTime: A timestamped service is earlier than the sender's current logical time plus lookahead.");
+      L"InvalidLogicalTime: A timestamped service is earlier than the sender's applicable logical-time-plus-lookahead floor.");
 
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
   REQUIRE_NOTHROW(observer->unsubscribeInteractionClass(reportClass));

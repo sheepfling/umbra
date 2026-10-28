@@ -184,7 +184,7 @@ struct MomServiceReportInitialRecord {
 // while the official C++ binding exposes its ordered value as
 // FederateRestoreStatusVector. Table 5's collection row has a conflicting
 // name and malformed second example; retain the MIM/binding identity and the
-// valid singular-record field names. See RL-083.
+// valid singular-record field names. See RL-369.
 [[nodiscard]] std::wstring formatMomFederateRestoreStatusVector(
     rti1516_2025::FederateRestoreStatusVector const& values);
 // Table 5 specifies InteractionClassHandle as a String containing the exact

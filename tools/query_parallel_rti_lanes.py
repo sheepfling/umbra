@@ -12,7 +12,6 @@ import json
 import sys
 from pathlib import Path
 
-
 INDEX = Path(__file__).resolve().parents[1] / "docs" / "planning" / "ROADMAP-INDEX.json"
 
 
@@ -27,7 +26,9 @@ def main() -> int:
         choices=("ready", "active", "in-progress", "blocked", "verified", "all"),
         help="filter lanes (default: active, or all with --id)",
     )
-    parser.add_argument("--json", action="store_true", help="emit machine-readable records")
+    parser.add_argument(
+        "--json", action="store_true", help="emit machine-readable records"
+    )
     args = parser.parse_args()
 
     roadmap = json.loads(INDEX.read_text(encoding="utf-8"))
@@ -47,7 +48,9 @@ def main() -> int:
     if state != "all":
         normalized_state = "in-progress" if state == "active" else state
         if normalized_state == "in-progress":
-            lanes = [lane for lane in lanes if lane.get("state") in {"active", "in-progress"}]
+            lanes = [
+                lane for lane in lanes if lane.get("state") in {"active", "in-progress"}
+            ]
         else:
             lanes = [lane for lane in lanes if lane.get("state") == normalized_state]
 

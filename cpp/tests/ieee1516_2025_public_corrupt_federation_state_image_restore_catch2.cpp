@@ -79,9 +79,11 @@ TEST_CASE(
 
   std::filesystem::path manifestPath;
   for (auto const& entry : std::filesystem::directory_iterator(saveDirectory.path())) {
-    if (entry.is_regular_file() && entry.path().extension() == ".json") {
+    if (entry.is_regular_file() && entry.path().extension() == ".commit") {
       REQUIRE(manifestPath.empty());
       manifestPath = entry.path();
+      manifestPath.replace_extension();
+      manifestPath += ".tmp";
     }
   }
   REQUIRE_FALSE(manifestPath.empty());

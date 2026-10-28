@@ -188,7 +188,9 @@ TEST_CASE(
   decoded.decode(encodedValue.encode());
   REQUIRE(decoded.getTime() == 1.5);
 
-  REQUIRE_THROWS_AS(finalTime += epsilon, IllegalTimeArithmetic);
+  finalTime += epsilon;
+  REQUIRE(finalTime.isFinal());
+  REQUIRE(finalTime.getTime() == finalValue);
   REQUIRE_THROWS_AS(HLAfloat64Time(std::numeric_limits<double>::infinity()), InvalidLogicalTime);
 }
 

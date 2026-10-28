@@ -6,6 +6,7 @@ classes preserve names and catchability; providers supply messages.
 
 from __future__ import annotations
 
+
 class RTIexception(Exception):
     """Base class for every exception in the 2010 RTI API."""
 
@@ -15,332 +16,442 @@ class RTIexception(Exception):
         if cause is not None:
             self.__cause__ = cause
 
+
 class AlreadyConnected(RTIexception):
     """IEEE 1516e exception ``AlreadyConnected``."""
+
 
 class AsynchronousDeliveryAlreadyDisabled(RTIexception):
     """IEEE 1516e exception ``AsynchronousDeliveryAlreadyDisabled``."""
 
+
 class AsynchronousDeliveryAlreadyEnabled(RTIexception):
     """IEEE 1516e exception ``AsynchronousDeliveryAlreadyEnabled``."""
+
 
 class AttributeAcquisitionWasNotRequested(RTIexception):
     """IEEE 1516e exception ``AttributeAcquisitionWasNotRequested``."""
 
+
 class AttributeAlreadyBeingAcquired(RTIexception):
     """IEEE 1516e exception ``AttributeAlreadyBeingAcquired``."""
+
 
 class AttributeAlreadyBeingChanged(RTIexception):
     """IEEE 1516e exception ``AttributeAlreadyBeingChanged``."""
 
+
 class AttributeAlreadyBeingDivested(RTIexception):
     """IEEE 1516e exception ``AttributeAlreadyBeingDivested``."""
+
 
 class AttributeAlreadyOwned(RTIexception):
     """IEEE 1516e exception ``AttributeAlreadyOwned``."""
 
+
 class AttributeDivestitureWasNotRequested(RTIexception):
     """IEEE 1516e exception ``AttributeDivestitureWasNotRequested``."""
+
 
 class AttributeNotDefined(RTIexception):
     """IEEE 1516e exception ``AttributeNotDefined``."""
 
+
 class AttributeNotOwned(RTIexception):
     """IEEE 1516e exception ``AttributeNotOwned``."""
+
 
 class AttributeNotPublished(RTIexception):
     """IEEE 1516e exception ``AttributeNotPublished``."""
 
+
 class AttributeNotRecognized(RTIexception):
     """IEEE 1516e exception ``AttributeNotRecognized``."""
+
 
 class AttributeNotSubscribed(RTIexception):
     """IEEE 1516e exception ``AttributeNotSubscribed``."""
 
+
 class AttributeRelevanceAdvisorySwitchIsOff(RTIexception):
     """IEEE 1516e exception ``AttributeRelevanceAdvisorySwitchIsOff``."""
+
 
 class AttributeRelevanceAdvisorySwitchIsOn(RTIexception):
     """IEEE 1516e exception ``AttributeRelevanceAdvisorySwitchIsOn``."""
 
+
 class AttributeScopeAdvisorySwitchIsOff(RTIexception):
     """IEEE 1516e exception ``AttributeScopeAdvisorySwitchIsOff``."""
+
 
 class AttributeScopeAdvisorySwitchIsOn(RTIexception):
     """IEEE 1516e exception ``AttributeScopeAdvisorySwitchIsOn``."""
 
+
 class CallNotAllowedFromWithinCallback(RTIexception):
     """IEEE 1516e exception ``CallNotAllowedFromWithinCallback``."""
+
 
 class ConnectionFailed(RTIexception):
     """IEEE 1516e exception ``ConnectionFailed``."""
 
+
 class CouldNotCreateLogicalTimeFactory(RTIexception):
     """IEEE 1516e exception ``CouldNotCreateLogicalTimeFactory``."""
+
 
 class CouldNotDecode(RTIexception):
     """IEEE 1516e exception ``CouldNotDecode``."""
 
+
 class CouldNotEncode(RTIexception):
     """IEEE 1516e exception ``CouldNotEncode``."""
+
 
 class CouldNotOpenFDD(RTIexception):
     """IEEE 1516e exception ``CouldNotOpenFDD``."""
 
+
 class CouldNotOpenMIM(RTIexception):
     """IEEE 1516e exception ``CouldNotOpenMIM``."""
+
 
 class DeletePrivilegeNotHeld(RTIexception):
     """IEEE 1516e exception ``DeletePrivilegeNotHeld``."""
 
+
 class DesignatorIsHLAstandardMIM(RTIexception):
     """IEEE 1516e exception ``DesignatorIsHLAstandardMIM``."""
+
 
 class ErrorReadingFDD(RTIexception):
     """IEEE 1516e exception ``ErrorReadingFDD``."""
 
+
 class ErrorReadingMIM(RTIexception):
     """IEEE 1516e exception ``ErrorReadingMIM``."""
+
 
 class FederateAlreadyExecutionMember(RTIexception):
     """IEEE 1516e exception ``FederateAlreadyExecutionMember``."""
 
+
 class FederateHandleNotKnown(RTIexception):
     """IEEE 1516e exception ``FederateHandleNotKnown``."""
+
 
 class FederateHasNotBegunSave(RTIexception):
     """IEEE 1516e exception ``FederateHasNotBegunSave``."""
 
+
 class FederateInternalError(RTIexception):
     """IEEE 1516e exception ``FederateInternalError``."""
+
 
 class FederateIsExecutionMember(RTIexception):
     """IEEE 1516e exception ``FederateIsExecutionMember``."""
 
+
 class FederateNameAlreadyInUse(RTIexception):
     """IEEE 1516e exception ``FederateNameAlreadyInUse``."""
+
 
 class FederateNotExecutionMember(RTIexception):
     """IEEE 1516e exception ``FederateNotExecutionMember``."""
 
+
 class FederateOwnsAttributes(RTIexception):
     """IEEE 1516e exception ``FederateOwnsAttributes``."""
+
 
 class FederateServiceInvocationsAreBeingReportedViaMOM(RTIexception):
     """IEEE 1516e exception ``FederateServiceInvocationsAreBeingReportedViaMOM``."""
 
+
 class FederateUnableToUseTime(RTIexception):
     """IEEE 1516e exception ``FederateUnableToUseTime``."""
+
 
 class FederatesCurrentlyJoined(RTIexception):
     """IEEE 1516e exception ``FederatesCurrentlyJoined``."""
 
+
 class FederationExecutionAlreadyExists(RTIexception):
     """IEEE 1516e exception ``FederationExecutionAlreadyExists``."""
+
 
 class FederationExecutionDoesNotExist(RTIexception):
     """IEEE 1516e exception ``FederationExecutionDoesNotExist``."""
 
+
 class IllegalName(RTIexception):
     """IEEE 1516e exception ``IllegalName``."""
+
 
 class IllegalTimeArithmetic(RTIexception):
     """IEEE 1516e exception ``IllegalTimeArithmetic``."""
 
+
 class InTimeAdvancingState(RTIexception):
     """IEEE 1516e exception ``InTimeAdvancingState``."""
+
 
 class InconsistentFDD(RTIexception):
     """IEEE 1516e exception ``InconsistentFDD``."""
 
+
 class InteractionClassAlreadyBeingChanged(RTIexception):
     """IEEE 1516e exception ``InteractionClassAlreadyBeingChanged``."""
+
 
 class InteractionClassNotDefined(RTIexception):
     """IEEE 1516e exception ``InteractionClassNotDefined``."""
 
+
 class InteractionClassNotPublished(RTIexception):
     """IEEE 1516e exception ``InteractionClassNotPublished``."""
+
 
 class InteractionParameterNotDefined(RTIexception):
     """IEEE 1516e exception ``InteractionParameterNotDefined``."""
 
+
 class InteractionRelevanceAdvisorySwitchIsOff(RTIexception):
     """IEEE 1516e exception ``InteractionRelevanceAdvisorySwitchIsOff``."""
+
 
 class InteractionRelevanceAdvisorySwitchIsOn(RTIexception):
     """IEEE 1516e exception ``InteractionRelevanceAdvisorySwitchIsOn``."""
 
+
 class InvalidAttributeHandle(RTIexception):
     """IEEE 1516e exception ``InvalidAttributeHandle``."""
+
 
 class InvalidDimensionHandle(RTIexception):
     """IEEE 1516e exception ``InvalidDimensionHandle``."""
 
+
 class InvalidFederateHandle(RTIexception):
     """IEEE 1516e exception ``InvalidFederateHandle``."""
+
 
 class InvalidInteractionClassHandle(RTIexception):
     """IEEE 1516e exception ``InvalidInteractionClassHandle``."""
 
+
 class InvalidLocalSettingsDesignator(RTIexception):
     """IEEE 1516e exception ``InvalidLocalSettingsDesignator``."""
+
 
 class InvalidLogicalTime(RTIexception):
     """IEEE 1516e exception ``InvalidLogicalTime``."""
 
+
 class InvalidLogicalTimeInterval(RTIexception):
     """IEEE 1516e exception ``InvalidLogicalTimeInterval``."""
+
 
 class InvalidLookahead(RTIexception):
     """IEEE 1516e exception ``InvalidLookahead``."""
 
+
 class InvalidMessageRetractionHandle(RTIexception):
     """IEEE 1516e exception ``InvalidMessageRetractionHandle``."""
+
 
 class InvalidObjectClassHandle(RTIexception):
     """IEEE 1516e exception ``InvalidObjectClassHandle``."""
 
+
 class InvalidOrderName(RTIexception):
     """IEEE 1516e exception ``InvalidOrderName``."""
+
 
 class InvalidOrderType(RTIexception):
     """IEEE 1516e exception ``InvalidOrderType``."""
 
+
 class InvalidParameterHandle(RTIexception):
     """IEEE 1516e exception ``InvalidParameterHandle``."""
+
 
 class InvalidRangeBound(RTIexception):
     """IEEE 1516e exception ``InvalidRangeBound``."""
 
+
 class InvalidRegion(RTIexception):
     """IEEE 1516e exception ``InvalidRegion``."""
+
 
 class InvalidRegionContext(RTIexception):
     """IEEE 1516e exception ``InvalidRegionContext``."""
 
+
 class InvalidResignAction(RTIexception):
     """IEEE 1516e exception ``InvalidResignAction``."""
+
 
 class InvalidServiceGroup(RTIexception):
     """IEEE 1516e exception ``InvalidServiceGroup``."""
 
+
 class InvalidTransportationName(RTIexception):
     """IEEE 1516e exception ``InvalidTransportationName``."""
+
 
 class InvalidTransportationType(RTIexception):
     """IEEE 1516e exception ``InvalidTransportationType``."""
 
+
 class InvalidUpdateRateDesignator(RTIexception):
     """IEEE 1516e exception ``InvalidUpdateRateDesignator``."""
+
 
 class LogicalTimeAlreadyPassed(RTIexception):
     """IEEE 1516e exception ``LogicalTimeAlreadyPassed``."""
 
+
 class MessageCanNoLongerBeRetracted(RTIexception):
     """IEEE 1516e exception ``MessageCanNoLongerBeRetracted``."""
+
 
 class NameNotFound(RTIexception):
     """IEEE 1516e exception ``NameNotFound``."""
 
+
 class NameSetWasEmpty(RTIexception):
     """IEEE 1516e exception ``NameSetWasEmpty``."""
+
 
 class NoAcquisitionPending(RTIexception):
     """IEEE 1516e exception ``NoAcquisitionPending``."""
 
+
 class NoRequestToEnableTimeConstrainedWasPending(RTIexception):
     """IEEE 1516e exception ``NoRequestToEnableTimeConstrainedWasPending``."""
+
 
 class NoRequestToEnableTimeRegulationWasPending(RTIexception):
     """IEEE 1516e exception ``NoRequestToEnableTimeRegulationWasPending``."""
 
+
 class NotConnected(RTIexception):
     """IEEE 1516e exception ``NotConnected``."""
+
 
 class ObjectClassNotDefined(RTIexception):
     """IEEE 1516e exception ``ObjectClassNotDefined``."""
 
+
 class ObjectClassNotPublished(RTIexception):
     """IEEE 1516e exception ``ObjectClassNotPublished``."""
+
 
 class ObjectClassRelevanceAdvisorySwitchIsOff(RTIexception):
     """IEEE 1516e exception ``ObjectClassRelevanceAdvisorySwitchIsOff``."""
 
+
 class ObjectClassRelevanceAdvisorySwitchIsOn(RTIexception):
     """IEEE 1516e exception ``ObjectClassRelevanceAdvisorySwitchIsOn``."""
+
 
 class ObjectInstanceNameInUse(RTIexception):
     """IEEE 1516e exception ``ObjectInstanceNameInUse``."""
 
+
 class ObjectInstanceNameNotReserved(RTIexception):
     """IEEE 1516e exception ``ObjectInstanceNameNotReserved``."""
+
 
 class ObjectInstanceNotKnown(RTIexception):
     """IEEE 1516e exception ``ObjectInstanceNotKnown``."""
 
+
 class OwnershipAcquisitionPending(RTIexception):
     """IEEE 1516e exception ``OwnershipAcquisitionPending``."""
+
 
 class RTIinternalError(RTIexception):
     """IEEE 1516e exception ``RTIinternalError``."""
 
+
 class RegionDoesNotContainSpecifiedDimension(RTIexception):
     """IEEE 1516e exception ``RegionDoesNotContainSpecifiedDimension``."""
+
 
 class RegionInUseForUpdateOrSubscription(RTIexception):
     """IEEE 1516e exception ``RegionInUseForUpdateOrSubscription``."""
 
+
 class RegionNotCreatedByThisFederate(RTIexception):
     """IEEE 1516e exception ``RegionNotCreatedByThisFederate``."""
+
 
 class RequestForTimeConstrainedPending(RTIexception):
     """IEEE 1516e exception ``RequestForTimeConstrainedPending``."""
 
+
 class RequestForTimeRegulationPending(RTIexception):
     """IEEE 1516e exception ``RequestForTimeRegulationPending``."""
+
 
 class RestoreInProgress(RTIexception):
     """IEEE 1516e exception ``RestoreInProgress``."""
 
+
 class RestoreNotInProgress(RTIexception):
     """IEEE 1516e exception ``RestoreNotInProgress``."""
+
 
 class RestoreNotRequested(RTIexception):
     """IEEE 1516e exception ``RestoreNotRequested``."""
 
+
 class SaveInProgress(RTIexception):
     """IEEE 1516e exception ``SaveInProgress``."""
+
 
 class SaveNotInProgress(RTIexception):
     """IEEE 1516e exception ``SaveNotInProgress``."""
 
+
 class SaveNotInitiated(RTIexception):
     """IEEE 1516e exception ``SaveNotInitiated``."""
+
 
 class SynchronizationPointLabelNotAnnounced(RTIexception):
     """IEEE 1516e exception ``SynchronizationPointLabelNotAnnounced``."""
 
+
 class TimeConstrainedAlreadyEnabled(RTIexception):
     """IEEE 1516e exception ``TimeConstrainedAlreadyEnabled``."""
+
 
 class TimeConstrainedIsNotEnabled(RTIexception):
     """IEEE 1516e exception ``TimeConstrainedIsNotEnabled``."""
 
+
 class TimeRegulationAlreadyEnabled(RTIexception):
     """IEEE 1516e exception ``TimeRegulationAlreadyEnabled``."""
+
 
 class TimeRegulationIsNotEnabled(RTIexception):
     """IEEE 1516e exception ``TimeRegulationIsNotEnabled``."""
 
+
 class UnableToPerformSave(RTIexception):
     """IEEE 1516e exception ``UnableToPerformSave``."""
+
 
 class UnknownName(RTIexception):
     """IEEE 1516e exception ``UnknownName``."""
 
+
 class UnsupportedCallbackModel(RTIexception):
     """IEEE 1516e exception ``UnsupportedCallbackModel``."""
+
 
 _EXCEPTION_TYPES = {
     "RTIexception": RTIexception,
@@ -456,15 +567,20 @@ _EXCEPTION_TYPES = {
 }
 _STANDARD_EXCEPTION_NAMES = frozenset(_EXCEPTION_TYPES)
 
-def exceptionForName(name: str, message: str = "", cause: BaseException | None = None) -> RTIexception:
+
+def exceptionForName(
+    name: str, message: str = "", cause: BaseException | None = None
+) -> RTIexception:
     """Construct a standard exception by its Java simple class name."""
     exception_type = _EXCEPTION_TYPES.get(name.rsplit(".", 1)[-1].rsplit("$", 1)[-1])
     if exception_type is None:
-        return RTIinternalError(message or f"Unknown IEEE 1516e exception: {name}", cause)
+        return RTIinternalError(
+            message or f"Unknown IEEE 1516e exception: {name}", cause
+        )
     return exception_type(message, cause)
 
+
 __all__ = [
-    "RTIexception",
     "AlreadyConnected",
     "AsynchronousDeliveryAlreadyDisabled",
     "AsynchronousDeliveryAlreadyEnabled",
@@ -554,6 +670,7 @@ __all__ = [
     "ObjectInstanceNameNotReserved",
     "ObjectInstanceNotKnown",
     "OwnershipAcquisitionPending",
+    "RTIexception",
     "RTIinternalError",
     "RegionDoesNotContainSpecifiedDimension",
     "RegionInUseForUpdateOrSubscription",

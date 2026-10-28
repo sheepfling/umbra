@@ -8,15 +8,13 @@ not a claim that the Lab, IEEE source, or Umbra is non-conformant.
 ## Pinned input
 
 - Lab repository: `../Document-Recreation`
-- Reviewed release: `v0.1.0.a1` (`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`)
+- Current reviewed Lab revision: `de86ea1f0688f6fe22dbd74b823812ff5d2ebc54`
+- Previous reviewed release: `v0.1.0.a1` (`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`)
 - Umbra lock: `compliance/requirements-lab/requirements-lab.lock.json`
 - Editions exported: 2010 and 2025
-- Last reviewed: 2026-09-23
+- Last reviewed: 2026-10-26
 
-Umbra consumes only the Lab's exported portable JSON bundle. The generated
-bundle under `.compliance/` is intentionally ignored, so each observation
-below names the pinned revision and durable source identifiers rather than
-depending on an uncommitted export artifact.
+Umbra consumes the Lab's portable JSON bundle. The generated bundle under `.compliance/` is intentionally ignored. Historical observations below retain the pin and source identifiers in effect when recorded; the current pin is `requirements-lab.lock.json`. The 2026-10-24 backflow accepted all 89 complaints; RL-369 retains a reviewed Table 5/MIM source conflict with no direct type-20 binding. The later mapping audit resolved RL-388 to RL-390.
 
 ### 2026-09-23 RL-252 recurrence: section lookup bypassed the known DSE correction
 
@@ -444,7 +442,8 @@ still available and may therefore say that one of those identifiers was
 instructions. RL-177 now holds the separate source-artifact tension, RL-178
 holds the focused-lane traceability recurrence, and RL-179 holds the native
 selector recurrence recorded below, so RL-180 is the next unused post-RL-157
-identifier. A newly reproduced old issue must use RL-180 (or the next unused identifier), cite its earlier observation, and
+identifier. A newly reproduced old issue must use RL-180 (or the next unused identifier), cite its earlier observation,
+and
 include the current reproduction and mitigation state; RL-001 through RL-157
 remain immutable and must never be reused.
 
@@ -10002,7 +10001,8 @@ The installed-profile process package now has a separate
 `RTIambassador::updateAttributeValues`, and official
 `FederateAmbassador::reflectAttributeValues` callback surfaces; the private
 source-tree fixture now supplies only the receiver's discovery state until
-that callback event receives its own process protocol projection. The callback preserves the object handle, one attribute value,
+that callback event receives its own process protocol projection. The callback preserves the object handle, one
+attribute value,
 user tag, producer identity, and a valid transportation handle.
 
 The eight installed-profile process labels (ordinary, timestamped,
@@ -11666,22 +11666,22 @@ cases below.
 The following four exact source declarations are now mapped and green in the
 embedded HLA_EVOKED development profile:
 
-* `Embedded NRG-disabled constrained TAR waits until a regulator becomes active`
+- `Embedded NRG-disabled constrained TAR waits until a regulator becomes active`
   at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63766` — 21
   assertions, mapping `m66.embedded-nrg-disabled-constrained-tar-regulator-activation`.
   With NRG disabled, an undefined-GALT constrained TAR waits; a regulator at
   time zero/lookahead two makes TAR(1) eligible.
-* `Embedded constrained TAR is released when time-constrained mode is disabled`
+- `Embedded constrained TAR is released when time-constrained mode is disabled`
   at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63808` — 15
   assertions, mapping `m67.embedded-constrained-tar-time-constrained-disable-release`.
   Disabling the constrained role removes the GALT restriction and releases the
   queued TAR(1).
-* `Embedded NRG-enabled constrained TAR is released when its only regulator disables`
+- `Embedded NRG-enabled constrained TAR is released when its only regulator disables`
   at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63841` — 27
   assertions, mapping `m68.embedded-nrg-enabled-constrained-tar-regulator-disable-release`.
   The enabled NRG switch releases TAR(2) when the sole regulator disables and
   GALT becomes undefined.
-* `Embedded NRG-enabled constrained TAR is released when its only regulator resigns`
+- `Embedded NRG-enabled constrained TAR is released when its only regulator resigns`
   at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63887` — 24
   assertions, mapping `m69.embedded-nrg-enabled-constrained-tar-regulator-resignation-release`.
   The same enabled-NRG release occurs when the sole regulator resigns.
@@ -14104,14 +14104,14 @@ The three previously unclassified aggregate resign-action cancellation cases
 are now independently buildable and indexed without changing Requirements-Lab
 numbering:
 
-* `resign_action_cancel_pending_acquisition_catch2.cpp:96` passes 24
+- `resign_action_cancel_pending_acquisition_catch2.cpp:96` passes 24
   HLA_EVOKED assertions for directive-3 cancellation of a pending regular
   acquisition and suppression of the queued owner-release callback.
-* `resign_action_cancel_negotiated_pending_catch2.cpp:114` passes 25
+- `resign_action_cancel_negotiated_pending_catch2.cpp:114` passes 25
   HLA_EVOKED assertions for cancellation of the departing acquirer's regular
   acquisition plus negotiated-divestiture confirmation state, with both stale
   owner callback kinds suppressed.
-* `resign_action_cancel_if_available_pending_catch2.cpp:115` passes 22
+- `resign_action_cancel_if_available_pending_catch2.cpp:115` passes 22
   HLA_EVOKED assertions for removal of the departing federate's Willing to
   Acquire reservation and suppression of its queued terminal callback.
 
@@ -15369,6 +15369,7 @@ python tools/query_rti_work.py trace "Embedded parameter lookup resolves inherit
 python tools/query_rti_work.py check --summary --compact
 python tools/query_rti_work_regression.py
 ~~~
+
 the documented federation-management source-integrity gate; use the
 `query-galt-lits` focus handle and exact title/filter as the bounded entry points.
 
@@ -17648,19 +17649,19 @@ The post-fix bounded run for CTest registrations **#121–#240** is green
 (120/120). Three failures were resolved without reopening the pinned
 Requirements-Lab export or changing requirement numbering:
 
-* **#203 — fresh-registry Confirm Divestiture suppression:** this was a real
+- **#203 — fresh-registry Confirm Divestiture suppression:** this was a real
   Umbra runtime defect. Resignation removed the negotiated acquisition
   candidate but left its per-attribute assumption-search/tag ledger behind on
   an owner-retained attribute. The resignation path now clears that stale
   ledger, so restore keeps only the surviving notification. The existing case
   remains mapped to the federation-management/ownership/save-restore clauses;
   it is not a new Lab requirement.
-* **#219 — regional Request Attribute Value Update baseline copy:** this was a
+- **#219 — regional Request Attribute Value Update baseline copy:** this was a
   test-fixture defect. The copied scenario registered an extra object and then
   resigned with `NO_ACTION` while still owning it, so the expected success was
   invalid under the existing 2025 resignation semantics. The stray object was
   removed from the copy; the RTI behavior was not weakened.
-* **#228 — regional object scope advisory sequence:** this was a scenario
+- **#228 — regional object scope advisory sequence:** this was a scenario
   expectation defect. Ordinary subscription does not use the default region
   while an explicit source-region association is still active. The case now
   unassociates before the ordinary-subscription transition and re-associates

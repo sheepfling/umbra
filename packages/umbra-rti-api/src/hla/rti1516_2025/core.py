@@ -8,8 +8,8 @@ retains the Java ``RtiFactoryFactory``/Python entry-point discovery helper.
 
 from __future__ import annotations
 
-from importlib.metadata import entry_points
 import os
+from importlib.metadata import entry_points
 from typing import Any
 
 from .abstract import *
@@ -79,12 +79,16 @@ class RtiFactoryFactory:
         """Select an installed provider before it initializes its transport."""
 
         matching_entry_points = [
-            entry_point for entry_point in cls._entry_points() if entry_point.name == name
+            entry_point
+            for entry_point in cls._entry_points()
+            if entry_point.name == name
         ]
         if not matching_entry_points:
             return None
         if len(matching_entry_points) != 1:
-            raise RTIinternalError(f"More than one Python RTI provider uses alias {name}")
+            raise RTIinternalError(
+                f"More than one Python RTI provider uses alias {name}"
+            )
         return matching_entry_points[0].load()()
 
     @classmethod

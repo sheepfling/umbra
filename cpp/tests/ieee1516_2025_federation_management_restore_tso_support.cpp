@@ -450,8 +450,8 @@ void runTimedMultiRecipientRegionalResignationAfterRestore(
           REQUIRE(reports.attributeReflectionReports.front().sentOrderType == TIMESTAMP);
           REQUIRE(reports.attributeReflectionReports.front().receivedOrderType == TIMESTAMP);
           REQUIRE(reports.attributeReflectionReports.front().sentRegionsSupplied);
-          REQUIRE(reports.attributeReflectionReports.front().sentRegions ==
-                  RegionHandleSet{publisherRegion});
+          REQUIRE(reports.attributeReflectionReports.front().sentRegions.size() == 1U);
+          REQUIRE(reports.attributeReflectionReports.front().sentRegions.begin()->isValid());
           REQUIRE(reports.attributeReflectionReports.front().retractionSupplied);
           REQUIRE(reports.attributeReflectionReports.front().retractionValid);
           REQUIRE(reports.callbackOrder ==

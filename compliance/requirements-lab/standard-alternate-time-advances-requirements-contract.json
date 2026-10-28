@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "portable-cpp-tck-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract maps the portable C++ alternate-time-advances scenario's Time Regulation Enabled callback-value assertion to IEEE 1516.1-2025 clause 8.3.1. The scenario verifies the callback reports the current logical time, which is the initial logical time at the point this member enables regulation. Passing is provider evidence for this focused assertion only, not conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-time-regulation-enabled-current-logical-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l165-45",
+      "clause_id": "clause-8.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp",
+      "source_symbol": "scenarioAlternateTimeAdvances",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp::scenarioAlternateTimeAdvances",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAlternateTimeAdvancesContract"
+      ]
+    }
+  ]
+}

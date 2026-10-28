@@ -55,6 +55,15 @@ std::wstring nextFederationName() {
 class OrderReportingFederateAmbassador final
     : public rti1516_2025::NullFederateAmbassador {
  public:
+  struct UntimedReflection final {
+    ObjectInstanceHandle object;
+    AttributeHandleValueMap values;
+    VariableLengthData tag;
+    TransportationTypeHandle transport;
+    FederateHandle producer;
+    bool sentRegionsSupplied = false;
+  };
+
   struct Reflection final {
     ObjectInstanceHandle object;
     AttributeHandleValueMap values;
@@ -79,12 +88,20 @@ class OrderReportingFederateAmbassador final
   }
 
   void reflectAttributeValues(
-      ObjectInstanceHandle const&,
-      AttributeHandleValueMap const&,
-      VariableLengthData const&,
-      TransportationTypeHandle const&,
-      FederateHandle const&,
-      RegionHandleSet const*) override {
+      ObjectInstanceHandle const& object,
+      AttributeHandleValueMap const& values,
+      VariableLengthData const& tag,
+      TransportationTypeHandle const& transport,
+      FederateHandle const& producer,
+      RegionHandleSet const* sentRegions) override {
+    untimedReflections.push_back({
+        object,
+        values,
+        tag,
+        transport,
+        producer,
+        sentRegions != nullptr,
+    });
     ++untimedReflectionCount;
     callbackOrder.push_back("untimed");
   }
@@ -122,6 +139,7 @@ class OrderReportingFederateAmbassador final
   }
 
   std::vector<ObjectInstanceHandle> discoveries;
+  std::vector<UntimedReflection> untimedReflections;
   std::vector<Reflection> reflections;
   std::vector<std::wstring> grants;
   std::vector<std::string> callbackOrder;
@@ -138,6 +156,7 @@ std::unique_ptr<RTIambassador> makeRti() {
 TEST_CASE(
     "Embedded timestamped attribute update changes message order when sender becomes time-regulating",
     "[integration][development-profile][object-management][time-management]"
+    "[attribute-update-order-classification-matrix]"
     "[timestamped-attribute-sender-regulation-order][tso][receive-order]"
     "[tso-timestamped-attribute-sender-regulation-order]"
     "[time-regulation-enables-tso-sending]"
@@ -185,6 +204,40 @@ TEST_CASE(
       standard_hla::mom::reliable);
   REQUIRE(reliable.isValid());
 
+  // Table 2 baseline: RECEIVE preference, non-regulating sender, no timestamp.
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      object, attributes, RECEIVE));
+  unsigned char const receiveUntimedBytes[] = {0x52, 0x4F, 0x30};
+  unsigned char const receiveUntimedTagBytes[] = {0x30, 0x30};
+  AttributeHandleValueMap receiveUntimedValues;
+  receiveUntimedValues.emplace(
+      attribute,
+      VariableLengthData(receiveUntimedBytes, sizeof(receiveUntimedBytes)));
+  VariableLengthData const receiveUntimedTag(
+      receiveUntimedTagBytes, sizeof(receiveUntimedTagBytes));
+  publisher->updateAttributeValues(object, receiveUntimedValues, receiveUntimedTag);
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.untimedReflections.empty(); ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.untimedReflectionCount == 1);
+  REQUIRE(receiverReports.untimedReflections.size() == 1);
+  auto const& receiveUntimed = receiverReports.untimedReflections.front();
+  REQUIRE(receiveUntimed.object == object);
+  REQUIRE(receiveUntimed.values.size() == 1);
+  REQUIRE(receiveUntimed.values.contains(attribute));
+  REQUIRE(bytesOf(receiveUntimed.values.at(attribute)) ==
+          std::vector<unsigned char>(
+              receiveUntimedBytes,
+              receiveUntimedBytes + sizeof(receiveUntimedBytes)));
+  REQUIRE(bytesOf(receiveUntimed.tag) ==
+          std::vector<unsigned char>(receiveUntimedTagBytes, receiveUntimedTagBytes + sizeof(receiveUntimedTagBytes)));
+  REQUIRE(receiveUntimed.transport == reliable);
+  REQUIRE(receiveUntimed.producer == publisherHandle);
+  REQUIRE_FALSE(receiveUntimed.sentRegionsSupplied);
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      object, attributes, TIMESTAMP));
+
   // Table 2 of §8.1.4: preferred TSO plus a supplied timestamp still sends
   // RO while the publisher is not time-regulating; no retraction designator
   // is returned. Table 3 keeps that message RO at a constrained receiver.
@@ -194,6 +247,35 @@ TEST_CASE(
   firstValues.emplace(
       attribute, VariableLengthData(firstBytes, sizeof(firstBytes)));
   VariableLengthData const firstTag(firstTagBytes, sizeof(firstTagBytes));
+
+  // Table 2: TSO preference without regulation or a timestamp still sends RO.
+  unsigned char const tsoUntimedBytes[] = {0x54, 0x53, 0x30};
+  unsigned char const tsoUntimedTagBytes[] = {0x30, 0x31};
+  AttributeHandleValueMap tsoUntimedValues;
+  tsoUntimedValues.emplace(
+      attribute,
+      VariableLengthData(tsoUntimedBytes, sizeof(tsoUntimedBytes)));
+  VariableLengthData const tsoUntimedTag(
+      tsoUntimedTagBytes, sizeof(tsoUntimedTagBytes));
+  publisher->updateAttributeValues(object, tsoUntimedValues, tsoUntimedTag);
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.untimedReflectionCount != 2; ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.untimedReflectionCount == 2);
+  REQUIRE(receiverReports.untimedReflections.size() == 2);
+  auto const& tsoUntimed = receiverReports.untimedReflections.back();
+  REQUIRE(tsoUntimed.object == object);
+  REQUIRE(tsoUntimed.values.size() == 1);
+  REQUIRE(tsoUntimed.values.contains(attribute));
+  REQUIRE(bytesOf(tsoUntimed.values.at(attribute)) ==
+          std::vector<unsigned char>(tsoUntimedBytes, tsoUntimedBytes + sizeof(tsoUntimedBytes)));
+  REQUIRE(bytesOf(tsoUntimed.tag) ==
+          std::vector<unsigned char>(tsoUntimedTagBytes, tsoUntimedTagBytes + sizeof(tsoUntimedTagBytes)));
+  REQUIRE(tsoUntimed.transport == reliable);
+  REQUIRE(tsoUntimed.producer == publisherHandle);
+  REQUIRE_FALSE(tsoUntimed.sentRegionsSupplied);
+
   auto const firstRetraction = publisher->updateAttributeValues(
       object, firstValues, firstTag, rti1516_2025::HLAinteger64Time(6));
   REQUIRE_FALSE(firstRetraction.isValid());
@@ -201,10 +283,11 @@ TEST_CASE(
        attempt != 8 && receiverReports.reflections.empty(); ++attempt) {
     receiver->evokeCallback(0.25);
   }
-  REQUIRE(receiverReports.untimedReflectionCount == 0);
+  REQUIRE(receiverReports.untimedReflectionCount == 2);
   REQUIRE(receiverReports.reflections.size() == 1);
   REQUIRE(receiverReports.grants.empty());
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"receive"});
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"untimed", "untimed", "receive"});
   auto const& first = receiverReports.reflections.front();
   REQUIRE(first.object == object);
   REQUIRE(first.values.size() == 1);
@@ -222,6 +305,49 @@ TEST_CASE(
   REQUIRE(first.receivedOrder == RECEIVE);
   REQUIRE_FALSE(first.retractionSupplied);
 
+  // Table 2: with preferred RECEIVE, the supplied timestamp remains metadata
+  // on a receive-order update while the sender is not regulating.
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      object, attributes, RECEIVE));
+  unsigned char const receivePreRegBytes[] = {0x52, 0x4F, 0x32};
+  unsigned char const receivePreRegTagBytes[] = {0x31, 0x30};
+  AttributeHandleValueMap receivePreRegValues;
+  receivePreRegValues.emplace(
+      attribute, VariableLengthData(receivePreRegBytes, sizeof(receivePreRegBytes)));
+  VariableLengthData const receivePreRegTag(
+      receivePreRegTagBytes, sizeof(receivePreRegTagBytes));
+  auto const receivePreRegRetraction = publisher->updateAttributeValues(
+      object,
+      receivePreRegValues,
+      receivePreRegTag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE_FALSE(receivePreRegRetraction.isValid());
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.reflections.size() != 2; ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.untimedReflectionCount == 2);
+  REQUIRE(receiverReports.reflections.size() == 2);
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{
+      "untimed", "untimed", "receive", "receive"});
+  auto const& receivePreReg = receiverReports.reflections.back();
+  REQUIRE(receivePreReg.object == object);
+  REQUIRE(receivePreReg.values.size() == 1);
+  REQUIRE(receivePreReg.values.contains(attribute));
+  REQUIRE(bytesOf(receivePreReg.values.at(attribute)) ==
+          std::vector<unsigned char>(receivePreRegBytes, receivePreRegBytes + sizeof(receivePreRegBytes)));
+  REQUIRE(bytesOf(receivePreReg.tag) ==
+          std::vector<unsigned char>(receivePreRegTagBytes, receivePreRegTagBytes + sizeof(receivePreRegTagBytes)));
+  REQUIRE(receivePreReg.producer == publisherHandle);
+  REQUIRE(receivePreReg.timeImplementation == standard_hla::mom::integer64_time);
+  REQUIRE(receivePreReg.timeValue == L"6");
+  REQUIRE(receivePreReg.sentOrder == RECEIVE);
+  REQUIRE(receivePreReg.receivedOrder == RECEIVE);
+  REQUIRE_FALSE(receivePreReg.retractionSupplied);
+  REQUIRE_FALSE(receivePreReg.retractionValid);
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      object, attributes, TIMESTAMP));
+
   // Hold preferred order and timestamp fixed; change only the publisher's
   // time-regulating role. The second message is TSO and cannot arrive before
   // the receiver's time advance.
@@ -229,6 +355,43 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Interval(5)));
   while (publisher->evokeCallback(0.0)) {
   }
+  // Table 2: preferred TSO with regulation but no timestamp is still RO.
+  unsigned char const tsoRegulatingUntimedBytes[] = {0x54, 0x53, 0x31};
+  unsigned char const tsoRegulatingUntimedTagBytes[] = {0x32, 0x30};
+  AttributeHandleValueMap tsoRegulatingUntimedValues;
+  tsoRegulatingUntimedValues.emplace(
+      attribute,
+      VariableLengthData(
+          tsoRegulatingUntimedBytes,
+          sizeof(tsoRegulatingUntimedBytes)));
+  VariableLengthData const tsoRegulatingUntimedTag(
+      tsoRegulatingUntimedTagBytes,
+      sizeof(tsoRegulatingUntimedTagBytes));
+  publisher->updateAttributeValues(
+      object, tsoRegulatingUntimedValues, tsoRegulatingUntimedTag);
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.untimedReflectionCount != 3; ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.untimedReflectionCount == 3);
+  REQUIRE(receiverReports.untimedReflections.size() == 3);
+  REQUIRE(receiverReports.reflections.size() == 2);
+  auto const& tsoRegulatingUntimed = receiverReports.untimedReflections.back();
+  REQUIRE(tsoRegulatingUntimed.object == object);
+  REQUIRE(tsoRegulatingUntimed.values.size() == 1);
+  REQUIRE(tsoRegulatingUntimed.values.contains(attribute));
+  REQUIRE(bytesOf(tsoRegulatingUntimed.values.at(attribute)) ==
+          std::vector<unsigned char>(
+              tsoRegulatingUntimedBytes,
+              tsoRegulatingUntimedBytes + sizeof(tsoRegulatingUntimedBytes)));
+  REQUIRE(bytesOf(tsoRegulatingUntimed.tag) ==
+          std::vector<unsigned char>(
+              tsoRegulatingUntimedTagBytes,
+              tsoRegulatingUntimedTagBytes + sizeof(tsoRegulatingUntimedTagBytes)));
+  REQUIRE(tsoRegulatingUntimed.transport == reliable);
+  REQUIRE(tsoRegulatingUntimed.producer == publisherHandle);
+  REQUIRE_FALSE(tsoRegulatingUntimed.sentRegionsSupplied);
+
   unsigned char const secondBytes[] = {0x54, 0x53, 0x4F};
   unsigned char const secondTagBytes[] = {0x32};
   AttributeHandleValueMap secondValues;
@@ -239,7 +402,7 @@ TEST_CASE(
       object, secondValues, secondTag, rti1516_2025::HLAinteger64Time(6));
   REQUIRE(secondRetraction.isValid());
   receiver->evokeCallback(0.1);
-  REQUIRE(receiverReports.reflections.size() == 1);
+  REQUIRE(receiverReports.reflections.size() == 2);
   REQUIRE(receiverReports.grants.empty());
 
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
@@ -248,15 +411,16 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
   for (int attempt = 0;
-       attempt != 8 && (receiverReports.reflections.size() != 2 ||
+       attempt != 8 && (receiverReports.reflections.size() != 3 ||
                         receiverReports.grants.empty()); ++attempt) {
     receiver->evokeCallback(0.25);
   }
-  REQUIRE(receiverReports.untimedReflectionCount == 0);
-  REQUIRE(receiverReports.reflections.size() == 2);
+  REQUIRE(receiverReports.untimedReflectionCount == 3);
+  REQUIRE(receiverReports.reflections.size() == 3);
   REQUIRE(receiverReports.grants == std::vector<std::wstring>{L"6"});
   REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"receive", "timestamp", "grant"});
+          std::vector<std::string>{
+              "untimed", "untimed", "receive", "receive", "untimed", "timestamp", "grant"});
   auto const& second = receiverReports.reflections.back();
   REQUIRE(second.object == object);
   REQUIRE(second.values.size() == 1);
@@ -275,9 +439,103 @@ TEST_CASE(
   REQUIRE(second.retractionSupplied);
   REQUIRE(second.retractionValid);
 
+  for (int attempt = 0;
+       attempt != 8 && publisherReports.grants.empty(); ++attempt) {
+    publisher->evokeCallback(0.25);
+  }
+  REQUIRE(publisherReports.grants == std::vector<std::wstring>{L"2"});
+
+  // Table 2: preferred RECEIVE without a timestamp remains RO while regulating.
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      object, attributes, RECEIVE));
+  unsigned char const receiveRegulatingUntimedBytes[] = {0x52, 0x4F, 0x33};
+  unsigned char const receiveRegulatingUntimedTagBytes[] = {0x33, 0x30};
+  AttributeHandleValueMap receiveRegulatingUntimedValues;
+  receiveRegulatingUntimedValues.emplace(
+      attribute,
+      VariableLengthData(
+          receiveRegulatingUntimedBytes,
+          sizeof(receiveRegulatingUntimedBytes)));
+  VariableLengthData const receiveRegulatingUntimedTag(
+      receiveRegulatingUntimedTagBytes,
+      sizeof(receiveRegulatingUntimedTagBytes));
+  publisher->updateAttributeValues(
+      object,
+      receiveRegulatingUntimedValues,
+      receiveRegulatingUntimedTag);
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.untimedReflectionCount != 4; ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.untimedReflectionCount == 4);
+  REQUIRE(receiverReports.untimedReflections.size() == 4);
+  REQUIRE(receiverReports.reflections.size() == 3);
+  auto const& receiveRegulatingUntimed = receiverReports.untimedReflections.back();
+  REQUIRE(receiveRegulatingUntimed.object == object);
+  REQUIRE(receiveRegulatingUntimed.values.size() == 1);
+  REQUIRE(receiveRegulatingUntimed.values.contains(attribute));
+  REQUIRE(bytesOf(receiveRegulatingUntimed.values.at(attribute)) ==
+          std::vector<unsigned char>(
+              receiveRegulatingUntimedBytes,
+              receiveRegulatingUntimedBytes + sizeof(receiveRegulatingUntimedBytes)));
+  REQUIRE(bytesOf(receiveRegulatingUntimed.tag) ==
+          std::vector<unsigned char>(
+              receiveRegulatingUntimedTagBytes,
+              receiveRegulatingUntimedTagBytes + sizeof(receiveRegulatingUntimedTagBytes)));
+  REQUIRE(receiveRegulatingUntimed.transport == reliable);
+  REQUIRE(receiveRegulatingUntimed.producer == publisherHandle);
+  REQUIRE_FALSE(receiveRegulatingUntimed.sentRegionsSupplied);
+
+  // A supplied time still remains attached to a RECEIVE-preferred update.
+  unsigned char const receiveRegulatingTimedBytes[] = {0x52, 0x4F, 0x34};
+  unsigned char const receiveRegulatingTimedTagBytes[] = {0x34, 0x30};
+  AttributeHandleValueMap receiveRegulatingTimedValues;
+  receiveRegulatingTimedValues.emplace(
+      attribute,
+      VariableLengthData(
+          receiveRegulatingTimedBytes,
+          sizeof(receiveRegulatingTimedBytes)));
+  VariableLengthData const receiveRegulatingTimedTag(
+      receiveRegulatingTimedTagBytes,
+      sizeof(receiveRegulatingTimedTagBytes));
+  auto const receiveRegulatingTimedRetraction = publisher->updateAttributeValues(
+      object,
+      receiveRegulatingTimedValues,
+      receiveRegulatingTimedTag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE_FALSE(receiveRegulatingTimedRetraction.isValid());
+  for (int attempt = 0;
+       attempt != 8 && receiverReports.reflections.size() != 4; ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.reflections.size() == 4);
+  REQUIRE(receiverReports.untimedReflectionCount == 4);
+  REQUIRE(receiverReports.grants == std::vector<std::wstring>{L"6"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{
+      "untimed", "untimed", "receive", "receive", "untimed", "timestamp", "grant", "untimed", "receive"});
+  auto const& receiveRegulatingTimed = receiverReports.reflections.back();
+  REQUIRE(receiveRegulatingTimed.object == object);
+  REQUIRE(receiveRegulatingTimed.values.size() == 1);
+  REQUIRE(receiveRegulatingTimed.values.contains(attribute));
+  REQUIRE(bytesOf(receiveRegulatingTimed.values.at(attribute)) ==
+          std::vector<unsigned char>(
+              receiveRegulatingTimedBytes,
+              receiveRegulatingTimedBytes + sizeof(receiveRegulatingTimedBytes)));
+  REQUIRE(bytesOf(receiveRegulatingTimed.tag) ==
+          std::vector<unsigned char>(
+              receiveRegulatingTimedTagBytes,
+              receiveRegulatingTimedTagBytes + sizeof(receiveRegulatingTimedTagBytes)));
+  REQUIRE(receiveRegulatingTimed.producer == publisherHandle);
+  REQUIRE(receiveRegulatingTimed.timeImplementation == standard_hla::mom::integer64_time);
+  REQUIRE(receiveRegulatingTimed.timeValue == L"8");
+  REQUIRE(receiveRegulatingTimed.sentOrder == RECEIVE);
+  REQUIRE(receiveRegulatingTimed.receivedOrder == RECEIVE);
+  REQUIRE_FALSE(receiveRegulatingTimed.retractionSupplied);
+  REQUIRE_FALSE(receiveRegulatingTimed.retractionValid);
+
   receiver->evokeCallback(0.1);
-  REQUIRE(receiverReports.untimedReflectionCount == 0);
-  REQUIRE(receiverReports.reflections.size() == 2);
+  REQUIRE(receiverReports.untimedReflectionCount == 4);
+  REQUIRE(receiverReports.reflections.size() == 4);
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
