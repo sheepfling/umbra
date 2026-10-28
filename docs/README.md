@@ -24,6 +24,9 @@ work you are doing.
   profiles, and review expectations.
 - [Repository guide](development/REPOSITORY-GUIDE.md) — top-level ownership,
   source locations, and local-output conventions.
+- [First build on Windows with MinGW](development/FIRST-BUILD-WINDOWS-MINGW.md) —
+  one guide with clearly marked PowerShell and Git Bash routes to build C++ and
+  connect Java/JNI or Python bindings.
 - [Style and review](development/STYLE-AND-REVIEW.md) — source style,
   review expectations, and automated baseline checks.
 - [CI contract](development/CI.md) — provider-neutral local and pipeline
