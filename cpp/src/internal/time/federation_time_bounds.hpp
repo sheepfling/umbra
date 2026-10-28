@@ -31,6 +31,10 @@ struct FederationTimeBounds {
   // for the corresponding callback; ordinary regulator-only GALT remains
   // strict as before.
   bool galtIsTsoBoundary = false;
+  // An equal-time TSO callback for a pending ordinary TAR has completed, and
+  // no equal-frontier queued/in-transit TSO still pins GALT. The scheduler
+  // may now complete that TAR at this otherwise-strict regulator boundary.
+  bool galtIsDeliveredTsoBoundary = false;
 };
 
 // Computes the federation-owned 2025 GALT/LITS input boundary. An other

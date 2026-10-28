@@ -251,6 +251,11 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  // The TSO passels complete first; their acknowledgement queues the TAR's
+  // grant dispatch as the next evoked callback.
+  REQUIRE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"grant", "reflect", "reflect"});
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 2);

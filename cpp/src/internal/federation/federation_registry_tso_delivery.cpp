@@ -1043,7 +1043,17 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
       continue;
     }
     FederationTimeBounds const bounds = boundsCalculator.calculate(*snapshot, federateId);
+    // The no-TSO policy remains strict at ordinary GALT equality. A pending
+    // TAR can complete at that boundary only after its equal-time TSO callback
+    // has been acknowledged and the bounds snapshot confirms no equal-frontier
+    // message remains queued or in transit.
+    bool const grantAtDeliveredTsoBoundary =
+        bounds.galtIsDeliveredTsoBoundary && requester->time.timeConstrained &&
+        requester->time.timeAdvancePending &&
+        requester->time.advanceMode ==
+            FederateTimeAdvanceMode::time_advance_request;
     bool const grantEligible = grantPolicy.decide(requester->time, bounds).mayGrant() ||
+        grantAtDeliveredTsoBoundary ||
         connectionLossTsoDeliveryMayGrant(
             federation,
             federateId,

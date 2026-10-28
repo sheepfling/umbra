@@ -247,6 +247,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  // The equal-time TSO callback releases a separate grant-dispatch callback.
+  REQUIRE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"receive", "timestamp"});
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.untimed.empty());
   REQUIRE(receiverReports.timed.size() == 2);

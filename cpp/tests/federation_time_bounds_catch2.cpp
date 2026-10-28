@@ -13,6 +13,7 @@
 namespace {
 
 using umbra::detail::FederateMembership;
+using umbra::detail::FederateTimeAdvanceMode;
 using umbra::detail::FederateTimeEnableStatus;
 using umbra::detail::FederateTimeState;
 using umbra::detail::FederationDefinition;
@@ -254,6 +255,16 @@ TEST_CASE(
   enableRegulation(*regulator, 1);
 
   auto execution = snapshot({{1, recipient}, {2, regulator}});
+  // The timestamp equals the recipient's current time but remains in transit
+  // until its public callback is acknowledged.
+  execution.federates.front().time.currentTime =
+      std::make_shared<HLAinteger64Time const>(3);
+  execution.federates.front().time.timeConstrained = true;
+  execution.federates.front().time.timeAdvancePending = true;
+  execution.federates.front().time.advanceMode =
+      FederateTimeAdvanceMode::time_advance_request;
+  execution.federates.front().time.requestedTime =
+      std::make_shared<HLAinteger64Time const>(3);
   umbra::detail::TsoQueuedMessage const message{
       42,
       1,
@@ -277,6 +288,33 @@ TEST_CASE(
   REQUIRE(bounds.status == FederationTimeBoundStatus::available);
   REQUIRE(asIntegerTime(bounds.galt).getTime() == 6);
   REQUIRE(asIntegerTime(bounds.lits).getTime() == 6);
+  REQUIRE_FALSE(bounds.galtIsDeliveredTsoBoundary);
+
+  // An acknowledged TSO at the pending TAR target permits the scheduler to
+  // release the request at the equal regulator frontier once no matching TSO
+  // remains in transit or queued.
+  execution.federates.front().time.requestedTime =
+      std::make_shared<HLAinteger64Time const>(6);
+  auto const boundaryMessage = umbra::detail::TsoQueuedMessage{
+      43,
+      1,
+      2,
+      std::make_shared<HLAinteger64Time const>(6),
+  };
+  execution.federates.front().deliveredTsoMessagesSinceLastAdvance.push_back(
+      boundaryMessage);
+  bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
+  REQUIRE(bounds.status == FederationTimeBoundStatus::available);
+  REQUIRE(asIntegerTime(bounds.galt).getTime() == 6);
+  REQUIRE(bounds.galtIsDeliveredTsoBoundary);
+
+  // Any not-yet-acknowledged message at the same frontier still holds the
+  // grant behind its callback, even when another equal-time message completed.
+  execution.federates.front().inTransitTsoMessages.push_back(boundaryMessage);
+  bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
+  REQUIRE(bounds.status == FederationTimeBoundStatus::available);
+  REQUIRE(bounds.galtIsTsoBoundary);
+  REQUIRE_FALSE(bounds.galtIsDeliveredTsoBoundary);
 }
 
 TEST_CASE(

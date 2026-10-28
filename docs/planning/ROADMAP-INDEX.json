@@ -680,6 +680,18 @@
     "next": "Select the next bounded native-green object-management lane; a process-endpoint companion for timestamped provider responses remains separate. Keep Java provider-runtime validation and general conformance claims outside this slice."
   },
   "portable_tck_time_regulation_actual_lookahead_handoff": "Verified 2026-10-21: translated the native-green Enable Time Regulation actual-lookahead interaction-send boundary into portable official-API C++ primary/contract scenarios and standard-API-only Java parity. Direct mappings are pinned page-190 l64 and l67 to canonical IEEE 1516.1-2025 §8.3.4 using the existing time-role crosswalk; no other producer family is claimed. The native baseline passed its focused CTest. The isolated installed-package TCK build passed 4/4 focused CTests and 4/4 direct scenarios under both callback models with HLAinteger64Time; the same binary passed 4/4 direct with HLAfloat64Time. Package-binding and focused result validation passed. Evidence: out/mgw/tck-regulation-enable-20261021/results.json and float-results.json. Java compiles against the official 2025 API JAR and catalog/parity validate, but no Java provider runtime is installed, so no Java runtime or conformance claim. Next: use an adapter-supplied 2025 Java provider to execute this focused parity scenario under both callback models; separately select the next native-green §8.3.4 timestamped producer family or another directly mapped portable gap before further promotion.",
+  "github_issue_7_windows_timestamped_delivery_boundary_2026_10_27": {
+    "status": "verified-focused-fix",
+    "as_of": "2026-10-27",
+    "tested_revision": "f9121ade6cd2eef70ff8d6301fbc8e70870bb66c",
+    "issue": "https://github.com/sheepfling/umbra/issues/7",
+    "scope": "Resolve the Windows ordinary-TAR equal-time TSO callback and grant stalls while preserving strict no-TSO TAR equality and separate TARA semantics.",
+    "sources": "cpp/src/internal/time/federation_time_bounds.hpp; cpp/src/internal/time/federation_time_bounds.cpp; cpp/src/internal/federation/federation_registry_tso_delivery.cpp; cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp; focused timestamped interaction, attribute passel, mixed-order, optional-TSO, and federation time-bounds Catch2 sources",
+    "direct_mappings": [],
+    "evidence": "On the issue revision under the Windows MinGW MinSizeRel shared build, the five issue-related CTest selectors initially reproduced 5 failures. After the fix they pass 11/11. The acknowledged-TSO bounds case, strict no-TSO policy cases, and neighboring TAR/TARA cutoff cases pass 10/10. The checked issue test images are 4.08-4.12 MB with zero DWARF. Existing test mappings remain unchanged; the new internal bounds assertions are explicitly no-normative-mapping.",
+    "scope_boundary": "Only an ordinary pending TAR may release at equal GALT after an equal-time TSO callback is acknowledged and no matching message remains queued or in transit. The standalone no-TSO grant policy and TARA path are unchanged. This is focused implementation evidence, not a conformance claim; no Requirements Lab resynchronization or GitHub issue-state update was performed.",
+    "next": "Resume the pre-existing active roadmap handoff with python tools/query_rti_work.py resume. The verified issue fix is ready for review; issue #7 tracker closure remains a separate user-directed action."
+  },
   "github_issues_resolution_2026_10_20_handoff": {
     "status": "complete",
     "as_of": "2026-10-21",
