@@ -33,8 +33,8 @@ used throughout these guides to make shell-specific commands easy to spot.
 | --- | --- | --- |
 | Check repository root | `Test-Path CMakePresets.json` | `test -f CMakePresets.json` |
 | Configure C++ | `cmake --preset mingw-default -B out/cpp` | `cmake --preset mingw-default -B out/cpp` |
-| Build C++ | `cmake --build out/cpp --parallel 1` | `cmake --build out/cpp --parallel 1` |
-| Run the focused header test | `ctest --test-dir out/cpp -R 'umbra\.ieee1516_2025\.headers' --output-on-failure` | `ctest --test-dir out/cpp -R 'umbra\.ieee1516_2025\.headers' --output-on-failure` |
+| Build C++ | `cmake --build out/cpp --parallel 4` | `cmake --build out/cpp --parallel 4` |
+| Run the focused header test | `ctest --test-dir out/cpp -R 'umbra\.ieee1516_2025\.headers' --output-on-failure --timeout 120` | `ctest --test-dir out/cpp -R 'umbra\.ieee1516_2025\.headers' --output-on-failure --timeout 120` |
 | Create a Python environment | `python -m venv out/venv` | `python -m venv out/venv` |
 | Activate the environment | `. .\out\venv\Scripts\Activate.ps1` | `source out/venv/Scripts/activate` |
 
@@ -219,7 +219,7 @@ Configure and build the offline-friendly core profile:
 $cppBuild = Join-Path $buildRoot 'cpp'
 cmake --preset mingw-default -B $cppBuild
 if ($LASTEXITCODE -ne 0) { throw 'C++ configure failed.' }
-cmake --build $cppBuild --parallel 1
+cmake --build $cppBuild --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'C++ RTI build failed.' }
 if (-not (Test-Path (Join-Path $cppBuild 'CMakeCache.txt'))) { throw 'C++ configure did not create CMakeCache.txt.' }
 Write-Host "C++ build tree ready: $cppBuild"
@@ -236,7 +236,7 @@ tests, then run that focused check:
 
 ```powershell
 ctest --test-dir $cppBuild -N
-ctest --test-dir $cppBuild -R 'umbra\.ieee1516_2025\.headers' --output-on-failure
+ctest --test-dir $cppBuild -R 'umbra\.ieee1516_2025\.headers' --output-on-failure --timeout 120
 ```
 
 **Pass check:** CTest ends with `100% tests passed` and `0 tests failed` for
@@ -244,16 +244,17 @@ the `umbra.ieee1516_2025.headers` check.
 
 For the native behavior suite, configure the larger Catch2 profile. The first
 configure can download pinned Catch2 and libxml2 dependencies, so network may
-be needed. Build serially to keep memory use predictable on a junior machine:
+be needed. The default uses four build jobs; lower `--parallel` to `2` on a
+machine that runs short on memory:
 
 ```powershell
 $catch2Build = Join-Path $buildRoot 'catch2'
 cmake --preset mingw-catch2 -B $catch2Build
 if ($LASTEXITCODE -ne 0) { throw 'Catch2 profile configure failed.' }
-cmake --build $catch2Build --parallel 1
+cmake --build $catch2Build --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Catch2 profile build failed.' }
 ctest --test-dir $catch2Build -N
-ctest --test-dir $catch2Build --output-on-failure --parallel 1 --exclude-regex '_NOT_BUILT-'
+ctest --test-dir $catch2Build --output-on-failure --parallel 4 --timeout 120 --exclude-regex '_NOT_BUILT-'
 ```
 
 **Pass check:** the Catch2 build completes and CTest ends with `100% tests
@@ -265,7 +266,7 @@ package-consumer entries that were not built in this profile. To rerun one
 test, select its name or a unique piece of it with `-R`:
 
 ```powershell
-ctest --test-dir $catch2Build -R 'federation_listing' --output-on-failure
+ctest --test-dir $catch2Build -R 'federation_listing' --output-on-failure --timeout 120
 ```
 
 **Pass check:** the summary shows the selected test passed. If CTest reports
@@ -295,7 +296,7 @@ then configures the portable C++ TCK against that installation:
 $sharedBuild = Join-Path $buildRoot 'tck-shared'
 cmake --preset mingw-shared -B $sharedBuild
 if ($LASTEXITCODE -ne 0) { throw 'Shared RTI configure failed.' }
-cmake --build $sharedBuild --parallel 1
+cmake --build $sharedBuild --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Shared RTI build failed.' }
 $sharedPrefix = Join-Path $buildRoot 'installed-rti'
 cmake --install $sharedBuild --prefix $sharedPrefix
@@ -305,9 +306,9 @@ $cppTckBuild = Join-Path $buildRoot 'cpp-tck'
 cmake -S packages/hla-rti-cpp-tck/adapters/current-package `
   -B $cppTckBuild -G Ninja "-DCMAKE_PREFIX_PATH=$sharedPrefix"
 if ($LASTEXITCODE -ne 0) { throw 'C++ TCK consumer configure failed.' }
-cmake --build $cppTckBuild --target hla_rti_cpp_tck --parallel 1
+cmake --build $cppTckBuild --target hla_rti_cpp_tck --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'C++ TCK consumer build failed.' }
-ctest --test-dir $cppTckBuild --output-on-failure --parallel 1
+ctest --test-dir $cppTckBuild --output-on-failure --parallel 4 --timeout 120
 ```
 
 **Pass check:** CTest ends with `100% tests passed` and `0 tests failed`. This
@@ -423,7 +424,7 @@ To verify the shipped client transport today, build the shared profile and run
 its installed-package smoke:
 
 ```powershell
-cmake --build $sharedBuild --target umbra_test_installable_package --parallel 1
+cmake --build $sharedBuild --target umbra_test_installable_package --parallel 4
 ```
 
 **Pass check:** the target exits with code 0 and reports the separate-process
@@ -438,10 +439,32 @@ fixture and is not installed. The C++/Python/Java client bindings carry the
 same 2025 address configuration, but an application-level server launcher
 remains future work.
 
+For a quick repeat check of two process-sensitive behaviors, build the Catch2
+profile first, then run:
+
+```powershell
+ctest --test-dir $catch2Build `
+  -R 'RTIambassadors? (projects the joined-federate MOM report path through a configured process endpoint|retain a process directed TSO while Enable Time Constrained is pending)' `
+  --repeat until-fail:3 --output-on-failure --timeout 120
+```
+
+This selects the MOM report-path case and the directed-TSO pending case in the
+two registered Catch2 runners. The verification run repeated all four CTest
+entries three times: 12 passes. If a process test reports Windows socket error
+10013, the build may have succeeded while loopback access was denied; inspect
+the first socket error and retry in an environment that permits local TCP
+tests instead of rebuilding the RTI.
+
 ## 5. Build the Java/JNI provider
 
 The JNI bridge connects Java calls to the C++ RTI. In this same PowerShell
 terminal, make MinGW, Java, and Ninja explicit for the bridge helper:
+
+The first JNI build can take longer than the C++ header smoke because it has a
+separate native build tree: it compiles the C++ RTI core and pinned libxml2
+again, then links them into the Java bridge DLL. It cannot reuse the C++ test
+build's object files. Keep `$javaProductBuild` for later runs so CMake can reuse
+unchanged sources.
 
 ```powershell
 $scoopRoot = if ($env:SCOOP) { $env:SCOOP } else { Join-Path $env:USERPROFILE 'scoop' }
@@ -450,44 +473,77 @@ $env:PATH = "$gccBin;$env:JAVA_HOME\bin;$env:PATH"
 $env:CMAKE_GENERATOR = 'Ninja'
 $env:CC = Join-Path $gccBin 'gcc.exe'
 $env:CXX = Join-Path $gccBin 'g++.exe'
-$jniBuild = Join-Path $buildRoot 'jni-fixture'
 ```
 
-First use the checked-in fixture to learn the build and loading path:
+This junior route uses the official IEEE 1516.1-2025 Java API from the start.
+Do not omit `-JavaApiJar` from the lower-level `build.ps1` command: omission
+selects the repository's small mock API fixture, which is for fixture tests
+only. The product build below compiles the Umbra JNI provider against the
+official API JAR, packages that same API JAR beside the provider and native
+DLL, and later gives Python the packaged copy.
+
+This native profile also fetches the pinned libxml2 source for FOM validation.
+The product builder manages this dependency for the documented route. The
+lower-level `build.ps1` accepts `-Libxml2SourceDirectory` when you already have
+the pinned source checkout available locally.
+
+Use an organization-provided IEEE 1516.1-2025 API binary JAR, or build one from
+the [official IEEE downloads archive](https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip).
+That archive may contain a nested ZIP of official Java API source files rather
+than a ready-to-use JAR. The repository does not redistribute IEEE API source
+or binaries. Do not use the 2010 API, a TCK JAR, or a sources JAR as the runtime
+API JAR.
+
+### Build a local API JAR from the official source ZIP
+
+The helper accepts either the outer IEEE downloads ZIP or its nested API XML
+source ZIP. It extracts only the Java API package, compiles it for Java 11,
+creates a JAR under your ignored build-output folder, and checks the standard
+ambassador and factory classes. The source and JAR remain local build outputs.
+
+🟦 **PowerShell**
 
 ```powershell
-.\packages\umbra-rti-jni\build.ps1 `
-  -OutputDirectory $jniBuild `
-  -RunSmokeTest
-if ($LASTEXITCODE -ne 0) { throw 'JNI fixture build or smoke test failed.' }
-foreach ($file in @(
-  (Join-Path $jniBuild 'umbra_rti_jni.dll'),
-  (Join-Path $jniBuild 'umbra-rti-jni.jar')
-)) {
-  if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Expected JNI fixture output missing: $file" }
-  Write-Host "OK: $file"
-}
+$apiDownloadsZip = 'C:\path\to\1516.1-2025_downloads.zip'
+$javaApiBuild = Join-Path $buildRoot 'ieee1516.1-2025-java-api'
+python tools/build_ieee1516_2025_java_api.py `
+  --downloads-zip $apiDownloadsZip `
+  --output-directory $javaApiBuild
+if ($LASTEXITCODE -ne 0) { throw 'Official Java API source build failed.' }
+$javaApiJar = (Get-ChildItem -LiteralPath $javaApiBuild `
+  -Filter 'ieee1516.1-2025-java-api.jar' -File -Recurse `
+  | Select-Object -First 1).FullName
+if (-not $javaApiJar) { throw 'The official Java API JAR was not created.' }
 ```
 
-On success, the output contains `umbra_rti_jni.dll` and
-`umbra-rti-jni.jar`. The helper compiles against a small Java API fixture and
-runs Java smoke tests. This confirms the bridge builds, loads, and reaches C++;
-the fixture is not the official IEEE API and is not for application use.
-**Pass check:** the explicit file checks print `OK` for both artifacts and the
-helper's smoke tests exit successfully.
+🟩 **Git Bash**
 
-This profile also fetches the pinned libxml2 source for FOM validation. For
-offline setup with a local source checkout, add
-`-Libxml2SourceDirectory 'C:\path\to\libxml2-2.15.3'` to the build command.
+```bash
+API_DOWNLOADS_ZIP='/c/path/to/1516.1-2025_downloads.zip'
+JAVA_API_BUILD="$BUILD_ROOT/ieee1516.1-2025-java-api"
+python tools/build_ieee1516_2025_java_api.py \
+  --downloads-zip "$API_DOWNLOADS_ZIP" \
+  --output-directory "$JAVA_API_BUILD" || exit $?
+JAVA_API_JAR="$(find "$JAVA_API_BUILD" -type f \
+  -name 'ieee1516.1-2025-java-api.jar' -print -quit)"
+if test -z "$JAVA_API_JAR"; then
+  echo 'The official Java API JAR was not created.' >&2
+  exit 1
+fi
+```
 
-For an actual Java application and conformance run, obtain the IEEE
-1516.1-2025 Java API JAR through your organization or approved vendor. The
-repository does not redistribute it. Use the compiled 2025 API binary JAR, not
-the 2010 API, a TCK JAR, or a sources JAR. Build a product directory against
-that JAR (use a different output path from the fixture):
+**Pass check:** the helper prints `JAR checks passed` and the final JAR path.
+It compiles the Java API sources with the JDK's `--release 11` option. If you
+already have a compiled official JAR, set `$javaApiJar` or `$JAVA_API_JAR` to
+that file and skip the source-build commands.
+
+Build the JNI product directly against that official API JAR. Keep staged
+product files and intermediate build files in separate folders for this run:
 
 ```powershell
-$javaApiJar = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
+# If you already have a compiled IEEE 1516.1-2025 API JAR, set its path here
+# and skip the source-build block above.
+# $javaApiJar = 'C:\path\to\ieee1516.1-2025-java-api.jar'
 $javaProduct = Join-Path $buildRoot 'java-product'
 $javaProductBuild = Join-Path $buildRoot 'java-product-build'
 $restaurantFom = (Resolve-Path 'third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml').Path
@@ -498,15 +554,40 @@ if ($LASTEXITCODE -ne 0 -or $apiEntries -notcontains 'hla/rti1516_2025/RtiFactor
 }
 Write-Host 'API JAR check passed: 2025 RtiFactoryFactory class is present.'
 
-python packages/build_umbra_jni.py `
-  --edition 2025 `
-  --java-api-jar $javaApiJar `
-  --output-directory $javaProduct `
-  --build-directory $javaProductBuild `
-  --fom-path $restaurantFom `
-  --run-smoke-test
-if ($LASTEXITCODE -ne 0) { throw 'JNI product build or its artifact/smoke checks failed.' }
+$javaTemp = Join-Path $javaProductBuild 'java-temp'
+New-Item -ItemType Directory -Force -Path $javaTemp | Out-Null
+$previousTemp = $env:TEMP
+$previousTmp = $env:TMP
+try {
+  $env:TEMP = (Resolve-Path $javaTemp).Path
+  $env:TMP = $env:TEMP
+  python packages/build_umbra_jni.py `
+    --edition 2025 `
+    --java-api-jar $javaApiJar `
+    --output-directory $javaProduct `
+    --build-directory $javaProductBuild `
+    --fom-path $restaurantFom `
+    --run-smoke-test
+  if ($LASTEXITCODE -ne 0) { throw 'JNI product build or its artifact/smoke checks failed.' }
+} finally {
+  $env:TEMP = $previousTemp
+  $env:TMP = $previousTmp
+}
+$javaProductApiJar = Join-Path $javaProduct (Split-Path -Leaf $javaApiJar)
+if (-not (Test-Path -LiteralPath $javaProductApiJar -PathType Leaf)) {
+  throw "The product is missing its staged IEEE Java API JAR: $javaProductApiJar"
+}
+$sourceApiSha256 = (Get-FileHash -LiteralPath $javaApiJar -Algorithm SHA256).Hash
+$productApiSha256 = (Get-FileHash -LiteralPath $javaProductApiJar -Algorithm SHA256).Hash
+if ($sourceApiSha256 -ne $productApiSha256) {
+  throw 'The product API JAR differs from the JAR used to build the JNI provider.'
+}
+Write-Host "Same IEEE API JAR is staged for Java and Python: $productApiSha256"
 ```
+
+The product build uses a writable temporary folder under its output directory.
+This also avoids a Windows JDK `jar` packaging error when the workstation's
+system temporary folder denies file creation.
 
 The product directory contains three different artifacts. You obtain the
 official Java API JAR separately and pass it into the build; the builder copies
@@ -514,7 +595,7 @@ it into the product directory. Keep their roles distinct:
 
 | Piece | Purpose | How it is supplied |
 | --- | --- | --- |
-| IEEE Java API JAR | Defines the standard `hla.rti1516_2025` Java interfaces | Supplied with `--java-api-jar $javaApiJar` and copied into `$javaProduct` |
+| IEEE Java API JAR | Defines the standard `hla.rti1516_2025` Java interfaces | Supplied to build, staged as `$javaProductApiJar`, then used by Java and Python |
 | `umbra-rti-jni.jar` | Registers Umbra's Java provider for `ServiceLoader` | Staged in `$javaProduct` |
 | `umbra_rti_jni.dll` | Implements the JNI calls into the C++ RTI | Staged in `$javaProduct`; loaded through `-Dumbra.rti.jni.library=...` |
 
@@ -555,32 +636,49 @@ code 0, the surface smoke reports success, and the native smoke reports
 success. The native smoke proves Java can find the API, discover Umbra's
 provider, load the JNI DLL, and reach the C++ implementation.
 
+If a smoke fails after the product artifacts were created, rerun only the
+failed `run.py` mode after fixing its classpath, DLL, or environment issue.
+That checks the already-built product without compiling the native RTI again.
+
 ## 6. Build and run the Java TCK (optional)
 
-Build the portable Java TCK classes against the same official API JAR, then
+Build the portable Java TCK classes against the staged official API JAR, then
 have the verifier run the TCK with Umbra's JNI provider and capability profile:
 
 ```powershell
 $javaTckClasses = Join-Path $buildRoot 'java-tck-classes'
-python tools/run_java_tck.py build --api-jar $javaApiJar --output-directory $javaTckClasses
+python tools/run_java_tck.py build --api-jar $javaProductApiJar --output-directory $javaTckClasses
 if ($LASTEXITCODE -ne 0) { throw 'Java TCK classes did not build.' }
 if (-not (Test-Path -LiteralPath $javaTckClasses -PathType Container)) { throw 'Java TCK output directory is missing.' }
 
 .\packages\umbra-rti-jni\verify.ps1 `
   -ArtifactDirectory $javaProduct `
-  -JavaApiJar $javaApiJar `
+  -JavaApiJar $javaProductApiJar `
   -RunJavaTck `
-  -JavaTckClassesDirectory $javaTckClasses
+  -JavaTckClassesDirectory $javaTckClasses `
+  -JavaTckMimPath 'third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml' `
+  -JavaTckResultsPath (Join-Path $buildRoot 'java-tck-results.json')
 if ($LASTEXITCODE -ne 0) { throw 'Java TCK verification failed.' }
 ```
 
-**Pass check:** the TCK classes directory exists and the verifier exits 0 with
-no failed checks. The printed profile summary is the record of what the TCK
-actually covered.
+Use the repository runner for compilation instead of pasting hundreds of Java
+source paths into a direct `javac` command. It writes the source list to a
+`javac` argument file, which stays under Windows' command-line length limit.
+
+**Pass check:** the TCK classes directory and JSON evidence file exist, and
+the verifier exits 0 with no failed checks. The printed profile summary is the
+record of what the TCK actually covered. The verifier supplies the standard
+2025 MIM by default; pass `-JavaTckMimPath` when using a different adapter MIM.
 
 The Java TCK reports the provider behavior covered by its configured profile;
 it is useful for checking supported standard behavior, not a claim that every
 IEEE service is implemented.
+
+When a TCK failure says `set -Dhla.rti.tck...`, supply that adapter property
+with a repeated `-JavaTckJvmArgument` option. `NameNotFound` and `InconsistentFOM`
+point to incomplete or mismatched FOM/time inputs. Keep the JSON report with
+the build outputs and correct those inputs before interpreting the remaining
+scenario failures.
 
 ## Python setup (shared by both routes)
 
@@ -625,7 +723,7 @@ immediately if a required product artifact is missing:
 foreach ($file in @(
   (Join-Path $javaProduct 'umbra-rti-jni.jar'),
   (Join-Path $javaProduct 'umbra_rti_jni.dll'),
-  (Join-Path $javaProduct (Split-Path $javaApiJar -Leaf))
+  $javaProductApiJar
 )) {
   if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing JNI product artifact: $file" }
   Write-Host "OK: $file"
@@ -633,9 +731,10 @@ foreach ($file in @(
 ```
 
 For Python, configure the adapter before creating the factory. The artifact
-directory holds `umbra-rti-jni.jar` and `umbra_rti_jni.dll`; the API JAR is the
-separate IEEE JAR you supplied during the product build. The adapter adds both
-JARs to JPype's JVM classpath and sets
+directory holds `umbra-rti-jni.jar` and `umbra_rti_jni.dll`; point Python at
+the API JAR staged in that same product directory. The guide verifies that its
+SHA-256 matches the API JAR used to compile the JNI provider. The adapter adds
+both JARs to JPype's JVM classpath and sets
 `-Dumbra.rti.jni.library=<path-to-umbra_rti_jni.dll>` for Java to load the
 native library. MinGW's `bin` directory must remain on `PATH` so Windows can
 find the DLL's runtime dependencies. You do not need to build a manual
@@ -644,7 +743,7 @@ allows only one JVM per process:
 
 ```powershell
 $env:UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY = (Resolve-Path $javaProduct).Path
-$env:UMBRA_JNI_JAVA_API_JAR = (Resolve-Path $javaApiJar).Path
+$env:UMBRA_JNI_JAVA_API_JAR = (Resolve-Path $javaProductApiJar).Path
 if (-not (Test-Path (Join-Path $javaProduct 'umbra-rti-jni.jar'))) { throw 'Umbra provider JAR is missing.' }
 if (-not (Test-Path (Join-Path $javaProduct 'umbra_rti_jni.dll'))) { throw 'JNI native DLL is missing.' }
 if (-not (Test-Path $env:UMBRA_JNI_JAVA_API_JAR)) { throw 'IEEE Java API JAR is missing.' }
@@ -674,16 +773,16 @@ if ($LASTEXITCODE -ne 0) { throw 'Umbra test-support installation failed.' }
 $env:UMBRA_ENABLE_JNI_INTEGRATION_TESTS = '1'
 $env:UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE = '1'
 $env:UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY = (Resolve-Path $javaProduct).Path
-$env:UMBRA_JNI_JAVA_API_JAR = (Resolve-Path $javaApiJar).Path
+$env:UMBRA_JNI_JAVA_API_JAR = (Resolve-Path $javaProductApiJar).Path
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 if ($LASTEXITCODE -ne 0) { throw 'Python/JPype/JNI integration tests failed.' }
 ```
 
 **Pass check:** unittest ends with `OK` and reports no failures or errors.
 
-This opt-in module may build its own C++ bridge as part of setup. It therefore
-needs the same Java, CMake, Ninja, MinGW and dependency download access as the
-JNI build step.
+Because `UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY` points at `$javaProduct`, this
+run reuses the exact JNI JAR and DLL already built and smoke-tested above. It
+does not silently build a second bridge against the mock API fixture.
 
 ## Python route: bind directly to C++ with pybind11
 
@@ -884,6 +983,49 @@ not the playtest.
 | Java compiles but does not find an RTI provider | Use the staged product runner or include both the official API JAR and bridge JAR on the Java classpath. |
 | Build fails after switching compilers | Configure into a fresh output directory because CMake caches the compiler. |
 
+Before changing or replacing a build directory, inspect which generator and
+compiler it actually cached. Replace `$cppBuild`/`$CPP_BUILD` with the affected
+profile path if the JNI tree is the one in question.
+
+🟦 **PowerShell**
+
+```powershell
+Select-String -Path (Join-Path $cppBuild 'CMakeCache.txt') `
+  -Pattern '^CMAKE_GENERATOR:INTERNAL=|^CMAKE_CXX_COMPILER:'
+```
+
+🟩 **Git Bash**
+
+```bash
+grep -E '^CMAKE_GENERATOR:INTERNAL=|^CMAKE_CXX_COMPILER:' "$CPP_BUILD/CMakeCache.txt"
+```
+
+For this guide, the healthy result says `Ninja` and points `CMAKE_CXX_COMPILER`
+at Scoop's `g++.exe`. A different compiler means use a fresh build directory;
+do not try to convert the old cache in place.
+
+If `jar.exe` cannot create a temporary file, set `TEMP` and `TMP` to a short,
+writable folder under the walkthrough output root for this terminal, then
+rerun the Java step.
+
+🟦 **PowerShell**
+
+```powershell
+$javaTemp = Join-Path $buildRoot 'java-tmp'
+New-Item -ItemType Directory -Force $javaTemp | Out-Null
+$env:TEMP = $javaTemp
+$env:TMP = $javaTemp
+```
+
+🟩 **Git Bash**
+
+```bash
+JAVA_TMP="$BUILD_ROOT/java-tmp"
+mkdir -p "$JAVA_TMP"
+export TEMP="$(cygpath -w "$JAVA_TMP")"
+export TMP="$TEMP"
+```
+
 ### Debugging sequence
 
 Work out which stage failed before changing anything: configure, compile,
@@ -892,11 +1034,101 @@ test, start the provider, or connect the client. Then use the matching check:
 | Failed stage | First diagnostic |
 | --- | --- |
 | CMake configure | Recheck tool versions and the selected preset; use a fresh build directory after changing compilers. |
-| Compile | Rebuild only that profile with `cmake --build $cppBuild --verbose --parallel 1` and read the first compiler error. |
+| Compile | Rebuild only that profile with `cmake --build $cppBuild --verbose --parallel 4` and read the first compiler error. |
 | C++ test | Rerun the failing test with `ctest --test-dir $cppBuild --rerun-failed --output-on-failure --verbose`; if it was not registered as failed, select it with `-R 'part-of-test-name'`. |
 | Python import/test | Confirm the virtual environment is active, then run the failing module with `python -X faulthandler -m unittest packages/umbra-rti-native/tests/test_native.py -v` (replace the file path for a different test). |
 | Java/JNI launch | Confirm `java`, `javac`, `JAVA_HOME`, the API JAR, bridge JAR, native DLL, and MinGW `bin` path all belong to the same 64-bit setup. |
 | TCP connect | Confirm a compatible service is listening at that address. The repository's ready-to-run service is test-only and starts through the process smoke above. |
+
+For a client pointed at a team-supplied service, check the actual host and
+port before rebuilding the client. Replace `127.0.0.1` and `42424` with the
+service address; the guide's example port is not started by Umbra.
+
+🟦 **PowerShell**
+
+```powershell
+Test-NetConnection -ComputerName 127.0.0.1 -Port 42424
+```
+
+Read `TcpTestSucceeded` in the result. Git Bash can make the same basic socket
+check with Python:
+
+🟩 **Git Bash**
+
+```bash
+python -c "import socket; socket.create_connection(('127.0.0.1', 42424), timeout=2).close(); print('TCP listener reachable')"
+```
+
+This only proves a TCP listener accepts a connection; it does not prove that
+the service speaks Umbra's protocol or is ready for an RTI join. If this check
+fails, fix the service/address path first. If it passes but `addressUsed` is
+false, the client selected in-process mode instead of the configured endpoint.
+
+### Notes from the verified Windows build
+
+These timings were observed on this Windows machine on 2026-10-28. Treat them
+as clues about which phase is taking time, not as a promise for another PC:
+
+- The existing C++ tree rebuilt two steps in about 3 seconds, while the full
+  CTest sweep took about 188 seconds. The longer wait was running tests, not
+  compiling the RTI.
+- A fresh JNI tree took about 167 seconds across 276 Ninja tasks. JNI compiles
+  the RTI core and pinned libxml2 in its own build directory; it cannot reuse
+  the C++ Catch2 tree's object files. Keep `$javaProductBuild` for repeat
+  builds so CMake can reuse unchanged outputs.
+- The 2010 and 2025 Python suites took about 297 seconds when run together.
+  That is test time, not C++ compilation time.
+
+To see where your own wait is going, time the build and tests separately. The
+`--parallel 4` setting runs four jobs inside one build or test tree; on a
+machine short on memory, change it to `2`. Never start two builds in the same
+output directory at once. Use separate build roots when you intentionally run
+different language routes side by side; the [CI guide](CI.md#parallel-builds-and-language-checks)
+shows the paired Python commands.
+
+🟦 **PowerShell**
+
+```powershell
+$compileElapsed = Measure-Command { cmake --build $catch2Build --parallel 4 }
+if ($LASTEXITCODE -ne 0) { throw 'C++ build failed.' }
+$testElapsed = Measure-Command { ctest --test-dir $catch2Build --output-on-failure --parallel 4 --timeout 120 --exclude-regex '_NOT_BUILT-' }
+if ($LASTEXITCODE -ne 0) { throw 'C++ tests failed.' }
+Write-Host ("Build: {0:n1} seconds" -f $compileElapsed.TotalSeconds)
+Write-Host ("Tests: {0:n1} seconds" -f $testElapsed.TotalSeconds)
+```
+
+🟩 **Git Bash**
+
+```bash
+time cmake --build "$CATCH2_BUILD" --parallel 4 || exit $?
+time ctest --test-dir "$CATCH2_BUILD" --output-on-failure \
+  --parallel 4 --timeout 120 --exclude-regex '_NOT_BUILT-' || exit $?
+```
+
+If verbose output is needed, rebuild only the affected profile with
+`--verbose`; look for the first compiler or linker error. Later failures are
+often consequences of that first one. For a process test, use its focused CTest
+selector above before paying for another full suite.
+
+If compilation itself is still slow after the first build, inspect the Ninja
+records instead of guessing which source is expensive. The report reads the
+existing `compile_commands.json` and `.ninja_log`; it does not compile again.
+Its summed compiler time is CPU time across parallel jobs, not elapsed wall
+time. Compare reports only for the same compiler, build type, target, and PC.
+See [compile-time observations](CI.md#compile-time-observations) for the
+report fields and before/after workflow.
+
+🟦 **PowerShell**
+
+```powershell
+python tools/report_compile_times.py $catch2Build --top 10
+```
+
+🟩 **Git Bash**
+
+```bash
+python tools/report_compile_times.py "$CATCH2_BUILD" --top 10
+```
 
 When asking for help, include the section number, the exact command, the first
 error message, and the final CTest/build summary. Include the output of
@@ -996,11 +1228,11 @@ Start with the quick, offline-friendly C++ profile:
 ```bash
 CPP_BUILD="$BUILD_ROOT/cpp"
 cmake --preset mingw-default -B "$CPP_BUILD" || exit $?
-cmake --build "$CPP_BUILD" --parallel 1 || exit $?
+cmake --build "$CPP_BUILD" --parallel 4 || exit $?
 test -f "$CPP_BUILD/CMakeCache.txt" || { echo 'CMakeCache.txt missing; configure failed.' >&2; exit 1; }
 ctest --test-dir "$CPP_BUILD" -N
 ctest --test-dir "$CPP_BUILD" \
-  -R 'umbra\.ieee1516_2025\.headers' --output-on-failure
+  -R 'umbra\.ieee1516_2025\.headers' --output-on-failure --timeout 120
 ```
 
 **Pass check:** `CMakeCache.txt` exists and CTest ends with `100% tests
@@ -1012,10 +1244,10 @@ download access:
 ```bash
 CATCH2_BUILD="$BUILD_ROOT/catch2"
 cmake --preset mingw-catch2 -B "$CATCH2_BUILD" || exit $?
-cmake --build "$CATCH2_BUILD" --parallel 1 || exit $?
+cmake --build "$CATCH2_BUILD" --parallel 4 || exit $?
 ctest --test-dir "$CATCH2_BUILD" -N
 ctest --test-dir "$CATCH2_BUILD" --output-on-failure \
-  --parallel 1 --exclude-regex '_NOT_BUILT-'
+  --parallel 4 --timeout 120 --exclude-regex '_NOT_BUILT-'
 ```
 
 **Pass check:** the Catch2 build completes and CTest ends with `100% tests
@@ -1024,7 +1256,7 @@ passed` and `0 tests failed`. Stop if the profile registers no tests.
 To rerun one case, use a distinctive part of its CTest name:
 
 ```bash
-ctest --test-dir "$CATCH2_BUILD" -R 'federation_listing' --output-on-failure
+ctest --test-dir "$CATCH2_BUILD" -R 'federation_listing' --output-on-failure --timeout 120
 ```
 
 **Pass check:** the summary shows the selected test passed. If there are zero
@@ -1038,7 +1270,7 @@ and runs the portable C++ TCK as an installed-package client:
 ```bash
 SHARED_BUILD="$BUILD_ROOT/shared"
 cmake --preset mingw-shared -B "$SHARED_BUILD" || exit $?
-cmake --build "$SHARED_BUILD" --parallel 1 || exit $?
+cmake --build "$SHARED_BUILD" --parallel 4 || exit $?
 SHARED_PREFIX="$BUILD_ROOT/installed-rti"
 cmake --install "$SHARED_BUILD" --prefix "$SHARED_PREFIX" || exit $?
 
@@ -1046,8 +1278,8 @@ CPP_TCK_BUILD="$BUILD_ROOT/cpp-tck"
 cmake -S packages/hla-rti-cpp-tck/adapters/current-package \
   -B "$CPP_TCK_BUILD" -G Ninja \
   "-DCMAKE_PREFIX_PATH=$SHARED_PREFIX" || exit $?
-cmake --build "$CPP_TCK_BUILD" --target hla_rti_cpp_tck --parallel 1 || exit $?
-ctest --test-dir "$CPP_TCK_BUILD" --output-on-failure --parallel 1
+cmake --build "$CPP_TCK_BUILD" --target hla_rti_cpp_tck --parallel 4 || exit $?
+ctest --test-dir "$CPP_TCK_BUILD" --output-on-failure --parallel 4 --timeout 120
 ```
 
 **Pass check:** CTest ends with `100% tests passed` and `0 tests failed`; the
@@ -1058,7 +1290,7 @@ a private test service; Umbra does not yet ship a deployable RTI server:
 
 ```bash
 cmake --build "$SHARED_BUILD" \
-  --target umbra_test_installable_package --parallel 1 || exit $?
+  --target umbra_test_installable_package --parallel 4 || exit $?
 ```
 
 **Pass check:** the command reports the separate-process TCP smoke passed and
@@ -1066,11 +1298,14 @@ exits with code 0.
 
 ## 5. Build the Java/JNI product
 
-The official 1516.1-2025 Java API JAR must be provided by your organization or
-vendor. Set its path and choose separate product/build output folders:
+Use an organization-provided IEEE 1516.1-2025 Java API JAR, or build it from
+the official download with the Git Bash block in the API JAR section above.
+That block sets `JAVA_API_JAR`. Otherwise set it to your provided JAR. Choose
+separate product/build output folders:
 
 ```bash
-JAVA_API_JAR='/c/path/to/ieee-1516.1-2025-java-api.jar'
+# If using an organization-provided binary instead, set this path explicitly:
+# JAVA_API_JAR='/c/path/to/ieee1516.1-2025-java-api.jar'
 JAVA_PRODUCT="$BUILD_ROOT/java-product"
 JAVA_PRODUCT_BUILD="$BUILD_ROOT/java-product-build"
 RESTAURANT_FOM="$PWD/third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml"
@@ -1083,7 +1318,9 @@ if ! jar tf "$JAVA_API_JAR" | grep -Fx 'hla/rti1516_2025/RtiFactoryFactory.class
   exit 1
 fi
 
-python packages/build_umbra_jni.py \
+mkdir -p "$JAVA_PRODUCT_BUILD/java-temp"
+JAVA_TEMP="$(cygpath -w "$JAVA_PRODUCT_BUILD/java-temp")"
+TEMP="$JAVA_TEMP" TMP="$JAVA_TEMP" python packages/build_umbra_jni.py \
   --edition 2025 \
   --java-api-jar "$JAVA_API_JAR" \
   --output-directory "$JAVA_PRODUCT" \
@@ -1092,8 +1329,9 @@ python packages/build_umbra_jni.py \
   --run-smoke-test || exit $?
 
 API_JAR_NAME="$(basename "$JAVA_API_JAR")"
+JAVA_PRODUCT_API_JAR="$JAVA_PRODUCT/$API_JAR_NAME"
 for file in \
-  "$JAVA_PRODUCT/$API_JAR_NAME" \
+  "$JAVA_PRODUCT_API_JAR" \
   "$JAVA_PRODUCT/umbra-rti-jni.jar" \
   "$JAVA_PRODUCT/umbra_rti_jni.dll"; do
   if test ! -f "$file"; then
@@ -1103,7 +1341,15 @@ for file in \
   echo "OK: $file"
 done
 
-if ! jar tf "$JAVA_API_JAR" | grep -Fx 'hla/rti1516_2025/RtiFactoryFactory.class'; then
+SOURCE_API_SHA256="$(sha256sum "$JAVA_API_JAR" | cut -d ' ' -f 1)"
+PRODUCT_API_SHA256="$(sha256sum "$JAVA_PRODUCT_API_JAR" | cut -d ' ' -f 1)"
+if test "$SOURCE_API_SHA256" != "$PRODUCT_API_SHA256"; then
+  echo 'The product API JAR differs from the JAR used to build the JNI provider.' >&2
+  exit 1
+fi
+echo "Same IEEE API JAR is staged for Java and Python: $PRODUCT_API_SHA256"
+
+if ! jar tf "$JAVA_PRODUCT_API_JAR" | grep -Fx 'hla/rti1516_2025/RtiFactoryFactory.class'; then
   echo 'Staged Java API JAR is missing the required 2025 factory class.' >&2
   exit 1
 fi
@@ -1131,14 +1377,14 @@ To build and run the optional Java TCK:
 ```bash
 JAVA_TCK_CLASSES="$BUILD_ROOT/java-tck-classes"
 python tools/run_java_tck.py build \
-  --api-jar "$JAVA_API_JAR" \
+  --api-jar "$JAVA_PRODUCT_API_JAR" \
   --output-directory "$JAVA_TCK_CLASSES" || exit $?
 test -d "$JAVA_TCK_CLASSES" || { echo 'Java TCK classes directory was not created.' >&2; exit 1; }
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass \
   -File packages/umbra-rti-jni/verify.ps1 \
   -ArtifactDirectory "$(cygpath -w "$JAVA_PRODUCT")" \
-  -JavaApiJar "$(cygpath -w "$JAVA_API_JAR")" \
+  -JavaApiJar "$(cygpath -w "$JAVA_PRODUCT_API_JAR")" \
   -RunJavaTck \
   -JavaTckClassesDirectory "$(cygpath -w "$JAVA_TCK_CLASSES")" || exit $?
 ```
@@ -1225,9 +1471,9 @@ need the Scoop GCC `bin` directory on `PATH`.
 ```bash
 python -m pip install -e 'packages/umbra-rti-jpype[jpype]' || exit $?
 export UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY="$(cygpath -w "$JAVA_PRODUCT")"
-export UMBRA_JNI_JAVA_API_JAR="$(cygpath -w "$JAVA_API_JAR")"
+export UMBRA_JNI_JAVA_API_JAR="$(cygpath -w "$JAVA_PRODUCT_API_JAR")"
 for file in "$JAVA_PRODUCT/umbra-rti-jni.jar" \
-  "$JAVA_PRODUCT/umbra_rti_jni.dll" "$JAVA_API_JAR"; do
+  "$JAVA_PRODUCT/umbra_rti_jni.dll" "$JAVA_PRODUCT_API_JAR"; do
   if test ! -f "$file"; then
     echo "Missing Python/JNI input: $file" >&2
     exit 1
@@ -1298,8 +1544,8 @@ Check which compiler Git Bash will find and make CMake show its compile command:
 
 ```bash
 command -v g++
-cmake --build "$CPP_BUILD" --verbose --parallel 1
-ctest --test-dir "$CPP_BUILD" --rerun-failed --output-on-failure --verbose
+cmake --build "$CPP_BUILD" --verbose --parallel 4
+ctest --test-dir "$CPP_BUILD" --rerun-failed --output-on-failure --verbose --timeout 120
 ```
 
 Use the same fixes as the [PowerShell guide](FIRST-BUILD-WINDOWS-MINGW.md):
@@ -1414,12 +1660,47 @@ federation create/destroy/list; it cannot complete this full scenario yet. Use
 Python through JPype for the full Python version, and use the direct binding's
 existing smoke and tests to verify its supported slice.
 
+### Run the Python-through-JNI capstone
+
+This executable example uses the previously built Umbra JNI product and the
+official Java API JAR configured in the Python route above. It loads the
+supplied Restaurant FOM, starts two named federates in one Python process,
+publishes and observes a named object, sends a timestamped attribute update
+and interaction, and reads the publisher's joined-federate MOM data. It does
+not use the mock Java API fixture.
+
+First complete the Python setup and Umbra JNI artifact checks in your chosen
+shell's route above. At the repository root, after setting UMBRA_SCENARIO_FOM
+and UMBRA_MOM_REPORTS above, run the same example file from either shell.
+
+🟦 **PowerShell**
+
+    python packages/umbra-rti-jpype/examples/death_star_cantina.py
+    if ($LASTEXITCODE -ne 0) { throw 'Python-through-JNI capstone failed.' }
+
+🟩 **Git Bash**
+
+    python packages/umbra-rti-jpype/examples/death_star_cantina.py
+    status=$?
+    test "$status" -eq 0 || exit "$status"
+
+**Pass check:** the run ends with
+All Python -> JPype -> Java -> JNI -> C++ checks passed. The [PASS] lines
+must also confirm both joins, object discovery, the name reflected at time 1,
+both time-5 grants, the CustomerSeated interaction at time 5, and the MOM
+report path. The script exits nonzero and prints [FAIL] when an expected
+callback, value, artifact, or report record is missing.
+
 ### Probe the 2025 MOM while the scenario is joined
 
 Set a writable report directory when connecting each client. This is Umbra's
 implementation-specific `RtiConfiguration` additional setting. If omitted,
 Umbra uses a temporary directory; setting it explicitly makes the report files
 easy to find after the exercise.
+
+The Python-through-JNI capstone above performs this MOM probe for you. The
+steps below explain what it checks and provide equivalent client setup for
+C++ and Java/JNI.
 
 C++:
 
@@ -1470,6 +1751,13 @@ the current `HLAreportServiceFile` value once more and confirm the path is
 unchanged. The path belongs to that joined-federate lifetime. The RTI, rather
 than either application federate, owns and produces this MOM instance.
 
+Subscribe before enabling the report switches. Then have DeathStarCommand
+enable both Service Reporting and Send Service Reports To File with the
+standard `setServiceReportingSwitch(true)` and
+`setSendServiceReportsToFileSwitch(true)` services. The configured report
+directory only chooses where files are written; it does not enable reporting.
+The Python-through-JNI example performs these steps in that order.
+
 The report file can be checked from either terminal. PowerShell:
 
 ```powershell
@@ -1506,14 +1794,14 @@ shows the assertions:
 
 ```powershell
 ctest --test-dir $catch2Build -N -R 'joined_federate_mom_report_file'
-ctest --test-dir $catch2Build -R 'joined_federate_mom_report_file' --output-on-failure
+ctest --test-dir $catch2Build -R 'joined_federate_mom_report_file' --output-on-failure --timeout 120
 ```
 
 Git Bash:
 
 ```bash
 ctest --test-dir "$CATCH2_BUILD" -N -R 'joined_federate_mom_report_file'
-ctest --test-dir "$CATCH2_BUILD" -R 'joined_federate_mom_report_file' --output-on-failure
+ctest --test-dir "$CATCH2_BUILD" -R 'joined_federate_mom_report_file' --output-on-failure --timeout 120
 ```
 
 **Pass check:** `ctest -N` lists the MOM case, then CTest reports that selected

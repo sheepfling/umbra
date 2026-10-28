@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import hashlib
+import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import zipfile
-
+from dataclasses import dataclass
+from pathlib import Path
 
 JNI_ROOT = Path(__file__).parents[2] / "umbra-rti-jni"
 
@@ -27,7 +28,9 @@ def jni_toolchain_available() -> bool:
     )
 
 
-def build_jni_bridge(output_directory: Path, *, run_smoke_test: bool = False) -> JniBridgeArtifacts:
+def build_jni_bridge(
+    output_directory: Path, *, run_smoke_test: bool = False
+) -> JniBridgeArtifacts:
     """Build the JNI library/JAR pair in a temporary integration-test directory."""
 
     cached_directory = os.environ.get("UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY")
@@ -48,13 +51,20 @@ def build_jni_bridge(output_directory: Path, *, run_smoke_test: bool = False) ->
         "-OutputDirectory",
         str(output_directory),
     ]
+    configured_api_jar = os.environ.get("UMBRA_JNI_JAVA_API_JAR")
+    if configured_api_jar:
+        api_jar = Path(configured_api_jar).expanduser().resolve()
+        if not api_jar.is_file():
+            raise RuntimeError(
+                f"Configured IEEE Java API JAR does not exist: {api_jar}"
+            )
+        command.extend(("-JavaApiJar", str(api_jar)))
     if run_smoke_test:
         command.append("-RunSmokeTest")
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = subprocess.run(command, capture_output=True, check=False, text=True)
     if result.returncode != 0:
         raise RuntimeError(
-            "JNI bridge build failed:\n"
-            f"{result.stdout}\n{result.stderr}"
+            f"JNI bridge build failed:\n{result.stdout}\n{result.stderr}"
         )
     return _artifacts(output_directory.expanduser().resolve())
 
@@ -73,9 +83,12 @@ def _artifacts(output_directory: Path) -> JniBridgeArtifacts:
         source_api = output_directory / "mock-java-api" / "umbra-mock-java-rti.jar"
         api_jar = output_directory / "mock-java-api" / "umbra-mock-java-api.jar"
         if not api_jar.is_file():
-            with zipfile.ZipFile(source_api) as source, zipfile.ZipFile(
-                api_jar, "w", compression=zipfile.ZIP_DEFLATED
-            ) as target:
+            with (
+                zipfile.ZipFile(source_api) as source,
+                zipfile.ZipFile(
+                    api_jar, "w", compression=zipfile.ZIP_DEFLATED
+                ) as target,
+            ):
                 for entry in source.infolist():
                     if entry.filename.startswith("META-INF/services/"):
                         continue
@@ -91,5 +104,22 @@ def _artifacts(output_directory: Path) -> JniBridgeArtifacts:
         if not path.is_file()
     ]
     if missing:
-        raise RuntimeError(f"JNI bridge build did not produce: {', '.join(map(str, missing))}")
+        raise RuntimeError(
+            f"JNI bridge build did not produce: {', '.join(map(str, missing))}"
+        )
+    dependency_manifest = output_directory / "umbra-rti-jni-dependencies.json"
+    if configured_api_jar and dependency_manifest.is_file():
+        try:
+            manifest = json.loads(dependency_manifest.read_text(encoding="utf-8"))
+            recorded_api_hash = str(manifest["javaApi"]["sha256"]).upper()
+        except (OSError, KeyError, TypeError, ValueError) as error:
+            raise RuntimeError(
+                f"Could not read the JNI product's API hash: {dependency_manifest}"
+            ) from error
+        supplied_api_hash = hashlib.sha256(artifacts.api_jar.read_bytes()).hexdigest()
+        if recorded_api_hash != supplied_api_hash.upper():
+            raise RuntimeError(
+                "The configured IEEE API JAR does not match the API recorded by "
+                f"the JNI product: {artifacts.api_jar}"
+            )
     return artifacts

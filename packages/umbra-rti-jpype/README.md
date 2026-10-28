@@ -113,6 +113,11 @@ smoke test with:
 The regular Python test suite compiles this fixture in a temporary directory.
 When the optional JPype dependency is installed, it additionally starts a JVM
 with the fixture JAR and verifies the complete Java-to-Python adapter path.
+Those tests are fixture evidence only. For the official API boundary, follow
+the [Windows junior build guide](../../docs/development/FIRST-BUILD-WINDOWS-MINGW.md):
+it builds the JNI provider against an IEEE 1516.1-2025 API JAR, stages that
+same JAR beside the JNI JAR and DLL, and configures the Python tests to use the
+staged API JAR.
 
 For a supported vendor Java RTI, use a separate small adapter package rather
 than putting its JAR in this transport package. The repository's
@@ -140,6 +145,14 @@ The registered `umbra-jni` entry point constructs this same factory. Its
 `UMBRA_JNI_*` environment variables and release-directory discovery avoid
 mixing JNI setup into ordinary vendor-JAR configuration.
 
+The official-API Python/JNI test lane sets
+`UMBRA_JNI_JAVA_API_JAR` to the API JAR used to compile the JNI provider and
+`UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY` to the matching product directory. The
+test bootstrap passes a configured API JAR through to the JNI build if it has
+to build the bridge itself. If neither is supplied, its test fixture defaults
+to the repository mock API; that default is useful for adapter development,
+but it is not evidence of compatibility with the official IEEE API.
+
 The adapter exposes the completed shared contract, including provider-owned
 encoder, logical-time, handle, callback, federation-management, and DDM value
 conversions covered by the conformance suite. `unwrap_java_object()` and
@@ -150,6 +163,13 @@ The opt-in JNI encoder lane also starts at the Python `EncoderFactory` and
 checks composite factory/varargs arguments, indexed fixed-array values,
 variable-array children, fixed-record additions, and variant values after the
 round-trip through the standard Java carrier and C++ implementation.
+
+For a complete junior exercise using the staged official API/JNI product, run
+the [Death Star cantina Python example](examples/death_star_cantina.py) from
+the repository root. It creates two federates in one Python process, observes
+a named object and a timestamped interaction, then probes the joined-federate
+MOM and verifies its service-report file. The [Windows first-build guide](../../docs/development/FIRST-BUILD-WINDOWS-MINGW.md#final-practice-scenario-death-star-cantina)
+shows the PowerShell and Git Bash setup and pass checks.
 
 ## IEEE 1516.1-2010 / 1516e route
 

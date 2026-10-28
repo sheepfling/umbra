@@ -131,6 +131,13 @@ registers the standard `RtiFactory`, `AuthorizerFactory`, and
 surface smoke by default or the bounded native smoke with `--mode native`; it
 is a product launcher, not a full RTI-conformance runner.
 
+The IEEE API JAR stays separate from `umbra-rti-jni.jar`: the provider JAR is
+compiled against the API, while the product directory supplies both JARs on
+the Java classpath. This prevents the provider from shadowing the standard
+Java types. Python/JPype must use that same staged API JAR; the junior build
+guide checks that its SHA-256 matches the JAR used for the JNI build before
+running Python tests.
+
 The current native service slice covers connection/callback control, federation
 listing and membership reports, FOM/MIM creation and destruction, named and
 unnamed joins with additional FOM module sequences, resign, and synchronization-point
@@ -560,11 +567,15 @@ artifact verification remains usable without shipping test classes:
 
 `-JavaTckFomPath` selects a compatible FOM when the default Restaurant FOM is
 not appropriate, and `-JavaTckTimeImplementation` selects the matching Java
-logical-time implementation. When no profile is supplied, verification
-automatically loads the checked-in `umbra-jni.properties` capability profile;
-pass `-JavaTckProfilePath` to use a different provider profile. The TCK remains
-provider-neutral; this command only supplies the packaged JNI provider through
-the standard `ServiceLoader`.
+logical-time implementation. `-JavaTckMimPath` defaults to the checked-in
+IEEE 1516.2-2025 standard MIM. The verifier writes a JSON scenario report next
+to the TCK classes by default; override it with `-JavaTckResultsPath`. When no
+profile is supplied, verification automatically loads the checked-in
+`umbra-jni.properties` capability profile; pass `-JavaTckProfilePath` to use a
+different provider profile. Repeat `-JavaTckJvmArgument` to supply adapter
+properties such as additional FOM modules or the multi-attribute FOM. The TCK
+remains provider-neutral; this command only supplies the packaged JNI provider
+through the standard `ServiceLoader`.
 
 The Python adapter accepts the same directory directly. If it contains one
 top-level API JAR beside `umbra-rti-jni.jar`, that JAR is selected; multiple
