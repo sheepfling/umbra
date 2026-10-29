@@ -6,6 +6,7 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -210,6 +211,14 @@ TEST_CASE(
   REQUIRE(mixedCallbacks.received.size() == 2U);
   REQUIRE(regionalCallbacks.received.front().interactionClass == interactionClass);
   REQUIRE(regionalCallbacks.received.front().parameterValues.contains(temperatureOk));
+  REQUIRE(regionalCallbacks.received.front().parameterValues.size() == parameters.size());
+  auto const& receivedParameterValue =
+      regionalCallbacks.received.front().parameterValues.at(temperatureOk);
+  REQUIRE(receivedParameterValue.size() == sizeof(parameterBytes));
+  REQUIRE(std::memcmp(
+              receivedParameterValue.data(),
+              parameterBytes,
+              sizeof(parameterBytes)) == 0);
 
   // Removing only the disjoint regional declaration leaves the independent
   // ordinary/default realization in place for an explicit source-region send.

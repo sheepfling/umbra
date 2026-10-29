@@ -25577,7 +25577,9 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
       "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l176-53",
       "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30",
-      "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l23-7"
+    "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l23-7",
+    "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l80-26",
+    "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l113-37"
       ],
       "test_case": "Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness",
       "tags": [
@@ -25606,8 +25608,8 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/default_region_interaction_routing_catch2.cpp:89",
-      "assertions": 58,
+      "source_location": "cpp/tests/default_region_interaction_routing_catch2.cpp:90",
+      "assertions": 61,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -25618,8 +25620,8 @@
         "hla-1516.1-2025:clause-9.10",
         "hla-1516.1-2025:clause-9.1.7"
       ],
-  "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case exercises the 2025 interaction DDM surface with committed positive-dimensional source and subscription regions. It proves overlap-qualified regional delivery, that ordinary Subscribe Interaction Class followed by Unsubscribe Interaction Class leaves an established regional subscription unaffected (§9.10), and that ordinary DM and With Regions subscription effects remain independent under §9.1.5: a disjoint regional declaration does not shadow the retained ordinary/default route, and ordinary DM calls do not remove the regional subscription. These assertions exercise both active-subscription alternatives: regional delivery remains after ordinary unsubscribe, and ordinary delivery remains after regional unsubscribe. The final ordinary send runs while the mixed federate has both ordinary and regional subscriptions active; exactly one callback is observed, directly covering the once-only receive rule in §9.1.5. It also proves ordinary default-source delivery to regional subscribers and supplied-empty callback metadata under Convey Region Designator Sets. Direct mappings include the page-222 §9.1.5 candidates for default-region DM interpretation and non-interaction of DM/DDM subscription effects, plus page-224 interaction subscription state and once-only receipt rules. This is development-profile traceability evidence only; timestamped/retraction, passive/active, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
-  "next_action": "Keep this positive-dimensional interaction lane independent from the aggregate case. Default-region independence and once-only dual-subscription receipt are now directly mapped for \u00a79.1.5. Add multi-region, passive/active, timestamped/retraction, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
+  "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case exercises the 2025 interaction DDM surface with committed positive-dimensional source and subscription regions. It proves overlap-qualified regional delivery, that ordinary Subscribe Interaction Class followed by Unsubscribe Interaction Class leaves an established regional subscription unaffected (§9.10), and that ordinary DM and With Regions subscription effects remain independent under §9.1.5: a disjoint regional declaration does not shadow the retained ordinary/default route, and ordinary DM calls do not remove the regional subscription. These assertions exercise both active-subscription alternatives: regional delivery remains after ordinary unsubscribe, and ordinary delivery remains after regional unsubscribe. The final ordinary send runs while the mixed federate has both ordinary and regional subscriptions active; exactly one callback is observed, directly covering the once-only receive rule in §9.1.5. It also proves ordinary default-source delivery to regional subscribers and supplied-empty callback metadata under Convey Region Designator Sets. Direct mappings include the page-222 §9.1.5 candidates for default-region DM interpretation and non-interaction of DM/DDM subscription effects, plus page-224 interaction subscription state and once-only receipt rules, and callback assertions that the sent class, parameter count, and bytes match the API arguments. This is development-profile traceability evidence only; timestamped/retraction, passive/active, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
+  "next_action": "Keep this positive-dimensional interaction lane independent from the aggregate case. Default-region independence, once-only dual-subscription receipt, sent interaction class, and sent parameters are now directly mapped for \u00a79.1.5. Add multi-region, passive/active, timestamped/retraction, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
     },
     {
       "id": "umbra-cpp-default-region-interaction-routing-integration",

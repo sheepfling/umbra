@@ -3635,9 +3635,9 @@
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-      "direct_requirement_section_pairs": 1189,
+      "direct_requirement_section_pairs": 1191,
       "standard_requirement_total": 2374,
-      "standard_requirement_coverage_percent": 50.08,
+      "standard_requirement_coverage_percent": 50.17,
       "service_report_store_cases": 21,
       "service_report_store_mapped_cases": 13,
       "ddm_sent_region_designators_2025_lane_cases": 1,
@@ -3655,13 +3655,13 @@
       "status": "ready",
       "objective": "Continue evidence-first mapping of current IEEE 1516.1-2025 requirement gaps; do not bulk-assign requirements or resynchronize the unchanged Requirements Lab.",
       "baseline_tag": "remapping-baseline-2026-10-29",
-      "current_mapped_requirements": 1189,
+      "current_mapped_requirements": 1191,
       "standard_requirement_total": 2374,
-      "coverage_percent": 50.08,
+      "coverage_percent": 50.17,
       "current_clause_9_1_5": {
-        "main_clause_mapped": 14,
+        "main_clause_mapped": 16,
         "main_clause_total": 28,
-        "main_clause_uncovered": 14,
+        "main_clause_uncovered": 12,
         "annex_example_uncovered": 1
       },
       "unclassified_catch2_rows": 0,
@@ -3671,7 +3671,7 @@
         {
           "priority": 1,
           "work_package": "Finish the bounded §9.1.5 audit",
-          "uncovered_requirements_at_snapshot": 14,
+          "uncovered_requirements_at_snapshot": 12,
           "first_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13-available",
           "basis": "Existing focused object-DDM handoff; resolve each candidate from its exact requirement text and assertions, adding a focused case when current evidence is insufficient."
         },
@@ -3741,7 +3741,7 @@
         "python tools/query_rti_work.py case <exact-plan-id> --summary --compact",
         "python tools/query_rti_work.py check --lane object-ddm-ownership --summary --compact"
       ],
-      "evidence_boundary": "The plan has 1764 classified rows (1643 with normative mappings, 121 explicitly dispositioned, zero unclassified). This is 100% row classification, not requirement coverage; 1185 of 2374 requirements still lack direct mapped evidence. Current test evidence is development-profile traceability, not conformance."
+      "evidence_boundary": "The plan has 1764 classified rows (1643 with normative mappings, 121 explicitly dispositioned, zero unclassified). This is 100% row classification, not requirement coverage; 1183 of 2374 requirements still lack direct mapped evidence. Current test evidence is development-profile traceability, not conformance."
     },
     "latest_completed_slice": {
       "lane": "process-regional-send-unregulated-timestamp-order",
