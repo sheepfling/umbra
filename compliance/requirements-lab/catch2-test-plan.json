@@ -26,15 +26,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29",
-          "standard_section": "hla-1516.1-2025:clause-8.13",
-          "title": "Flush Queue Grant service result",
-          "requirements_lab_issue_id": "RL-349",
-          "basis": "The full page-202 source places the OLT result paragraph immediately under the §8.13 Flush Queue Grant service heading and before the §8.13.1–§8.13.3 subsections; the pinned Lab export incorrectly attaches this stable candidate to §8.13.3 Preconditions."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded FQG derives grant times from TSO callbacks actually delivered",
       "source_location": "cpp/tests/flush_queue_request_delivered_callbacks_catch2.cpp:236",
       "ctest_target": "umbra_flush_queue_request_optimistic_time_catch2",
@@ -253,7 +245,13 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l83-26"
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l83-26",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l98-31",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l82-27"
       ],
       "test_case": "Embedded 2025 DM subscribe and unsubscribe services remain independent of regional declarations",
       "primary_lane": "object-ddm-ownership",
@@ -290,8 +288,8 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "requirements_lab_api_surface_status": "This public C++ case exercises all four no-region DM subscribe/unsubscribe services beside independent With Regions declarations. It proves default-region delivery, DM unsubscribe without erasing the regional declaration, and regional delivery after overlap is restored. Direct mappings are limited to the four service variants and their default-region equivalence in IEEE 1516.1-2025 §9.1.5 (including the continuation on page 223 that DM and DDM subscription effects do not interact). This is embedded development-profile evidence, not Requirements Lab validation or conformance.",
-      "next_action": "Verified: the first focused run exposed ordinary interaction subscriptions being shadowed by a disjoint explicit regional declaration. Removing that shadowing condition restored the separate default-region route. MinGW target umbra_ddm_default_region_dm_services_catch2 builds and the exact CTest selector passes 1/1 (49 assertions). Keep the direct mapping limited to the two selected §9.1.5 candidates; other DDM behavior, process profile, protected review, interoperability, and conformance remain open."
+  "requirements_lab_api_surface_status": "This public C++ case exercises all four no-region DM subscribe/unsubscribe services beside independent With Regions declarations. It observes an attribute subscribed through the ordinary service being reflected, reflection stopping after ordinary unsubscribe while the regional route remains disjoint, and regional delivery returning after overlap is restored. These assertions support the ordinary subscribed-attribute lifecycle and the rule that ordinary subscribe/unsubscribe does not change an established regional attribute subscription. The case also demonstrates the four DM service default-region interpretations and the non-interaction of corresponding DM/DDM subscription effects in IEEE 1516.1-2025 §9.1.5. This is embedded development-profile evidence, not Requirements Lab validation or conformance.",
+  "next_action": "Verified: the first focused run exposed ordinary interaction subscriptions being shadowed by a disjoint explicit regional declaration. Removing that shadowing condition restored the separate default-region route. MinGW target umbra_ddm_default_region_dm_services_catch2 builds and the exact CTest selector passes 1/1 (49 assertions). The case now maps the four DM service default-region interpretations and the observed independence of corresponding DM/DDM subscription effects in §9.1.5. Do not extend these mappings to other DDM rules without direct assertions; process profile, protected review, interoperability, and conformance remain open."
     },
     {
       "id": "umbra-cpp-ddm-class-request-default-region-equivalence-integration",
@@ -4591,14 +4589,22 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-060-l139-34",
         "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1-tag",
         "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40",
+        "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40-response",
         "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35",
+        "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35-invoke",
+        "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35-set",
         "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1-new-joiners",
+        "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1-tag",
         "requirement-candidate-content-clauses-04-federation-management-page-063-l117-26",
-        "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35"
+        "requirement-candidate-content-clauses-04-federation-management-page-063-l117-26-default-success",
+        "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35",
+        "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35-all-members"
       ],
       "test_case": "Embedded synchronization points announce, track achievement, and complete",
-      "source_location": "cpp/tests/synchronization_point_catch2.cpp:242",
+      "source_location": "cpp/tests/synchronization_point_catch2.cpp:339",
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -4624,8 +4630,8 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded synchronization points announce, track achievement, and complete$",
-      "requirements_lab_api_surface_status": "This HLA_EVOKED embedded development-profile case exercises both synchronization-point registration overloads, achievement, and the corresponding registration-success/failure, announcement, and federation-synchronized Federate Ambassador callbacks. Assertions cover explicit-set/tag delivery, duplicate-label failure, scoped-point exclusion of a late joiner, default-set expansion to a late joiner, failed-to-synchronize membership, successful completion, and rejection of achievement after completion. The companion HLA_IMMEDIATE test remains a separate case and is not represented by this row. This is not distributed synchronization, package/JUnit/protected-review evidence, validation, or conformance.",
-      "next_action": "Keep this exact HLA_EVOKED lifecycle case green and distinct from the companion HLA_IMMEDIATE callback-dispatch case and the save/restore synchronization-point case. Do not promote the embedded scenario to distributed, package, or conformance evidence."
+      "requirements_lab_api_surface_status": "This HLA_EVOKED embedded development-profile case exercises both synchronization-point registration overloads, achievement, and the corresponding registration-success/failure, announcement, and federation-synchronized Federate Ambassador callbacks. Assertions cover explicit-set/tag delivery, duplicate-label failure, scoped-point exclusion of a late joiner, default-set expansion to a late joiner, failed-to-synchronize membership, successful completion, and rejection of achievement after completion. The direct mappings include the observed status callback, per-set announcement, announcement-tag round trip, joining federate participation, default-success overload, and all-member completion. Non-member/resigned designators and resignation during an active point remain unmapped. The companion HLA_IMMEDIATE test remains a separate case and is not represented by this row. This is not distributed synchronization, package/JUnit/protected-review evidence, validation, or conformance.",
+      "next_action": "Keep this exact HLA_EVOKED lifecycle case green and distinct from the companion HLA_IMMEDIATE callback-dispatch case and the save/restore synchronization-point case. Next mapping slice: add focused evidence for non-member/resigned designators and resignation during an active point. Do not promote the embedded scenario to distributed, package, or conformance evidence."
     },
     {
       "id": "umbra-cpp-synchronization-point-failed-registration-no-effect-integration",
@@ -6021,15 +6027,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-178-l45-12"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l45-12",
-          "standard_section": "hla-1516.1-2025:clause-8.1.2",
-          "title": "Advancing logical time",
-          "requirements_lab_issue_id": "RL-312",
-          "basis": "Page 177 explicitly marks §8.1.2, Advancing logical time, and page 178 continues that subsection with Table 1. The test maps only the zero-lookahead TAR no-send-at-or-below-tR rule; RL-312 records TeX and adjacent-column extraction artifacts in the pinned candidate."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded zero-lookahead TAR rejects TSO timestamps at its request boundary",
       "source_location": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:317",
       "assertions": 29,
@@ -6747,21 +6745,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-194-l27-5",
         "requirement-candidate-content-clauses-08-time-management-page-178-l108-33"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
-          "standard_section": "hla-1516.1-2025:clause-8.1.6",
-          "title": "Time-constrained joined federates",
-          "basis": "The canonical 2025 source places the bound/grant rule under the §8.1.6 Time-constrained joined federates heading; the pinned Lab export attaches this candidate only to broad clause 8."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l27-5",
-          "standard_section": "hla-1516.1-2025:clause-8.8",
-          "title": "Time Advance Request service",
-          "requirements_lab_issue_id": "RL-328",
-          "basis": "The page-194 TAR message-set rule occurs under the §8.8 service description before §8.8.1; the pinned Lab export attaches it to the later §8.8.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded TAR delivers queued RO and TSO at or before its supplied time before its grant",
       "tags": [
         "integration",
@@ -6818,21 +6802,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
-          "standard_section": "hla-1516.1-2025:clause-8.1.6",
-          "title": "Time-constrained joined federates",
-          "basis": "The canonical 2025 source places the bound/grant rule on the page under the §8.1.6 Time-constrained joined federates heading; the pinned candidate's exported mapping is only the broad clause 8."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-          "standard_section": "hla-1516.1-2025:clause-8.8",
-          "title": "Time Advance Request service",
-          "requirements_lab_issue_id": "RL-328",
-          "basis": "The complete source places this service-introduction rule in §8.8 before subsection §8.8.1; RL-328 records that the pinned Lab export incorrectly attaches it to the later §8.8.3 preconditions heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded TAR grants after acknowledging TSO below its target despite the acknowledged timestamp",
       "tags": [
         "integration",
@@ -6886,21 +6856,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l127-40",
-          "standard_section": "hla-1516.1-2025:clause-8.1.6",
-          "title": "Time-constrained joined federates",
-          "basis": "The canonical 2025 source places the bound/grant rule under the §8.1.6 Time-constrained joined federates heading; the pinned candidate's exported mapping is only the broad clause 8."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-          "standard_section": "hla-1516.1-2025:clause-8.8",
-          "title": "Time Advance Request service",
-          "requirements_lab_issue_id": "RL-328",
-          "basis": "The complete source places this service-introduction rule in §8.8 before subsection §8.8.1; RL-328 records that the pinned Lab export incorrectly attaches it to the later §8.8.3 preconditions heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Independent RTI client processes deliver pre-target and equal-target TSO before safe TAR through one authoritative coordinator",
       "tags": [
         "integration",
@@ -11371,7 +11327,8 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l22-4",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l25-5",
         "requirement-candidate-content-clauses-10-support-services-page-251-l74-17",
-        "requirement-candidate-content-clauses-10-support-services-page-252-l17-1"
+      "requirement-candidate-content-clauses-10-support-services-page-252-l17-1",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l109-36"
       ],
       "test_case": "Embedded update-rate lookup ignores passive regional subscriptions",
       "tags": [
@@ -11406,7 +11363,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "requirements_lab_api_surface_status": "The official Connect/Create/Join/Resign/Destroy/Disconnect, object/attribute/dimension lookup, publication/unpublication, region creation/range/commit/deletion, regional subscription/unsubscription, object registration, Evoke Callback, update-rate query, and Discover Object Instance C++ surfaces are exercised through the embedded development profile under HLA_EVOKED. The case proves the active Low regional declaration reports 0.2, a passive High declaration does not contribute a second reduction, activating that same High declaration reports 30.0, and removing it restores Low. The selected Lab candidates anchor federation lifecycle, published registration/discovery, FDD-defined subscription designators, retained designator state, no-reduction default, unsubscribe removal, and 10.11.6/10.12 lookup behavior; the passive-regional filtering consequence is a source-derived refinement rather than complete Lab validation. It is not evidence for attribute-update delivery, advisory callbacks, regional overlap semantics, update-rate enforcement, HLA_IMMEDIATE, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect/Create/Join/Resign/Destroy/Disconnect, object/attribute/dimension lookup, publication/unpublication, region creation/range/commit/deletion, regional subscription/unsubscription, object registration, Evoke Callback, update-rate query, and Discover Object Instance C++ surfaces are exercised through the embedded development profile under HLA_EVOKED. The case proves the active Low regional declaration reports 0.2, a passive High declaration does not contribute a second reduction, activating that same High declaration reports 30.0, and removing it restores Low. The same (object class, attribute, region) triple is first passive and then active, directly mapping the IEEE 1516.1-2025 §9.1.5 rule that it is not subscribed both actively and passively. The selected Lab candidates also anchor federation lifecycle, published registration/discovery, FDD-defined subscription designators, retained designator state, no-reduction default, unsubscribe removal, and 10.11.6/10.12 lookup behavior; this is not complete Lab validation. It is not evidence for attribute-update delivery, advisory callbacks, regional overlap semantics, update-rate enforcement, HLA_IMMEDIATE, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused embedded HLA_EVOKED case is green with 43 assertions and is now queryable by its exact selector, mapping id, update-rate-reduction tag, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces. Keep passive declaration lookup separate from update delivery and advisory reissue; continue with the next exact source pointer before widening to HLA_IMMEDIATE, package, or conformance evidence."
     },
     {
@@ -25083,15 +25040,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
         "requirement-candidate-content-clauses-08-time-management-page-216-l66-19"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "Semi-open range interval boundary semantics",
-          "requirements_lab_issue_id": "RL-381",
-          "basis": "The range-definition sentence is fragmented across page-216 candidates l66-19, l69-20, l72-21, and l78-23; this test directly exercises non-overlap when source [2,4) touches subscription [0,2). The source content is under visible §9.1.1 despite the page-level Clause 8 label recorded in RL-380."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded two-dimensional regional object updates filter independent attribute sources",
       "source_location": "cpp/tests/regional_multi_attribute_ddm_catch2.cpp:116",
       "assertions": 78,
@@ -25266,7 +25215,9 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l19-3",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l22-4",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l25-5",
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l151-43"
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l151-43",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l94-31",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l58-19"
       ],
       "test_case": "Embedded default-region object routing derives 2025 ordinary and regional effectiveness",
       "tags": [
@@ -25285,7 +25236,7 @@
         "federate.callback.reflect-attribute-values"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This bounded receive-order regression proves that Umbra keeps the default region invisible, restores it after the final explicit update association is removed, suppresses an ordinary realization while an explicit regional declaration exists, and therefore does not use the default region after a regional subscription is established. It also routes a source default to active regional subscribers and supplies an empty region set when the recipient enables Convey Region Designator Sets. The paired timestamped-default object regression covers one constrained TSO reflection with supplied-empty callback metadata. Add per-attribute dimension realization, a broader timestamped matrix, relaxed DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
+  "next_action": "The mixed federate establishes an ordinary attribute subscription, performs With Regions subscribe/unsubscribe operations, and then continues to receive default-region updates after the explicit source association is removed. This directly maps the §9.1.5 rule that With Regions operations do not alter ordinary class-attribute subscriptions (requirement-candidate-content-clauses-09-data-distribution-management-page-223-l94-31). The case also proves default-region restoration and delivery to active regional subscribers. The paired timestamped-default object regression covers one constrained TSO reflection with supplied-empty callback metadata. Add per-attribute dimension realization, a broader timestamped matrix, relaxed DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
     },
     {
       "id": "umbra-cpp-mixed-region-interaction-validation-integration",
@@ -25624,7 +25575,9 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l83-26",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l176-53"
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l176-53",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30",
+      "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l23-7"
       ],
       "test_case": "Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness",
       "tags": [
@@ -25665,8 +25618,8 @@
         "hla-1516.1-2025:clause-9.10",
         "hla-1516.1-2025:clause-9.1.7"
       ],
-      "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case exercises the 2025 interaction DDM surface with committed positive-dimensional source and subscription regions. It proves overlap-qualified regional delivery, that ordinary Subscribe Interaction Class followed by Unsubscribe Interaction Class leaves an established regional subscription unaffected (\u00a79.10), and that ordinary DM and With Regions subscription effects remain independent under \u00a79.1.5: a disjoint regional declaration does not shadow the retained ordinary/default route, and ordinary DM calls do not remove the regional subscription. It also proves ordinary default-source delivery to regional subscribers and supplied-empty callback metadata under Convey Region Designator Sets. Direct mappings include the two page-222 \u00a79.1.5 candidates for default-region DM interpretation and non-interaction of DM/DDM subscription effects. This is development-profile traceability evidence only; timestamped/retraction, passive/active, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
-      "next_action": "Keep this positive-dimensional interaction lane independent from the aggregate case. The bounded \u00a79.1.5 independence behavior is now covered here and in its focused lane. Add multi-region, passive/active, timestamped/retraction, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
+  "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case exercises the 2025 interaction DDM surface with committed positive-dimensional source and subscription regions. It proves overlap-qualified regional delivery, that ordinary Subscribe Interaction Class followed by Unsubscribe Interaction Class leaves an established regional subscription unaffected (§9.10), and that ordinary DM and With Regions subscription effects remain independent under §9.1.5: a disjoint regional declaration does not shadow the retained ordinary/default route, and ordinary DM calls do not remove the regional subscription. These assertions exercise both active-subscription alternatives: regional delivery remains after ordinary unsubscribe, and ordinary delivery remains after regional unsubscribe. The final ordinary send runs while the mixed federate has both ordinary and regional subscriptions active; exactly one callback is observed, directly covering the once-only receive rule in §9.1.5. It also proves ordinary default-source delivery to regional subscribers and supplied-empty callback metadata under Convey Region Designator Sets. Direct mappings include the page-222 §9.1.5 candidates for default-region DM interpretation and non-interaction of DM/DDM subscription effects, plus page-224 interaction subscription state and once-only receipt rules. This is development-profile traceability evidence only; timestamped/retraction, passive/active, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
+  "next_action": "Keep this positive-dimensional interaction lane independent from the aggregate case. Default-region independence and once-only dual-subscription receipt are now directly mapped for \u00a79.1.5. Add multi-region, passive/active, timestamped/retraction, relaxed/direct DDM, distributed transport, save/restore, package/JUnit/protected-review evidence, and conformance before broadening the claim."
     },
     {
       "id": "umbra-cpp-default-region-interaction-routing-integration",
@@ -39496,14 +39449,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
         "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l72-21",
-          "standard_section": "hla-1516.1-2025:clause-8.1.4",
-          "title": "Message order determination",
-          "basis": "The §8.1.4 statement says message order is determined by several factors. This public C++ case varies the FOM-seeded default, prospective class default, and per-instance order override, then checks the resulting sent/received callback order for timestamped attribute updates. It is scoped evidence for these factors, not the complete order matrix."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "requirements_lab_mapping_id": "rti.service.order-type-control",
       "test_case": "Embedded order type control captures per-federate defaults, instance overrides, and publisher interaction order",
       "ctest_target": "umbra_order_type_control_catch2",
@@ -41580,15 +41526,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-201-l40-12",
         "requirement-candidate-content-clauses-08-time-management-page-202-l104-28"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l104-28",
-          "standard_section": "hla-1516.1-2025:clause-8.13",
-          "title": "Flush Queue Grant result paragraph",
-          "requirements_lab_issue_id": "RL-349",
-          "basis": "Page-202 l104 is the leading fragment of the Flush Queue Grant result paragraph; it ends with 'and' and continues at l107. The complete paragraph follows the §8.13 service heading and precedes §8.13.1–§8.13.3, so map the stable ID to §8.13 rather than the exported preconditions subsection."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded untimed save initiates a queued Flush Queue Request before grant",
       "source_location": "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:420",
       "primary_lane": "untimed-save-fqr-pregrant-admission",
@@ -41829,22 +41767,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-217-l119-38",
         "requirement-candidate-content-clauses-08-time-management-page-217-l140-45"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l48-13",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "DDM concepts and terms: dimension, range, and region evidence",
-          "requirements_lab_issue_id": "RL-380",
-          "basis": "The requirement record assigns Clause 9 and the pinned page visibly places this lead-in under §9.1.1 Definitions for DDM; the page content element's Clause 8 label is tracked by RL-380. This test supports only the dimension, range, and region concepts it exercises, not the full set of DDM services."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "Dimension interval definition",
-          "requirements_lab_issue_id": "RL-380",
-          "basis": "The pinned page-216 text places this complete dimension-definition statement under the visible §9.1.1 Definitions for DDM heading. The requirement record assigns Clause 9, while the page content element incorrectly says Clause 8; RL-380 records the crosswalk defect."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
       "tags": [
         "integration",
@@ -41894,29 +41817,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-216-l72-21",
         "requirement-candidate-content-clauses-08-time-management-page-216-l78-23"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "Range bound pair ordering",
-          "requirements_lab_issue_id": "RL-381",
-          "basis": "The four page-216 range-definition candidates are sentence fragments, not independent requirements; this case round-trips a valid [10,11) lower/upper pair. RL-380 records the page-level Clause 8 label mismatch."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "Minimum range-bound difference",
-          "requirements_lab_issue_id": "RL-381",
-          "basis": "The minimum-width rule is split across l72-21 and l78-23; this case collectively verifies that [10,11) is accepted and round-trips while [10,10) is rejected. RL-380 records the page-level Clause 8 label mismatch."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23",
-          "standard_section": "hla-1516.1-2025:clause-9.1.1",
-          "title": "Minimum range-bound difference continuation",
-          "requirements_lab_issue_id": "RL-381",
-          "basis": "This continuation is not independently complete; it is mapped collectively with l72-21 to the visible §9.1.1 passage. The case accepts a one-unit [10,11) interval and rejects zero width; RL-380 records the page-level Clause 8 label mismatch."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
         "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
@@ -49297,15 +49198,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-178-l81-24",
         "requirement-candidate-content-clauses-08-time-management-page-193-l31-6"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l31-6",
-          "standard_section": "hla-1516.1-2025:clause-8.6.4",
-          "title": "Time Constrained Enabled postconditions",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The source page places the GALT-bounded time-constrained logical-time invariant in §8.6.4; the Lab assigns this candidate to the following §8.7.5 Exceptions subsection. This no-TSO NMR/NMRA case demonstrates that grants remain at or below the cross-federate GALT."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded no-TSO NMR and NMRA grants wait on cross-federate GALT",
       "tags": [
         "integration",
@@ -49565,15 +49458,7 @@
         "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb",
         "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29",
-          "standard_section": "hla-1516.1-2025:clause-8.13",
-          "title": "Flush Queue Grant service result",
-          "requirements_lab_issue_id": "RL-349",
-          "basis": "The full page-202 source places the OLT result paragraph immediately under the §8.13 Flush Queue Grant service heading and before the §8.13.1–§8.13.3 subsections; the pinned Lab export incorrectly attaches this stable candidate to §8.13.3 Preconditions."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
       "tags": [
         "development-profile",
@@ -78590,22 +78475,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-209-l75-19",
         "requirement-candidate-sections-semantic-clause-4b-page-058-l34-8"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
-          "standard_section": "hla-1516.1-2025:clause-8.1.1",
-          "title": "Logical time representation specified through the TRADT",
-          "requirements_lab_issue_id": "RL-356",
-          "basis": "The pinned page-175 source places this requirement paragraph under §8.1.1 Logical Time. This case proves the selected standardized HLAfloat64Time representation is declared in the FOM and conveyed through federation creation to getTimeFactory and subsequent typed time services; it does not test custom multi-representation TRADT values or the FDD documentation recommendation."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-058-l34-8",
-          "standard_section": "hla-1516.2-2025:clause-4.8",
-          "title": "Required standardized time representations",
-          "requirements_lab_issue_id": "RL-357",
-          "basis": "The pinned §4.8 statement requires HLAinteger64Time and HLAfloat64Time support by all RTIs. This case proves only Umbra's selected HLAfloat64Time path; the separately mapped integer64 case covers the other standardized type. The pair is implementation evidence for Umbra's embedded development profile, not evidence about every RTI or conformance."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public time management preserves the official HLAfloat64Time representation",
       "primary_lane": "float64-time-representation",
       "focus_lane": "float64-time-representation",
@@ -78634,8 +78504,8 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "requirements_lab_api_surface_status": "The official Connect/Create/Join, selected time-factory, Query Logical Time, Query Lookahead, Enable Time Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and Time Advance Grant C++ surfaces are exercised through the embedded HLAfloat64Time development profile. The joined federate starts at the float64 initial value, reports the selected factory and implementation name, keeps logical time at zero until the grant, delivers the regulation callback through HLA_EVOKED, preserves the requested 0.25 lookahead, and advances to 1.5 only when the Time Advance Grant is evoked. The §8.1.1 mapping is limited to this standardized float64 declaration/selection path. The §4.8 mapping records only the float64 half of the two-standardized-type requirement; the separately mapped integer64 case supplies evidence for the other type. Neither case establishes custom multi-representation TRADT values, the FDD documentation recommendation, every-RTI support, or conformance. This is bounded representation and ordinary TAR evidence; it does not claim alternate advance modes, time-constrained enablement, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, or interoperability.",
-      "next_action": "This case has 31 assertions for Umbra's HLAfloat64Time selection path and maps its tested subclaims to §8.1.1 and §4.8 through RL-356/RL-357. The §4.8 two-type obligation is paired with the focused integer64 case; neither case establishes custom multi-representation TRADT values or the FDD documentation recommendation. Keep those claims open and resolve the RTI/federate responsibility boundary before adding custom-type behavior.",
+      "requirements_lab_api_surface_status": "The official Connect/Create/Join, selected time-factory, Query Logical Time, Query Lookahead, Enable Time Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and Time Advance Grant C++ surfaces are exercised through the embedded HLAfloat64Time development profile. The joined federate starts at the float64 initial value, reports the selected factory and implementation name, keeps logical time at zero until the grant, delivers the regulation callback through HLA_EVOKED, preserves the requested 0.25 lookahead, and advances to 1.5 only when the Time Advance Grant is evoked. The §8.1.1 mapping is limited to this standardized float64 declaration/selection path. The §4.8.1 mapping records only the float64 half of the two-standardized-type requirement; the separately mapped integer64 case supplies evidence for the other type. Neither case establishes custom multi-representation TRADT values, the FDD documentation recommendation, every-RTI support, or conformance. This is bounded representation and ordinary TAR evidence; it does not claim alternate advance modes, time-constrained enablement, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, or interoperability.",
+      "next_action": "This case has 31 assertions for Umbra's HLAfloat64Time selection path and maps its tested subclaims to §8.1.1 and §4.8 through RL-356/RL-357. The §4.8.1 two-type obligation is paired with the focused integer64 case; neither case establishes custom multi-representation TRADT values or the FDD documentation recommendation. Keep those claims open and resolve the RTI/federate responsibility boundary before adding custom-type behavior.",
       "source_location": "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp:5",
       "ctest_target": "umbra_ieee1516_2025_public_float64_time_representation_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.public_float64_time_representation\\.catch2\\.Embedded public time management preserves the official HLAfloat64Time representation$",
@@ -78663,15 +78533,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4b-page-058-l34-8"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-058-l34-8",
-          "standard_section": "hla-1516.2-2025:clause-4.8",
-          "title": "Required standardized time representations",
-          "requirements_lab_issue_id": "RL-357",
-          "basis": "The pinned §4.8 statement requires HLAinteger64Time and HLAfloat64Time support by all RTIs. This case proves only Umbra's selected HLAinteger64Time path; the separately mapped float64 case covers the other standardized type. The pair is implementation evidence for Umbra's embedded development profile, not evidence about every RTI or conformance."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public time management preserves the official HLAinteger64Time representation",
       "primary_lane": "integer64-time-representation",
       "focus_lane": "integer64-time-representation",
@@ -78701,7 +78563,7 @@
         "HLA_EVOKED"
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, selected time-factory, Query Logical Time, Query Lookahead, Enable Time Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and Time Advance Grant C++ surfaces are exercised through the embedded HLAinteger64Time development profile. The joined federate starts at the integer64 initial value, reports the selected factory and implementation name, keeps logical time at zero until the grant, delivers the regulation callback through HLA_EVOKED, preserves the requested lookahead of 2, and advances to 15 only when the Time Advance Grant is evoked. This proves only Umbra's HLAinteger64Time path; the separately mapped float64 case covers the other standardized type. Their combined evidence does not establish every-RTI support, custom multi-representation TRADT values, FDD documentation completeness, interoperability, or conformance.",
-      "next_action": "Pair this focused integer64 evidence with the float64 case for the two built-in representation paths required by §4.8. Then resolve whether custom multi-representation TRADT behavior belongs to the RTI or to federate-supplied representations before adding implementation scope.",
+      "next_action": "Pair this focused integer64 evidence with the float64 case for the two built-in representation paths required by §4.8.1. Then resolve whether custom multi-representation TRADT behavior belongs to the RTI or to federate-supplied representations before adding implementation scope.",
       "source_location": "cpp/tests/ieee1516_2025_public_integer64_time_representation_catch2.cpp:8",
       "ctest_target": "umbra_ieee1516_2025_public_integer64_time_representation_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025_public_integer64_time_representation\\.catch2\\.Embedded public time management preserves the official HLAinteger64Time representation$",
@@ -78729,15 +78591,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
-          "standard_section": "hla-1516.1-2025:clause-8.1.1",
-          "title": "Federation-selected logical-time implementation",
-          "requirements_lab_issue_id": "RL-356",
-          "basis": "The pinned page-175 source is located under §8.1.1 and RL-356 tracks its truncated candidate. This case demonstrates the bounded provider-selection path: Create Federation Execution names one federation-supplied factory, whose time and interval types have distinct representation names and are used by typed services. It does not establish multiple simultaneous logical-time representations, a time-type discriminator, or the omitted text of the candidate; no conformance claim is made."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded RTI uses the federation-supplied custom logical-time factory",
       "primary_lane": "custom-time-factory",
       "focus_lane": "custom-time-factory",
@@ -79937,29 +79791,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
         "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
-          "standard_section": "hla-1516.1-2025:clause-4.11",
-          "title": "Join Federation Execution service",
-          "requirements_lab_issue_id": "RL-348",
-          "basis": "The page-57 federate-type argument requirement is in the §4.11 Join Federation Execution service description, before subsections §4.11.1–§4.11.4."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public restore rebinds member-only saved state by federate type",
       "primary_lane": "restore-member-identity-rebinding",
       "source_location": "cpp/tests/ieee1516_2025_restore_member_identity_rebinding_catch2.cpp:5",
@@ -80030,22 +79862,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public restore rejects equal-total membership with different federate-type counts",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80120,22 +79937,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds a route-free interaction declaration for one member",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80222,22 +80024,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds one member-owned object-class publication declaration",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80333,22 +80120,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds one saved named object instance identity",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80450,22 +80222,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds two saved named object instances",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80568,22 +80325,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore independently rebinds two named object producers",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80695,22 +80437,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds one saved object-region association",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80812,22 +80539,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds an explicit synchronization point",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -80921,22 +80633,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds a pending regular ownership transaction",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -81049,22 +80746,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public fresh-registry restore rebinds one queued timestamped interaction by member identity",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -81176,22 +80858,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
         "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 per-federate-type count statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        },
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25",
-          "standard_section": "hla-1516.1-2025:clause-4.1.2",
-          "title": "Federation execution save and restore",
-          "requirements_lab_issue_id": "RL-347",
-          "basis": "The page-44 same-type restore interchangeability statement continues the page-43 §4.1.2 save-and-restore discussion and precedes the next §4.1.3 heading."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded public process-local snapshot restore rebinds one queued timestamped interaction by member identity",
       "primary_lane": "restore-member-identity-rebinding",
       "focus_lane": "restore-member-identity-rebinding",
@@ -86919,15 +86586,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-193-l58-12",
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l76-18",
-          "standard_section": "hla-1516.1-2025:clause-8.5",
-          "title": "Enable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-385",
-          "basis": "The pinned page-191 source places this Time Constrained Enabled result sentence under the §8.5 Enable Time Constrained service heading and before §8.5.1. RL-385 records that the Lab exports this stable candidate as §8.5.5."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.3.1",
@@ -89209,15 +88868,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-192-l84-24",
         "requirement-candidate-content-clauses-08-time-management-page-193-l34-7"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l34-7",
-          "standard_section": "hla-1516.1-2025:clause-8.6.4",
-          "title": "Time Constrained Enabled postconditions",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 source places this logical-time postcondition in §8.6.4. This public case verifies both the `timeConstrainedEnabled` callback time and `queryLogicalTime` report the unchanged current time; the Lab attaches the candidate to following subsection §8.7.5."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Time Constrained enable waits until GALT exceeds current logical time",
       "tags": ["integration", "development-profile", "time-management", "time-role", "galt", "scheduler", "time-constrained-enable-galt-embedded", "rti.service.enable-time-constrained", "rti.service.time-advance-request", "federate.callback.time-constrained-enabled", "requirement:hla-1516.1-2025:clause-8.6"],
       "status": "implemented-in-noninstallable-development-profile",
@@ -89258,15 +88909,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
-          "standard_section": "hla-1516.1-2025:clause-8.7",
-          "title": "Disable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 semantic source places the Disable Time Constrained service description before its numbered subsections and states that already-enqueued and subsequent TSO messages are delivered in receive order. The Lab exports this candidate under following subsection §8.7.5 Exceptions; RL-346 records the source-heading boundary. Preserve the exported candidate and map this source-backed service description to §8.7."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Disable Time Constrained delivers queued and subsequent TSO as receive order",
       "source_location": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp:1014",
       "source_target": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
@@ -89324,15 +88967,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
-          "standard_section": "hla-1516.1-2025:clause-8.7",
-          "title": "Disable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 semantic source places the Disable Time Constrained service description before its numbered subsections and states that already-enqueued and subsequent TSO messages shall be delivered in receive order. The Lab exports this candidate under following subsection §8.7.5 Exceptions; RL-346 records the source-heading boundary. Preserve the exported candidate and map this source-backed service description to §8.7."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Process RTIambassadors route queued TSO through receive order after Disable Time Constrained",
       "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp:889",
       "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp",
@@ -89440,15 +89075,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
-          "standard_section": "hla-1516.1-2025:clause-8.7",
-          "title": "Disable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 semantic source places the Disable Time Constrained service description before its numbered subsections and states that already-enqueued and subsequent TSO messages shall be delivered in receive order. This applies to the queued timestamped attribute update exercised here. The Lab exports the candidate under following subsection §8.7.5 Exceptions; RL-346 records the source-heading boundary, so the source-backed service description maps to §8.7."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Disable Time Constrained delivers queued timestamped attribute updates as receive order",
       "source_location": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp:1177",
       "source_target": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
@@ -89516,15 +89143,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
-          "standard_section": "hla-1516.1-2025:clause-8.7",
-          "title": "Disable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 semantic source places the Disable Time Constrained service description before its numbered subsections and requires already-enqueued and subsequent TSO messages to be delivered in receive order. This case exercises that source-backed requirement for one queued timestamped directed interaction. The Lab exports the candidate under following subsection §8.7.5 Exceptions; RL-346 records the source-heading boundary, so the direct service-description mapping is §8.7."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Disable Time Constrained delivers queued timestamped directed interactions as receive order",
       "source_location": "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:318",
       "source_target": "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp",
@@ -89588,15 +89207,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
-          "standard_section": "hla-1516.1-2025:clause-8.7",
-          "title": "Disable Time Constrained service description",
-          "requirements_lab_issue_id": "RL-346",
-          "basis": "The page-193 semantic source places the Disable Time Constrained service description before its numbered subsections and requires already-enqueued and subsequent TSO messages to be delivered in receive order. This case exercises that service-description requirement for one queued timestamped object deletion. The Lab exports the candidate under following subsection §8.7.5 Exceptions; RL-346 records the source-heading boundary, so the direct mapping is §8.7. This does not add a deletion-specific requirement mapping."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Disable Time Constrained delivers queued timestamped object deletions as receive order",
       "source_location": "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp:487",
       "source_target": "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp",
@@ -90652,15 +90263,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded 2025 conveyed region designators remain snapshots during Receive Interaction",
       "source_location": "cpp/tests/ddm_conveyed_region_designator_snapshot_lifetime_catch2.cpp:128",
       "assertions": 46,
@@ -90702,15 +90305,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded 2025 conveyed region designators remain snapshots during Reflect Attribute Values",
       "source_location": "cpp/tests/ddm_conveyed_region_designator_attribute_reflection_snapshot_catch2.cpp:133",
       "assertions": 47,
@@ -90756,15 +90351,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded 2025 timestamped conveyed region designators remain callback snapshots",
       "source_location": "cpp/tests/ddm_conveyed_region_designator_tso_snapshot_lifetime_catch2.cpp:158",
       "assertions": 44,
@@ -90811,15 +90398,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Embedded 2025 timestamped conveyed region designators remain callback snapshots during Reflect Attribute Values",
       "source_location": "cpp/tests/ddm_conveyed_region_designator_tso_reflect_snapshot_lifetime_catch2.cpp:174",
       "assertions": 51,
@@ -90868,15 +90447,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Configured-process HLA_EVOKED timestamped Reflect Attribute Values retains a send-time callback region snapshot",
       "source_location": "cpp/tests/ieee1516_2025_connection_process_ddm_region_callback_snapshot_catch2.cpp:458",
       "assertions": 15,
@@ -91031,15 +90602,7 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
       ],
-      "requirement_section_mapping_overrides": [
-        {
-          "lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
-          "standard_section": "hla-1516.1-2025:clause-9.1.7",
-          "title": "Convey Region Designator Sets Switch",
-          "requirements_lab_issue_id": "RL-345",
-          "basis": "The pinned page-225 semantic source places the Region-designator copy-lifetime guarantee under §9.1.7 before the §9.1.8 heading; retain the exported §9.1.8 clause only as the issue's recorded Lab value."
-        }
-      ],
+      "requirement_section_mapping_overrides": [],
       "test_case": "Configured-process HLA_EVOKED regional interaction retains a send-time callback designator snapshot",
       "source_location": "cpp/tests/ieee1516_2025_connection_process_ddm_region_callback_snapshot_catch2.cpp:195",
       "assertions": 13,

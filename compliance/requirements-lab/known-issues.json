@@ -2765,7 +2765,7 @@
       },
       "symptom": "The requirement that HLAinteger64Time and HLAfloat64Time are required representations and shall be provided by all RTIs is exported only under generic Clause 4, while the source page is under \u00a74.8.",
       "impact": "The generic clause obscures the exact representation requirement and makes subsection-level requirement/test queries less useful.",
-      "workaround": "Preserve the stable ID and use a source-backed \u00a74.8 mapping with per-type scope notes; do not claim that one type-specific case proves the entire two-type statement.",
+      "workaround": "The 2026-10-29 Lab backflow assigns this stable requirement ID directly to \u00a74.8.1; consume that canonical mapping without a local override. Separate float64 and integer64 cases prove only their respective Umbra development-profile paths.",
       "reproduction": "Query the affected requirement ID and compare the export with the page-57 \u00a74.8 heading and page-58 text.",
       "verification": "Separate C++ cases exercise Umbra's float64 and integer64 paths as embedded development-profile evidence; they do not establish every-RTI support, interoperability, custom TRADT, or conformance. This is a Requirements Lab subsection-attribution defect, not IEEE errata. No Lab resync was performed.",
       "detected": "2026-10-21",

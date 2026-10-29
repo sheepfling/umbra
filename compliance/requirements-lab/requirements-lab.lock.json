@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "repository": "../Document-Recreation",
-  "revision": "c055d904738b2855aae57312b5e2c458634516ce",
+  "revision": "e8c63e7a26f562dd6a66cbaa9c8ec87608df872c",
   "edition": "all",
   "document_ids": [
     "hla-1516-2010",
@@ -11,5 +11,5 @@
     "hla-1516.1-2025",
     "hla-1516.2-2025"
   ],
-  "notes": "Reviewed 2026-10-24 HLA backflow: 84 Lab repairs and four Umbra-local repairs; 2026-10-26 clause-ownership audit adds RL-388/RL-389/RL-390. RL-369 is dispositioned: preserve the literal Table 5 anomaly without a direct binding, and use the corroborated MIM type-20 spelling for implementation."
+  "notes": "Reviewed 2026-10-24 HLA backflow: 84 Lab repairs and four Umbra-local repairs; 2026-10-26 clause-ownership audit adds RL-388/RL-389/RL-390. RL-369 is dispositioned: preserve the literal Table 5 anomaly without a direct binding, and use the corroborated MIM type-20 spelling for implementation. Remapped against HLA Requirements Lab tag remapping-baseline-2026-10-29 (commit e8c63e7a26f562dd6a66cbaa9c8ec87608df872c); the tag adds 149 1516.1-2025 requirement records and carries the reviewed subsection attributions."
 }
