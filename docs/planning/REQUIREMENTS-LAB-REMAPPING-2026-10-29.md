@@ -62,6 +62,21 @@ The work focused on §9.1.5. Its main clause now has 14 of 28 requirements mappe
 
 The largest remaining clusters are §11.5.1 (110/148 uncovered), IEEE 1516.2-2025 §4 (52/94), and §12.13.4.4 (21/21). These are gap summaries, not a claim that every uncovered requirement is testable from current source.
 
+### Prioritized coverage backlog (snapshot: 2026-10-29)
+
+Priorities are ordered for useful evidence per focused work slice, not simply by raw gap count. Re-evaluate the counts after each slice. Every requirement needs a direct assertion-to-source basis; unsupported candidates stay uncovered and become focused-test work where applicable.
+
+| Priority | Work package | Uncovered at snapshot | Why this order |
+| ---: | --- | ---: | --- |
+| 1 | Finish the active §9.1.5 object-DDM audit | 14 | A bounded handoff and focused lane already exist; it is ready for exact candidate-by-candidate review. |
+| 2 | Audit §§4.1.4.1, 5.1, 5.1.2, 8.1.1, and 9.1.1 | 68 | Small, coherent FOM validation, ownership, and time-behavior groups; inspect existing assertions first and add tests only where evidence is absent. |
+| 3 | Audit IEEE 1516.2-2025 §4 | 52 | Keep object-model semantics distinct from the 1516.1 API; check applicability and parser/model evidence individually. |
+| 4 | Cover the MOM inventories in §§11.4.1, 11.5.1, 12.12.1.1, and 12.12.4.2 | 154 | High coverage payoff, but split work by exact table, attribute, type, and value assertions to prevent broad overclaiming. |
+| 5 | Audit §§12.11.2, 12.11.4, 12.13.3.3, and 12.13.4.4–12.13.4.6 | 96 | Separate API/type contract checks from message recovery and transport behavior that may need fault-injection integration evidence. |
+| 6 | Re-rank the remaining gaps from the live query | 801 | These are outside the first five coherent batches; regenerate the queue after work and prioritize direct, testable behavior. |
+
+The total remains 1,185 uncovered requirements. This is a planning queue, not a promise that every uncovered clause is applicable to this implementation or already has an executable test seam. Do not reach 100% by assigning mappings from names, section adjacency, or unverified AI summaries.
+
 ### Resume this mapping work
 
 Start with the bounded §9.1.5 gap query, inspect each exact requirement and candidate test, and keep the requirement uncovered when the current assertions do not support it:

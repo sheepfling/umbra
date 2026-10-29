@@ -3667,6 +3667,67 @@
       "unclassified_catch2_rows": 0,
       "next_focus": "Finish the bounded hla-1516.1-2025 §9.1.5 candidate audit, starting with class-attribute availability; map only if existing assertions directly constrain it, otherwise record the need for a focused case or leave the requirement uncovered.",
       "next_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13-available",
+      "priority_backlog": [
+        {
+          "priority": 1,
+          "work_package": "Finish the bounded §9.1.5 audit",
+          "uncovered_requirements_at_snapshot": 14,
+          "first_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13-available",
+          "basis": "Existing focused object-DDM handoff; resolve each candidate from its exact requirement text and assertions, adding a focused case when current evidence is insufficient."
+        },
+        {
+          "priority": 2,
+          "work_package": "Audit compact existing API and FOM behavior clauses",
+          "clauses": [
+            "hla-1516.1-2025:clause-4.1.4.1",
+            "hla-1516.1-2025:clause-5.1",
+            "hla-1516.1-2025:clause-5.1.2",
+            "hla-1516.1-2025:clause-8.1.1",
+            "hla-1516.1-2025:clause-9.1.1"
+          ],
+          "uncovered_requirements_at_snapshot": 68,
+          "basis": "Bounded clause groups around FOM validation, ownership, and time behavior. Inspect current source and plan assertions first; do not infer mappings from service names or clause membership."
+        },
+        {
+          "priority": 3,
+          "work_package": "Audit IEEE 1516.2 model semantics",
+          "clauses": ["hla-1516.2-2025:clause-4"],
+          "uncovered_requirements_at_snapshot": 52,
+          "basis": "Keep the distinct object-model standard separate and determine applicability and direct parser/model evidence requirement by requirement."
+        },
+        {
+          "priority": 4,
+          "work_package": "Build a table-driven MOM inventory coverage slice",
+          "clauses": [
+            "hla-1516.1-2025:clause-11.4.1",
+            "hla-1516.1-2025:clause-11.5.1",
+            "hla-1516.1-2025:clause-12.12.1.1",
+            "hla-1516.1-2025:clause-12.12.4.2"
+          ],
+          "uncovered_requirements_at_snapshot": 154,
+          "basis": "Largest coherent inventory payoff; split by exact MOM table, attribute, type, and value assertions so one broad test cannot overclaim the whole table."
+        },
+        {
+          "priority": 5,
+          "work_package": "Audit C++ mapping and communication-recovery contracts",
+          "clauses": [
+            "hla-1516.1-2025:clause-12.11.2",
+            "hla-1516.1-2025:clause-12.11.4",
+            "hla-1516.1-2025:clause-12.13.3.3",
+            "hla-1516.1-2025:clause-12.13.4.4",
+            "hla-1516.1-2025:clause-12.13.4.5",
+            "hla-1516.1-2025:clause-12.13.4.6"
+          ],
+          "uncovered_requirements_at_snapshot": 96,
+          "basis": "Separate cheap type/API contract checks from transport and recovery behavior that may need fault-injection integration evidence."
+        },
+        {
+          "priority": 6,
+          "work_package": "Re-rank all remaining uncovered requirements",
+          "uncovered_requirements_at_snapshot": 801,
+          "basis": "Regenerate the gap view after each completed slice and prioritize coherent, directly testable behavior; keep every unsupported requirement uncovered."
+        }
+      ],
       "recently_updated_plan_ids": [
         "umbra-cpp-synchronization-point-lifecycle-integration",
         "umbra-cpp-ddm-default-region-dm-services-independence-integration",
