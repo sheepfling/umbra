@@ -38,7 +38,7 @@
     {
       "id": "umbra-regional-multi-attribute-unsubscription-releases-projector",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
-      "clause_id": "clause-9.9.3",
+      "clause_id": "clause-9.9",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
       "tests": [

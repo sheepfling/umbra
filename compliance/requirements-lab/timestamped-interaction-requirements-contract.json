@@ -19,7 +19,7 @@
     {
       "id": "umbra-timestamped-send-interaction-queues-for-time-constrained-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -45,7 +45,7 @@
     {
       "id": "umbra-timestamped-send-interaction-covers-alternate-advance-frontiers",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -58,7 +58,7 @@
     {
       "id": "umbra-timestamped-send-interaction-waits-until-recipient-eligible",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -80,7 +80,7 @@
     {
       "id": "umbra-timestamped-send-interaction-survives-time-constrained-reenable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -94,7 +94,7 @@
     {
       "id": "umbra-timestamped-send-interaction-survives-time-regulation-reenable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -105,7 +105,7 @@
     {
       "id": "umbra-timestamped-send-interaction-preserves-per-recipient-resignation-ledger",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -175,7 +175,7 @@
     {
       "id": "umbra-timestamped-send-terminal-designator-retains-pending-payload",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
@@ -192,7 +192,7 @@
     {
       "id": "umbra-timestamped-send-retracts-before-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
@@ -205,7 +205,7 @@
     {
       "id": "umbra-timestamped-send-retraction-uses-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -222,7 +222,7 @@
     {
       "id": "umbra-timestamped-send-suppressed-callback-closes-recipient-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
@@ -232,7 +232,7 @@
     {
       "id": "umbra-timestamped-default-region-interaction-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [

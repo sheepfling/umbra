@@ -8,7 +8,7 @@
     {
       "id": "umbra-no-tso-scheduler-holds-a-constrained-tar-at-the-defined-galt-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l4-1",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::scheduleEligibleTimeAdvanceGrants",
       "tests": [
@@ -30,7 +30,7 @@
     {
       "id": "umbra-no-tso-scheduler-uses-nrg-after-galt-becomes-undefined",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l49-16",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::scheduleEligibleTimeAdvanceGrants",
       "tests": [

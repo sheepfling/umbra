@@ -45,7 +45,7 @@
     {
       "id": "umbra-object-name-release-relinquishes-reservation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
-      "clause_id": "clause-6.4.3",
+      "clause_id": "clause-6.4",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::releaseObjectInstanceName",
       "tests": [
@@ -57,7 +57,7 @@
     {
       "id": "umbra-object-name-release-makes-name-available",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
-      "clause_id": "clause-6.4.3",
+      "clause_id": "clause-6.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::releaseObjectInstanceName",
       "tests": [
@@ -69,7 +69,7 @@
     {
       "id": "umbra-multiple-object-name-reservation-requires-nonempty-set",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
-      "clause_id": "clause-6.5.3",
+      "clause_id": "clause-6.5",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reserveMultipleObjectInstanceNames",
       "tests": [
@@ -80,7 +80,7 @@
     {
       "id": "umbra-multiple-object-name-reservation-rejects-any-illegal-name",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
-      "clause_id": "clause-6.5.3",
+      "clause_id": "clause-6.5",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "objectInstanceNameIsLegal",
       "tests": [
@@ -91,7 +91,7 @@
     {
       "id": "umbra-multiple-object-name-reservation-reports-subsets",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
-      "clause_id": "clause-6.5.3",
+      "clause_id": "clause-6.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueMultipleObjectInstanceNameReservation",
       "tests": [
@@ -102,7 +102,7 @@
     {
       "id": "umbra-multiple-object-name-reservation-callback-shape",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
-      "clause_id": "clause-6.5.3",
+      "clause_id": "clause-6.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveMultipleObjectInstanceNames",
       "tests": [
@@ -113,7 +113,7 @@
     {
       "id": "umbra-multiple-object-name-release-is-atomic",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
-      "clause_id": "clause-6.7.5",
+      "clause_id": "clause-6.7",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::releaseMultipleObjectInstanceNames",
       "tests": [
@@ -124,7 +124,7 @@
     {
       "id": "umbra-multiple-object-name-release-releases-owned-names",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
-      "clause_id": "clause-6.7.5",
+      "clause_id": "clause-6.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
       "tests": [
@@ -147,7 +147,7 @@
     {
       "id": "umbra-object-name-release-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
-      "clause_id": "clause-6.4.3",
+      "clause_id": "clause-6.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::releaseObjectInstanceName",
       "tests": [
@@ -158,7 +158,7 @@
     {
       "id": "umbra-multiple-object-name-reservation-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
-      "clause_id": "clause-6.5.3",
+      "clause_id": "clause-6.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveMultipleObjectInstanceNames",
       "tests": [
@@ -169,7 +169,7 @@
     {
       "id": "umbra-multiple-object-name-release-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
-      "clause_id": "clause-6.7.5",
+      "clause_id": "clause-6.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp",
       "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
       "tests": [

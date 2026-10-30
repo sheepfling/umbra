@@ -164,7 +164,7 @@
     {
       "id": "umbra-object-regional-unassociation-removes-regions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
-      "clause_id": "clause-9.7.5",
+      "clause_id": "clause-9.7",
       "source": "cpp/src/internal/federation/federation_registry_update_region_associations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdates",
       "tests": [
@@ -176,7 +176,7 @@
     {
       "id": "umbra-object-regional-unassociation-empty-region-is-no-op",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l31-7",
-      "clause_id": "clause-9.7.5",
+      "clause_id": "clause-9.7",
       "source": "cpp/src/internal/federation/federation_registry_update_region_associations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdates",
       "tests": [
@@ -208,7 +208,7 @@
     {
       "id": "umbra-object-regional-subscription-retains-active-passive-triple-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3",
-      "clause_id": "clause-9.8.4",
+      "clause_id": "clause-9.8",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
@@ -218,7 +218,7 @@
     {
       "id": "umbra-object-regional-subscription-replaces-triple-mode",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7",
-      "clause_id": "clause-9.8.4",
+      "clause_id": "clause-9.8",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
@@ -248,7 +248,7 @@
     {
       "id": "umbra-object-regional-unsubscription-removes-specified-regions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
-      "clause_id": "clause-9.9.3",
+      "clause_id": "clause-9.9",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
       "tests": [
@@ -260,7 +260,7 @@
     {
       "id": "umbra-object-regional-unsubscription-empty-region-is-no-op",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l121-35",
-      "clause_id": "clause-9.9.3",
+      "clause_id": "clause-9.9",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
       "tests": [
@@ -280,7 +280,7 @@
     {
       "id": "umbra-object-regional-unassociation-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
-      "clause_id": "clause-9.7.5",
+      "clause_id": "clause-9.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp",
       "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
       "tests": [
@@ -300,7 +300,7 @@
     {
       "id": "umbra-object-regional-unsubscription-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
-      "clause_id": "clause-9.9.3",
+      "clause_id": "clause-9.9",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
       "tests": [

@@ -8,7 +8,7 @@
     {
       "id": "umbra-reference-float64-time-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-376-l256-84",
-      "clause_id": "clause-12.11.6.24.3",
+      "clause_id": "clause-12.11.6.24.2",
       "source": "cpp/src/ieee1516_2025_time.cpp",
       "source_symbol": "HLAfloat64Time::HLAfloat64Time",
       "tests": [
@@ -28,7 +28,7 @@
     {
       "id": "umbra-reference-float64-epsilon-arithmetic",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l71-23",
-      "clause_id": "clause-12.5",
+      "clause_id": "clause-12.4.2",
       "source": "cpp/src/ieee1516_2025_time.cpp",
       "source_symbol": "addFloatValue",
       "tests": [
@@ -38,7 +38,7 @@
     {
       "id": "umbra-reference-time-factory-names",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-376-l319-105",
-      "clause_id": "clause-12.11.6.24.3",
+      "clause_id": "clause-12.11.6.24.2",
       "source": "cpp/src/ieee1516_2025_time.cpp",
       "source_symbol": "HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory",
       "tests": [
@@ -48,7 +48,7 @@
     {
       "id": "umbra-reference-time-creation-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18",
-      "clause_id": "clause-4.5.5",
+      "clause_id": "clause-4.5.1",
       "source": "cpp/src/internal/time/reference_time_selection.cpp",
       "source_symbol": "ReferenceLogicalTimeSelector::select",
       "tests": [
@@ -58,7 +58,7 @@
     {
       "id": "umbra-reference-time-shared-implementation-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l124-39",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.5",
       "source": "cpp/src/internal/time/reference_time_selection.cpp",
       "source_symbol": "ReferenceLogicalTimeSelector::select",
       "tests": [

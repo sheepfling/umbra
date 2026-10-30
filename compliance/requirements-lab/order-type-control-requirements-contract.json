@@ -8,7 +8,7 @@
     {
       "id": "umbra-attribute-order-initializes-from-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
-      "clause_id": "clause-8.24.4",
+      "clause_id": "clause-8.24",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-change-attribute-order-affects-future-updates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
-      "clause_id": "clause-8.24.4",
+      "clause_id": "clause-8.24",
       "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeAttributeOrderType",
       "tests": [
@@ -32,7 +32,7 @@
     {
       "id": "umbra-change-interaction-order-affects-future-sends",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l87-22",
-      "clause_id": "clause-8.26.4",
+      "clause_id": "clause-8.26",
       "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeInteractionOrderType",
       "tests": [

@@ -8,7 +8,7 @@
     {
       "id": "umbra-get-update-rate-value-returns-fdd-maximum",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-251-l74-17",
-      "clause_id": "clause-10.11.6",
+      "clause_id": "clause-10.11",
       "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::updateRateValueForDesignator",
       "tests": [
@@ -30,7 +30,7 @@
     {
       "id": "umbra-subscription-update-rate-designator-is-fdd-defined",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l16-2",
-      "clause_id": "clause-5.2.4",
+      "clause_id": "clause-5.1.7",
       "source": "cpp/src/internal/federation/federation_registry_value_helpers.cpp",
       "source_symbol": "normalizedUpdateRateDesignator",
       "tests": [
@@ -40,7 +40,7 @@
     {
       "id": "umbra-subscription-update-rate-designator-selects-corresponding-rate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l19-3",
-      "clause_id": "clause-5.2.4",
+      "clause_id": "clause-5.1.7",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "setObjectClassAttributeSubscriptionWithScopeChanges",
       "tests": [
@@ -50,7 +50,7 @@
     {
       "id": "umbra-subscription-update-rate-default-is-no-reduction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l22-4",
-      "clause_id": "clause-5.2.4",
+      "clause_id": "clause-5.1.7",
       "source": "cpp/src/internal/federation/federation_registry_value_helpers.cpp",
       "source_symbol": "updateRateValueForNormalizedDesignator",
       "tests": [
@@ -60,7 +60,7 @@
     {
       "id": "umbra-subscription-update-rate-state-is-removed-on-unsubscribe",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l25-5",
-      "clause_id": "clause-5.2.4",
+      "clause_id": "clause-5.1.7",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "setObjectClassAttributeSubscriptionWithScopeChanges",
       "tests": [

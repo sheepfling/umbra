@@ -8,7 +8,7 @@
     {
       "id": "umbra-logical-time-opaque-network-encoding",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l129-42",
-      "clause_id": "clause-12.4",
+      "clause_id": "clause-12.3",
       "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
       "source_symbol": "HLAlogicalTime::encodeInto",
       "related_source_symbols": [
@@ -26,7 +26,7 @@
     {
       "id": "umbra-logical-time-factory-initial-value",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l183-60",
-      "clause_id": "clause-12.4",
+      "clause_id": "clause-12.3",
       "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
       "source_symbol": "HLAlogicalTime::HLAlogicalTime",
       "related_source_symbols": [
@@ -41,7 +41,7 @@
     {
       "id": "umbra-logical-time-factory-zero-interval",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l207-68",
-      "clause_id": "clause-12.4",
+      "clause_id": "clause-12.3",
       "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
       "source_symbol": "HLAlogicalTimeInterval::HLAlogicalTimeInterval",
       "related_source_symbols": [

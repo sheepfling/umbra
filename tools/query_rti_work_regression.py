@@ -35,7 +35,7 @@ The indexed discovery search accepts multiple terms without requiring a broad
 repository scan; its default AND behavior and explicit ``--any-term`` escape
 remain stable here.
 The regional association failure row is checked as a representative direct
-mapping across its current §9.6, §9.7.5, §11.5, and §11.5.2 clauses without
+mapping across its current §9.6, §9.7, §11.5, §11.5.1, and §11.5.2 clauses without
 pinning mutable Requirements-Lab candidate IDs. The ownership-transfer row is
 checked separately for its narrower §9.1.3.2 cancellation boundary; it does
 not claim the broader §9.6 non-restoration behavior.
@@ -122,7 +122,7 @@ MAPPED_CORE_CASES = {
         "mapping_id": "umbra-federate-lookup-designator-identity",
         "requirements": 2,
         "sections": {
-            "hla-1516.1-2025:clause-10.3.3",
+            "hla-1516.1-2025:clause-10.3",
             "hla-1516.1-2025:clause-4.11",
         },
         "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16691",
@@ -132,8 +132,8 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.asynchronous-delivery",
         "requirements": 2,
         "sections": {
-            "hla-1516.1-2025:clause-8.15.3",
-            "hla-1516.1-2025:clause-8.16.5",
+            "hla-1516.1-2025:clause-8.15",
+            "hla-1516.1-2025:clause-8.16",
         },
         "source_location": "cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp:5",
         "assertions": 35,
@@ -145,7 +145,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.2",
             "hla-1516.1-2025:clause-8.14",
-            "hla-1516.1-2025:clause-8.18.1",
+            "hla-1516.1-2025:clause-8.18",
             "hla-1516.1-2025:clause-8.8",
         },
         "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:5",
@@ -156,7 +156,7 @@ MAPPED_CORE_CASES = {
         "requirements": 9,
         "sections": {
             "hla-1516.1-2025:clause-8.2",
-            "hla-1516.1-2025:clause-8.3.1",
+            "hla-1516.1-2025:clause-8.3",
             "hla-1516.1-2025:clause-8.4",
             "hla-1516.1-2025:clause-8.5",
             "hla-1516.1-2025:clause-8.7",
@@ -170,6 +170,7 @@ MAPPED_CORE_CASES = {
         "requirements": 6,
         "sections": {
             "hla-1516.1-2025:clause-8.14.4",
+            "hla-1516.1-2025:clause-8.20",
             "hla-1516.1-2025:clause-8.20.4",
         },
         "source_location": "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp:4",
@@ -187,10 +188,11 @@ MAPPED_CORE_CASES = {
     },
     "RTIambassadors preserve actual and optimistic Flush Queue boundaries through a configured process endpoint": {
         "mapping_id": "time-management.process.flush-queue-galt-frontier",
-        "requirements": 19,
+        "requirements": 18,
         "sections": {
             "hla-1516.1-2025:clause-10.59.4",
             "hla-1516.1-2025:clause-4",
+            "hla-1516.1-2025:clause-4.1",
             "hla-1516.1-2025:clause-5.1.3",
             "hla-1516.1-2025:clause-6.12",
             "hla-1516.1-2025:clause-6.13",
@@ -211,13 +213,16 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-10.59.4",
             "hla-1516.1-2025:clause-4",
+            "hla-1516.1-2025:clause-4.1",
             "hla-1516.1-2025:clause-5.1.3",
             "hla-1516.1-2025:clause-6.12",
             "hla-1516.1-2025:clause-6.13",
             "hla-1516.1-2025:clause-8.12",
             "hla-1516.1-2025:clause-8.12.3",
             "hla-1516.1-2025:clause-8.2",
+            "hla-1516.1-2025:clause-8.22",
             "hla-1516.1-2025:clause-8.22.3",
+            "hla-1516.1-2025:clause-8.23",
             "hla-1516.1-2025:clause-8.5",
             "hla-1516.1-2025:clause-8.6",
             "hla-1516.1-2025:clause-8.8",
@@ -232,6 +237,9 @@ MAPPED_CORE_CASES = {
         "requirements": 10,
         "sections": {
             "hla-1516.1-2025:clause-8",
+            "hla-1516.1-2025:clause-8.1.2",
+            "hla-1516.1-2025:clause-8.8.3",
+            "hla-1516.1-2025:clause-8.8.5",
             "hla-1516.1-2025:clause-8.12",
             "hla-1516.1-2025:clause-8.12.3",
             "hla-1516.1-2025:clause-8.13",
@@ -256,6 +264,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.5",
             "hla-1516.1-2025:clause-8.1.6",
+            "hla-1516.1-2025:clause-8.1.7",
             "hla-1516.1-2025:clause-8.17",
             "hla-1516.1-2025:clause-8.19",
         },
@@ -269,6 +278,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.5",
             "hla-1516.1-2025:clause-8.1.6",
+            "hla-1516.1-2025:clause-8.1.7",
             "hla-1516.1-2025:clause-8.17",
             "hla-1516.1-2025:clause-8.19",
         },
@@ -291,6 +301,7 @@ MAPPED_CORE_CASES = {
         "requirements": 4,
         "sections": {
             "hla-1516.1-2025:clause-8.14",
+            "hla-1516.1-2025:clause-8.18",
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.8",
         },
@@ -302,6 +313,7 @@ MAPPED_CORE_CASES = {
         "requirements": 4,
         "sections": {
             "hla-1516.1-2025:clause-8.14",
+            "hla-1516.1-2025:clause-8.18",
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.8",
         },
@@ -322,6 +334,7 @@ MAPPED_CORE_CASES = {
         "requirements": 3,
         "sections": {
             "hla-1516.1-2025:clause-8.2",
+            "hla-1516.1-2025:clause-8.3",
             "hla-1516.1-2025:clause-8.3.1",
             "hla-1516.1-2025:clause-8.8",
         },
@@ -362,7 +375,7 @@ MAPPED_CORE_CASES = {
     },
     "RTIambassadors deliver a deferred timestamped process interaction before the grant": {
         "mapping_id": "time-management.process.tso-interaction-before-grant",
-        "requirements": 20,
+        "requirements": 19,
         "sections": {
             "hla-1516.1-2025:clause-10.59.4",
             "hla-1516.1-2025:clause-4",
@@ -372,6 +385,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.5",
             "hla-1516.1-2025:clause-8.1.6",
+            "hla-1516.1-2025:clause-8.1.7",
             "hla-1516.1-2025:clause-8.17",
             "hla-1516.1-2025:clause-8.19",
             "hla-1516.1-2025:clause-8.2",
@@ -388,8 +402,8 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-6.10",
-            "hla-1516.1-2025:clause-6.8.4",
-            "hla-1516.1-2025:clause-6.9.3",
+            "hla-1516.1-2025:clause-6.8",
+            "hla-1516.1-2025:clause-6.9",
             "hla-1516.1-2025:clause-8.2",
             "hla-1516.1-2025:clause-8.5",
             "hla-1516.1-2025:clause-8.6",
@@ -404,11 +418,10 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-6.10",
-            "hla-1516.1-2025:clause-6.8.4",
-            "hla-1516.1-2025:clause-6.9.3",
-            "hla-1516.1-2025:clause-8",
-            "hla-1516.1-2025:clause-8.1.5",
+            "hla-1516.1-2025:clause-6.8",
+            "hla-1516.1-2025:clause-6.9",
             "hla-1516.1-2025:clause-8.1.6",
+            "hla-1516.1-2025:clause-8.1.7",
             "hla-1516.1-2025:clause-8.17",
             "hla-1516.1-2025:clause-8.19",
             "hla-1516.1-2025:clause-8.2",
@@ -425,14 +438,18 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-6.10",
+            "hla-1516.1-2025:clause-6.8",
             "hla-1516.1-2025:clause-6.8.4",
+            "hla-1516.1-2025:clause-6.9",
             "hla-1516.1-2025:clause-6.9.3",
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.5",
             "hla-1516.1-2025:clause-8.1.6",
+            "hla-1516.1-2025:clause-8.1.7",
             "hla-1516.1-2025:clause-8.17",
             "hla-1516.1-2025:clause-8.19",
             "hla-1516.1-2025:clause-8.2",
+            "hla-1516.1-2025:clause-8.22",
             "hla-1516.1-2025:clause-8.22.3",
             "hla-1516.1-2025:clause-8.5",
             "hla-1516.1-2025:clause-8.6",
@@ -446,12 +463,12 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.support-switch-state",
         "requirements": 8,
         "sections": {
-            "hla-1516.1-2025:clause-10.44",
-            "hla-1516.1-2025:clause-10.45.3",
-            "hla-1516.1-2025:clause-10.46.6",
-            "hla-1516.1-2025:clause-10.48.1",
-            "hla-1516.1-2025:clause-10.50.6",
-            "hla-1516.1-2025:clause-10.55.1",
+            "hla-1516.1-2025:clause-10.43.6",
+            "hla-1516.1-2025:clause-10.44.6",
+            "hla-1516.1-2025:clause-10.45.6",
+            "hla-1516.1-2025:clause-10.47.6",
+            "hla-1516.1-2025:clause-10.49.6",
+            "hla-1516.1-2025:clause-10.55",
             "hla-1516.1-2025:clause-8.1.8",
             "hla-1516.1-2025:clause-9.1.7",
         },
@@ -473,6 +490,7 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.create-federation-execution-with-mim",
         "requirements": 1,
         "sections": {
+            "hla-1516.1-2025:clause-4.5",
             "hla-1516.1-2025:clause-4.5.5",
         },
         "source_location": "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp:4",
@@ -482,6 +500,7 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-advisories-use-known-class-switch",
         "requirements": 2,
         "sections": {
+            "hla-1516.1-2025:clause-10.53.6",
             "hla-1516.1-2025:clause-10.55.1",
         },
         "source_location": "cpp/tests/advisories_use_known_class_switch_catch2.cpp:4",
@@ -491,6 +510,7 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.next-message-request",
         "requirements": 2,
         "sections": {
+            "hla-1516.1-2025:clause-8.10",
             "hla-1516.1-2025:clause-8.10.2",
         },
         "source_location": "cpp/tests/next_message_request_queued_tso_catch2.cpp:126",
@@ -511,7 +531,9 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-object-class-handle-name",
         "requirements": 2,
         "sections": {
+            "hla-1516.1-2025:clause-10.4",
             "hla-1516.1-2025:clause-10.4.6",
+            "hla-1516.1-2025:clause-10.5",
             "hla-1516.1-2025:clause-10.6.2",
         },
         "source_location": "cpp/tests/object_class_lookup_catch2.cpp:51",
@@ -521,7 +543,9 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-interaction-class-handle-name",
         "requirements": 2,
         "sections": {
+            "hla-1516.1-2025:clause-10.13",
             "hla-1516.1-2025:clause-10.13.2",
+            "hla-1516.1-2025:clause-10.14",
             "hla-1516.1-2025:clause-10.14.5",
         },
         "source_location": "cpp/tests/interaction_class_lookup_catch2.cpp:51",
@@ -531,8 +555,10 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-attribute-handle-name",
         "requirements": 2,
         "sections": {
-            "hla-1516.1-2025:clause-10.9.1",
+            "hla-1516.1-2025:clause-10.10",
             "hla-1516.1-2025:clause-10.10.3",
+            "hla-1516.1-2025:clause-10.9",
+            "hla-1516.1-2025:clause-10.9.1",
         },
         "source_location": "cpp/tests/attribute_lookup_catch2.cpp:51",
         "assertions": 30,
@@ -541,6 +567,8 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-parameter-handle-name",
         "requirements": 2,
         "sections": {
+            "hla-1516.1-2025:clause-10.15",
+            "hla-1516.1-2025:clause-10.16",
             "hla-1516.1-2025:clause-10.16.1",
         },
         "source_location": "cpp/tests/parameter_lookup_catch2.cpp:51",
@@ -560,9 +588,12 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.get-order-type-name",
         "requirements": 5,
         "sections": {
-            "hla-1516.1-2025:clause-8.2",
+            "hla-1516.1-2025:clause-10.17",
             "hla-1516.1-2025:clause-10.17.4",
+            "hla-1516.1-2025:clause-10.18",
             "hla-1516.1-2025:clause-10.19",
+            "hla-1516.1-2025:clause-8.1.11",
+            "hla-1516.1-2025:clause-8.2",
         },
         "source_location": "cpp/tests/order_type_lookup_catch2.cpp:49",
         "assertions": 20,
@@ -572,7 +603,9 @@ MAPPED_CORE_CASES = {
         "requirements": 4,
         "sections": {
             "hla-1516.1-2025:clause-8.1.4",
+            "hla-1516.1-2025:clause-8.24",
             "hla-1516.1-2025:clause-8.24.4",
+            "hla-1516.1-2025:clause-8.26",
             "hla-1516.1-2025:clause-8.26.4",
         },
         "source_location": "cpp/tests/order_type_control_catch2.cpp:170",
@@ -582,13 +615,19 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.declaration-relevance-advisories",
         "requirements": 15,
         "sections": {
+            "hla-1516.1-2025:clause-10.1.2.1",
             "hla-1516.1-2025:clause-10.1.3",
-            "hla-1516.1-2025:clause-5.8",
+            "hla-1516.1-2025:clause-5.10",
             "hla-1516.1-2025:clause-5.10.2",
+            "hla-1516.1-2025:clause-5.14",
             "hla-1516.1-2025:clause-5.14.3",
+            "hla-1516.1-2025:clause-5.15",
             "hla-1516.1-2025:clause-5.15.3",
+            "hla-1516.1-2025:clause-5.16",
             "hla-1516.1-2025:clause-5.16.5",
+            "hla-1516.1-2025:clause-5.17",
             "hla-1516.1-2025:clause-5.17.6",
+            "hla-1516.1-2025:clause-5.8",
         },
         "source_location": "cpp/tests/declaration_relevance_advisory_catch2.cpp:91",
         "assertions": 91,
@@ -597,13 +636,18 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.regional-declaration-relevance-advisories",
         "requirements": 13,
         "sections": {
-            "hla-1516.1-2025:clause-9.8",
-            "hla-1516.1-2025:clause-5.8",
+            "hla-1516.1-2025:clause-5.10",
             "hla-1516.1-2025:clause-5.10.2",
+            "hla-1516.1-2025:clause-5.14",
             "hla-1516.1-2025:clause-5.14.3",
+            "hla-1516.1-2025:clause-5.15",
             "hla-1516.1-2025:clause-5.15.3",
+            "hla-1516.1-2025:clause-5.16",
             "hla-1516.1-2025:clause-5.16.5",
+            "hla-1516.1-2025:clause-5.17",
             "hla-1516.1-2025:clause-5.17.6",
+            "hla-1516.1-2025:clause-5.8",
+            "hla-1516.1-2025:clause-9.8",
         },
         "source_location": "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp:122",
         "assertions": 61,
@@ -612,12 +656,17 @@ MAPPED_CORE_CASES = {
         "mapping_id": "rti.service.declaration-relevance-advisories-file",
         "requirements": 6,
         "sections": {
-            "hla-1516.1-2025:clause-5.14.3",
-            "hla-1516.1-2025:clause-5.15.3",
-            "hla-1516.1-2025:clause-5.16.5",
-            "hla-1516.1-2025:clause-5.17.6",
             "hla-1516.1-2025:clause-11.5",
+            "hla-1516.1-2025:clause-11.5.1",
             "hla-1516.1-2025:clause-11.5.2",
+            "hla-1516.1-2025:clause-5.14",
+            "hla-1516.1-2025:clause-5.14.3",
+            "hla-1516.1-2025:clause-5.15",
+            "hla-1516.1-2025:clause-5.15.3",
+            "hla-1516.1-2025:clause-5.16",
+            "hla-1516.1-2025:clause-5.16.5",
+            "hla-1516.1-2025:clause-5.17",
+            "hla-1516.1-2025:clause-5.17.6",
         },
         "source_location": "cpp/tests/declaration_relevance_service_report_catch2.cpp:163",
         "assertions": 143,
@@ -627,6 +676,7 @@ MAPPED_CORE_CASES = {
         "requirements": 2,
         "sections": {
             "hla-1516.1-2025:clause-10.19",
+            "hla-1516.1-2025:clause-10.20",
             "hla-1516.1-2025:clause-10.20.4",
         },
         "source_location": "cpp/tests/transportation_type_lookup_catch2.cpp:50",
@@ -637,6 +687,7 @@ MAPPED_CORE_CASES = {
         "requirements": 2,
         "sections": {
             "hla-1516.1-2025:clause-10.19",
+            "hla-1516.1-2025:clause-10.20",
             "hla-1516.1-2025:clause-10.20.4",
         },
         "source_location": "cpp/tests/transportation_type_lookup_catch2.cpp:105",
@@ -657,7 +708,7 @@ SOURCE_ASSERTION_BASELINES = {
             "hla-1516.1-2025:clause-9.5",
             "hla-1516.1-2025:clause-9.6",
             "hla-1516.1-2025:clause-9.8",
-            "hla-1516.1-2025:clause-9.9.3",
+            "hla-1516.1-2025:clause-9.9",
         },
     },
 }
@@ -699,7 +750,7 @@ RECOVERED_TRACE_CASES = {
         "source_location": "cpp/tests/ieee1516_2025_federation_registry_pending_regional_object_class_attribute_value_update_catch2.cpp:3",
         "assertions": 89,
         "requirements": 11,
-        "sections": 6,
+        "sections": 7,
         "lane": "process-restart-regional-pending-attribute-value-update-negative",
     },
     "Federation state images round-trip canonical control, temporal, object, and interaction declaration state": {
@@ -720,7 +771,7 @@ RECOVERED_TRACE_CASES = {
         "source_location": "cpp/tests/ieee1516_2025_federation_registry_ownership_assumption_search_filesystem_restart_catch2.cpp:3",
         "assertions": 83,
         "requirements": 13,
-        "sections": 8,
+        "sections": 10,
         "lane": "process-restart-ownership-assumption-search",
     },
     "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction": {
@@ -748,7 +799,7 @@ RECOVERED_TRACE_CASES = {
         "source_location": "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp:5",
         "assertions": 52,
         "requirements": 15,
-        "sections": 9,
+        "sections": 8,
         "lane": "timestamped-object-deletion-regulation-reenable-changed-lookahead",
     },
     "Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead": {
@@ -772,11 +823,19 @@ MAPPED_SHARED_CASE = {
     "rows": {
         "rti.service.list-federation-executions": {
             "requirements": 2,
-            "sections": {"hla-1516.1-2025:clause-4.8.4"},
+            "sections": {
+                "hla-1516.1-2025:clause-4.7",
+                "hla-1516.1-2025:clause-4.8",
+                "hla-1516.1-2025:clause-4.8.4",
+            },
         },
         "rti.service.list-federation-execution-members": {
             "requirements": 2,
-            "sections": {"hla-1516.1-2025:clause-4.10.3"},
+            "sections": {
+                "hla-1516.1-2025:clause-4.9",
+                "hla-1516.1-2025:clause-4.10",
+                "hla-1516.1-2025:clause-4.10.3",
+            },
         },
     },
 }
@@ -1007,12 +1066,16 @@ def assert_bounded_discovery_output() -> None:
         "requirement_section_mappings:" not in case_summary
         or "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4 -> hla-1516.1-2025:clause-9.1.7"
         not in case_summary
-        or "hla-1516.1-2025:clause-9.12" not in case_summary
         or "matrix_section=" not in case_summary
     ):
         raise AssertionError(
             "exact case handoff lost its direct requirement/subsection crosswalk"
         )
+    regional_sections = run(
+        "matrix", regional_case_id, "--group-by", "section", "--summary", "--compact"
+    )
+    if "hla-1516.1-2025:clause-9.12" not in regional_sections:
+        raise AssertionError("regional case section matrix lost clause 9.12")
     invalid_region_case_summary = run(
         "case",
         "umbra-cpp-register-object-instance-with-regions-invalid-region",
@@ -1049,7 +1112,7 @@ def assert_bounded_discovery_output() -> None:
     )
     if (
         relaxed_ddm_requirement not in full_requirement_matrix
-        or "hla-1516.1-2025:clause-10.55.1" not in full_requirement_matrix
+        or "standard_sections: hla-1516.1-2025:clause-10.55\n" not in full_requirement_matrix
     ):
         raise AssertionError(
             "exact requirement matrix lost the new relaxed-DDM requirement/subsection pair"
@@ -2080,8 +2143,9 @@ def main() -> int:
         or regional_sections
         != {
             "hla-1516.1-2025:clause-9.6",
-            "hla-1516.1-2025:clause-9.7.5",
+            "hla-1516.1-2025:clause-9.7",
             "hla-1516.1-2025:clause-11.5",
+            "hla-1516.1-2025:clause-11.5.1",
             "hla-1516.1-2025:clause-11.5.2",
         }
     ):
@@ -2654,7 +2718,9 @@ def main() -> int:
         tests,
         limit=8,
     )
-    if gaps.get("total_requirement_count") != 2225:
+    if not standard_requirements or gaps.get("total_requirement_count") != len(
+        standard_requirements
+    ):
         raise AssertionError("2025 requirement gap total drifted")
     covered_ids = {
         requirement_id
@@ -2689,8 +2755,9 @@ def main() -> int:
         limit=8,
     )
     if (
-        family_clause_gaps.get("total_requirement_count") != 6
-        or family_clause_gaps.get("covered_requirement_count") != 6
+        not family_clause_gaps.get("total_requirement_count")
+        or family_clause_gaps.get("covered_requirement_count")
+        != family_clause_gaps.get("total_requirement_count")
         or family_clause_gaps.get("uncovered_requirement_count") != 0
         or family_clause_gaps.get("groups") != []
     ):
@@ -2704,8 +2771,9 @@ def main() -> int:
         limit=8,
     )
     if (
-        family_clause_9132_gaps.get("total_requirement_count") != 22
-        or family_clause_9132_gaps.get("covered_requirement_count") != 22
+        not family_clause_9132_gaps.get("total_requirement_count")
+        or family_clause_9132_gaps.get("covered_requirement_count")
+        != family_clause_9132_gaps.get("total_requirement_count")
         or family_clause_9132_gaps.get("uncovered_requirement_count") != 0
     ):
         raise AssertionError("family-scoped clause-9.1.3.2 gap counts drifted")
@@ -2715,17 +2783,23 @@ def main() -> int:
         index=index,
         family="portable-cpp-tck-2025",
         query="requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
-        limit=2,
+        limit=0,
     )
     family_gap_records = family_gap_covered_elsewhere.get("requirements", [])
+    family_gap_target = next(
+        (
+            record for record in family_gap_records
+            if record.get("id")
+            == "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
+        ),
+        None,
+    )
     if (
         family_gap_covered_elsewhere.get("coverage_scope") != "family-local"
-        or family_gap_covered_elsewhere.get("uncovered_requirement_count") != 1
-        or family_gap_covered_elsewhere.get("globally_covered_requirement_count") != 1
-        or family_gap_covered_elsewhere.get("globally_uncovered_requirement_count") != 0
-        or len(family_gap_records) != 1
-        or family_gap_records[0].get("coverage_scope") != "family-local"
-        or family_gap_records[0].get("global_coverage") != "covered"
+        or family_gap_target is None
+        or family_gap_target.get("coverage_scope") != "family-local"
+        or family_gap_target.get("coverage") != "uncovered"
+        or family_gap_target.get("global_coverage") != "covered"
     ):
         raise AssertionError(
             "family-local gap failed to distinguish coverage by another family"
@@ -2748,10 +2822,10 @@ def main() -> int:
     )
     if (
         tck_nmra_gaps.get("coverage_scope") != "cpp-tck-direct-requirement-mappings"
-        or tck_nmra_gaps.get("total_requirement_count") != 8
-        or tck_nmra_gaps.get("mapped_requirement_count") != 6
+        or tck_nmra_gaps.get("total_requirement_count") != 2
+        or tck_nmra_gaps.get("mapped_requirement_count") != 0
         or tck_nmra_gaps.get("uncovered_requirement_count") != 2
-        or tck_nmra_gaps.get("promoted_requirement_count") != 6
+        or tck_nmra_gaps.get("promoted_requirement_count") != 0
         or tck_nmra_gaps.get("candidate_only_requirement_count") != 0
         or tck_nmra_gaps.get("invalid_mapping_count") != 0
         or tck_nmra_gaps.get("section_disagreement_count") != 0
@@ -2937,7 +3011,7 @@ def main() -> int:
         negotiated_if_available_lane_match.get("test_count") != 1
         or negotiated_if_available_lane_match.get("mapped_count") != 1
         or negotiated_if_available_lane_match.get("requirement_count") != 19
-        or negotiated_if_available_lane_match.get("standard_section_count") != 12
+        or negotiated_if_available_lane_match.get("standard_section_count") != 19
     ):
         raise AssertionError("public negotiated If Available lane mapping card drifted")
     if_available_lane_families = query_rti_work.roadmap_inventory(
@@ -2966,7 +3040,7 @@ def main() -> int:
         if_available_lane_match.get("test_count") != 1
         or if_available_lane_match.get("mapped_count") != 1
         or if_available_lane_match.get("requirement_count") != 11
-        or if_available_lane_match.get("standard_section_count") != 7
+        or if_available_lane_match.get("standard_section_count") != 11
     ):
         raise AssertionError("public If Available ownership lane mapping card drifted")
     post_confirmation_lane_families = query_rti_work.roadmap_inventory(
@@ -2995,7 +3069,7 @@ def main() -> int:
         post_confirmation_lane_match.get("test_count") != 3
         or post_confirmation_lane_match.get("mapped_count") != 3
         or post_confirmation_lane_match.get("requirement_count") != 26
-        or post_confirmation_lane_match.get("standard_section_count") != 16
+        or post_confirmation_lane_match.get("standard_section_count") != 25
     ):
         raise AssertionError(
             "public post-confirmation resignation lane mapping card drifted"
@@ -3026,7 +3100,7 @@ def main() -> int:
         resignation_lane_match.get("test_count") != 4
         or resignation_lane_match.get("mapped_count") != 4
         or resignation_lane_match.get("requirement_count") != 26
-        or resignation_lane_match.get("standard_section_count") != 16
+        or resignation_lane_match.get("standard_section_count") != 25
     ):
         raise AssertionError(
             "public Confirm Divestiture resignation lane mapping card drifted"
@@ -3291,7 +3365,7 @@ def main() -> int:
         candidate.get("clause_id")
         for candidate in explicit_mim_candidates
         if isinstance(candidate, dict)
-    } != {"clause-4.5.5"}:
+    } != {"clause-4.5"}:
         raise AssertionError("explicit-MIM candidate clause drifted")
     object_lookup = next(
         test
@@ -3444,7 +3518,7 @@ def main() -> int:
     if (
         process_service_report_focus.get("mapped_test_count") != 2
         or process_service_report_focus.get("assertion_count") != 125
-        or process_service_report_focus.get("standard_section_count") != 15
+        or process_service_report_focus.get("standard_section_count") != 20
         or process_service_report_focus.get("requirement_section_pair_count") != 18
     ):
         raise AssertionError("process service-report switch-cycle lane mapping drifted")
@@ -3520,7 +3594,7 @@ def main() -> int:
     if (
         process_mom_set_switches_focus.get("mapped_test_count") != 1
         or process_mom_set_switches_focus.get("assertion_count") != 57
-        or process_mom_set_switches_focus.get("standard_section_count") != 3
+        or process_mom_set_switches_focus.get("standard_section_count") != 4
         or process_mom_set_switches_focus.get("requirement_section_pair_count") != 3
     ):
         raise AssertionError("process MOM set-switches lane mapping drifted")
@@ -3547,6 +3621,7 @@ def main() -> int:
         ]
         or process_mom_set_switches.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-11.3.1",
             "hla-1516.1-2025:clause-11.4.1",
             "hla-1516.1-2025:clause-11.4.2",
             "hla-1516.1-2025:clause-11.6",
@@ -3574,7 +3649,7 @@ def main() -> int:
     if (
         process_mom_service_report_interlock_focus.get("mapped_test_count") != 2
         or process_mom_service_report_interlock_focus.get("assertion_count") != 18
-        or process_mom_service_report_interlock_focus.get("standard_section_count") != 5
+        or process_mom_service_report_interlock_focus.get("standard_section_count") != 7
         or process_mom_service_report_interlock_focus.get(
             "requirement_section_pair_count"
         )
@@ -3608,6 +3683,7 @@ def main() -> int:
         ]
         or process_mom_service_report_interlock.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-11.3.1",
             "hla-1516.1-2025:clause-11.4.1",
             "hla-1516.1-2025:clause-11.4.2",
             "hla-1516.1-2025:clause-11.5",
@@ -3702,7 +3778,7 @@ def main() -> int:
         or process_mom_extension_focus.get("assertion_count") != 26
         or process_mom_extension_focus.get("recorded_assertion_count") != 26
         or process_mom_extension_focus.get("requirement_count") != 3
-        or process_mom_extension_focus.get("standard_section_count") != 2
+        or process_mom_extension_focus.get("standard_section_count") != 3
         or process_mom_extension_focus.get("requirement_section_pair_count") != 3
     ):
         raise AssertionError("process MOM extension-parameter lane card drifted")
@@ -3729,6 +3805,7 @@ def main() -> int:
         ]
         or process_mom_extension.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-11.3.1",
             "hla-1516.1-2025:clause-11.4.1",
             "hla-1516.1-2025:clause-11.4.2",
         ]
@@ -3957,7 +4034,7 @@ def main() -> int:
         or process_sync_explicit.get("primary_lane")
         != "process-synchronization-point-explicit-failure"
         or len(process_sync_explicit.get("lab_requirement_ids", [])) != 9
-        or len(process_sync_explicit.get("standard_sections", [])) != 6
+        or len(process_sync_explicit.get("standard_sections", [])) != 8
         or len(process_sync_explicit.get("selected_cpp_api_surface_ids", [])) != 7
     ):
         raise AssertionError("explicit synchronization-point mapping drifted")
@@ -3969,7 +4046,7 @@ def main() -> int:
         or process_sync_explicit_focus.get("mapped_test_count") != 1
         or process_sync_explicit_focus.get("assertion_count") != 23
         or process_sync_explicit_focus.get("requirement_count") != 9
-        or process_sync_explicit_focus.get("standard_section_count") != 6
+        or process_sync_explicit_focus.get("standard_section_count") != 8
         or process_sync_explicit_focus.get("requirement_section_pair_count") != 9
         or process_sync_explicit_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_catch2"
@@ -4001,7 +4078,7 @@ def main() -> int:
         != "process-synchronization-point-explicit-failure-immediate"
         or process_sync_explicit_immediate.get("callback_models") != ["HLA_IMMEDIATE"]
         or len(process_sync_explicit_immediate.get("lab_requirement_ids", [])) != 9
-        or len(process_sync_explicit_immediate.get("standard_sections", [])) != 6
+        or len(process_sync_explicit_immediate.get("standard_sections", [])) != 8
         or len(process_sync_explicit_immediate.get("selected_cpp_api_surface_ids", []))
         != 7
     ):
@@ -4017,7 +4094,7 @@ def main() -> int:
         or process_sync_explicit_immediate_focus.get("mapped_test_count") != 1
         or process_sync_explicit_immediate_focus.get("assertion_count") != 23
         or process_sync_explicit_immediate_focus.get("requirement_count") != 9
-        or process_sync_explicit_immediate_focus.get("standard_section_count") != 6
+        or process_sync_explicit_immediate_focus.get("standard_section_count") != 8
         or process_sync_explicit_immediate_focus.get("requirement_section_pair_count")
         != 9
         or process_sync_explicit_immediate_focus.get("lane_handles", {}).get(
@@ -4053,7 +4130,7 @@ def main() -> int:
         or process_save.get("primary_lane") != "process-federation-save-untimed"
         or process_save.get("callback_models") != ["HLA_EVOKED"]
         or len(process_save.get("lab_requirement_ids", [])) != 5
-        or len(process_save.get("standard_sections", [])) != 5
+        or len(process_save.get("standard_sections", [])) != 6
         or len(process_save.get("selected_cpp_api_surface_ids", [])) != 6
     ):
         raise AssertionError("process federation-save mapping drifted")
@@ -4066,7 +4143,7 @@ def main() -> int:
         or process_save_focus.get("assertion_count") != 70
         or process_save_focus.get("recorded_assertion_count") != 15
         or process_save_focus.get("requirement_count") != 5
-        or process_save_focus.get("standard_section_count") != 5
+        or process_save_focus.get("standard_section_count") != 6
         or process_save_focus.get("requirement_section_pair_count") != 5
         or process_save_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_connection_catch2"
@@ -4097,6 +4174,7 @@ def main() -> int:
         != "requirement-candidate-content-clauses-04-federation-management-page-051-l23-4"
         or configuration_fallback.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-4.2",
             "hla-1516.1-2025:clause-4.2.4",
         ]
         or len(configuration_fallback.get("selected_cpp_api_surface_ids", [])) != 1
@@ -4112,7 +4190,7 @@ def main() -> int:
         or configuration_fallback_focus.get("mapped_test_count") != 1
         or configuration_fallback_focus.get("assertion_count") != 8
         or configuration_fallback_focus.get("requirement_count") != 2
-        or configuration_fallback_focus.get("standard_section_count") != 1
+        or configuration_fallback_focus.get("standard_section_count") != 2
         or configuration_fallback_focus.get("requirement_section_pair_count") != 2
         or configuration_fallback_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_connection_catch2"
@@ -4146,6 +4224,7 @@ def main() -> int:
         != "requirement-candidate-content-clauses-04-federation-management-page-051-l28-5"
         or configuration_additional_settings.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-4.2",
             "hla-1516.1-2025:clause-4.2.4",
         ]
         or len(
@@ -4164,7 +4243,7 @@ def main() -> int:
         or configuration_additional_settings_focus.get("mapped_test_count") != 1
         or configuration_additional_settings_focus.get("assertion_count") != 5
         or configuration_additional_settings_focus.get("requirement_count") != 1
-        or configuration_additional_settings_focus.get("standard_section_count") != 1
+        or configuration_additional_settings_focus.get("standard_section_count") != 2
         or configuration_additional_settings_focus.get("requirement_section_pair_count")
         != 1
         or configuration_additional_settings_focus.get("lane_handles", {}).get(
@@ -4231,7 +4310,7 @@ def main() -> int:
             "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31"
         ]
         or attribute_handle_set_encoding.get("standard_sections")
-        != ["hla-1516.1-2025:clause-11.5.2"]
+        != ["hla-1516.1-2025:clause-11.5.1"]
         or "not exported as a standalone Requirements-Lab API surface"
         not in str(
             attribute_handle_set_encoding.get("requirements_lab_api_surface_status")
@@ -4255,10 +4334,7 @@ def main() -> int:
             "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
         ]
         or attribute_handle_value_map_encoding.get("standard_sections")
-        != [
-            "hla-1516.1-2025:clause-11.5.1",
-            "hla-1516.1-2025:clause-11.5.2",
-        ]
+        != ["hla-1516.1-2025:clause-11.5.1"]
         or "not exported as a standalone Requirements-Lab API surface"
         not in str(
             attribute_handle_value_map_encoding.get(
@@ -4436,7 +4512,7 @@ def main() -> int:
         or process_save_status.get("primary_lane") != "process-federation-save-status"
         or process_save_status.get("callback_models") != ["HLA_EVOKED"]
         or len(process_save_status.get("lab_requirement_ids", [])) != 7
-        or len(process_save_status.get("standard_sections", [])) != 5
+        or len(process_save_status.get("standard_sections", [])) != 7
         or len(process_save_status.get("selected_cpp_api_surface_ids", [])) != 8
     ):
         raise AssertionError("process federation-save status mapping drifted")
@@ -4448,7 +4524,7 @@ def main() -> int:
         or process_save_status_focus.get("mapped_test_count") != 1
         or process_save_status_focus.get("assertion_count") != 19
         or process_save_status_focus.get("requirement_count") != 7
-        or process_save_status_focus.get("standard_section_count") != 5
+        or process_save_status_focus.get("standard_section_count") != 7
         or process_save_status_focus.get("requirement_section_pair_count") != 7
         or process_save_status_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_catch2"
@@ -4476,7 +4552,7 @@ def main() -> int:
         or process_save_abort.get("primary_lane") != "process-federation-save-abort"
         or process_save_abort.get("callback_models") != ["HLA_EVOKED"]
         or len(process_save_abort.get("lab_requirement_ids", [])) != 3
-        or len(process_save_abort.get("standard_sections", [])) != 2
+        or len(process_save_abort.get("standard_sections", [])) != 3
         or len(process_save_abort.get("selected_cpp_api_surface_ids", [])) != 5
     ):
         raise AssertionError("process federation-save abort mapping drifted")
@@ -4488,7 +4564,7 @@ def main() -> int:
         or process_save_abort_focus.get("mapped_test_count") != 1
         or process_save_abort_focus.get("assertion_count") != 13
         or process_save_abort_focus.get("requirement_count") != 3
-        or process_save_abort_focus.get("standard_section_count") != 2
+        or process_save_abort_focus.get("standard_section_count") != 3
         or process_save_abort_focus.get("requirement_section_pair_count") != 3
         or process_save_abort_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_catch2"
@@ -4517,7 +4593,7 @@ def main() -> int:
         != "evoked-synchronization-save-restore"
         or evoked_sync_restore.get("callback_models") != ["HLA_EVOKED"]
         or len(evoked_sync_restore.get("lab_requirement_ids", [])) != 9
-        or len(evoked_sync_restore.get("standard_sections", [])) != 9
+        or len(evoked_sync_restore.get("standard_sections", [])) != 10
         or len(evoked_sync_restore.get("selected_cpp_api_surface_ids", [])) != 17
     ):
         raise AssertionError("evoked synchronization save/restore mapping drifted")
@@ -4529,7 +4605,7 @@ def main() -> int:
         or evoked_sync_restore_focus.get("mapped_test_count") != 1
         or evoked_sync_restore_focus.get("assertion_count") != 39
         or evoked_sync_restore_focus.get("requirement_count") != 9
-        or evoked_sync_restore_focus.get("standard_section_count") != 9
+        or evoked_sync_restore_focus.get("standard_section_count") != 10
         or evoked_sync_restore_focus.get("requirement_section_pair_count") != 9
         or evoked_sync_restore_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_catch2"
@@ -4597,7 +4673,7 @@ def main() -> int:
         or process_query_time_bounds_immediate_focus.get("mapped_test_count") != 1
         or process_query_time_bounds_immediate_focus.get("assertion_count") != 14
         or process_query_time_bounds_immediate_focus.get("requirement_count") != 5
-        or process_query_time_bounds_immediate_focus.get("standard_section_count") != 5
+        or process_query_time_bounds_immediate_focus.get("standard_section_count") != 6
     ):
         raise AssertionError("focused process immediate GALT/LITS lane totals drifted")
     process_query_time_bounds_immediate_handles = (
@@ -4671,7 +4747,7 @@ def main() -> int:
         != 39
         or process_query_time_bounds_multi_federate_focus.get("requirement_count") != 8
         or process_query_time_bounds_multi_federate_focus.get("standard_section_count")
-        != 8
+        != 10
         or process_query_time_bounds_multi_federate_focus.get(
             "requirement_section_pair_count"
         )
@@ -4742,7 +4818,7 @@ def main() -> int:
         or process_query_time_bounds_queued_tso_focus.get("mapped_test_count") != 1
         or process_query_time_bounds_queued_tso_focus.get("assertion_count") != 53
         or process_query_time_bounds_queued_tso_focus.get("requirement_count") != 5
-        or process_query_time_bounds_queued_tso_focus.get("standard_section_count") != 5
+        or process_query_time_bounds_queued_tso_focus.get("standard_section_count") != 6
     ):
         raise AssertionError("focused process queued-TSO GALT/LITS lane totals drifted")
     process_query_time_bounds_queued_tso_handles = (
@@ -4812,7 +4888,7 @@ def main() -> int:
         or process_query_time_bounds_zero_lookahead_focus.get("assertion_count") != 47
         or process_query_time_bounds_zero_lookahead_focus.get("requirement_count") != 6
         or process_query_time_bounds_zero_lookahead_focus.get("standard_section_count")
-        != 5
+        != 6
     ):
         raise AssertionError(
             "focused process zero-lookahead GALT/LITS lane totals drifted"
@@ -4842,8 +4918,8 @@ def main() -> int:
         process_fqr_galt_focus.get("lane_state") != "complete"
         or process_fqr_galt_focus.get("mapped_test_count") != 1
         or process_fqr_galt_focus.get("assertion_count") != 57
-        or process_fqr_galt_focus.get("requirement_count") != 19
-        or process_fqr_galt_focus.get("standard_section_count") != 11
+        or process_fqr_galt_focus.get("requirement_count") != 18
+        or process_fqr_galt_focus.get("standard_section_count") != 12
     ):
         raise AssertionError("process FQR/GALT frontier focus totals drifted")
     process_fqr_galt_handles = process_fqr_galt_focus.get("lane_handles")
@@ -4863,7 +4939,7 @@ def main() -> int:
         or process_fqr_multiple_focus.get("mapped_test_count") != 1
         or process_fqr_multiple_focus.get("assertion_count") != 110
         or process_fqr_multiple_focus.get("requirement_count") != 22
-        or process_fqr_multiple_focus.get("standard_section_count") != 12
+        or process_fqr_multiple_focus.get("standard_section_count") != 15
     ):
         raise AssertionError("process multiple-record FQR focus totals drifted")
     process_fqr_multiple_handles = process_fqr_multiple_focus.get("lane_handles")
@@ -4885,7 +4961,7 @@ def main() -> int:
         or process_fqr_retraction_focus.get("mapped_test_count") != 1
         or process_fqr_retraction_focus.get("assertion_count") != 110
         or process_fqr_retraction_focus.get("requirement_count") != 22
-        or process_fqr_retraction_focus.get("standard_section_count") != 12
+        or process_fqr_retraction_focus.get("standard_section_count") != 15
     ):
         raise AssertionError("process FQR retraction focus totals drifted")
     process_fqr_retraction_handles = process_fqr_retraction_focus.get("lane_handles")

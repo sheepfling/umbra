@@ -55,7 +55,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused timestamped regional process requirement total drifted"
         )
-    if timestamped_regional_focus.get("standard_section_count") != 19:
+    if timestamped_regional_focus.get("standard_section_count") != 24:
         raise AssertionError(
             "focused timestamped regional process section total drifted"
         )
@@ -132,7 +132,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process multi-recipient regional requirement total drifted"
         )
-    if multi_recipient_regional_focus.get("standard_section_count") != 8:
+    if multi_recipient_regional_focus.get("standard_section_count") != 12:
         raise AssertionError(
             "focused process multi-recipient regional section total drifted"
         )
@@ -206,7 +206,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process multi-recipient ordering requirement total drifted"
         )
-    if multi_recipient_ordering_focus.get("standard_section_count") != 5:
+    if multi_recipient_ordering_focus.get("standard_section_count") != 6:
         raise AssertionError(
             "focused process multi-recipient ordering section total drifted"
         )
@@ -335,8 +335,12 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
             "focused process attribute/parameter reverse lookup row is not mapped"
         )
     if set(reverse_attribute_parameter_lookup.get("standard_sections", [])) != {
+        "hla-1516.1-2025:clause-10.9",
         "hla-1516.1-2025:clause-10.9.1",
+        "hla-1516.1-2025:clause-10.10",
         "hla-1516.1-2025:clause-10.10.3",
+        "hla-1516.1-2025:clause-10.15",
+        "hla-1516.1-2025:clause-10.16",
         "hla-1516.1-2025:clause-10.16.1",
     }:
         raise AssertionError(
@@ -375,6 +379,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
     if set(reverse_dimension_transportation_lookup.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-9.1.2",
         "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-10.20",
         "hla-1516.1-2025:clause-10.20.4",
     }:
         raise AssertionError(
@@ -408,6 +413,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
     if set(reverse_fom_error_matrix.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-9.1.2",
         "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-10.20",
         "hla-1516.1-2025:clause-10.20.4",
     }:
         raise AssertionError(
@@ -428,7 +434,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process reverse-FOM lookup requirement total drifted"
         )
-    if reverse_fom_lookup_focus.get("standard_section_count") != 10:
+    if reverse_fom_lookup_focus.get("standard_section_count") != 19:
         raise AssertionError("focused process reverse-FOM lookup section total drifted")
     if reverse_fom_lookup_focus.get("requirement_section_pair_count") != 14:
         raise AssertionError("focused process reverse-FOM lookup direct pair drifted")
@@ -492,7 +498,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process object-instance lookup requirement total drifted"
         )
-    if object_instance_lookup_focus.get("standard_section_count") != 2:
+    if object_instance_lookup_focus.get("standard_section_count") != 4:
         raise AssertionError(
             "focused process object-instance lookup section total drifted"
         )
@@ -545,7 +551,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused process NMR/NMRA lane assertion total drifted")
     if process_next_message_focus.get("requirement_count") != 5:
         raise AssertionError("focused process NMR/NMRA requirement total drifted")
-    if process_next_message_focus.get("standard_section_count") != 4:
+    if process_next_message_focus.get("standard_section_count") != 5:
         raise AssertionError("focused process NMR/NMRA section total drifted")
     process_next_message_handles = process_next_message_focus.get("lane_handles")
     if (
@@ -606,7 +612,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused process queued-TSO lane assertion total drifted")
     if process_next_message_queued_focus.get("requirement_count") != 54:
         raise AssertionError("focused process queued-TSO requirement total drifted")
-    if process_next_message_queued_focus.get("standard_section_count") != 32:
+    if process_next_message_queued_focus.get("standard_section_count") != 42:
         raise AssertionError("focused process queued-TSO section total drifted")
     process_next_message_queued_handles = process_next_message_queued_focus.get(
         "lane_handles"
@@ -708,7 +714,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process grant-time lookahead requirement total drifted"
         )
-    if process_modify_lookahead_grant_focus.get("standard_section_count") != 7:
+    if process_modify_lookahead_grant_focus.get("standard_section_count") != 8:
         raise AssertionError(
             "focused process grant-time lookahead section total drifted"
         )
@@ -761,7 +767,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process modify-lookahead requirement total drifted"
         )
-    if process_modify_lookahead_focus.get("standard_section_count") != 2:
+    if process_modify_lookahead_focus.get("standard_section_count") != 3:
         raise AssertionError("focused process modify-lookahead section total drifted")
     process_modify_lookahead_handles = process_modify_lookahead_focus.get(
         "lane_handles"
@@ -805,7 +811,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused process query-lookahead requirement total drifted"
         )
-    if process_query_lookahead_focus.get("standard_section_count") != 2:
+    if process_query_lookahead_focus.get("standard_section_count") != 3:
         raise AssertionError("focused process query-lookahead section total drifted")
     process_query_lookahead_handles = process_query_lookahead_focus.get("lane_handles")
     if (

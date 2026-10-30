@@ -1063,7 +1063,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         )
     if (
         len(regional_attribute_relevance_rate_designator.get("standard_sections", []))
-        != 3
+        != 4
     ):
         raise AssertionError("focused regional rate-designator section mapping drifted")
     if (
@@ -1189,7 +1189,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused known-class-enabled advisory requirement mapping drifted"
         )
-    if len(known_class_enabled.get("standard_sections", [])) != 13:
+    if len(known_class_enabled.get("standard_sections", [])) != 12:
         raise AssertionError(
             "focused known-class-enabled advisory section mapping drifted"
         )
@@ -1242,11 +1242,11 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         )
     if passive_regional_update_rate.get("traceability_state") != "requirements-mapped":
         raise AssertionError("focused passive regional update-rate row is not mapped")
-    if len(passive_regional_update_rate.get("lab_requirement_ids", [])) != 15:
+    if len(passive_regional_update_rate.get("lab_requirement_ids", [])) != 16:
         raise AssertionError(
             "focused passive regional update-rate requirement mapping drifted"
         )
-    if len(passive_regional_update_rate.get("standard_sections", [])) != 12:
+    if len(passive_regional_update_rate.get("standard_sections", [])) != 13:
         raise AssertionError(
             "focused passive regional update-rate section mapping drifted"
         )

@@ -1,6 +1,7 @@
 # Requirements Lab issue ledger
 
 This note retains the 2026-10-24 issue history for the IEEE 1516.1-2025 Requirements Lab export. Umbra now pins the reviewed Lab backflow revision: 84 Lab-content complaints and four Umbra-local complaints are resolved. RL-369 is dispositioned for mapping, although the supplied Table 5 and official MIM names conflict. Historical symptoms and workarounds below describe the old pin; the machine-readable ledger carries current status and acceptance evidence.
+On 2026-10-29, the separate TAR backward-time precondition/exception omission was recorded as RL-392; the structured register now has 143 records with one open issue.
 Historical observations such as RL-030 remain in
 `docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md`; this ledger retains the original issue descriptions and records current status in `known-issues.json`.
 
@@ -2074,6 +2075,7 @@ retained as supplemental evidence. The standalone acquisition row also no
 longer selects l112/l124, consistent with the existing RL-310/RL-311 workarounds.
 No Requirements Lab resynchronization was performed.
 
+
 ### RL-379 — Page-216 §9.1.1 region-dimension candidate drops its subject and merges the next rule (resolved in Lab)
 
 The candidate
@@ -2431,3 +2433,21 @@ enabled. Mapping checks pass for the original sender-transition lanes and the
 four embedded service-family matrix lanes. This is a Requirements Lab
 extraction/usability defect, not IEEE errata or provider-conformance evidence.
 No Requirements Lab resynchronization was performed.
+
+### RL-392 — TAR backward-time precondition and exception remain absent after NMRA counterpart repair
+
+The pinned corpus has the page-194 §8.8 service candidates but no candidate
+for §8.8.3(d), which requires the requested time to be at least the joined
+federate's current logical time, or §8.8.5(a), which names
+`LogicalTimeAlreadyPassed`. The full 2025 semantic source shows the precondition
+on page 194 and the exception on page 195. This is a separate TAR-service
+occurrence from the resolved RL-321 NMRA candidates; RL-321 is not rewritten.
+
+The official C++ case `umbra-cpp-flush-queue-request-integration` queries
+logical time 5 and then asserts that `TimeAdvanceRequest(4)` throws
+`LogicalTimeAlreadyPassed`. Keep that evidence mapped to canonical
+§8.8.3(d)/§8.8.5(a) without inventing a Requirements Lab requirement ID. The
+nearby general §8.8 candidates do not state the backward-time rejection rule.
+The canonical PDF was not independently checked; this is a Lab
+extraction/usability issue, not IEEE errata or conformance evidence. No Lab
+resynchronization was performed.

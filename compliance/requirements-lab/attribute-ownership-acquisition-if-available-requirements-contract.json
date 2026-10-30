@@ -8,7 +8,7 @@
     {
       "id": "umbra-acquisition-if-available-records-a-request-without-owner-release",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
-      "clause_id": "clause-7.9.1",
+      "clause_id": "clause-7.9",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
@@ -19,7 +19,7 @@
     {
       "id": "umbra-acquisition-if-available-preserves-pending-willing-to-acquire-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
-      "clause_id": "clause-7.9.1",
+      "clause_id": "clause-7.9",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
@@ -29,7 +29,7 @@
     {
       "id": "umbra-acquisition-if-available-notifies-after-atomic-ownership-assignment",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
-      "clause_id": "clause-7.7.3",
+      "clause_id": "clause-7.7",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable",
       "tests": [

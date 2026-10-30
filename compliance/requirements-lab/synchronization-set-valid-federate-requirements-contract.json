@@ -8,7 +8,7 @@
     {
       "id": "synchronization-set-designators-must-be-valid",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l77-17",
-      "clause_id": "clause-4.15",
+      "clause_id": "clause-4.14.3",
       "standard_section": "hla-1516.1-2025:clause-4.15",
       "tests": [
         "packages/hla-rti-cpp-tck/src/main.cpp::scenarioSynchronizationPoints",

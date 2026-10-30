@@ -2,4 +2,13 @@
 
 enum class RegionalInteractionAdvance { tar, nmr, nmra, unregulated_timestamp };
 
-void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind);
+struct RegionalInteractionOrderRow {
+  bool timestampPreferred;
+  bool senderRegulates;
+  bool timestampPresent;
+  bool receiverTimeConstrained = false;
+};
+
+void verifyProcessTsoRegionalInteraction(
+    RegionalInteractionAdvance requestKind,
+    RegionalInteractionOrderRow const* orderRow = nullptr);

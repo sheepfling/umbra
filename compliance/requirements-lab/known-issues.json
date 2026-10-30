@@ -3805,6 +3805,27 @@
       "reproduction": "Inspect page-178 layout and direct requirement_mappings in both portable TCK catalogs.",
       "verification": "The C++ and Java direct mapping audits report zero section disagreement against the pinned bundle.",
       "detected": "2026-10-26"
+    },
+    {
+      "id": "RL-392",
+      "status": "open",
+      "kind": "requirements-lab-missing-service-flow-candidates",
+      "title": "TAR backward-time precondition and exception remain absent after NMRA counterpart repair",
+      "affected_requirement_ids": [],
+      "exported_clause": "8.8",
+      "normative_clause": "8.8.3(d), 8.8.5(a)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-194.tex",
+        "lines": "§8.8.3(d) page 194; §8.8.5(a) page 195 lines 17-19",
+        "page": "194-195"
+      },
+      "symptom": "The pinned bundle has the general §8.8 service candidates from page 194 but no candidate for §8.8.3(d), which requires the specified logical time to be at least the joined federate's current logical time, or §8.8.5(a), which names Logical Time Already Passed. This is a separate TAR service occurrence from resolved RL-321's NMRA source rows; the older issue is not rewritten.",
+      "impact": "An official C++ test that requests TAR(4) after observing current logical time 5 cannot honestly map this rejected request and exception to a Lab requirement ID. Mapping it to a nearby general §8.8 service-introduction candidate would overstate that candidate. The exact standard subsection coverage must remain visible without inventing a requirement ID.",
+      "workaround": "Preserve all pinned IDs. Record the public API assertion against canonical §8.8.3(d)/§8.8.5(a) as full-text source evidence, leave it without a direct Lab requirement pair, and do not resynchronize or fabricate a candidate until the upstream Lab inputs change.",
+      "reproduction": "Compare all pinned hla-1516.1-2025 requirement records with clause 8.8 against the unchanged semantic page-194 and page-195 content blocks. The focused case `umbra-cpp-flush-queue-request-integration` confirms Query Logical Time is 5 and then asserts that Time Advance Request(4) throws LogicalTimeAlreadyPassed.",
+      "verification": "The pinned corpus contains page-194 §8.8 candidates for the service introduction, message set, callback routing, and grant, but none for §8.8.3(d) or §8.8.5(a). The reconstructed source has §8.8.3(d) at page 194 lines 42-44 and §8.8.5(a) at page 195 line 18. The canonical PDF was not independently checked; this is a Requirements Lab extraction/usability issue, not IEEE errata or conformance evidence. No Lab resynchronization was performed.",
+      "detected": "2026-10-29"
     }
   ]
 }

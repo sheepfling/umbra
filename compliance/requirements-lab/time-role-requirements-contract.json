@@ -31,7 +31,7 @@
     {
       "id": "umbra-embedded-time-regulation-callback-honors-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
-      "clause_id": "clause-8.3.1",
+      "clause_id": "clause-8.3",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
       "tests": [
@@ -57,7 +57,7 @@
     {
       "id": "umbra-embedded-time-regulation-callback-reports-current-logical-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l165-45",
-      "clause_id": "clause-8.3.1",
+      "clause_id": "clause-8.3",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
       "tests": [
@@ -157,7 +157,7 @@
     {
       "id": "umbra-embedded-query-lookahead-reads-actual-value",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-209-l75-19",
-      "clause_id": "clause-8.21.5",
+      "clause_id": "clause-8.21",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
       "tests": [

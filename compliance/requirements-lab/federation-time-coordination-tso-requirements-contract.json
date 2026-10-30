@@ -8,7 +8,7 @@
     {
       "id": "umbra-private-tso-coordinator-queues-pending-messages-per-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/time/federation_time_coordinator.cpp",
       "source_symbol": "FederationTimeCoordinator::beginTsoDelivery",
       "tests": [
@@ -19,7 +19,7 @@
     {
       "id": "umbra-private-tso-coordinator-retains-delivery-state-through-callback-completion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l23-7",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/time/federation_time_coordinator.cpp",
       "source_symbol": "FederationTimeCoordinator::completeTsoDelivery",
       "tests": [
@@ -40,7 +40,7 @@
     {
       "id": "umbra-private-tso-lits-uses-future-incoming-timestamps",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l121-40",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -51,7 +51,7 @@
     {
       "id": "umbra-private-tso-lits-is-undefined-only-with-no-galt-and-no-incoming-message",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -61,7 +61,7 @@
     {
       "id": "umbra-private-tso-retraction-stops-at-delivery-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/time/federation_time_coordinator.cpp",
       "source_symbol": "FederationTimeCoordinator::retractTsoMessage",
       "tests": [
@@ -72,7 +72,7 @@
     {
       "id": "umbra-private-tso-advance-clears-delivered-since-last-advance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l52-16",
-      "clause_id": "clause-8.12.3",
+      "clause_id": "clause-8.12",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTimeAdvanceGrant",
       "tests": [

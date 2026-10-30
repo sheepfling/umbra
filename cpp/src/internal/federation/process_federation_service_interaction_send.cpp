@@ -563,7 +563,9 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
                         : std::optional<std::uint64_t>(messageId)};
     if (queueTimestampedInteraction) {
       event.sentOrderType = rti1516_2025::TIMESTAMP;
-      event.receivedOrderType = rti1516_2025::TIMESTAMP;
+      // Time-constrained recipients were queued above; every event emitted
+      // here is received in RO even though the sender produced a TSO message.
+      event.receivedOrderType = rti1516_2025::RECEIVE;
     }
     event.defaultRegionUsed =
         resolvedRecipient.conveyRegionDesignatorSets && plan.defaultRegionUsed;
@@ -576,6 +578,25 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       }
     }
     events.push_back(std::move(event));
+  }
+
+  if (queueTimestampedInteraction && options_.pushReceiveOrderEvents) {
+    // These immediate events are RO at their nonconstrained recipients.
+    // Reserve each TSO identity before exposing the push frame, as the pull
+    // path does when it returns an event. The callback bridge still suppresses
+    // a retracted frame that has not entered the federate ambassador.
+    events.erase(
+        std::remove_if(
+            events.begin(),
+            events.end(),
+            [&](ProcessFederationInteractionEvent const& event) {
+              return !registry_.beginTsoInteractionCallback(
+                  sendRequest.federationName,
+                  event.receivingFederateId,
+                  messageId,
+                  true);
+            }),
+        events.end());
   }
 
   std::uint32_t recipientCount = 0U;

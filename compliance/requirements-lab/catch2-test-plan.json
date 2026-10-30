@@ -1986,6 +1986,69 @@
       "next_action": "This focused HLA_EVOKED/HLA_IMMEDIATE timestamped directed-interaction Delay Subscription Evaluation case is green with 166 assertions. Keep timestamped deferral separate from ordinary/direct regional, retraction, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact indexed work slice."
     },
     {
+      "id": "umbra-cpp-directed-tso-federation-unique-retraction-handle",
+      "primary_lane": "directed-tso-retraction-designator",
+      "focus_lane": "directed-tso-retraction-designator",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
+        "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.publishobjectclassattributes.f9f6fdeb6157",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+        "api.2025.cpp.rtiambassador.publishobjectclassdirectedinteractions.39b5cf61292d",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassdirectedinteractions.4c460a3c84d8",
+        "api.2025.cpp.rtiambassador.registerobjectinstance.dfc149295a7d",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+        "api.2025.cpp.rtiambassador.senddirectedinteraction.720bb338b990",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.federateambassador.timeregulationenabled.ff68bfc39f00"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-126-l179-50"
+      ],
+      "test_case": "Embedded TSO-preferred directed sends return federation-unique retraction handles",
+      "source_location": "cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:300",
+      "callback_models": ["HLA_IMMEDIATE"],
+      "assertions": 47,
+      "delivery_modes": [
+        "timestamped-directed-interaction-send-by-two-time-regulating-federates",
+        "federation-unique-message-retraction-designators"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-6.14"],
+      "tags": [
+        "integration",
+        "development-profile",
+        "interaction-management",
+        "directed",
+        "time-management",
+        "tso",
+        "retraction-handle-uniqueness",
+        "rti.service.enable-time-regulation",
+        "rti.service.send-directed-interaction",
+        "federate.callback.time-regulation-enabled",
+        "directed-tso-retraction-designator",
+        "lane.directed-tso-retraction-designator",
+        "requirement:hla-1516.1-2025:clause-6.14",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "verification_status": "passed-focused-minGW-ctest",
+      "requirements_lab_api_surface_status": "Direct mapping: requirement-candidate-content-clauses-06-object-management-page-126-l179-50 -> IEEE 1516.1-2025 §6.14. The focused public C++ case uses a FOM-declared TimeStamp-preferred directed interaction and two independently joined, time-regulating senders. Each successful timestamped send returns a valid handle and the handles differ, demonstrating federation-wide uniqueness in this bounded embedded profile. This is focused implementation evidence, not Requirements-Lab validation, interoperability, or conformance.",
+      "ctest_target": "umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2",
+      "ctest_filter": "^umbra\\.delay_subscription_evaluation_timestamped_directed_interaction\\.catch2\\.Embedded TSO-preferred directed sends return federation-unique retraction handles$",
+      "ctest_label": "retraction-handle-uniqueness",
+      "next_action": "The focused MinGW CTest passed 1/1 with 47 assertions. Keep this clause-6.14 result bounded to embedded timestamped directed sends by two regulating federates; it does not establish uniqueness for other timestamped service families, distributed interoperability, validation, or conformance."
+    },
+    {
       "id": "umbra-cpp-fom-edition-setting-ambiguous-rejected-unit",
       "selected_requirements_lab_requirement_ids": [],
       "test_case": "The FOM edition setting reports an unparseable 202x spelling without aborting Connect",
@@ -2340,6 +2403,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3",
         "hla-1516.1-2025:clause-8.3.1",
         "hla-1516.1-2025:clause-8.8"
       ],
@@ -2451,7 +2515,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
         "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
         "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-        "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
         "requirement-candidate-content-clauses-08-time-management-page-201-l40-12"
       ],
       "test_case": "RTIambassadors deliver multiple queued timestamped process messages in order through Flush Queue",
@@ -2507,21 +2571,24 @@
       "primary_lane": "process-flush-queue-multiple-records",
       "focus_lane": "fqr-all-queued-tso",
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.59.4",
         "hla-1516.1-2025:clause-4",
-        "hla-1516.1-2025:clause-6.13",
-        "hla-1516.1-2025:clause-8.2",
-        "hla-1516.1-2025:clause-8.12",
-        "hla-1516.1-2025:clause-8.12.3",
-        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-4.1",
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-6.12",
-        "hla-1516.1-2025:clause-10.59.4",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.22",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
         "hla-1516.1-2025:clause-8.8"
       ],
-      "requirements_lab_api_surface_status": "This focused two-federate process case queues timestamped interactions at 5, 8, exactly the requested Flush Queue time 10, and future timestamp 12; timestamp 14 is retracted before FQR. For both HLA_EVOKED and HLA_IMMEDIATE, the first FQR(10) delivers all four still-queued interactions (5, 8, 10, 12) in timestamp order before its grant, and the retracted identity is absent. A second FQR(20) delivers no duplicate TSO and reports actual/optimistic time 9/20. It checks the official interaction, producer, parameter, Retract, order, actual/optimistic time, and Query Logical Time surfaces. This is private development-profile evidence, not distributed interoperability, package/JUnit, protected review, validation, or conformance evidence.",
-      "next_action": "Verified by the focused MinGW CTest for `fqr-all-queued-tso` (1/1) after rebuilding the connection target. Both callback models deliver already-queued timestamps 5, 8, 10, and 12 before the first FQR grant; retracted timestamp 14 is absent; the second FQR emits no duplicate and reports actual/optimistic time 9/20. Direct mapping includes page 200 l131-38 -> IEEE 1516.1-2025 §8.12. Post-submission and in-transit arrivals, regional or directed TSO, package/JUnit/protected review, interoperability, validation, and conformance remain separate."
+      "requirements_lab_api_surface_status": "This focused two-federate process case queues timestamped interactions at 5, 8, exactly the requested Flush Queue time 10, and future timestamp 12; timestamp 14 is retracted before FQR. For both HLA_EVOKED and HLA_IMMEDIATE, the first FQR(10) delivers all four still-queued interactions (5, 8, 10, 12) in timestamp order before its grant, and the retracted identity is absent. A second FQR(20) delivers no duplicate TSO and reports actual/optimistic time 9/20. It checks the official interaction, producer, parameter, Retract, order, actual/optimistic time, and Query Logical Time surfaces. The pre-frontier removal maps to §8.23's queued-message dequeue rule; this case does not claim the §8.22 statement about Request Retraction callbacks for messages already delivered. The broader §4, §8.12.3, and §8.22.3 entries are parent/setup or satisfied-precondition scope, not complete subsection coverage. This is private development-profile evidence, not distributed interoperability, package/JUnit, protected review, validation, or conformance evidence.",
+      "next_action": "Verified by the focused MinGW CTest for `fqr-all-queued-tso` (1/1) after rebuilding the connection target. Both callback models deliver already-queued timestamps 5, 8, 10, and 12 before the first FQR grant; retracted timestamp 14 is absent; the second FQR emits no duplicate and reports actual/optimistic time 9/20. Direct mapping includes page 200 l131-38 -> IEEE 1516.1-2025 §8.12 and page 211 l89-23 -> §8.23. The previous page 210 l30-6 -> §8.22 mapping is excluded because that statement concerns retraction after delivery. Post-submission and in-transit arrivals, regional or directed TSO, package/JUnit/protected review, interoperability, validation, and conformance remain separate."
     },
     {
       "id": "umbra-cpp-process-query-time-bounds-immediate-integration",
@@ -2576,6 +2643,7 @@
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19"
       ],
@@ -2651,8 +2719,10 @@
         "hla-1516.1-2025:clause-8.21.5",
         "hla-1516.1-2025:clause-11.5.1",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
-        "hla-1516.1-2025:clause-8.19"
+        "hla-1516.1-2025:clause-8.19",
+        "hla-1516.1-2025:clause-8.21"
       ],
       "requirements_lab_api_surface_status": "The focused two-federate process companion exercises official time-regulation and Query GALT/LITS APIs under HLA_IMMEDIATE, proving the regulator's undefined bounds and the observer's available lookahead as GALT/LITS. It also queries the regulating federate's lookahead. With service reporting enabled and the file destination selected for both members, the case checks successful HLAreportServiceInvocation file records for QueryGALT and QueryLITS (Null for undefined bounds and LogicalTime returns for the observer), and QueryLookahead (LogicalTimeInterval named Lookahead with value 1). Time-bound semantics map directly to clauses 8, 8.1.5, 8.18.1, and 8.19.3; Query Lookahead semantics map to clauses 8.2 and 8.21.5; the service-report payload maps directly to clause 11.5.1. This is private process-profile implementation evidence, not validation or conformance. Queued/in-transit TSO inputs, grant scheduling, save/restore, package/JUnit, interoperability, and conformance remain separate evidence lanes.",
       "next_action": "Keep the two-federate GALT/LITS/Lookahead return and file-report records green beside the undefined-bound immediate baseline. The next adjacent process gap is successful ModifyLookahead service reporting; resolve its direct standard mapping and the deferred-return contract before extending this lane. Queued/in-transit TSO, zero-lookahead epsilon, role/resignation churn, save/restore, package/JUnit/protected-review evidence, interoperability, validation, and conformance remain separate slices."
@@ -2725,6 +2795,7 @@
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19"
       ],
@@ -2792,6 +2863,7 @@
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19"
       ],
@@ -4528,6 +4600,7 @@
         "hla-1516.1-2025:clause-4.14",
         "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21",
         "hla-1516.1-2025:clause-4.21.1",
         "hla-1516.1-2025:clause-4.22",
         "hla-1516.1-2025:clause-4.23",
@@ -5534,7 +5607,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "requirements_lab_api_surface_status": "Verified 2026-10-22: an official C++ HLA_EVOKED case exercises all eight §8.1.4 Table 2 combinations through Send Interaction With Regions using an explicit source region overlapping the receiver's subscription. It sends four non-timestamped and four timestamped interactions while changing preferred order and sender time-regulation state. Seven rows are received in RECEIVE order; only TIMESTAMP preference plus active regulation plus a supplied timestamp is sent and received in TIMESTAMP order and returns a valid retraction handle. The three timestamped RECEIVE rows preserve their supplied time in the timed callback but carry RECEIVE/RECEIVE order and no retraction handle. The single TSO row remains queued until the receiver's advance and is delivered before its matching grant. Direct mappings cover §8.1.4 page 180 lines 69, 72, 87, 114, 132, and 150; the page-181 line-115 candidate is the Table 2 caption tracked under RL-387, and page-180 line 93 remains a continuation tracked under RL-332, neither counted as an independent behavior. MinGW shared test group built at 53,579,830 bytes with zero DWARF; exact CTest passed 1/1 and direct Catch2 reported 138 assertions. This is embedded development-profile evidence, not process parity, Requirements Lab validation, interoperability, or conformance.",
-      "next_action": "Verified: the complete eight-row embedded regional-send matrix closes RL-387's separate Send Interaction With Regions test gap, and one configured-process cell now covers an unregulated sender with TIMESTAMP preference and a supplied timestamp. The process case is partial parity only; do not infer the other seven process cells, general DDM, validation, interoperability, or conformance."
+      "next_action": "The separate configured-process matrix now exercises all eight sent-order rows, and a second process case checks TSO-to-RO conversion at a nonconstrained receiver. Keep those HLA_EVOKED polling-fixture results distinct from general DDM, push delivery, validation, interoperability, and conformance."
     },
     {
       "id": "umbra-cpp-process-regional-send-unregulated-timestamp-order",
@@ -5608,7 +5681,206 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "requirements_lab_api_surface_status": "The configured-process public API connects two RTI clients to one authoritative local process service. The sender leaves time regulation disabled, selects TIMESTAMP as the preferred interaction order, and supplies timestamp 5 to a regional send. The receiver gets the supplied timestamp through the timestamped callback overload with RECEIVE/RECEIVE order and no retraction handle; no TSO grant is asserted. This is one process Table 2 cell, not full process parity or conformance evidence.",
-      "next_action": "The exact case passed in both the grouped process runner and the dedicated connection runner, and its C++ assertions map directly to IEEE 1516.1-2025 §8.1.4. Keep the other process Table 2 cells unclaimed; choose another exact gap only when the roadmap selects it."
+      "next_action": "This individual unregulated-sender case remains a focused regression. The separate process matrix now checks all eight sent-order rows; the receiver-order conversion case independently covers a nonconstrained recipient of sent TSO."
+    },
+    {
+      "id": "umbra-cpp-process-regional-interaction-order-classification-matrix",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.getconveyregiondesignatorsetsswitch.16eeaa9c4436",
+        "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.disablecallbacks.d279fd678306",
+        "api.2025.cpp.rtiambassador.enablecallbacks.a4711464793a",
+        "api.2025.cpp.rtiambassador.sendinteractionwithregions.1f6b7ed34513",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l114-35",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l132-41",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l150-47"
+      ],
+      "test_case": "Process regional Send Interaction follows all eight Table 2 order-classification rows",
+      "primary_lane": "regional-interaction-order-classification-matrix",
+      "focus_lane": "process-regional-interaction-order-classification-matrix",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp:88",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Process regional Send Interaction follows all eight Table 2 order-classification rows$",
+      "assertions": 465,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "eight-preferred-order-regulation-timestamp-combinations",
+        "regional-receive-order-untimestamped-and-timestamped",
+        "regional-timestamp-order-before-grant",
+        "configured-process-polling-endpoint"
+      ],
+      "callback_gate_modes": ["disabled-queued-reenabled"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "tags": [
+        "integration", "development-profile", "2025", "data-distribution-management",
+        "interaction-management", "time-management", "process-boundary", "public-endpoint",
+        "regional-interaction-order-classification-matrix",
+        "process-regional-interaction-order-classification-matrix",
+        "rti.service.send-interaction-with-regions",
+        "rti.service.change-interaction-order-type",
+        "rti.service.enable-time-regulation", "rti.service.enable-time-constrained",
+        "rti.service.time-advance-request", "rti.service.evoke-callback",
+        "federate.callback.receive-interaction", "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "The public C++ HLA_EVOKED fixture exercises all eight §8.1.4 Table 2 sent-order combinations over one configured local process-transport service. It checks callback overload, payload, tag, conveyed region, order, time and retraction identity; the TSO row is delivered before its grant. The receiver is constrained for the TSO row and nonconstrained for the RO rows; independent receiver-state conversion is covered by a separate case. This does not test the FDD default, push delivery, HLA_IMMEDIATE, independent processes, interoperability, validation or conformance.",
+      "next_action": "Keep the matrix and the separate nonconstrained-recipient polling and push retraction cases green; their scopes remain bounded."
+    },
+    {
+      "id": "umbra-cpp-process-regional-interaction-receiver-order-conversion",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.getconveyregiondesignatorsetsswitch.16eeaa9c4436",
+        "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.sendinteractionwithregions.1f6b7ed34513",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4"
+      ],
+      "test_case": "Process regional sent TSO interaction is received in receive order by a nonconstrained federate",
+      "primary_lane": "process-regional-interaction-receiver-order-conversion",
+      "focus_lane": "process-regional-interaction-receiver-order-conversion",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp:111",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Process regional sent TSO interaction is received in receive order by a nonconstrained federate$",
+      "assertions": 59,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": [
+        "regional-sent-timestamp-order-received-receive-order",
+        "nonconstrained-receiver",
+        "matching-retraction-designator",
+        "process-delivery-acknowledgement",
+        "configured-process-polling-endpoint"
+      ],
+      "callback_gate_modes": [],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "tags": [
+        "integration", "development-profile", "2025", "data-distribution-management",
+        "interaction-management", "time-management", "process-boundary", "public-endpoint",
+        "process-regional-interaction-receiver-order-conversion",
+        "rti.service.send-interaction-with-regions",
+        "rti.service.change-interaction-order-type",
+        "rti.service.enable-time-regulation", "rti.service.evoke-callback",
+        "federate.callback.receive-interaction"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "A regulating sender transmits one timestamped regional interaction in TSO; a nonconstrained receiver gets the timed callback with sent TIMESTAMP and received RECEIVE, the same valid retraction designator, payload, tag and conveyed region. The process service also receives the delivery acknowledgement. The case failed before the order-metadata fix and passed afterward. This is one local HLA_EVOKED polling route, not push-mode, mixed-recipient, HLA_IMMEDIATE, interoperability, validation or conformance evidence.",
+      "next_action": "Keep this polling case green alongside the separately mapped push-mode before-and-after retraction case; neither establishes general transport conformance."
+    },
+    {
+      "id": "umbra-cpp-process-regional-interaction-receiver-order-conversion-push",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.sendinteractionwithregions.1f6b7ed34513",
+        "api.2025.cpp.rtiambassador.retract.d2de2342935e",
+        "api.2025.cpp.rtiambassador.disablecallbacks.d279fd678306",
+        "api.2025.cpp.rtiambassador.enablecallbacks.a4711464793a",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.federateambassador.requestretraction.071956ceac30",
+        "api.2025.cpp.federateambassador.timeregulationenabled.ff68bfc39f00",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+        "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23"
+      ],
+      "test_case": "Process pushed regional sent TSO interaction is received in receive order by a nonconstrained federate",
+      "primary_lane": "process-regional-interaction-receiver-order-conversion-push",
+      "focus_lane": "process-regional-interaction-receiver-order-conversion-push",
+      "source_location": "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp:270",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Process pushed regional sent TSO interaction is received in receive order by a nonconstrained federate$",
+      "assertions": 58,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": ["push", "regional-sent-timestamp-order-received-receive-order", "nonconstrained-receiver", "retraction-before-and-after-callback"],
+      "callback_gate_modes": ["disabled-queued-reenabled"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4", "hla-1516.1-2025:clause-8.22", "hla-1516.1-2025:clause-8.23"],
+      "tags": ["integration", "development-profile", "2025", "data-distribution-management", "interaction-management", "time-management", "retraction", "process-boundary", "public-endpoint", "process-regional-interaction-receiver-order-conversion-push", "rti.service.send-interaction-with-regions", "rti.service.retract", "rti.service.enable-time-regulation", "rti.service.disable-callbacks", "rti.service.enable-callbacks", "rti.service.evoke-callback", "federate.callback.receive-interaction", "federate.callback.request-retraction"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "Local push service and HLA_EVOKED public C++ test check sent TSO received RO by a nonconstrained recipient, metadata and retraction before and after callback admission. Exact callback counts are bounded implementation evidence. This does not establish mixed-recipient fanout, HLA_IMMEDIATE, independent OS processes, validation or conformance.",
+      "next_action": "Keep this bounded HLA_EVOKED public case and its separately dispositioned internal push-ledger case green. The shared MinGW aggregate passed on 2026-10-29; continue mapping the explicit-versus-derived section discrepancies one exact C++ case at a time. This case does not establish mixed-recipient fanout, HLA_IMMEDIATE, independent OS-process interoperability, validation, or conformance."
+    },
+    {
+      "id": "umbra-cpp-process-pushed-regional-tso-ro-delivery-ledger",
+      "selected_cpp_api_surface_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "test_case": "Private process push reserves regional TSO-to-RO interaction delivery",
+      "primary_lane": "process-pushed-regional-tso-ro-delivery-ledger",
+      "focus_lane": "process-pushed-regional-tso-ro-delivery-ledger",
+      "source_location": "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp:282",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Private process push reserves regional TSO-to-RO interaction delivery$",
+      "assertions": 64,
+      "callback_models": ["HLA_EVOKED"],
+      "delivery_modes": ["push", "internal-delivery-ledger"],
+      "callback_gate_modes": ["disabled-queued-reenabled"],
+      "standard_sections": [],
+      "tags": ["unit", "internal-only", "no-normative-mapping", "2025", "process-boundary", "process-pushed-regional-tso-ro-delivery-ledger"],
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "Private ledger invariant uses internal handle decoding and a delivery-reservation probe. It failed before the push-boundary fix and passed afterward; it is not standalone normative evidence.",
+      "next_action": "Keep this private witness explicitly unmapped; use the separate public case for normative evidence."
     },
     {
       "id": "umbra-cpp-live-tso-regional-interaction-restore-integration",
@@ -15919,14 +16191,12 @@
       "selected_requirements_lab_requirement_ids": [
         "req-federate-connection-lost",
         "req-connection-lost-service-behavior",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
         "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
         "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
         "hla-1516.1-2025:clause-4.4",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-10.44",
         "hla-1516.1-2025:clause-10.45.3"
       ],
@@ -15958,7 +16228,7 @@
       "ctest_label": "connection-lost-no-action-policy",
       "status": "implemented-in-noninstallable-development-profile",
       "requirements_lab_api_surface_status": "The focused case exercises the Connection Lost branch of the page-040 federate-lifetime passage: it applies the configured NO_ACTION automatic resign directive, observes Connection Lost, and queries execution membership to prove the previously joined federate is no longer joined. The paragraph also describes other forced-exit causes and normal resignation/disconnect sequencing, which this case does not claim to cover. The deterministic embedded transport-fault hook is internal stimulus; the reported callback, directive effect, and membership state are public behavior. The scenario-specific NO_ACTION ownership policy remains development-profile behavior, not Requirements Lab validation or conformance evidence.",
-      "next_action": "This HLA_EVOKED case proves federation membership changes from two members to one after Connection Lost using the official list/report Federation Execution Members services, alongside the configured NoAction forced-resign policy. The broad page-40 candidate remains unmapped under RL-373 because its Lab text is truncated and merges distinct lifecycle obligations. Other forced-exit causes, remaining directives, HLA_IMMEDIATE behavior, remote transport, packaged consumer tests, and protected review remain open."
+      "next_action": "The narrowed page-059-l8-1 candidate concerns ownership-assumption search, not this no-action loss scenario. This HLA_EVOKED case proves federation membership changes from two members to one after Connection Lost using the official list/report Federation Execution Members services, alongside the configured NoAction forced-resign policy. The broad page-40 candidate remains unmapped under RL-373 because its Lab text is truncated and merges distinct lifecycle obligations. Other forced-exit causes, remaining directives, HLA_IMMEDIATE behavior, remote transport, packaged consumer tests, and protected review remain open."
     },
     {
       "id": "umbra-cpp-connection-lost-final-federate-directive-two-integration",
@@ -15977,10 +16247,10 @@
         "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "req-federate-connection-lost",
         "req-connection-lost-service-behavior",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
         "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
@@ -15990,7 +16260,6 @@
         "hla-1516.1-2025:clause-4.1.1",
         "hla-1516.1-2025:clause-4.4",
         "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3",
         "hla-1516.1-2025:clause-10.44",
@@ -16023,8 +16292,8 @@
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded final-federate transport loss forces directive two$",
       "ctest_label": "connection-lost-final-federate-directive-two",
       "status": "implemented-in-noninstallable-development-profile",
-      "requirements_lab_api_surface_status": "The direct standard mappings cover the Connection Lost transition, final-federate resignation override, automatic-resign directive services, and the object-name deletion/reuse behavior (\u00a7\u00a74.1.1, 4.4, 4.12, 4.12.4, 6.2, 6.3, 10.44, 10.45.3). The embedded deterministic transport-fault hook is test-only. This HLA_EVOKED development-profile case does not establish remote transport coverage, HLA_IMMEDIATE behavior, or conformance.",
-      "next_action": "Keep the final-federate forced-directive-two case separate from ordinary nonfinal connection loss. Add independent HLA_IMMEDIATE and remote-transport evidence, cover remaining directive variants, and complete packaged consumer tests and protected review before any conformance claim."
+      "requirements_lab_api_surface_status": "The direct standard mappings cover the Connection Lost transition, automatic-resign directive services, and the object-name deletion/reuse behavior (\u00a7\u00a74.1.1, 4.4, 4.12, 4.12.4, 6.2, 6.3, 10.44, 10.45.3). The embedded deterministic transport-fault hook is test-only. This HLA_EVOKED development-profile case does not establish remote transport coverage, HLA_IMMEDIATE behavior, or conformance.",
+      "next_action": "The split page-059-l8-1-last-federate candidate directly maps the §4.12 directive-two rule. Keep the final-federate forced-directive-two case separate from ordinary nonfinal connection loss. Add independent HLA_IMMEDIATE and remote-transport evidence, cover remaining directive variants, and complete packaged consumer tests and protected review before any conformance claim."
     },
     {
       "id": "umbra-cpp-connection-lost-no-action-policy-immediate-integration",
@@ -17194,9 +17463,9 @@
         "api.2025.cpp.federateambassador.objectinstancenamereservationsucceeded.311ec07d3cd3"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "req-federate-disconnect-after-resign",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
@@ -17221,17 +17490,17 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4",
         "hla-1516.1-2025:clause-4.1.1",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3"
       ],
       "ctest_target": "umbra_federate_lifetime_disconnect_catch2",
       "ctest_filter": "Embedded final-federate resignation applies directive two regardless of the supplied action",
       "ctest_label": "federate-lifetime-disconnect",
-      "requirements_lab_api_surface_status": "Directly maps req-federate-disconnect-after-resign to IEEE 1516.1-2025 §4.1.1: after the final resignation and federation cleanup, the scenario has no further join/create intent and invokes Disconnect. The incomplete page-40 candidate l54-15 remains uncovered under RL-383. The same case separately covers §4.12.4 final-federate directive-two object-name behavior; it does not establish coverage for other forced-exit causes, transport profiles, package validation, or full conformance.",
-      "next_action": "Add independent ordinary resign/disconnect and forced-exit/disconnect evidence where needed; keep page-40 candidate l54-15 uncovered under RL-383 and do not infer these variants from the final-federate case."
+      "requirements_lab_api_surface_status": "Directly maps req-federate-disconnect-after-resign to IEEE 1516.1-2025 §4.1.1: after the final resignation and federation cleanup, the scenario has no further join/create intent and invokes Disconnect. The incomplete page-40 candidate l54-15 remains uncovered under RL-383. The source §4.12 final-federate directive-two behavior is directly mapped to its split candidate; it does not establish coverage for other forced-exit causes, transport profiles, package validation, or full conformance.",
+      "next_action": "The split page-059-l8-1-last-federate candidate directly maps the §4.12 directive-two rule. Add independent ordinary resign/disconnect and forced-exit/disconnect evidence where needed; keep page-40 candidate l54-15 uncovered under RL-383 and do not infer these variants from the final-federate case."
     },
     {
       "id": "umbra-cpp-resign-action-nonfinal-disconnect-integration",
@@ -17339,8 +17608,8 @@
         "api.2025.cpp.federateambassador.objectinstancenamereservationsucceeded.311ec07d3cd3"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
@@ -17362,7 +17631,7 @@
         "federate.callback.object-instance-name-reservation-succeeded"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This standalone directive-two final-member slice is green with 22 Catch2 assertions. Keep mixed non-privileged ownership, all action combinations, package/JUnit/protected-review evidence, and conformance separate from this development-profile traceability/runtime evidence."
+      "next_action": "The split page-059-l8-1-last-federate candidate directly maps the §4.12 directive-two rule. This standalone directive-two final-member slice is green with 22 Catch2 assertions. Keep mixed non-privileged ownership, all action combinations, package/JUnit/protected-review evidence, and conformance separate from this development-profile traceability/runtime evidence."
     },
     {
       "id": "umbra-cpp-resign-action-assumption-publication-continuation-integration",
@@ -17454,6 +17723,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-051-l23-4"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.2",
         "hla-1516.1-2025:clause-4.2.4"
       ],
       "test_case": "Embedded Connect falls back to its default configuration for absent and unknown names",
@@ -17525,6 +17795,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-051-l28-5"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.2",
         "hla-1516.1-2025:clause-4.2.4"
       ],
       "test_case": "Embedded Connect completes when an optional additional setting cannot be parsed",
@@ -17729,8 +18000,9 @@
         "hla-1516.1-2025:clause-4.14",
         "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.21.1",
-        "hla-1516.1-2025:clause-4.20"
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-4.21",
+        "hla-1516.1-2025:clause-4.21.1"
       ],
       "test_case": "RTIambassadors carry untimed federation save callbacks through the configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:476",
@@ -18091,8 +18363,10 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21",
         "hla-1516.1-2025:clause-4.21.1",
         "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.25",
         "hla-1516.1-2025:clause-4.25.6",
         "hla-1516.1-2025:clause-4.26"
       ],
@@ -18144,6 +18418,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.24",
         "hla-1516.1-2025:clause-4.24.3"
       ],
       "test_case": "RTIambassadors carry federation save abort through the configured process endpoint",
@@ -18851,7 +19126,9 @@
         "hla-1516.1-2025:clause-4.14",
         "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.16",
+        "hla-1516.1-2025:clause-4.17",
         "hla-1516.1-2025:clause-4.17.1",
+        "hla-1516.1-2025:clause-4.18",
         "hla-1516.1-2025:clause-4.18.2",
         "hla-1516.1-2025:clause-4.1.3"
       ],
@@ -18914,7 +19191,9 @@
         "hla-1516.1-2025:clause-4.14",
         "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.16",
+        "hla-1516.1-2025:clause-4.17",
         "hla-1516.1-2025:clause-4.17.1",
+        "hla-1516.1-2025:clause-4.18",
         "hla-1516.1-2025:clause-4.18.2",
         "hla-1516.1-2025:clause-4.1.3"
       ],
@@ -19402,9 +19681,11 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-6.14",
         "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15",
         "hla-1516.1-2025:clause-6.15.1"
       ],
       "primary_lane": "process-directed-interaction-routing",
@@ -19475,11 +19756,14 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.1.1",
         "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-6.13",
         "hla-1516.1-2025:clause-6.14",
         "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15",
         "hla-1516.1-2025:clause-6.15.1"
       ],
       "primary_lane": "process-directed-interaction-multi-recipient",
@@ -19531,20 +19815,12 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-081-l134-41",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
-        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
         "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
         "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
-        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
-        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-        "requirement-candidate-content-clauses-06-object-management-page-125-l97-28",
-        "requirement-candidate-content-clauses-06-object-management-page-125-l112-33",
         "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
         "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
         "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-        "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-        "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23"
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
       ],
       "test_case": "RTIambassador delivers a directed interaction through the official Evoke callback surface",
       "tags": [
@@ -19593,17 +19869,16 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.1.1",
         "hla-1516.1-2025:clause-6.1.2",
         "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-6.14",
         "hla-1516.1-2025:clause-6.14.3",
-        "hla-1516.1-2025:clause-6.15.1",
-        "hla-1516.1-2025:clause-6.13",
-        "hla-1516.1-2025:clause-8.22.3",
-        "hla-1516.1-2025:clause-8.23.3"
+        "hla-1516.1-2025:clause-6.15",
+        "hla-1516.1-2025:clause-6.15.1"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "next_action": "This focused public process-boundary case composes the dedicated 2025 directed FOM, declares target publication/subscription through the endpoint, registers the target, and proves that official FederateAmbassador callbacks preserve discovery-before-directed-delivery ordering, target identity, producer, transportation, and tag under both HLA_EVOKED and HLA_IMMEDIATE. Its timestamped sections carry the HLAinteger64Time encoding through the timestamped Send Directed Interaction overload and official callback with RECEIVE order classifications and an execution-owned retraction identity. The paired timestamped-retraction-before-receive sections issue Retract before the receiver crosses its callback boundary and prove that the process request-retraction control event suppresses the pending directed delivery under both callback models. The paired timestamped-retraction-after-receive sections issue Retract after the receiver has crossed that boundary and prove exactly one legal official Request Retraction callback with the original handle under both callback models. Its callback-gating sections disable the receiver before admission, prove the directed event remains queued, and deliver it only after Enable Callbacks under both models. This remains private process-foundation evidence: the process profile has no time-regulation service and therefore does not claim regional/DDM, installable-package callback evidence, protected review, Lab validation, interoperability, or conformance."
+      "next_action": "This focused public process-boundary case composes the dedicated 2025 directed FOM, declares target publication/subscription through the endpoint, registers the target, and proves discovery-before-directed-delivery callback ordering, target identity, producer, transportation, and tag under HLA_EVOKED and HLA_IMMEDIATE. The selected FOM declares the interaction order as Receive; therefore the timestamp-argument, receive-order callback, and private retraction-control paths are implementation evidence, not normative TSO retraction or §§8.22.3/8.23.3 evidence. This case does not assert invalid-target rejection, cross-instance handle uniqueness, or initial attribute ownership. The process profile has no time-regulation service and remains private foundation evidence, not conformance. Next: add a focused C++ test for requirement-candidate-content-clauses-06-object-management-page-126-l179-50 (clause 6.14): use a TSO-preferred directed interaction and a time-regulating sender, then assert that timestamped Send Directed Interaction returns a federation-unique MessageRetractionHandle. Keep it in a time-management-capable profile and leave it uncovered until the public API test passes."
     },
     {
       "id": "umbra-cpp-process-object-retraction-callback-gate",
@@ -19932,6 +20207,7 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.5",
         "hla-1516.1-2025:clause-4.5.5"
       ],
       "requirements_lab_api_surface_status": "The native development-profile case exercises the official Create Federation Execution With MIM overload with a caller-supplied local 2025 MIM path, then verifies join and teardown. Its exact Requirements-Lab candidate is clause 4.5.5; custom-MIM interoperability, remote transport, package/JUnit/protected-review, validation, and conformance remain separate.",
@@ -22078,6 +22354,7 @@
         "file-appending-resumes-after-reenable"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-11.3.1",
         "hla-1516.1-2025:clause-11.4.1",
         "hla-1516.1-2025:clause-11.4.2",
         "hla-1516.1-2025:clause-11.6"
@@ -22210,6 +22487,7 @@
         "failed-subscription-preserves-reporting-switch"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-11.3.1",
         "hla-1516.1-2025:clause-11.4.1",
         "hla-1516.1-2025:clause-11.4.2",
         "hla-1516.1-2025:clause-11.5",
@@ -22717,6 +22995,7 @@
         "automatic-resign-directive-readback"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-11.3.1",
         "hla-1516.1-2025:clause-11.4.1",
         "hla-1516.1-2025:clause-11.4.2"
       ],
@@ -23300,7 +23579,7 @@
         "invalid-designator-exception-gates"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-10.3.3",
+        "hla-1516.1-2025:clause-10.3",
         "hla-1516.1-2025:clause-4.11"
       ],
       "requirements_lab_api_surface_status": "The native HLA_EVOKED regression exercises the official Get Federate Handle and Get Federate Name surfaces before membership, during active membership, and after a normal resignation. It maps the retained valid designator to the Lab's federate-management and support-service candidates and records source-backed development-profile evidence only; Connection Lost, restore, package/JUnit/protected review, validation, and conformance remain separate.",
@@ -23336,7 +23615,9 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.4",
         "hla-1516.1-2025:clause-10.4.6",
+        "hla-1516.1-2025:clause-10.5",
         "hla-1516.1-2025:clause-10.6.2"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Object Class Handle and Get Object Class Name surfaces before connection, after connection but before membership, after joining the 2025 Restaurant FOM, and after a compatible additional-FOM join. It verifies stable handles, name round-trips, missing-name and invalid-handle exceptions, and clean teardown. The exact 2025 Lab candidates are clause 10.4.6 and clause 10.6.2; package/JUnit, validation, remote transport, and conformance evidence remain separate.",
@@ -23372,7 +23653,9 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.13",
         "hla-1516.1-2025:clause-10.13.2",
+        "hla-1516.1-2025:clause-10.14",
         "hla-1516.1-2025:clause-10.14.5"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Interaction Class Handle and Get Interaction Class Name surfaces before connection, after connection but before membership, after joining the 2025 Restaurant FOM, and after a compatible additional-FOM join. It verifies stable handles, name round-trips, missing names, invalid handles, and clean teardown. The exact 2025 Lab candidates are clause 10.13.2 and clause 10.14.5; package/JUnit, validation, remote transport, and conformance evidence remain separate.",
@@ -23408,8 +23691,10 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-10.9.1",
-        "hla-1516.1-2025:clause-10.10.3"
+        "hla-1516.1-2025:clause-10.10",
+        "hla-1516.1-2025:clause-10.10.3",
+        "hla-1516.1-2025:clause-10.9",
+        "hla-1516.1-2025:clause-10.9.1"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Attribute Handle and Get Attribute Name surfaces before connection, after connection but before membership, after joining the 2025 Restaurant FOM, and after a compatible additional-FOM join. It verifies inherited attribute resolution, stable handles, name round-trips, NameNotFound, InvalidObjectClassHandle, InvalidAttributeHandle, AttributeNotDefined, and clean teardown. The exact 2025 Lab candidates are clause 10.9.1 and clause 10.10.3; package/JUnit, validation, remote transport, and conformance evidence remain separate.",
       "next_action": "This bounded lookup slice now has an independently buildable Catch2 lane, exact 2025 Lab requirement IDs, and subsection traceability. Add package/JUnit and protected-review evidence before making a validation or conformance claim."
@@ -23444,6 +23729,8 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.15",
+        "hla-1516.1-2025:clause-10.16",
         "hla-1516.1-2025:clause-10.16.1"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Parameter Handle and Get Parameter Name surfaces before connection, after connection but before membership, after joining the 2025 Restaurant FOM, and after a compatible additional-FOM join. It verifies inherited parameter resolution, stable handles, name round-trips, NameNotFound, InvalidInteractionClassHandle, InvalidParameterHandle, InteractionParameterNotDefined, and clean teardown. The exact 2025 Lab candidates are the two records in clause 10.16.1; package/JUnit, validation, remote transport, and conformance evidence remain separate.",
@@ -24270,13 +24557,18 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.8",
-        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-5.10",
         "hla-1516.1-2025:clause-5.10.2",
+        "hla-1516.1-2025:clause-5.14",
         "hla-1516.1-2025:clause-5.14.3",
+        "hla-1516.1-2025:clause-5.15",
         "hla-1516.1-2025:clause-5.15.3",
+        "hla-1516.1-2025:clause-5.16",
         "hla-1516.1-2025:clause-5.16.5",
-        "hla-1516.1-2025:clause-5.17.6"
+        "hla-1516.1-2025:clause-5.17",
+        "hla-1516.1-2025:clause-5.17.6",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-9.8"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official region-scoped object and interaction subscription services and the four RTI-initiated declaration advisory callbacks. It covers passive regional declarations, active-to-passive replacement with Stop Registration, independent active/passive state for two regions of one attribute, active transition/advisory delivery, region lifecycle setup, and active-to-unsubscribe Stop/Off transitions under HLA_EVOKED. This directly covers the \u00a79.8 passive-indicator no-Start, active-to-passive, and triple-basis boundaries; complete regional DDM routing, service-report ordering, remote/package evidence, Lab validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile",
@@ -24406,13 +24698,19 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-10.1.2.1",
+        "hla-1516.1-2025:clause-10.1.3",
+        "hla-1516.1-2025:clause-5.10",
         "hla-1516.1-2025:clause-5.10.2",
+        "hla-1516.1-2025:clause-5.14",
         "hla-1516.1-2025:clause-5.14.3",
+        "hla-1516.1-2025:clause-5.15",
         "hla-1516.1-2025:clause-5.15.3",
+        "hla-1516.1-2025:clause-5.16",
         "hla-1516.1-2025:clause-5.16.5",
+        "hla-1516.1-2025:clause-5.17",
         "hla-1516.1-2025:clause-5.17.6",
-        "hla-1516.1-2025:clause-10.1.3"
+        "hla-1516.1-2025:clause-5.8"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Start/Stop Registration For Object Class and Turn Interactions On/Off callback surfaces plus the object/interaction relevance advisory switch accessors. It directly covers two IEEE 1516.1-2025 \u00a710.1.3 statements: object-class relevance transitions are suppressed while the switch is disabled and are not replayed when re-enabled; new transitions after re-enable resume ordinary delivery. Existing mappings cover active/passive subscriptions, idempotent transitions, per-federate switch seeding, and HLA_EVOKED delivery. Regional declarations, generic MOM interaction delivery, update-rate enforcement, remote/package evidence, protected review, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile",
@@ -24465,12 +24763,17 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.14.3",
-        "hla-1516.1-2025:clause-5.15.3",
-        "hla-1516.1-2025:clause-5.16.5",
-        "hla-1516.1-2025:clause-5.17.6",
         "hla-1516.1-2025:clause-11.5",
-        "hla-1516.1-2025:clause-11.5.2"
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2",
+        "hla-1516.1-2025:clause-5.14",
+        "hla-1516.1-2025:clause-5.14.3",
+        "hla-1516.1-2025:clause-5.15",
+        "hla-1516.1-2025:clause-5.15.3",
+        "hla-1516.1-2025:clause-5.16",
+        "hla-1516.1-2025:clause-5.16.5",
+        "hla-1516.1-2025:clause-5.17",
+        "hla-1516.1-2025:clause-5.17.6"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the four official RTI-initiated declaration advisory callback surfaces while asserting the production filesystem-backed service-report boundary. It verifies the exact Table 5 object-class and interaction-class handle argument forms, per-file serial ordering, and durable-before-HLA_EVOKED callback ordering for Start Registration For Object Class, Stop Registration For Object Class, Turn Interactions On, and Turn Interactions Off. This is private service-report file evidence under the \u00a711.5/\u00a711.5.2 MOM clauses; public MOM interaction delivery, regional advisories, generic failure reports, remote/package evidence, protected review, Lab validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile",
@@ -25341,7 +25644,7 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.4"
+        "hla-1516.1-2025:clause-9.1.3.3"
       ],
       "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case creates a committed region containing a dimension unavailable to MainCourseServed, verifies Subscribe Interaction Class With Regions rejects it with InvalidRegionContext before any declaration is recorded, and then proves a valid ServerId region still delivers once. It remains development-profile traceability evidence; multi-dimensional overlap matrices, passive/active transitions, empty-set semantics, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, and conformance remain separate.",
       "next_action": "Keep available-dimension validation isolated from empty-set and positive routing siblings. Add broader interaction relationship matrices, passive/active, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance before broadening the DDM claim."
@@ -25392,7 +25695,7 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.4"
+        "hla-1516.1-2025:clause-9.1.3.3"
       ],
       "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case proves that empty Subscribe Interaction Class With Regions and Unsubscribe Interaction Class With Regions region sets are no-ops: an empty subscription does not create delivery, an empty unsubscription does not remove a live overlap route, and the corresponding non-empty unsubscription does. Its later non-empty subscription establishes the region-based receiving requirement for the interaction class, giving bounded evidence for \u00a79.1.4 l41. It remains development-profile traceability evidence; dimensional overlap matrices, passive/active transitions, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, and conformance remain separate.",
       "next_action": "Keep empty regional interaction-set no-op behavior isolated from the multi-region union and default/zero-dimensional siblings. Add broader interaction relationship matrices, passive/active, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, and conformance before broadening the DDM claim."
@@ -25544,7 +25847,7 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.4"
+        "hla-1516.1-2025:clause-9.1.3.3"
       ],
       "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case establishes a whole-class ordinary interaction subscription, verifies an ordinary send using the implicit default region is delivered, then invokes Unsubscribe Interaction Class and proves a later ordinary send is suppressed. This is bounded development-profile evidence for the \u00a79.1.4 default-region removal rule; regional overlap matrices, passive/active, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
       "next_action": "Keep whole-class default-region removal isolated from regional unsubscription, empty-set no-ops, and positive-dimensional routing. Add broader interaction relationship matrices, passive/active, timestamped/retraction, relaxed/direct DDM, transport, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance before broadening the DDM claim."
@@ -25609,7 +25912,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/default_region_interaction_routing_catch2.cpp:90",
-      "assertions": 61,
+      "assertions": 50,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -27641,6 +27944,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-9.8",
+        "hla-1516.1-2025:clause-9.8.3",
         "hla-1516.1-2025:clause-9.8.4"
       ],
       "source_location": "cpp/tests/passive_object_attribute_subscription_catch2.cpp:120",
@@ -27930,6 +28234,7 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.53.6",
         "hla-1516.1-2025:clause-10.55.1"
       ],
       "requirements_lab_api_surface_status": "The native development-profile case exercises the official Advisories Use Known Class switch getter for two joined federates, including an additional FOM contribution, and confirms the static policy remains shared. Its two direct mappings remain the exact IEEE 1516.1-2025 candidates in clause 10.55.1. Connection, FOM loading, federation creation, join, resign, destroy, and disconnect operations are internal setup/teardown, not additional normative evidence or selected API surfaces. Paired enabled/disabled policy consequences, remote/package/JUnit/protected-review, validation, and conformance remain separate.",
@@ -28365,14 +28670,20 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-1.5",
+        "hla-1516.1-2025:clause-4.31",
         "hla-1516.1-2025:clause-4.32",
         "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.1.9",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-9.1.4",
         "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13",
         "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-10.55",
         "hla-1516.1-2025:clause-10.55.1"
       ],
       "tags": [
@@ -35993,7 +36304,9 @@
       "callback_gate_modes": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.3",
         "hla-1516.1-2025:clause-7.3.4",
+        "hla-1516.1-2025:clause-7.6",
         "hla-1516.1-2025:clause-7.6.3",
         "hla-1516.1-2025:clause-7.8"
       ],
@@ -36054,6 +36367,7 @@
       ],
       "callback_gate_modes": [],
       "standard_sections": [
+        "hla-1516.1-2025:clause-7.1.4",
         "hla-1516.1-2025:clause-7.2"
       ],
       "tags": [
@@ -38765,6 +39079,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-10.20",
         "hla-1516.1-2025:clause-10.20.4"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Transportation Type Handle and Get Transportation Type Name surfaces before connection, after connection but before membership, and after joining the 2025 Restaurant FOM. It verifies the mandatory HLAreliable and HLAbestEffort name/handle pair, stable round-trips, invalid transportation-name and invalid-handle exceptions, and clean teardown. The exact 2025 Lab candidates are clause 10.19 and clause 10.20.4; custom transportation composition/delivery, package/JUnit, validation, remote transport, and conformance remain separate.",
@@ -38804,6 +39119,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-10.20",
         "hla-1516.1-2025:clause-10.20.4"
       ],
       "requirements_lab_api_surface_status": "The generic 2025 Get Transportation Type Handle and Get Transportation Type Name requirements apply to the declared FOM transportation name used by this case, not only to the two mandatory standard names. The aggregate scenario verifies execution-scoped handle identity and name round-trips across two joined federates; custom delivery, transportation-type changes, remote transport, package/JUnit, protected review, and conformance remain separate.",
@@ -39430,9 +39746,12 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-10.17",
         "hla-1516.1-2025:clause-10.17.4",
-        "hla-1516.1-2025:clause-10.19"
+        "hla-1516.1-2025:clause-10.18",
+        "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-8.1.11",
+        "hla-1516.1-2025:clause-8.2"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Order Type and Get Order Name surfaces across connection and membership guards, the mandatory Receive and TimeStamp legal pair, stable name/type round-trips, and invalid-name/type paths. The existing aggregate service-report case remains a separate integration check.",
       "status": "implemented-in-noninstallable-development-profile",
@@ -39482,7 +39801,9 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.24",
         "hla-1516.1-2025:clause-8.24.4",
+        "hla-1516.1-2025:clause-8.26",
         "hla-1516.1-2025:clause-8.26.4"
       ],
       "requirements_lab_api_surface_status": "Direct §8.1.4 factor evidence remains limited to the tested FOM-seeded default, class-default transitions, and per-instance override; callback assertions verify those choices determine sent/received order for timestamped attribute updates. The test now includes two publishers: after the second sets RECEIVE, the first changes its default back to TIMESTAMP; a later object owned by the second still reflects as sent/received RECEIVE without retraction, while the first publisher's later and per-instance-changed objects reflect as TIMESTAMP. This adds behavioral evidence for per-federate class-default isolation, but the page-213 Lab candidates are repaired under RL-374 and this case remains unmapped to them because it does not cover ownership transfer or object-class invocation scope. The public API case also checks RTIinternalError for an unsupported order value, ObjectClassNotDefined for an undefined class handle, and AttributeNotDefined when Efficiency is unavailable on Employee; the latter two argument checks remain supplemental after the RL-374 Lab repair and are not direct §8.25.3 coverage. The focused case also exercises publisher-scoped interaction order, legal Receive/TimeStamp delivery, and callback-driven teardown. No complete order matrix or conformance is claimed. The focused harness drains the runtime's legitimate Turn Updates On callback after registration; the aggregate case retains a stale no-callback expectation and is tracked separately.",
@@ -43063,8 +43384,8 @@
         "callback-model-parity"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.15.3",
-        "hla-1516.1-2025:clause-8.16.5"
+        "hla-1516.1-2025:clause-8.15",
+        "hla-1516.1-2025:clause-8.16"
       ],
       "requirements_lab_api_surface_status": "The native matrix runs the official Enable Asynchronous Delivery and Disable Asynchronous Delivery services under both HLA_EVOKED and HLA_IMMEDIATE. It verifies deferred receive-order callbacks are released only by the applicable callback gate or temporal transition, and maps the state transition to the Lab's exact 2025 time-management candidates. This is development-profile evidence only; generic asynchronous delivery, persistence, transport, package/JUnit/protected review, validation, and conformance remain separate.",
       "next_action": "The focused native regression now has an explicit asynchronous-delivery Lab mapping and 2025 subsection trace for both callback models. Keep generic, regional, persistence, package/JUnit/protected-review, validation, and conformance work separate."
@@ -47357,7 +47678,10 @@
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.10.5",
         "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
+        "hla-1516.1-2025:clause-8.10",
         "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-9.1.4",
         "hla-1516.1-2025:clause-8.8"
@@ -47593,7 +47917,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-203-l113-31"
       ],
       "test_case": "Embedded Flush Queue Request permits later lower TSO and retraction callbacks",
-      "source_location": "cpp/tests/flush_queue_future_input_catch2.cpp:379",
+      "source_location": "cpp/tests/flush_queue_future_input_catch2.cpp:474",
       "assertions": 89,
       "callback_models": [
         "HLA_EVOKED",
@@ -48531,7 +48855,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.2",
-        "hla-1516.1-2025:clause-8.18.1",
+        "hla-1516.1-2025:clause-8.18",
         "hla-1516.1-2025:clause-8.8",
         "hla-1516.1-2025:clause-8.14"
       ],
@@ -48716,6 +49040,7 @@
         "callback-ordering"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-8.10",
         "hla-1516.1-2025:clause-8.10.2"
       ],
       "requirements_lab_api_surface_status": "The native development-profile case selects an already queued timestamped interaction with Next Message Request and verifies delivery at timestamp 7 before the matching grant, including callback ordering and logical-time advancement. It maps to the two exact 2025 Requirements-Lab candidates in clause 8.10.2; dynamic future-message coordination, Flush Queue future-input handling, transport, save/restore, package support, validation, and conformance remain separate.",
@@ -49478,18 +49803,21 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/flush_queue_request_optimistic_time_catch2.cpp:140",
+      "source_location": "cpp/tests/flush_queue_request_optimistic_time_catch2.cpp:157",
       "assertions": 70,
       "callback_models": [
         "HLA_EVOKED"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.2",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-8.8.5",
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.13"
       ],
-      "requirements_lab_api_surface_status": "The standalone native C++ case directly exercises the official Flush Queue Request, Flush Queue Grant, and Receive Interaction surfaces. It verifies queued receive-order and timestamped interactions are delivered before the grant (including a timestamp beyond the request), actual grant 5 with optimistic time 7 when constrained by GALT, and matching actual/optimistic time 10 when GALT does not constrain the result. The first OLT value is min(FQR request 10, delivered TSO timestamps 7 and 12): this is directly mapped at the Requirements Lab's available clause-8 granularity for page-178 l93. It is also the FQR service-specific branch for page-178 l108; the paired TAR lane tests TAR's inclusive message set, and together they evidence only these two request types, not the complete time-advance-service matrix. The separate page-202 l107 result mapping remains §8.13 via RL-349; the pinned Lab export assigns it to §8.13.3 Preconditions. The case also checks logical-time progression and rejection of a request below the grant. Regional/future-input variants, save/restore, transport, package/JUnit, validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The standalone native C++ case directly exercises the official Flush Queue Request, Flush Queue Grant, and Receive Interaction surfaces. It verifies queued receive-order and timestamped interactions are delivered before the grant (including a timestamp beyond the request), actual grant 5 with optimistic time 7 when constrained by GALT, and matching actual/optimistic time 10 when GALT does not constrain the result. The first OLT value is min(FQR request 10, delivered TSO timestamps 7 and 12): this is directly mapped at the Requirements Lab's available clause-8 granularity for page-178 l93. It is also the FQR service-specific branch for page-178 l108; the paired TAR lane tests TAR's inclusive message set, and together they evidence only these two request types, not the complete time-advance-service matrix. The separate page-202 l107 result mapping remains §8.13 via RL-349; the pinned Lab export assigns it to §8.13.3 Preconditions. After Query Logical Time confirms actual time 5, this case verifies TAR(4) throws LogicalTimeAlreadyPassed. That directly exercises §8.8.3(d)/§8.8.5(a); the pinned Lab bundle has no candidate IDs for those statements (new issue RL-392), so these exact sections are listed without inventing a direct Lab pair. It does not test an FQR target below the post-FQG optimistic time. Regional/future-input variants, save/restore, transport, package/JUnit, validation, and conformance remain separate.",
       "next_action": "The portable C++ primary/contract pair now checks OLT=min(5,7) for two already-delivered TSO messages before FQR(10), plus OLT=request for an empty queue. Do not infer callback-start or future transport-arrival cutoffs. Continue with one separate direct 2025 public-API gap."
     },
     {
@@ -51233,17 +51561,17 @@
         "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "req-federate-connection-lost",
         "req-connection-lost-service-behavior",
         "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4",
         "hla-1516.1-2025:clause-4.1.1",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-4.4",
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3"
@@ -51275,7 +51603,7 @@
         "federate.callback.object-instance-name-reservation-succeeded"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This HLA_IMMEDIATE companion delivers Connection Lost and final-member directive-two cleanup synchronously, then reserves and reuses the deleted object's name in a fresh joined lifetime. Keep the HLA_EVOKED baseline, other automatic-resign directives, mixed ownership, remote transport, package/JUnit/protected-review evidence, Lab validation, and conformance separate."
+      "next_action": "The split page-059-l8-1-last-federate candidate directly maps the §4.12 directive-two rule. This HLA_IMMEDIATE companion delivers Connection Lost and final-member directive-two cleanup synchronously, then reserves and reuses the deleted object's name in a fresh joined lifetime. Keep the HLA_EVOKED baseline, other automatic-resign directives, mixed ownership, remote transport, package/JUnit/protected-review evidence, Lab validation, and conformance separate."
     },
     {
       "id": "umbra-cpp-connection-lost-error-path-integration",
@@ -53809,13 +54137,17 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-4.1",
         "hla-1516.1-2025:clause-6.13",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-9.10",
         "hla-1516.1-2025:clause-9.11.2",
+        "hla-1516.1-2025:clause-9.11",
+        "hla-1516.1-2025:clause-9.11.3",
         "hla-1516.1-2025:clause-9.12",
         "hla-1516.1-2025:clause-9.12.5",
         "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.42.6",
         "hla-1516.1-2025:clause-11.5",
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-6.12",
@@ -54410,9 +54742,13 @@
         "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.30",
         "hla-1516.1-2025:clause-6.30.3",
+        "hla-1516.1-2025:clause-6.31",
         "hla-1516.1-2025:clause-6.31.3",
+        "hla-1516.1-2025:clause-6.32",
         "hla-1516.1-2025:clause-6.32.5",
+        "hla-1516.1-2025:clause-6.33",
         "hla-1516.1-2025:clause-6.33.6",
         "hla-1516.1-2025:clause-5.6"
       ],
@@ -54475,7 +54811,9 @@
         "requirement-candidate-content-clauses-06-object-management-page-145-l122-34"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.30",
         "hla-1516.1-2025:clause-6.30.3",
+        "hla-1516.1-2025:clause-6.31",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-5.6"
       ],
@@ -54562,15 +54900,22 @@
         "requirement-candidate-content-clauses-10-support-services-page-274-l55-15"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.30",
         "hla-1516.1-2025:clause-6.30.3",
+        "hla-1516.1-2025:clause-6.31",
         "hla-1516.1-2025:clause-6.31.3",
+        "hla-1516.1-2025:clause-6.32",
         "hla-1516.1-2025:clause-6.32.5",
+        "hla-1516.1-2025:clause-6.33",
         "hla-1516.1-2025:clause-6.33.6",
         "hla-1516.1-2025:clause-9.10",
         "hla-1516.1-2025:clause-9.11.2",
+        "hla-1516.1-2025:clause-9.11",
+        "hla-1516.1-2025:clause-9.11.3",
         "hla-1516.1-2025:clause-9.12",
         "hla-1516.1-2025:clause-9.12.5",
         "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.42.6",
         "hla-1516.1-2025:clause-9.1.7"
       ],
       "test_case": "RTIambassadors preserve a regional interaction transportation override through a configured process endpoint",
@@ -54660,14 +55005,19 @@
         "requirement-candidate-content-clauses-10-support-services-page-274-l55-15"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.30",
         "hla-1516.1-2025:clause-6.30.3",
+        "hla-1516.1-2025:clause-6.31",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-9.10",
         "hla-1516.1-2025:clause-9.11.2",
+        "hla-1516.1-2025:clause-9.11",
+        "hla-1516.1-2025:clause-9.11.3",
         "hla-1516.1-2025:clause-9.12",
         "hla-1516.1-2025:clause-9.12.5",
         "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.42.6",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
         "hla-1516.1-2025:clause-8.8",
@@ -67582,6 +67932,7 @@
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19"
       ],
@@ -67627,9 +67978,10 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.18",
         "hla-1516.1-2025:clause-8.18.1",
-        "hla-1516.1-2025:clause-8.8",
-        "hla-1516.1-2025:clause-8.14"
+        "hla-1516.1-2025:clause-8.8"
       ],
       "requirements_lab_api_surface_status": "The focused process-boundary case sends an official Time Advance Request with an encoded HLAinteger64Time, completes the endpoint-owned request against the same FederateTimeState, queues the exact Time Advance Grant through HLA_EVOKED, and confirms Query Logical Time observes the granted value. The four selected Lab anchors are limited to the request, grant completion/honored time, and query surfaces directly exercised here; distributed multi-federate scheduling, TSO ordering, role interlocks, save/restore, package/JUnit, validation, and conformance remain separate evidence lanes.",
       "next_action": "Keep this as the single-endpoint TAR/grant transport baseline. Add process Time Advance Request rejection cases and cross-federate GALT/LITS/TSO scheduling only behind an explicit coordinator; do not treat the immediate endpoint grant as distributed scheduler evidence.",
@@ -67683,7 +68035,7 @@
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3"
       ],
-      "requirements_lab_api_surface_status": "The focused process-boundary case sends the official Flush Queue Request with an encoded HLAinteger64Time, completes the endpoint-owned request through the FQR temporal mode, queues the two-value Flush Queue Grant through HLA_EVOKED, and confirms Query Logical Time observes the actual granted value. The four selected Lab anchors cover FQR admission, bounded actual/optimistic grant reporting, and grant completion directly exercised here; queued multi-federate TSO, GALT/LITS coordination, save/restore, package/JUnit, validation, and conformance remain separate evidence lanes.",
+      "requirements_lab_api_surface_status": "The focused process-boundary case sends the official Flush Queue Request with an encoded HLAinteger64Time, completes the endpoint-owned request through the FQR temporal mode, queues the two-value Flush Queue Grant through HLA_EVOKED, and confirms Query Logical Time observes the actual granted value. The four selected Lab anchors cover FQR admission, bounded actual/optimistic grant reporting, and grant completion directly exercised here; queued multi-federate TSO, GALT/LITS coordination, save/restore, package/JUnit, validation, and conformance remain separate evidence lanes. Its listed §8.12.3 is scope context only: this successful path uses satisfied preconditions and does not test the invalid-precondition rejection matrix.",
       "next_action": "Keep this single-endpoint FQR/grant transport baseline green. Add process queued-TSO/FQR frontier and multi-federate GALT/LITS cases only after the process endpoint exposes the corresponding cross-session coordinator; do not treat equal actual/optimistic times in this case as proof of the retained optimistic-floor or distributed TSO semantics.",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassador\\ requests\\ Flush\\ Queue\\ through\\ a\\ configured\\ process\\ endpoint$",
@@ -67716,7 +68068,6 @@
         "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
         "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
         "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
@@ -67751,7 +68102,6 @@
         "public-endpoint",
         "multi-federate",
         "callbacks",
-        "callback-immediate",
         "transport",
         "rti.service.send-interaction",
         "rti.service.enable-time-regulation",
@@ -67781,20 +68131,21 @@
         "query-after-grant"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.59.4",
         "hla-1516.1-2025:clause-4",
-        "hla-1516.1-2025:clause-6.13",
-        "hla-1516.1-2025:clause-8.2",
-        "hla-1516.1-2025:clause-8.12",
-        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-4.1",
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-6.12",
-        "hla-1516.1-2025:clause-10.59.4",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
         "hla-1516.1-2025:clause-8.8"
       ],
-      "requirements_lab_api_surface_status": "This focused two-federate process case queues one official timestamped interaction for a constrained receiver, holds the sender at GALT 6, and issues Flush Queue Request(10). The first grant delivers the queued timestamp-7 payload before reporting actual time 6 and optimistic time 7; after the regulating sender advances to 7, a second FQR reports the later actual/optimistic grant without a duplicate payload. It proves the cross-session process frontier, callback ordering, and Query Logical Time values through HLA_EVOKED. This is private development-profile evidence, not distributed interoperability, package/JUnit, protected review, validation, or conformance evidence.",
-      "next_action": "Keep this as the focused process FQR/GALT frontier. The separate multiple-record lane now covers FIFO delivery of two queued records; add further cases for post-submission arrivals, in-transit arrivals, regional or directed TSO, retraction, role/resignation churn, immediate callbacks, save/restore, package/JUnit/protected review, interoperability, validation, and conformance.",
+      "requirements_lab_api_surface_status": "This focused two-federate process case queues one official timestamped interaction for a constrained receiver, holds the sender at GALT 6, and issues Flush Queue Request(10). The first grant delivers the queued timestamp-7 payload before reporting actual time 6 and optimistic time 7; after the regulating sender advances to 7, a second FQR reports the later actual/optimistic grant without a duplicate payload. It proves the cross-session process frontier, callback ordering, and Query Logical Time values through HLA_EVOKED. The separately listed §§4 and 4.1 are federation setup context; §8.12.3 records the satisfied FQR-precondition path only. The test does not cover the full §8.12.3 rejection matrix. This is private development-profile evidence, not distributed interoperability, package/JUnit, protected review, validation, or conformance evidence.",
+      "next_action": "Keep this as the focused process FQR/GALT frontier, with §§4/4.1 treated as setup context and §8.12.3 as partial positive-path scope. The separate multiple-record lane covers FIFO delivery and both callback models; add further cases for post-submission arrivals, in-transit arrivals, regional or directed TSO, retraction, role/resignation churn, save/restore, package/JUnit/protected review, interoperability, validation, and conformance.",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassadors\\ preserve\\ actual\\ and\\ optimistic\\ Flush\\ Queue\\ boundaries\\ through\\ a\\ configured\\ process\\ endpoint$"
     },
@@ -68392,7 +68743,6 @@
         "api.2025.cpp.rtiambassador.querylits.e477a99502bd"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
         "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
         "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
@@ -68453,20 +68803,21 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-10.59.4",
         "hla-1516.1-2025:clause-4",
-        "hla-1516.1-2025:clause-6.13",
-        "hla-1516.1-2025:clause-8",
-        "hla-1516.1-2025:clause-8.2",
-        "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-6.12",
-        "hla-1516.1-2025:clause-10.59.4",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
+        "hla-1516.1-2025:clause-8.17",
+        "hla-1516.1-2025:clause-8.19",
+        "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
-        "hla-1516.1-2025:clause-8.8",
-        "hla-1516.1-2025:clause-8.1.6",
-        "hla-1516.1-2025:clause-8.17",
-        "hla-1516.1-2025:clause-8.19"
+        "hla-1516.1-2025:clause-8.8"
       ],
       "requirements_lab_api_surface_status": "This focused two-federate process case combines the official timestamped Send Interaction overload with Enable Time Regulation, Enable Time Constrained, Time Advance Request, Query GALT, Query LITS, Evoke Callback, and the timestamped Receive Interaction callback. A regulating sender's MainCourseServed interaction is retained for one constrained recipient at logical time 5. After the event crosses transport but before the official receive callback, the public queries observe GALT and LITS at the timestamp-5 in-transit boundary; the callback then acknowledges delivery and precedes the matching Time Advance Grant. The callback preserves parameter/tag/transportation/producer identity, HLAinteger64Time, TIMESTAMP/TIMESTAMP order classifications, and the valid retraction designator. The selected Lab anchors are copied from the existing process timestamp, scheduler, and Query GALT/LITS baselines so this row is directly searchable without re-reading the Lab. It remains private development-profile evidence: retraction-before-grant, multiple queued messages, cross-producer ordering, directed/regional variants, alternate advances, save/restore, package/JUnit/protected-review, Lab validation, interoperability, and conformance remain separate lanes.",
       "next_action": "Use this exact title or the process-tso-in-transit tag for the focused TSO process lane. Extend only with separately mapped cases for pre-grant Retract, multiple messages/order, directed and regional interactions, and re-enable/resignation behavior; do not fold those stress forms into this single-message baseline.",
@@ -68667,9 +69018,14 @@
         "disabled-queued-reenabled"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3"
+        "hla-1516.1-2025:clause-6.8",
+        "hla-1516.1-2025:clause-6.9",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.5",
+        "hla-1516.1-2025:clause-8.6",
+        "hla-1516.1-2025:clause-8.8"
       ],
       "tags": [
         "integration",
@@ -70358,18 +70714,22 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-6.9.3",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
+        "hla-1516.1-2025:clause-8.17",
+        "hla-1516.1-2025:clause-8.19",
         "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.22",
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
-        "hla-1516.1-2025:clause-8.8",
-        "hla-1516.1-2025:clause-8.1.6",
-        "hla-1516.1-2025:clause-8.17",
-        "hla-1516.1-2025:clause-8.19"
+        "hla-1516.1-2025:clause-8.8"
       ],
       "requirements_lab_api_surface_status": "This public two-federate process case exercises the official timestamped Update Attribute Values and Retract surfaces with HLA_EVOKED callbacks. The sender first advances to an intermediate frontier, retracts the timestamp-5 payload while it remains queued, then advances to the receiver's frontier. The receiver receives only the matching Time Advance Grant: no stale Reflect Attribute Values callback, no Request Retraction callback, and no delivery acknowledgement for the suppressed payload. The row reuses the bounded declaration/object/time anchors from the public process attribute baseline and adds the 2025 retraction anchors for the queued-before-callback boundary. It remains private development-profile evidence, not a conformance claim.",
       "next_action": "Use this exact title or the process-tso-attribute-retraction-before-callback tag for the focused suppression lane. Keep multiple-message FIFO, fanout, regional/DDM, switch re-enable, resignation, immediate callbacks, package/JUnit/protected-review, Lab validation, interoperability, and conformance as separate mapped slices.",
@@ -82058,9 +82418,10 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.18",
         "hla-1516.1-2025:clause-8.18.1",
-        "hla-1516.1-2025:clause-8.8",
-        "hla-1516.1-2025:clause-8.14"
+        "hla-1516.1-2025:clause-8.8"
       ],
       "requirements_lab_api_surface_status": "The focused process-boundary case first completes an endpoint-owned Time Advance Request to establish the granted value, then submits a backward request and verifies the official LogicalTimeAlreadyPassed exception without creating another grant callback. The four selected Lab anchors are the same direct request/grant/time-state boundaries as the accepted TAR slice; cross-federate scheduling, TSO ordering, role interlocks, save/restore, package/JUnit, validation, and conformance remain separate evidence lanes.",
       "next_action": "Keep this rejection case beside the accepted process TAR baseline. Add pending-role and cross-federate GALT/LITS/TSO rejection cases only when the process endpoint exposes the corresponding coordinator state; do not broaden the case into distributed scheduler evidence."
@@ -86591,7 +86952,7 @@
       "requirement_section_mapping_overrides": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.2",
-        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.3",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.7",
         "hla-1516.1-2025:clause-8.8",
@@ -86719,6 +87080,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-204-l38-9"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-8.20",
         "hla-1516.1-2025:clause-8.20.4",
         "hla-1516.1-2025:clause-8.14.4"
       ],
@@ -86991,6 +87353,7 @@
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19"
       ],

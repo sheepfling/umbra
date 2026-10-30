@@ -190,7 +190,11 @@ TEST_CASE(
                 session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
-                    throw std::runtime_error(description);
+                    throw std::runtime_error(
+                        std::string(description) + " Received operation " +
+                        std::to_string(static_cast<unsigned>(request.operation)) +
+                        "; expected " +
+                        std::to_string(static_cast<unsigned>(operation)) + ".");
                   }
                   return handler(request);
                 })) {
@@ -279,16 +283,33 @@ TEST_CASE(
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::retract,
                     "Missing post-poll interaction Retract.");
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::acknowledge_tso_delivery,
-                    "Missing suppressed pull TSO acknowledgement.");
-
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::get_interaction_class_handle,
-                    "Missing post-poll retraction-stream fence.");
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::get_interaction_class_handle,
-                    "Missing post-suppression callback fence.");
+      // Callback completion is acknowledged asynchronously. Either public
+      // lookup fence can reach the receiver session before that internal
+      // acknowledgement, so accept all three without imposing a false order.
+      bool suppressedDeliveryAcknowledged = false;
+      unsigned suppressionFences = 0U;
+      while (!suppressedDeliveryAcknowledged || suppressionFences != 2U) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                receiver, receiverHandler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation ==
+                          TransportServiceOperation::acknowledge_tso_delivery &&
+                      !suppressedDeliveryAcknowledged) {
+                    suppressedDeliveryAcknowledged = true;
+                  } else if (request.operation ==
+                                 TransportServiceOperation::get_interaction_class_handle &&
+                             suppressionFences < 2U) {
+                    ++suppressionFences;
+                  } else {
+                    throw std::runtime_error(
+                        "Unexpected suppressed pull acknowledgement or callback fence.");
+                  }
+                  return receiverHandler(request);
+                })) {
+          throw std::runtime_error(
+              "Missing suppressed pull acknowledgement or callback fences.");
+        }
+      }
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::send_interaction,
                     "Missing after-entry timestamped Send Interaction.");
@@ -324,9 +345,25 @@ TEST_CASE(
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::retract,
                     "Missing after-entry interaction Retract.");
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::get_interaction_class_handle,
-                    "Missing after-entry retraction callback fence.");
+      bool afterEntryFenceObserved = false;
+      while (!afterEntryFenceObserved) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                receiver, receiverHandler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation ==
+                      TransportServiceOperation::get_interaction_class_handle) {
+                    afterEntryFenceObserved = true;
+                  } else if (request.operation !=
+                             TransportServiceOperation::receive_interaction) {
+                    throw std::runtime_error(
+                        "Unexpected request before after-entry retraction callback fence.");
+                  }
+                  return receiverHandler(request);
+                })) {
+          throw std::runtime_error(
+              "Missing after-entry retraction callback fence.");
+        }
+      }
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::send_interaction,
                     "Missing mixed-fanout timestamped Send Interaction.");

@@ -843,24 +843,37 @@ TEST_CASE(
               TransportServiceOperation::receive_interaction,
               "The public process Provide server lost reflection Receive.");
         }
-        if (callbackModel == HLA_IMMEDIATE) {
-          // Immediate callback completion acknowledges the pushed update on
-          // the receiver's session. Service that completion before advancing
-          // the scripted server to the provider's resignation.
+        // Each session must make independent progress during teardown. An
+        // immediate reflection can complete with or without a pushed-update
+        // acknowledgement, and that acknowledgement can arrive before or
+        // after the lookup fence. Waiting for one unconditionally blocks the
+        // provider's resignation when there is no such message.
+        std::exception_ptr requesterServerError;
+        std::thread requesterServer([&] {
+          try {
+            serveExpected(
+                requester, requesterHandler,
+                TransportServiceOperation::resign_federation_execution,
+                "The public process Provide server lost requester Resign.");
+          } catch (...) {
+            requesterServerError = std::current_exception();
+            providerConnection->close();
+          }
+        });
+        try {
           serveExpected(
-              requester,
-              requesterHandler,
-              TransportServiceOperation::acknowledge_push_attribute_update,
-              "The public process Provide server lost the reflection acknowledgement.");
+              provider, providerHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The public process Provide server lost provider Resign.");
+        } catch (...) {
+          requesterConnection->close();
+          requesterServer.join();
+          throw;
         }
-        serveExpected(
-            provider, providerHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The public process Provide server lost provider Resign.");
-        serveExpected(
-            requester, requesterHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The public process Provide server lost requester Resign.");
+        requesterServer.join();
+        if (requesterServerError) {
+          std::rethrow_exception(requesterServerError);
+        }
         service.detach(provider);
         service.detach(requester);
         providerConnection->close();

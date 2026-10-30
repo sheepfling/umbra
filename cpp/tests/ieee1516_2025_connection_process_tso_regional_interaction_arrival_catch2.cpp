@@ -84,4 +84,40 @@ TEST_CASE(
     "[2025]") {
   verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance::nmra);
 }
+
+TEST_CASE(
+    "Process regional Send Interaction follows all eight Table 2 order-classification rows",
+    "[integration][development-profile][2025][data-distribution-management]"
+    "[interaction-management][time-management][process-boundary][public-endpoint]"
+    "[regional-interaction-order-classification-matrix]"
+    "[process-regional-interaction-order-classification-matrix]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.change-interaction-order-type]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request][rti.service.evoke-callback]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  constexpr RegionalInteractionOrderRow rows[]{
+      {false, false, false}, {false, false, true},
+      {true, false, false}, {true, false, true},
+      {false, true, false}, {false, true, true},
+      {true, true, false}, {true, true, true, true},
+  };
+  for (auto const& row : rows) {
+    CAPTURE(row.timestampPreferred, row.senderRegulates, row.timestampPresent);
+    verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance::tar, &row);
+  }
+}
+
+TEST_CASE(
+    "Process regional sent TSO interaction is received in receive order by a nonconstrained federate",
+    "[integration][development-profile][2025][data-distribution-management]"
+    "[interaction-management][time-management][process-boundary][public-endpoint]"
+    "[process-regional-interaction-receiver-order-conversion]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.change-interaction-order-type]"
+    "[rti.service.enable-time-regulation][rti.service.evoke-callback]"
+    "[federate.callback.receive-interaction]") {
+  constexpr RegionalInteractionOrderRow row{true, true, true, false};
+  verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance::tar, &row);
+}
 #endif

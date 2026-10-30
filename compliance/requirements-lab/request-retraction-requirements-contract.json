@@ -8,7 +8,7 @@
     {
       "id": "umbra-retract-uses-official-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
@@ -32,7 +32,7 @@
     {
       "id": "umbra-retract-retains-returned-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
@@ -60,7 +60,7 @@
     {
       "id": "umbra-retract-terminal-designator-preserves-classification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
@@ -82,7 +82,7 @@
     {
       "id": "umbra-retract-delivered-interaction-invokes-request-retraction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -95,7 +95,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -107,7 +107,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-interaction-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -120,7 +120,7 @@
     {
       "id": "umbra-request-retraction-excludes-suppressed-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -130,7 +130,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -141,7 +141,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -153,7 +153,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-attribute-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -165,7 +165,7 @@
     {
       "id": "umbra-request-retraction-excludes-suppressed-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -176,7 +176,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
@@ -188,7 +188,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-directed-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -198,7 +198,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-directed-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -208,7 +208,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-directed-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
@@ -218,7 +218,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-regional-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -228,7 +228,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-regional-interaction-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -238,7 +238,7 @@
     {
       "id": "umbra-request-retraction-excludes-suppressed-regional-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -248,7 +248,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-regional-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
@@ -258,7 +258,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-regional-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -268,7 +268,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-regional-attribute-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -279,7 +279,7 @@
     {
       "id": "umbra-request-retraction-excludes-suppressed-regional-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
@@ -289,7 +289,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-regional-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
@@ -299,7 +299,7 @@
     {
       "id": "umbra-retract-delivered-object-deletion-invokes-request-retraction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -310,7 +310,7 @@
     {
       "id": "umbra-retract-excludes-departed-object-deletion-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -320,7 +320,7 @@
     {
       "id": "umbra-request-retraction-notifies-delivered-object-deletion-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -330,7 +330,7 @@
     {
       "id": "umbra-request-retraction-suppresses-pending-object-deletion-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -340,7 +340,7 @@
     {
       "id": "umbra-request-retraction-covers-nonconstrained-object-deletion-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
       "tests": [

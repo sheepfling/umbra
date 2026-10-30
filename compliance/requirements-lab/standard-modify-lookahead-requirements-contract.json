@@ -8,7 +8,7 @@
     {
       "id": "portable-cpp-modify-lookahead-zero-is-valid",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
-      "clause_id": "clause-8.20.4",
+      "clause_id": "clause-8.20",
       "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "source_symbol": "scenarioModifyLookahead(",
       "tests": [
@@ -29,7 +29,7 @@
     {
       "id": "portable-cpp-modify-lookahead-decreases-by-granted-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
-      "clause_id": "clause-8.20.4",
+      "clause_id": "clause-8.20",
       "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "source_symbol": "scenarioModifyLookahead(",
       "tests": [

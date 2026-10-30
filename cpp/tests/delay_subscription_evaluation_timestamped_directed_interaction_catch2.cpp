@@ -296,3 +296,160 @@ TEST_CASE(
     runScenario(false, HLA_IMMEDIATE);
   }
 }
+
+TEST_CASE(
+    "Embedded TSO-preferred directed sends return federation-unique retraction handles",
+    "[integration][development-profile][interaction-management][directed]"
+    "[time-management][tso][retraction-handle-uniqueness]"
+    "[rti.service.enable-time-regulation][rti.service.send-directed-interaction]"
+    "[federate.callback.time-regulation-enabled]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador firstSenderReports;
+  ReportingFederateAmbassador secondSenderReports;
+  auto owner = makeRti();
+  auto firstSender = makeRti();
+  auto secondSender = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = testDataPath(
+      "directed-parameter-interaction-object-consumer-fom.xml").wstring();
+  auto const interactionProvider = testDataPath(
+      "directed-parameter-interaction-interaction-provider-fom.xml").wstring();
+  std::vector<std::wstring> const fomModules{objectConsumer, interactionProvider};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(firstSender->connect(firstSenderReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(secondSender->connect(secondSenderReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModules,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"directed-tso-retraction-owner",
+      L"owner",
+      federationName));
+  REQUIRE_NOTHROW(firstSender->joinFederationExecution(
+      L"directed-tso-retraction-first-sender",
+      L"first-sender",
+      federationName));
+  REQUIRE_NOTHROW(secondSender->joinFederationExecution(
+      L"directed-tso-retraction-second-sender",
+      L"second-sender",
+      federationName));
+
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.UmbraDirectedParameterFixtureObject";
+  constexpr wchar_t const* markerName = L"DirectedTargetMarker";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.UmbraDirectedParameterFixtureInteraction";
+  constexpr wchar_t const* payloadName = L"DirectedPayload";
+  auto const objectClass = owner->getObjectClassHandle(objectClassName);
+  auto const marker = owner->getAttributeHandle(objectClass, markerName);
+  auto const ownerInteractionClass =
+      owner->getInteractionClassHandle(interactionName);
+  auto const interactionClass =
+      firstSender->getInteractionClassHandle(interactionName);
+  auto const firstPayload =
+      firstSender->getParameterHandle(interactionClass, payloadName);
+  auto const secondObjectClass =
+      secondSender->getObjectClassHandle(objectClassName);
+  auto const secondMarker =
+      secondSender->getAttributeHandle(secondObjectClass, markerName);
+  auto const secondInteractionClass =
+      secondSender->getInteractionClassHandle(interactionName);
+  auto const secondPayload =
+      secondSender->getParameterHandle(secondInteractionClass, payloadName);
+  InteractionClassHandleSet const directedClasses{ownerInteractionClass};
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(ownerInteractionClass.isValid());
+  REQUIRE(interactionClass == ownerInteractionClass);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(firstPayload.isValid());
+  REQUIRE(secondObjectClass == objectClass);
+  REQUIRE(secondMarker == marker);
+  REQUIRE(secondInteractionClass == interactionClass);
+  REQUIRE(secondPayload == firstPayload);
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+      objectClass,
+      rti1516_2025::AttributeHandleSet{marker}));
+  REQUIRE_NOTHROW(firstSender->subscribeObjectClassAttributes(
+      secondObjectClass,
+      rti1516_2025::AttributeHandleSet{secondMarker}));
+  REQUIRE_NOTHROW(secondSender->subscribeObjectClassAttributes(
+      secondObjectClass,
+      rti1516_2025::AttributeHandleSet{secondMarker}));
+  REQUIRE_NOTHROW(firstSender->publishObjectClassDirectedInteractions(
+      secondObjectClass,
+      directedClasses));
+  REQUIRE_NOTHROW(secondSender->publishObjectClassDirectedInteractions(
+      secondObjectClass,
+      directedClasses));
+  REQUIRE_NOTHROW(owner->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses,
+      false));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = owner->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE(firstSenderReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(secondSenderReports.objectDiscoveryReports.size() == 1U);
+  auto const firstSenderTarget =
+      firstSenderReports.objectDiscoveryReports.front();
+  auto const secondSenderTarget =
+      secondSenderReports.objectDiscoveryReports.front();
+  REQUIRE(firstSenderTarget == target);
+  REQUIRE(secondSenderTarget == target);
+
+  REQUIRE_NOTHROW(owner->enableTimeConstrained());
+  REQUIRE(ownerReports.timeConstrainedEnabledReports.size() == 1U);
+  REQUIRE_NOTHROW(firstSender->changeInteractionOrderType(
+      interactionClass,
+      TIMESTAMP));
+  REQUIRE_NOTHROW(secondSender->changeInteractionOrderType(
+      secondInteractionClass,
+      TIMESTAMP));
+  REQUIRE_NOTHROW(firstSender->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_NOTHROW(secondSender->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE(firstSenderReports.timeRegulationEnabledReports.size() == 1U);
+  REQUIRE(secondSenderReports.timeRegulationEnabledReports.size() == 1U);
+
+  std::string const payloadBytes{"federation-unique-directed-tso", 30U};
+  rti1516_2025::ParameterHandleValueMap firstParameters;
+  firstParameters.emplace(
+      firstPayload,
+      VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti1516_2025::ParameterHandleValueMap secondParameters;
+  secondParameters.emplace(
+      secondPayload,
+      VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  auto const firstRetraction = firstSender->sendDirectedInteraction(
+      interactionClass,
+      firstSenderTarget,
+      firstParameters,
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(7));
+  auto const secondRetraction = secondSender->sendDirectedInteraction(
+      secondInteractionClass,
+      secondSenderTarget,
+      secondParameters,
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(firstRetraction.isValid());
+  REQUIRE(secondRetraction.isValid());
+  REQUIRE_FALSE(firstRetraction == secondRetraction);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(secondSender->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(firstSender->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(secondSender->disconnect());
+  REQUIRE_NOTHROW(firstSender->disconnect());
+}

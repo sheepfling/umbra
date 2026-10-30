@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-time-regulation-enabled-current-logical-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l165-45",
-      "clause_id": "clause-8.3.1",
+      "clause_id": "clause-8.3",
       "source": "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp",
       "source_symbol": "scenarioAlternateTimeAdvances",
       "tests": [

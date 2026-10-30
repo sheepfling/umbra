@@ -98,7 +98,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process.get("primary_lane")
         != "process-directed-interaction-routing"
         or len(directed_process.get("lab_requirement_ids", [])) != 11
-        or len(directed_process.get("standard_sections", [])) != 8
+        or len(directed_process.get("standard_sections", [])) != 10
         or len(directed_process.get("selected_cpp_api_surface_ids", [])) != 5
         or "process-directed-interaction-routing"
         not in directed_process.get("tags", [])
@@ -114,7 +114,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_focus.get("assertion_count") != 22
         or directed_process_focus.get("recorded_assertion_count") != 22
         or directed_process_focus.get("requirement_count") != 11
-        or directed_process_focus.get("standard_section_count") != 8
+        or directed_process_focus.get("standard_section_count") != 10
         or directed_process_focus.get("requirement_section_pair_count") != 11
     ):
         raise AssertionError("directed process lane card drifted")
@@ -146,7 +146,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_multi.get("primary_lane")
         != "process-directed-interaction-multi-recipient"
         or len(directed_process_multi.get("lab_requirement_ids", [])) != 14
-        or len(directed_process_multi.get("standard_sections", [])) != 10
+        or len(directed_process_multi.get("standard_sections", [])) != 13
         or len(directed_process_multi.get("selected_cpp_api_surface_ids", [])) != 12
         or directed_process_multi.get("callback_models")
         != ["HLA_EVOKED", "HLA_IMMEDIATE"]
@@ -167,7 +167,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_multi_focus.get("assertion_count") != 104
         or directed_process_multi_focus.get("recorded_assertion_count") != 104
         or directed_process_multi_focus.get("requirement_count") != 14
-        or directed_process_multi_focus.get("standard_section_count") != 10
+        or directed_process_multi_focus.get("standard_section_count") != 13
         or directed_process_multi_focus.get("requirement_section_pair_count") != 14
     ):
         raise AssertionError("multi-recipient directed process lane card drifted")
@@ -210,7 +210,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_transport.get("primary_lane")
         != "process-directed-interaction-transportation"
         or len(directed_process_transport.get("lab_requirement_ids", [])) != 7
-        or len(directed_process_transport.get("standard_sections", [])) != 3
+        or len(directed_process_transport.get("standard_sections", [])) != 5
         or len(directed_process_transport.get("selected_cpp_api_surface_ids", [])) != 7
         or directed_process_transport.get("callback_models")
         != ["HLA_EVOKED", "HLA_IMMEDIATE"]
@@ -231,7 +231,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_transport_focus.get("assertion_count") != 66
         or directed_process_transport_focus.get("recorded_assertion_count") != 66
         or directed_process_transport_focus.get("requirement_count") != 7
-        or directed_process_transport_focus.get("standard_section_count") != 3
+        or directed_process_transport_focus.get("standard_section_count") != 5
         or directed_process_transport_focus.get("requirement_section_pair_count") != 7
     ):
         raise AssertionError("directed transportation process lane card drifted")
@@ -294,7 +294,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_transport_query.get("primary_lane")
         != "process-directed-interaction-transportation-query"
         or len(directed_process_transport_query.get("lab_requirement_ids", [])) != 11
-        or len(directed_process_transport_query.get("standard_sections", [])) != 5
+        or len(directed_process_transport_query.get("standard_sections", [])) != 9
         or len(directed_process_transport_query.get("selected_cpp_api_surface_ids", []))
         != 10
         or directed_process_transport_query.get("callback_models")
@@ -319,7 +319,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or directed_process_transport_query_focus.get("assertion_count") != 44
         or directed_process_transport_query_focus.get("recorded_assertion_count") != 44
         or directed_process_transport_query_focus.get("requirement_count") != 11
-        or directed_process_transport_query_focus.get("standard_section_count") != 5
+        or directed_process_transport_query_focus.get("standard_section_count") != 9
         or directed_process_transport_query_focus.get("requirement_section_pair_count")
         != 11
     ):
@@ -368,7 +368,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or regional_transport.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
         or len(regional_transport.get("lab_requirement_ids", [])) != 22
-        or len(regional_transport.get("standard_sections", [])) != 10
+        or len(regional_transport.get("standard_sections", [])) != 17
         or len(regional_transport.get("selected_cpp_api_surface_ids", [])) != 17
     ):
         raise AssertionError("regional transportation source/evidence mapping drifted")
@@ -381,7 +381,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or regional_transport_focus.get("assertion_count") != 84
         or regional_transport_focus.get("recorded_assertion_count") != 86
         or regional_transport_focus.get("requirement_count") != 22
-        or regional_transport_focus.get("standard_section_count") != 10
+        or regional_transport_focus.get("standard_section_count") != 17
         or regional_transport_focus.get("requirement_section_pair_count") != 22
     ):
         raise AssertionError("regional transportation lane card drifted")
@@ -410,7 +410,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or timestamped_regional_transport.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
         or len(timestamped_regional_transport.get("lab_requirement_ids", [])) != 22
-        or len(timestamped_regional_transport.get("standard_sections", [])) != 12
+        or len(timestamped_regional_transport.get("standard_sections", [])) != 17
         or len(timestamped_regional_transport.get("selected_cpp_api_surface_ids", []))
         != 23
     ):
@@ -429,7 +429,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or timestamped_regional_transport_focus.get("assertion_count") != 122
         or timestamped_regional_transport_focus.get("recorded_assertion_count") != 122
         or timestamped_regional_transport_focus.get("requirement_count") != 22
-        or timestamped_regional_transport_focus.get("standard_section_count") != 12
+        or timestamped_regional_transport_focus.get("standard_section_count") != 17
         or timestamped_regional_transport_focus.get("requirement_section_pair_count")
         != 22
     ):
@@ -484,7 +484,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         != "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp:53"
         or push_confirm.get("assertions") != 43
         or len(push_confirm.get("lab_requirement_ids", [])) != 4
-        or len(push_confirm.get("standard_sections", [])) != 4
+        or len(push_confirm.get("standard_sections", [])) != 6
         or len(push_confirm.get("selected_cpp_api_surface_ids", [])) != 15
     ):
         raise AssertionError("push Confirm Divestiture mapping drifted")
@@ -497,7 +497,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or push_confirm_focus.get("planned_count") != 0
         or push_confirm_focus.get("mapped_test_count") != 1
         or push_confirm_focus.get("requirement_count") != 4
-        or push_confirm_focus.get("standard_section_count") != 4
+        or push_confirm_focus.get("standard_section_count") != 6
         or push_confirm_focus.get("requirement_section_pair_count") != 4
         or push_confirm_focus.get("assertion_count") != 43
     ):
@@ -520,7 +520,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         != "cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp:62"
         or assumption_case.get("assertions") != 60
         or len(assumption_case.get("lab_requirement_ids", [])) != 1
-        or len(assumption_case.get("standard_sections", [])) != 1
+        or len(assumption_case.get("standard_sections", [])) != 2
         or len(assumption_case.get("selected_cpp_api_surface_ids", [])) != 17
     ):
         raise AssertionError("Confirm Divestiture assumption mapping drifted")
@@ -533,7 +533,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or assumption_focus.get("planned_count") != 0
         or assumption_focus.get("mapped_test_count") != 1
         or assumption_focus.get("requirement_count") != 1
-        or assumption_focus.get("standard_section_count") != 1
+        or assumption_focus.get("standard_section_count") != 2
         or assumption_focus.get("requirement_section_pair_count") != 1
         or assumption_focus.get("assertion_count") != 60
     ):
@@ -797,7 +797,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or pushed_evoked_work_item.get("status")
         != "implemented-in-noninstallable-development-profile"
         or len(pushed_evoked_work_item.get("lab_requirement_ids", [])) != 6
-        or len(pushed_evoked_work_item.get("standard_sections", [])) != 4
+        or len(pushed_evoked_work_item.get("standard_sections", [])) != 5
         or len(pushed_evoked_work_item.get("selected_cpp_api_surface_ids", [])) != 14
     ):
         raise AssertionError(
@@ -814,7 +814,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or pushed_evoked_focus.get("mapped_test_count") != 1
         or pushed_evoked_focus.get("assertion_count") != 33
         or pushed_evoked_focus.get("requirement_count") != 6
-        or pushed_evoked_focus.get("standard_section_count") != 4
+        or pushed_evoked_focus.get("standard_section_count") != 5
         or pushed_evoked_focus.get("requirement_section_pair_count") != 6
     ):
         raise AssertionError("evoked pushed ownership-assumption lane card drifted")
@@ -845,7 +845,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or durable_pending_work_item.get("status")
         != "implemented-in-noninstallable-development-profile"
         or len(durable_pending_work_item.get("lab_requirement_ids", [])) != 10
-        or len(durable_pending_work_item.get("standard_sections", [])) != 7
+        or len(durable_pending_work_item.get("standard_sections", [])) != 9
         or len(durable_pending_work_item.get("selected_cpp_api_surface_ids", [])) != 24
     ):
         raise AssertionError(
@@ -862,7 +862,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or durable_pending_focus.get("mapped_test_count") != 1
         or durable_pending_focus.get("assertion_count") != 73
         or durable_pending_focus.get("requirement_count") != 10
-        or durable_pending_focus.get("standard_section_count") != 7
+        or durable_pending_focus.get("standard_section_count") != 9
         or durable_pending_focus.get("requirement_section_pair_count") != 10
     ):
         raise AssertionError("durable pending ownership-assumption lane card drifted")
@@ -895,7 +895,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or push_process_restore_work_item.get("status")
         != "implemented-in-noninstallable-development-profile"
         or len(push_process_restore_work_item.get("lab_requirement_ids", [])) != 10
-        or len(push_process_restore_work_item.get("standard_sections", [])) != 7
+        or len(push_process_restore_work_item.get("standard_sections", [])) != 9
         or len(push_process_restore_work_item.get("selected_cpp_api_surface_ids", []))
         != 18
     ):
@@ -913,7 +913,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or push_process_restore_work_item_focus.get("mapped_test_count") != 1
         or push_process_restore_work_item_focus.get("assertion_count") != 55
         or push_process_restore_work_item_focus.get("requirement_count") != 10
-        or push_process_restore_work_item_focus.get("standard_section_count") != 7
+        or push_process_restore_work_item_focus.get("standard_section_count") != 9
         or push_process_restore_work_item_focus.get("requirement_section_pair_count")
         != 10
     ):
@@ -947,7 +947,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or process_restore_work_item.get("status")
         != "implemented-in-noninstallable-development-profile"
         or len(process_restore_work_item.get("lab_requirement_ids", [])) != 10
-        or len(process_restore_work_item.get("standard_sections", [])) != 7
+        or len(process_restore_work_item.get("standard_sections", [])) != 9
         or len(process_restore_work_item.get("selected_cpp_api_surface_ids", [])) != 18
     ):
         raise AssertionError(
@@ -979,7 +979,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or process_restore_work_item_focus.get("mapped_test_count") != 2
         or process_restore_work_item_focus.get("assertion_count") != 81
         or process_restore_work_item_focus.get("requirement_count") != 12
-        or process_restore_work_item_focus.get("standard_section_count") != 9
+        or process_restore_work_item_focus.get("standard_section_count") != 13
         or process_restore_work_item_focus.get("requirement_section_pair_count") != 12
     ):
         raise AssertionError("process restore work-item lane card drifted")
@@ -1019,7 +1019,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or regional_callback_gating.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
         or len(regional_callback_gating.get("lab_requirement_ids", [])) != 28
-        or len(regional_callback_gating.get("standard_sections", [])) != 16
+        or len(regional_callback_gating.get("standard_sections", [])) != 20
         or len(regional_callback_gating.get("selected_cpp_api_surface_ids", [])) != 20
     ):
         raise AssertionError("regional callback-gating source/evidence mapping drifted")
@@ -1032,7 +1032,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or regional_callback_focus.get("assertion_count") != 138
         or regional_callback_focus.get("recorded_assertion_count") != 138
         or regional_callback_focus.get("requirement_count") != 30
-        or regional_callback_focus.get("standard_section_count") != 18
+        or regional_callback_focus.get("standard_section_count") != 22
         or regional_callback_focus.get("requirement_section_pair_count") != 30
     ):
         raise AssertionError("regional callback-gating lane card drifted")
@@ -1127,7 +1127,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if whole_class_unsubscribe.get("traceability_state") != "requirements-mapped":
         raise AssertionError("whole-class default-region row is not mapped")
     if whole_class_unsubscribe.get("standard_sections") != [
-        "hla-1516.1-2025:clause-9.1.4",
+        "hla-1516.1-2025:clause-9.1.3.3",
     ]:
         raise AssertionError("whole-class default-region section mapping drifted")
     if whole_class_unsubscribe.get("lab_requirement_ids") != [
@@ -1328,9 +1328,12 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if set(time_axis_independence.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.8",
+        "hla-1516.1-2025:clause-8.10",
         "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-9.1.4",
     }:
@@ -1343,7 +1346,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or time_axis_focus.get("mapped_test_count") != 1
         or time_axis_focus.get("assertion_count") != 94
         or time_axis_focus.get("requirement_count") != 10
-        or time_axis_focus.get("standard_section_count") != 7
+        or time_axis_focus.get("standard_section_count") != 10
         or time_axis_focus.get("requirement_section_pair_count") != 10
     ):
         raise AssertionError("time-axis-independence lane card drifted")
@@ -1406,9 +1409,9 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if set(object_name_reservation.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3",
-        "hla-1516.1-2025:clause-6.4.3",
-        "hla-1516.1-2025:clause-6.5.3",
-        "hla-1516.1-2025:clause-6.7.5",
+        "hla-1516.1-2025:clause-6.4",
+        "hla-1516.1-2025:clause-6.5",
+        "hla-1516.1-2025:clause-6.7",
     }:
         raise AssertionError("object-instance-name-reservation section mapping drifted")
     object_name_focus = query_rti_work.focused_lane_result(
@@ -1482,14 +1485,20 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         raise AssertionError("strict-relaxed-ddm-boundary requirement mapping drifted")
     if set(strict_relaxed.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-1.5",
+        "hla-1516.1-2025:clause-4.31",
         "hla-1516.1-2025:clause-4.32",
         "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.1.9",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-9.1.4",
         "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13",
         "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-10.55",
         "hla-1516.1-2025:clause-10.55.1",
     }:
         raise AssertionError("strict-relaxed-ddm-boundary section mapping drifted")
@@ -1501,7 +1510,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or strict_relaxed_focus.get("mapped_test_count") != 1
         or strict_relaxed_focus.get("assertion_count") != 240
         or strict_relaxed_focus.get("requirement_count") != 15
-        or strict_relaxed_focus.get("standard_section_count") != 10
+        or strict_relaxed_focus.get("standard_section_count") != 16
         or strict_relaxed_focus.get("requirement_section_pair_count") != 15
     ):
         raise AssertionError("strict-relaxed-ddm-boundary lane card drifted")
@@ -1545,7 +1554,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if subscription_dimension.get("traceability_state") != "requirements-mapped":
         raise AssertionError("regional subscription-dimension row is not mapped")
     if subscription_dimension.get("standard_sections") != [
-        "hla-1516.1-2025:clause-9.1.4",
+        "hla-1516.1-2025:clause-9.1.3.3",
     ]:
         raise AssertionError("regional subscription-dimension section mapping drifted")
     if subscription_dimension.get("lab_requirement_ids") != [
@@ -1608,7 +1617,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if subscription_empty.get("traceability_state") != "requirements-mapped":
         raise AssertionError("empty regional subscription-set row is not mapped")
     if subscription_empty.get("standard_sections") != [
-        "hla-1516.1-2025:clause-9.1.4",
+        "hla-1516.1-2025:clause-9.1.3.3",
     ]:
         raise AssertionError("empty regional subscription-set section mapping drifted")
     if set(subscription_empty.get("lab_requirement_ids", [])) != {
@@ -1673,6 +1682,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         != [
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-9.8",
+            "hla-1516.1-2025:clause-9.8.3",
             "hla-1516.1-2025:clause-9.8.4",
         ]
         or set(passive_object.get("lab_requirement_ids", []))
@@ -1703,7 +1713,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or passive_object_focus.get("mapped_test_count") != 1
         or passive_object_focus.get("assertion_count") != 66
         or passive_object_focus.get("requirement_count") != 13
-        or passive_object_focus.get("standard_section_count") != 3
+        or passive_object_focus.get("standard_section_count") != 4
         or passive_object_focus.get("requirement_section_pair_count") != 13
     ):
         raise AssertionError("passive regional object-attribute lane card drifted")

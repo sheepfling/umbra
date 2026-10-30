@@ -19,9 +19,9 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
     standard_requirements = inputs.standard_requirements
     status = inputs.status
     tests = inputs.tests
-    # The mapped view includes §6.11 from its direct requirement pair in
-    # addition to the 14 sections explicitly listed on the plan row.
-    if len(restored_default_region_multi.get("standard_sections", [])) != 15:
+    # The mapped view adds the parent clauses §4.21, §4.31, §8.1.7, §8.22,
+    # and §8.23 beyond the 15 sections explicitly listed on the plan row.
+    if len(restored_default_region_multi.get("standard_sections", [])) != 20:
         raise AssertionError(
             "focused multi-recipient default-region restore section mapping drifted"
         )
@@ -87,7 +87,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused timed regional-interaction restore requirement mapping drifted"
         )
-    if len(timed_regional_interaction.get("standard_sections", [])) != 15:
+    if len(timed_regional_interaction.get("standard_sections", [])) != 20:
         raise AssertionError(
             "focused timed regional-interaction restore section mapping drifted"
         )
@@ -155,7 +155,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused regional-interaction source-resignation requirement mapping drifted"
         )
-    if len(regional_interaction_resignation.get("standard_sections", [])) != 5:
+    if len(regional_interaction_resignation.get("standard_sections", [])) != 6:
         raise AssertionError(
             "focused regional-interaction source-resignation section mapping drifted"
         )
@@ -226,7 +226,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused regional-interaction restore multi-recipient requirement mapping drifted"
         )
-    if len(regional_interaction_restore_multi.get("standard_sections", [])) != 11:
+    if len(regional_interaction_restore_multi.get("standard_sections", [])) != 16:
         raise AssertionError(
             "focused regional-interaction restore multi-recipient section mapping drifted"
         )
@@ -300,7 +300,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused timed regional-attribute source-resignation requirement mapping drifted"
         )
-    if len(timed_regional_attribute_resignation.get("standard_sections", [])) != 19:
+    if len(timed_regional_attribute_resignation.get("standard_sections", [])) != 24:
         raise AssertionError(
             "focused timed regional-attribute source-resignation section mapping drifted"
         )
@@ -374,7 +374,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused timed regional-attribute restore requirement mapping drifted"
         )
-    if len(timed_regional_attribute_restore.get("standard_sections", [])) != 16:
+    if len(timed_regional_attribute_restore.get("standard_sections", [])) != 21:
         raise AssertionError(
             "focused timed regional-attribute restore section mapping drifted"
         )
@@ -450,7 +450,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         )
     if (
         len(timestamped_regional_attribute_resignation.get("standard_sections", []))
-        != 6
+        != 8
     ):
         raise AssertionError(
             "focused timestamped regional-attribute resignation section mapping drifted"
@@ -863,7 +863,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or transport_restore_immediate.get("mapped_test_count") != 1
         or transport_restore_immediate.get("assertion_count") != 52
         or transport_restore_immediate.get("requirement_count") != 11
-        or transport_restore_immediate.get("standard_section_count") != 8
+        or transport_restore_immediate.get("standard_section_count") != 10
         or transport_restore_immediate.get("requirement_section_pair_count") != 11
     ):
         raise AssertionError(
@@ -1399,6 +1399,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
     if scheduler_focus.get("requirement_section_pair_count") != 9:
         raise AssertionError("process federation-scheduler mapping pair count drifted")
     if set(scheduler_focus.get("standard_sections", [])) != {
+        "hla-1516.1-2025:clause-8.10",
         "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-8.11",
         "hla-1516.1-2025:clause-8.11.3",
@@ -1426,7 +1427,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError("process TSO interaction mapped count drifted")
     if tso_focus.get("assertion_count") != 62:
         raise AssertionError("process TSO interaction assertion total drifted")
-    if tso_focus.get("requirement_section_pair_count") != 20:
+    if tso_focus.get("requirement_section_pair_count") != 19:
         raise AssertionError("process TSO interaction mapping pair count drifted")
     if set(tso_focus.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-10.59.4",
@@ -1437,6 +1438,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19",
         "hla-1516.1-2025:clause-8.2",
@@ -1461,7 +1463,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_in_transit_focus.get("mapped_test_count") != 4
         or tso_in_transit_focus.get("assertion_count") != 62
         or tso_in_transit_focus.get("requirement_section_pair_count") != 24
-        or tso_in_transit_focus.get("standard_section_count") != 17
+        or tso_in_transit_focus.get("standard_section_count") != 20
     ):
         raise AssertionError("process TSO in-transit lane card drifted")
     tso_in_transit_handles = tso_in_transit_focus.get("lane_handles")
@@ -1489,11 +1491,10 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
     if set(tso_attribute_focus.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.8.4",
-        "hla-1516.1-2025:clause-6.9.3",
-        "hla-1516.1-2025:clause-8",
-        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-6.8",
+        "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19",
         "hla-1516.1-2025:clause-8.2",
@@ -1522,20 +1523,24 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_attribute_retraction_focus.get("assertion_count") != 51
         or tso_attribute_retraction_focus.get("recorded_assertion_count") != 51
         or tso_attribute_retraction_focus.get("requirement_section_pair_count") != 20
-        or tso_attribute_retraction_focus.get("standard_section_count") != 14
+        or tso_attribute_retraction_focus.get("standard_section_count") != 18
     ):
         raise AssertionError("process TSO attribute retraction lane card drifted")
     if set(tso_attribute_retraction_focus.get("standard_sections", [])) != {
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-6.9.3",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.17",
         "hla-1516.1-2025:clause-8.19",
         "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.22",
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
@@ -1566,7 +1571,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_attribute_fanout_focus.get("assertion_count") != 100
         or tso_attribute_fanout_focus.get("recorded_assertion_count") != 100
         or tso_attribute_fanout_focus.get("requirement_section_pair_count") != 20
-        or tso_attribute_fanout_focus.get("standard_section_count") != 14
+        or tso_attribute_fanout_focus.get("standard_section_count") != 18
     ):
         raise AssertionError("process TSO attribute fanout lane card drifted")
     tso_attribute_fanout_handles = tso_attribute_fanout_focus.get("lane_handles")
@@ -1613,7 +1618,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_attribute_regional_focus.get("assertion_count") != 122
         or tso_attribute_regional_focus.get("recorded_assertion_count") != 122
         or tso_attribute_regional_focus.get("requirement_count") != 25
-        or tso_attribute_regional_focus.get("standard_section_count") != 18
+        or tso_attribute_regional_focus.get("standard_section_count") != 23
         or tso_attribute_regional_focus.get("requirement_section_pair_count") != 25
     ):
         raise AssertionError("process TSO attribute regional lane card drifted")
@@ -1674,7 +1679,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_attribute_reenable_focus.get("assertion_count") != 48
         or tso_attribute_reenable_focus.get("recorded_assertion_count") != 48
         or tso_attribute_reenable_focus.get("requirement_count") != 5
-        or tso_attribute_reenable_focus.get("standard_section_count") != 4
+        or tso_attribute_reenable_focus.get("standard_section_count") != 6
         or tso_attribute_reenable_focus.get("requirement_section_pair_count") != 5
     ):
         raise AssertionError("process TSO attribute re-enable lane card drifted")
@@ -1738,7 +1743,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_attribute_changed_focus.get("assertion_count") != 70
         or tso_attribute_changed_focus.get("recorded_assertion_count") != 70
         or tso_attribute_changed_focus.get("requirement_count") != 11
-        or tso_attribute_changed_focus.get("standard_section_count") != 8
+        or tso_attribute_changed_focus.get("standard_section_count") != 13
         or tso_attribute_changed_focus.get("requirement_section_pair_count") != 11
     ):
         raise AssertionError("process TSO changed-lookahead lane card drifted")
@@ -1808,7 +1813,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_interaction_changed_focus.get("assertion_count") != 67
         or tso_interaction_changed_focus.get("recorded_assertion_count") != 67
         or tso_interaction_changed_focus.get("requirement_count") != 30
-        or tso_interaction_changed_focus.get("standard_section_count") != 17
+        or tso_interaction_changed_focus.get("standard_section_count") != 23
         or tso_interaction_changed_focus.get("requirement_section_pair_count") != 30
     ):
         raise AssertionError(
@@ -1876,7 +1881,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_interaction_multiple_focus.get("assertion_count") != 51
         or tso_interaction_multiple_focus.get("recorded_assertion_count") != 51
         or tso_interaction_multiple_focus.get("requirement_count") != 20
-        or tso_interaction_multiple_focus.get("standard_section_count") != 14
+        or tso_interaction_multiple_focus.get("standard_section_count") != 18
         or tso_interaction_multiple_focus.get("requirement_section_pair_count") != 20
     ):
         raise AssertionError("process TSO multiple-message lane card drifted")
@@ -1943,7 +1948,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         or tso_interaction_fanout_focus.get("assertion_count") != 133
         or tso_interaction_fanout_focus.get("recorded_assertion_count") != 133
         or tso_interaction_fanout_focus.get("requirement_count") != 20
-        or tso_interaction_fanout_focus.get("standard_section_count") != 14
+        or tso_interaction_fanout_focus.get("standard_section_count") != 18
         or tso_interaction_fanout_focus.get("requirement_section_pair_count") != 20
     ):
         raise AssertionError("process TSO fan-out lane card drifted")

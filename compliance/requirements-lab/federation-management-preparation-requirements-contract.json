@@ -8,7 +8,7 @@
     {
       "id": "umbra-create-default-mim-first",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l50-8",
-      "clause_id": "clause-4.5.5",
+      "clause_id": "clause-4.5",
       "source": "cpp/src/internal/federation/federation_management_coordinator.cpp",
       "source_symbol": "FederationManagementCoordinator::prepareCreate",
       "tests": [
@@ -19,7 +19,7 @@
     {
       "id": "umbra-create-compliant-fdd-preparation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l58-10",
-      "clause_id": "clause-4.5.5",
+      "clause_id": "clause-4.5",
       "source": "cpp/src/internal/federation/federation_management_coordinator.cpp",
       "source_symbol": "materializeDefinition",
       "tests": [

@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-federate-mom-object-class-unsubscribe-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
-      "clause_id": "clause-5.9.4",
+      "clause_id": "clause-5.9",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_lines": "535-539",
       "source_symbol": "subscribeObjectClassAttributes",
@@ -21,7 +21,7 @@
     {
       "id": "cpp-tck-federate-mom-object-class-unsubscribe-service",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
-      "clause_id": "clause-5.9.4",
+      "clause_id": "clause-5.9",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_lines": "550-551",
       "source_symbol": "unsubscribeObjectClass",

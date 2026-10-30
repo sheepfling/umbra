@@ -8,7 +8,7 @@
     {
       "id": "umbra-embedded-enable-asynchronous-delivery-gates-ro",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
-      "clause_id": "clause-8.15.3",
+      "clause_id": "clause-8.15",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::receiveOrderDeliveryAllowed",
       "tests": [
@@ -26,7 +26,7 @@
     {
       "id": "umbra-embedded-disable-asynchronous-delivery-restores-time-advance-gating",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-205-l73-17",
-      "clause_id": "clause-8.16.5",
+      "clause_id": "clause-8.16",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableAsynchronousDelivery",
       "tests": [

@@ -89,7 +89,7 @@
     {
       "id": "umbra-timestamped-attribute-reflection-propagates-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
@@ -113,7 +113,7 @@
     {
       "id": "umbra-timestamped-attribute-reflection-provides-retraction-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
@@ -131,7 +131,7 @@
     {
       "id": "umbra-timestamped-attribute-reflection-preserves-passels",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
@@ -172,7 +172,7 @@
     {
       "id": "umbra-timestamped-attribute-update-queues-for-time-constrained-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
@@ -194,7 +194,7 @@
     {
       "id": "umbra-timestamped-attribute-update-connection-loss-cutoff-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant",
       "tests": [
@@ -211,7 +211,7 @@
     {
       "id": "umbra-timestamped-attribute-update-survives-automatic-delete-cleanup",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_removal.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
@@ -226,7 +226,7 @@
     {
       "id": "umbra-timestamped-attribute-update-suppressed-callback-closes-cutoff-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
@@ -236,7 +236,7 @@
     {
       "id": "umbra-timestamped-attribute-update-connection-loss-drains-each-pending-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reclaimTsoMessagePayload",
       "tests": [
@@ -248,7 +248,7 @@
     {
       "id": "umbra-timestamped-attribute-update-retracts-before-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
@@ -260,7 +260,7 @@
     {
       "id": "umbra-timestamped-attribute-update-uses-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -275,7 +275,7 @@
     {
       "id": "umbra-timestamped-attribute-update-suppresses-pending-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -286,7 +286,7 @@
     {
       "id": "umbra-timestamped-attribute-update-requests-retraction-after-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
@@ -300,7 +300,7 @@
     {
       "id": "umbra-timestamped-attribute-update-retains-nonconstrained-recipient-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
-      "clause_id": "clause-8.23.3",
+      "clause_id": "clause-8.23",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
@@ -311,7 +311,7 @@
     {
       "id": "umbra-timestamped-attribute-update-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -323,7 +323,7 @@
     {
       "id": "umbra-timestamped-attribute-update-preserves-per-recipient-resignation-ledger",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
@@ -334,7 +334,7 @@
     {
       "id": "umbra-timestamped-attribute-update-save-restore-reconstructs-multiple-recipient-records",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -398,7 +398,7 @@
     {
       "id": "umbra-timestamped-attribute-update-save-restore-preserves-terminal-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [

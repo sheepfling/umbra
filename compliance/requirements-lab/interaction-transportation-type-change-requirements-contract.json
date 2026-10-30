@@ -8,7 +8,7 @@
     {
       "id": "umbra-interaction-transport-initializes-from-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
-      "clause_id": "clause-6.30.3",
+      "clause_id": "clause-6.30",
       "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::effectiveInteractionTransportationName",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-interaction-transport-change-affects-future-sends",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
-      "clause_id": "clause-6.30.3",
+      "clause_id": "clause-6.30",
       "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
@@ -29,7 +29,7 @@
     {
       "id": "umbra-interaction-transport-change-is-invoker-scoped",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
-      "clause_id": "clause-6.30.3",
+      "clause_id": "clause-6.30",
       "source": "cpp/src/internal/federation/federation_registry.hpp",
       "source_symbol": "interactionTransportationTypes",
       "tests": [
@@ -40,7 +40,7 @@
     {
       "id": "umbra-interaction-transport-change-commits-at-confirmation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
-      "clause_id": "clause-6.30.3",
+      "clause_id": "clause-6.30",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmInteractionTransportationTypeChange",
       "tests": [
@@ -51,7 +51,7 @@
     {
       "id": "umbra-interaction-transport-confirmation-describes-achievement",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
-      "clause_id": "clause-6.31.3",
+      "clause_id": "clause-6.31",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmInteractionTransportationTypeChange",
       "tests": [
@@ -62,7 +62,7 @@
     {
       "id": "umbra-interaction-transport-confirmation-is-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
-      "clause_id": "clause-6.31.3",
+      "clause_id": "clause-6.31",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestInteractionTransportationTypeChange",
       "tests": [
@@ -74,7 +74,7 @@
     {
       "id": "umbra-interaction-transport-query-provides-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
-      "clause_id": "clause-6.32.5",
+      "clause_id": "clause-6.32",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_query.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryInteractionTransportationType",
       "tests": [
@@ -85,7 +85,7 @@
     {
       "id": "umbra-interaction-transport-report-uses-current-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
-      "clause_id": "clause-6.33.6",
+      "clause_id": "clause-6.33",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReportInteractionTransportationType",
       "tests": [
@@ -96,7 +96,7 @@
     {
       "id": "umbra-interaction-transport-report-falls-back-to-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-      "clause_id": "clause-6.33.6",
+      "clause_id": "clause-6.33",
       "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planInteractionTransportationTypeQuery",
       "tests": [
@@ -107,7 +107,7 @@
     {
       "id": "umbra-interaction-transport-report-is-query-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
-      "clause_id": "clause-6.33.6",
+      "clause_id": "clause-6.33",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReportInteractionTransportationType",
       "tests": [

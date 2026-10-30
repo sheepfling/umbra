@@ -8,7 +8,7 @@
     {
       "id": "standard-joined-federate-mom-active-subscription-discovery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
-      "clause_id": "clause-6.1.2",
+      "clause_id": "clause-6.1.1",
       "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
       "tests": [
@@ -28,7 +28,7 @@
     {
       "id": "standard-joined-federate-mom-discovery-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
-      "clause_id": "clause-6.9.3",
+      "clause_id": "clause-6.9",
       "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
       "source_symbol": "FederateAmbassador::discoverObjectInstance",
       "tests": [
@@ -38,7 +38,7 @@
     {
       "id": "standard-joined-federate-mom-join-fom-designators",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l150-49",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.4.1",
       "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
       "tests": [

@@ -48,7 +48,7 @@
     {
       "id": "umbra-connection-lost-applies-member-automatic-resign-directive",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::connectionLost",
       "tests": [
@@ -74,7 +74,7 @@
     {
       "id": "umbra-connection-lost-captures-tso-delivery-cutoff",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l24-7",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
@@ -102,7 +102,7 @@
     {
       "id": "umbra-connection-lost-delivers-tso-at-or-before-cutoff",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant",
       "tests": [
@@ -129,7 +129,7 @@
     {
       "id": "umbra-connection-lost-retains-directed-tso-delivery-through-source-resignation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor",
       "tests": [
@@ -140,7 +140,7 @@
     {
       "id": "umbra-connection-lost-retains-timestamped-object-removal-through-source-resignation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
@@ -153,7 +153,7 @@
     {
       "id": "umbra-connection-lost-automatic-delete-does-not-replace-cutoff-tso-deletion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
@@ -163,7 +163,7 @@
     {
       "id": "umbra-connection-lost-automatic-delete-does-not-suppress-cutoff-tso-attribute-update",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_removal.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
@@ -178,7 +178,7 @@
     {
       "id": "umbra-connection-lost-automatic-delete-does-not-suppress-cutoff-tso-directed-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor",
       "tests": [
@@ -189,7 +189,7 @@
     {
       "id": "umbra-connection-lost-releases-automatic-delete-per-recipient-after-protected-tso",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::releaseConnectionLossDeferredObjectInstanceRemovals",
       "tests": [
@@ -203,7 +203,7 @@
     {
       "id": "umbra-connection-lost-drains-cutoff-tso-deletion-to-each-pending-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reclaimTsoMessagePayload",
       "tests": [
@@ -213,7 +213,7 @@
     {
       "id": "umbra-connection-lost-drains-cutoff-tso-attribute-update-to-each-pending-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reclaimTsoMessagePayload",
       "tests": [
@@ -223,7 +223,7 @@
     {
       "id": "umbra-connection-lost-directed-selector-mutation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [
@@ -233,7 +233,7 @@
     {
       "id": "umbra-connection-lost-regional-selector-mutation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor",
       "tests": [

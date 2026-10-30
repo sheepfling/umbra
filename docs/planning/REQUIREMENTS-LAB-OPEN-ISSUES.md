@@ -1,6 +1,6 @@
 # Requirements Lab issue queue and acceptance history
 
-As of 2026-10-26, the authoritative register has **142 records and no open mapping complaints**. The corrected Lab revision is pinned in `requirements-lab.lock.json`; 84 Lab-content complaints and four Umbra-local complaints from this 2026-10-24 queue are accepted. The tables below preserve the original 89-issue queue for review history. `known-issues.json` remains authoritative for current status and evidence.
+As of 2026-10-29, the authoritative register has **143 records and one open issue (RL-392)**. The corrected Lab revision is pinned in `requirements-lab.lock.json`; 84 Lab-content complaints and four Umbra-local complaints from this 2026-10-24 queue are accepted. The tables below preserve the original 89-issue queue for review history. `known-issues.json` remains authoritative for current status and evidence.
 
 ## The split-statement issue from the original queue
 
@@ -14,6 +14,12 @@ Other prominent multi-record splits include **RL-250** (Receive Interaction, p.2
 - Use the exact issue query for the full affected candidate IDs, symptom, impact, workaround, reproduction command, and any verification: `python tools/query_rti_work.py lab-issues RL-381 --summary --compact` (replace the ID).
 - The reviewed Lab revision in the lock is the current source of truth. Resynchronize only after a reviewed Lab revision change.
 - “Candidate records: 0” means the issue is a missing-candidate/service-flow report, not a record with a candidate ID.
+
+## Current open issue
+
+| ID | Source | Complaint | Candidate records |
+|---|---|---|---:|
+| `RL-392` | pp.194-195, §8.8.3(d) and §8.8.5(a) | Time Advance Request backward-time precondition and `LogicalTimeAlreadyPassed` exception have no pinned Lab requirement candidates | 0 |
 
 ## Reviewed source conflict
 

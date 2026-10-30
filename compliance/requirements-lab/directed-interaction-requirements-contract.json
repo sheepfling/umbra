@@ -80,7 +80,7 @@
     {
       "id": "umbra-directed-known-target-required",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
-      "clause_id": "clause-5.1.5",
+      "clause_id": "clause-5.1.4",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -92,7 +92,7 @@
     {
       "id": "umbra-directed-target-departure-suppresses-queued-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
-      "clause_id": "clause-5.1.5",
+      "clause_id": "clause-5.1.4",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -102,7 +102,7 @@
     {
       "id": "umbra-directed-single-received-class",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l56-18",
-      "clause_id": "clause-5.1.5",
+      "clause_id": "clause-5.1.4",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -165,7 +165,7 @@
     {
       "id": "umbra-directed-unsubscribed-no-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l25-7",
-      "clause_id": "clause-6.14.3",
+      "clause_id": "clause-6.14",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -175,7 +175,7 @@
     {
       "id": "umbra-directed-subscribed-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
-      "clause_id": "clause-6.14.3",
+      "clause_id": "clause-6.14",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
       "source_symbol": "queueAmbassadorReceiveOrderDirectedInteraction",
       "tests": [
@@ -186,7 +186,7 @@
     {
       "id": "umbra-directed-sender-excluded",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l46-14",
-      "clause_id": "clause-6.14.3",
+      "clause_id": "clause-6.14",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -196,7 +196,7 @@
     {
       "id": "umbra-directed-tag-propagation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16",
-      "clause_id": "clause-6.14.3",
+      "clause_id": "clause-6.14",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
       "source_symbol": "queueAmbassadorReceiveOrderDirectedInteraction",
       "tests": [
@@ -207,7 +207,7 @@
     {
       "id": "umbra-directed-receive-payload",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-      "clause_id": "clause-6.15.1",
+      "clause_id": "clause-6.15",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
@@ -218,7 +218,7 @@
     {
       "id": "umbra-directed-receive-tag",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-      "clause_id": "clause-6.15.1",
+      "clause_id": "clause-6.15",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [

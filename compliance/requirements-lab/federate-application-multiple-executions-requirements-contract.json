@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-one-application-multiple-federate-executions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1",
       "source": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
       "source_symbol": "scenarioFederateApplicationMultipleExecutions",
       "tests": [

@@ -1218,7 +1218,7 @@
     {
       "id": "umbra-service-report-file-logical-time-interval-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomLogicalTimeInterval",
       "notes": "The external Java/JPype private-file time-regulation vector decodes the type-32 Lookahead LogicalTimeInterval argument and standard null return before the enable callback.",
@@ -1232,7 +1232,7 @@
     {
       "id": "umbra-service-report-file-logical-time-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomLogicalTime",
       "notes": "The external Java/JPype private-file time-advance vector decodes the type-31 LogicalTime argument and preserves its value before the grant callback.",
@@ -1251,7 +1251,7 @@
     {
       "id": "umbra-service-report-file-message-retraction-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomMessageRetractionHandle",
       "tests": [
@@ -1265,7 +1265,7 @@
     {
       "id": "umbra-service-report-file-federate-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomFederateHandle",
       "notes": "The external Java/JPype restore vector decodes the type-15 joined-federate designator as a quoted FederateHandle text value before InitiateFederateRestore delivery.",
@@ -1284,7 +1284,7 @@
     {
       "id": "umbra-service-report-file-interaction-class-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomInteractionClassHandle",
       "notes": "The external Java/JPype public and private declaration/interaction vectors decode type-27 InteractionClassHandle text through the standard encoder and file report paths.",
@@ -1314,7 +1314,7 @@
     {
       "id": "umbra-service-report-file-order-type-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomOrderType",
       "notes": "The external Java/JPype order/default-transport vector decodes type-38 OrderType arguments across object, class, and interaction services.",
@@ -1335,7 +1335,7 @@
     {
       "id": "umbra-service-report-file-transportation-type-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomTransportationTypeHandle",
       "notes": "The external Java/JPype order/default-transport and attribute-transport vectors decode type-59 TransportationTypeHandle values through the standard Java report interaction.",
@@ -1352,7 +1352,7 @@
     {
       "id": "umbra-service-report-file-interaction-class-handle-set-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomInteractionClassHandleSet",
       "notes": "The external Java/JPype directed-declaration and directed-subscription vectors decode type-28 InteractionClassHandleSet values, including empty and optional-set forms, from the private service-report file.",
@@ -1369,7 +1369,7 @@
     {
       "id": "umbra-service-report-file-object-class-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomObjectClassHandle",
       "notes": "The external Java/JPype object-attribute, directed-declaration, and request vectors decode type-36 ObjectClassHandle text through the private report file.",
@@ -1397,7 +1397,7 @@
     {
       "id": "umbra-service-report-file-attribute-handle-value-map-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomAttributeHandleValueMap",
       "notes": "The external Java/JPype reflection vector decodes the type-2 constrained attribute/value map, including the quoted AttributeHandle key and base-64 value, before reflectAttributeValues().",
@@ -1410,7 +1410,7 @@
     {
       "id": "umbra-service-report-file-parameter-handle-value-map-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomParameterHandleValueMap",
       "notes": "The external Java/JPype ordinary and directed MOM interaction vectors decode the type-40 constrained parameter/value map through the standard Java encoder before receive callbacks.",
@@ -1428,7 +1428,7 @@
     {
       "id": "umbra-service-report-file-object-instance-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomObjectInstanceHandle",
       "notes": "The external Java/JPype reflection and object/class request vectors decode type-37 ObjectInstanceHandle text before their standard callbacks.",
@@ -1478,7 +1478,7 @@
     {
       "id": "umbra-service-report-file-attribute-handle-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomAttributeHandle",
       "notes": "The external Java/JPype attribute-transport and reflection vectors decode quoted AttributeHandle values inside the standard report payloads.",
@@ -1492,7 +1492,7 @@
     {
       "id": "umbra-service-report-file-attribute-handle-set-uses-table-five-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomAttributeHandleSet",
       "notes": "The external Java/JPype object-attribute subscription and directed declaration vectors decode type-1 AttributeHandleSet arrays, including empty and optional-set forms, from standard file reports.",
@@ -3060,7 +3060,7 @@
     {
       "id": "umbra-register-object-instance-service-report-table-5-forms",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstance",
       "notes": "The registration-report matrix verifies the Table 5 primitive encodings: type-36 object-class designator, type-53 optional object-instance name, type-4 attribute/region pair list, and type-37 returned object-instance designator. It also verifies Null/false/exception failure encoding.",

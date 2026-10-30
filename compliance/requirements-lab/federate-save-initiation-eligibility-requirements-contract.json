@@ -8,7 +8,7 @@
     {
       "id": "federate-save-initiation-eligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.1",
       "source": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
       "source_symbol": "scenarioFederateSaveInitiationEligibility",
       "tests": [
@@ -19,7 +19,7 @@
     {
       "id": "time-constrained-save-initiation-page-42-eligibility-branch",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.1",
       "source": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
       "source_symbol": "scenarioFederateSaveInitiationTimeConstrainedEligibility",
       "statement": "The constrained branch of the page-42 eligibility rule is directly observed: no joined federate receives Initiate Federate Save while both time-constrained members are idle; after both have outstanding TARs, each receives exactly one Initiate Federate Save before either receives Time Advance Grant. The paired unconstrained-eligibility scenario covers the other branch of the disjunction.",
@@ -55,7 +55,7 @@
     {
       "id": "time-advancing-state-used-for-save-eligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l15-2",
-      "clause_id": "clause-8.1.7",
+      "clause_id": "clause-8.1.2",
       "source": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
       "source_symbol": "scenarioFederateSaveInitiationTimeConstrainedEligibility",
       "tests": [
@@ -89,7 +89,7 @@
     {
       "id": "non-time-constrained-save-waits-for-all-constrained-eligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-      "clause_id": "clause-4.19.6",
+      "clause_id": "clause-4.19",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary",
       "tests": [

@@ -24,7 +24,7 @@
     {
       "id": "umbra-untimed-save-waits-for-all-constrained-members-before-nonconstrained-initiation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-      "clause_id": "clause-4.19.6",
+      "clause_id": "clause-4.19",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary",
       "tests": [
@@ -78,7 +78,7 @@
     {
       "id": "umbra-save-allows-one-outstanding-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l22-5",
-      "clause_id": "clause-4.19.6",
+      "clause_id": "clause-4.19",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
@@ -88,7 +88,7 @@
     {
       "id": "umbra-save-begun-advances-member-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
-      "clause_id": "clause-4.21.1",
+      "clause_id": "clause-4.21",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveBegun",
       "tests": [
@@ -145,7 +145,7 @@
     {
       "id": "umbra-save-abort-reports-failure",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-070-l90-22",
-      "clause_id": "clause-4.24.3",
+      "clause_id": "clause-4.24",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::abortFederationSave",
       "tests": [
@@ -156,7 +156,7 @@
     {
       "id": "umbra-save-status-query-returns-member-statuses",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-071-l65-14",
-      "clause_id": "clause-4.25.6",
+      "clause_id": "clause-4.25",
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::queryFederationSaveStatus",
       "tests": [

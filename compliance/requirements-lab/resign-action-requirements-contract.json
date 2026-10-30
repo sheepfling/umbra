@@ -93,8 +93,8 @@
     },
     {
       "id": "umbra-resign-action-final-federate-forces-delete-directive",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
-      "clause_id": "clause-4.12.4",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
+      "clause_id": "clause-4.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
@@ -105,7 +105,7 @@
     {
       "id": "umbra-resign-action-continues-assumption-search-after-eligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
-      "clause_id": "clause-4.12.4",
+      "clause_id": "clause-4.12",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate",
       "tests": [

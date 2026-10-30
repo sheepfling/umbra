@@ -21,7 +21,7 @@
     {
       "id": "umbra-no-tso-regulator-pending-advance-bounds-timestamp",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
@@ -43,7 +43,7 @@
     {
       "id": "umbra-no-tso-lits-is-undefined-with-undefined-galt-and-no-queue",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_bounds.cpp",
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [

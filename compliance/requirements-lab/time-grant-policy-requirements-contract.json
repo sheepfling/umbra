@@ -8,7 +8,7 @@
     {
       "id": "umbra-no-tso-tar-grant-is-strictly-below-defined-galt",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l4-1",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_grant_policy.cpp",
       "source_symbol": "FederationTimeAdvanceGrantPolicy::decide",
       "tests": [
@@ -28,7 +28,7 @@
     {
       "id": "umbra-no-tso-undefined-galt-uses-nrg",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l49-16",
-      "clause_id": "clause-8",
+      "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/time/federation_time_grant_policy.cpp",
       "source_symbol": "FederationTimeAdvanceGrantPolicy::decide",
       "tests": [

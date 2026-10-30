@@ -182,7 +182,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     }
     if (
         "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l28-8",
-        "hla-1516.1-2025:clause-9.10.3",
+        "hla-1516.1-2025:clause-9.10",
     ) not in passive_regional_pairs:
         raise AssertionError(
             "regional active/passive requirement lost its direct §9.10.3 mapping"
@@ -287,7 +287,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     sent_class_requirement_clauses = {
         "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57": "clause-5.1.3",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10": "clause-5.1.3",
-        "requirement-candidate-content-clauses-06-object-management-page-124-l17-4": "clause-6.12.4",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l17-4": "clause-6.12",
         "requirement-candidate-content-clauses-06-object-management-page-125-l88-25": "clause-6.13",
     }
     case_requirement_ids = query_rti_work.strings(
@@ -373,7 +373,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         or ddm_expansion_focus.get("mapped_test_count") != 3
         or ddm_expansion_focus.get("assertion_count") != 61
         or ddm_expansion_focus.get("requirement_count") != 42
-        or ddm_expansion_focus.get("standard_section_count") != 17
+        or ddm_expansion_focus.get("standard_section_count") != 19
         or ddm_expansion_focus.get("requirement_section_pair_count") != 42
     ):
         raise AssertionError("Clause 6 DDM-expansion focused query card drifted")
@@ -591,7 +591,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         or release_denied_multi_focus.get("mapped_test_count") != 1
         or release_denied_multi_focus.get("assertion_count") != 53
         or release_denied_multi_focus.get("requirement_count") != 4
-        or release_denied_multi_focus.get("standard_section_count") != 3
+        or release_denied_multi_focus.get("standard_section_count") != 4
         or release_denied_multi_focus.get("requirement_section_pair_count") != 4
     ):
         raise AssertionError("multi-acquirer Release Denied lane card drifted")
@@ -749,7 +749,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         or evoked_regional_focus.get("mapped_test_count") != 1
         or evoked_regional_focus.get("assertion_count") != 42
         or evoked_regional_focus.get("requirement_count") != 9
-        or evoked_regional_focus.get("standard_section_count") != 9
+        or evoked_regional_focus.get("standard_section_count") != 11
         or evoked_regional_focus.get("requirement_section_pair_count") != 9
     ):
         raise AssertionError("evoked regional source-region snapshot lane card drifted")
@@ -927,7 +927,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         or deferred_state_image_restore_focus.get("mapped_test_count") != 1
         or deferred_state_image_restore_focus.get("assertion_count") != 79
         or deferred_state_image_restore_focus.get("requirement_count") != 7
-        or deferred_state_image_restore_focus.get("standard_section_count") != 5
+        or deferred_state_image_restore_focus.get("standard_section_count") != 6
         or deferred_state_image_restore_focus.get("requirement_section_pair_count") != 7
     ):
         raise AssertionError("deferred state-image restore lane card drifted")
@@ -997,7 +997,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         or deferred_state_image_focus.get("mapped_test_count") != 1
         or deferred_state_image_focus.get("assertion_count") != 9
         or deferred_state_image_focus.get("requirement_count") != 2
-        or deferred_state_image_focus.get("standard_section_count") != 2
+        or deferred_state_image_focus.get("standard_section_count") != 3
         or deferred_state_image_focus.get("requirement_section_pair_count") != 2
     ):
         raise AssertionError("deferred state-image lane card drifted")

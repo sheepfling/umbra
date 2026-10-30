@@ -626,7 +626,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or process_if_available_focus.get("mapped_test_count") != 1
         or process_if_available_focus.get("assertion_count") != 22
         or process_if_available_focus.get("requirement_count") != 4
-        or process_if_available_focus.get("standard_section_count") != 3
+        or process_if_available_focus.get("standard_section_count") != 5
         or process_if_available_focus.get("requirement_section_pair_count") != 4
     ):
         raise AssertionError("process If Available acquisition lane card drifted")
@@ -663,7 +663,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or process_acquisition_focus.get("mapped_test_count") != 1
         or process_acquisition_focus.get("assertion_count") != 22
         or process_acquisition_focus.get("requirement_count") != 2
-        or process_acquisition_focus.get("standard_section_count") != 2
+        or process_acquisition_focus.get("standard_section_count") != 3
         or process_acquisition_focus.get("requirement_section_pair_count") != 2
     ):
         raise AssertionError("process regular acquisition lane card drifted")
@@ -745,7 +745,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or process_acquisition_release_denied_focus.get("mapped_test_count") != 1
         or process_acquisition_release_denied_focus.get("assertion_count") != 43
         or process_acquisition_release_denied_focus.get("requirement_count") != 5
-        or process_acquisition_release_denied_focus.get("standard_section_count") != 4
+        or process_acquisition_release_denied_focus.get("standard_section_count") != 6
         or process_acquisition_release_denied_focus.get(
             "requirement_section_pair_count"
         )
@@ -858,7 +858,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or process_negotiated_cancellation_focus.get("mapped_test_count") != 1
         or process_negotiated_cancellation_focus.get("assertion_count") != 38
         or process_negotiated_cancellation_focus.get("requirement_count") != 5
-        or process_negotiated_cancellation_focus.get("standard_section_count") != 4
+        or process_negotiated_cancellation_focus.get("standard_section_count") != 5
         or process_negotiated_cancellation_focus.get("requirement_section_pair_count")
         != 5
     ):
@@ -930,7 +930,10 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         raise AssertionError("negotiated-assumption assertion count drifted")
     if negotiated_assumption.get("traceability_state") != "requirements-mapped":
         raise AssertionError("negotiated-assumption row is not mapped")
-    if negotiated_assumption.get("standard_sections") != ["hla-1516.1-2025:clause-7.2"]:
+    if negotiated_assumption.get("standard_sections") != [
+        "hla-1516.1-2025:clause-7.1.4",
+        "hla-1516.1-2025:clause-7.2",
+    ]:
         raise AssertionError("negotiated-assumption section mapping drifted")
     negotiated_assumption_focus = query_rti_work.focused_lane_result(
         index, tests, "negotiated-assumption", limit=0
@@ -1234,7 +1237,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_cancel_immediate_focus.get("mapped_test_count") != 1
         or connection_loss_cancel_immediate_focus.get("assertion_count") != 41
         or connection_loss_cancel_immediate_focus.get("requirement_count") != 5
-        or connection_loss_cancel_immediate_focus.get("standard_section_count") != 5
+        or connection_loss_cancel_immediate_focus.get("standard_section_count") != 8
         or connection_loss_cancel_immediate_focus.get("requirement_section_pair_count")
         != 5
         or connection_loss_cancel_immediate_focus.get("unclassified_count") != 0
@@ -1287,7 +1290,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_no_action_focus.get("mapped_test_count") != 1
         or connection_loss_no_action_focus.get("assertion_count") != 31
         or connection_loss_no_action_focus.get("requirement_count") != 5
-        or connection_loss_no_action_focus.get("standard_section_count") != 5
+        or connection_loss_no_action_focus.get("standard_section_count") != 8
         or connection_loss_no_action_focus.get("requirement_section_pair_count") != 5
         or connection_loss_no_action_focus.get("unclassified_count") != 0
     ):
@@ -1340,7 +1343,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_final_focus.get("mapped_test_count") != 1
         or connection_loss_final_focus.get("assertion_count") != 23
         or connection_loss_final_focus.get("requirement_count") != 6
-        or connection_loss_final_focus.get("standard_section_count") != 6
+        or connection_loss_final_focus.get("standard_section_count") != 7
         or connection_loss_final_focus.get("requirement_section_pair_count") != 6
         or connection_loss_final_focus.get("unclassified_count") != 0
     ):
@@ -1394,7 +1397,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_delete_divest_focus.get("mapped_test_count") != 1
         or connection_loss_delete_divest_focus.get("assertion_count") != 39
         or connection_loss_delete_divest_focus.get("requirement_count") != 5
-        or connection_loss_delete_divest_focus.get("standard_section_count") != 5
+        or connection_loss_delete_divest_focus.get("standard_section_count") != 8
         or connection_loss_delete_divest_focus.get("requirement_section_pair_count")
         != 5
         or connection_loss_delete_divest_focus.get("unclassified_count") != 0
@@ -1451,7 +1454,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_delete_objects_focus.get("mapped_test_count") != 1
         or connection_loss_delete_objects_focus.get("assertion_count") != 25
         or connection_loss_delete_objects_focus.get("requirement_count") != 5
-        or connection_loss_delete_objects_focus.get("standard_section_count") != 5
+        or connection_loss_delete_objects_focus.get("standard_section_count") != 8
         or connection_loss_delete_objects_focus.get("requirement_section_pair_count")
         != 5
         or connection_loss_delete_objects_focus.get("unclassified_count") != 0
@@ -1504,7 +1507,7 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         or connection_loss_cancel_delete_divest_focus.get("mapped_test_count") != 1
         or connection_loss_cancel_delete_divest_focus.get("assertion_count") != 45
         or connection_loss_cancel_delete_divest_focus.get("requirement_count") != 7
-        or connection_loss_cancel_delete_divest_focus.get("standard_section_count") != 7
+        or connection_loss_cancel_delete_divest_focus.get("standard_section_count") != 10
         or connection_loss_cancel_delete_divest_focus.get(
             "requirement_section_pair_count"
         )
@@ -1734,9 +1737,9 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
     directed_focus = query_rti_work.focused_lane_result(
         index, tests, "directed", limit=0
     )
-    if directed_focus.get("test_count") != 50:
+    if directed_focus.get("test_count") != 51:
         raise AssertionError("directed lane plan count drifted")
-    if directed_focus.get("mapped_test_count") != 47:
+    if directed_focus.get("mapped_test_count") != 48:
         raise AssertionError("directed lane mapped count drifted")
     directed_handles = directed_focus.get("lane_handles")
     if (
@@ -1787,8 +1790,10 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         "hla-1516.1-2025:clause-9.1.6",
         "hla-1516.1-2025:clause-9.5",
         "hla-1516.1-2025:clause-9.6",
+        "hla-1516.1-2025:clause-9.7",
         "hla-1516.1-2025:clause-9.7.5",
         "hla-1516.1-2025:clause-9.8",
+        "hla-1516.1-2025:clause-9.9",
         "hla-1516.1-2025:clause-9.9.3",
     ]:
         raise AssertionError(
@@ -1930,11 +1935,11 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         raise AssertionError(
             "focused positive-dimensional interaction source pointer drifted"
         )
-    if focused_positive_interaction.get("assertions") != 58:
+    if focused_positive_interaction.get("assertions") != 50:
         raise AssertionError(
             "focused positive-dimensional interaction assertion count drifted"
         )
-    if len(focused_positive_interaction.get("lab_requirement_ids", [])) != 10:
+    if len(focused_positive_interaction.get("lab_requirement_ids", [])) != 14:
         raise AssertionError(
             "focused positive-dimensional interaction requirement mapping drifted"
         )
@@ -1980,11 +1985,11 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
         raise AssertionError(
             "focused positive-dimensional interaction mapped count drifted"
         )
-    if focused_positive_interaction_focus.get("assertion_count") != 58:
+    if focused_positive_interaction_focus.get("assertion_count") != 50:
         raise AssertionError(
             "focused positive-dimensional interaction lane assertion total drifted"
         )
-    if focused_positive_interaction_focus.get("requirement_count") != 10:
+    if focused_positive_interaction_focus.get("requirement_count") != 14:
         raise AssertionError(
             "focused positive-dimensional interaction lane requirement total drifted"
         )

@@ -17778,3 +17778,19 @@ Reproduction:
 python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l75-24 --json --limit 1
 python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l78-25 --summary --compact
 ~~~
+
+### 2026-10-29 — RL-391: Allow Relaxed DDM getter assigned to the preceding service
+
+The local bundle at revision `e8c63e7a26f562dd6a66cbaa9c8ec87608df872c`
+assigns `requirement-candidate-content-clauses-10-support-services-page-282-l152-47`
+to §10.54.6. The 2025 page-282 semantic layout places its statement under
+§10.55, Get Allow Relaxed DDM Switch service, before the §10.55.1 supplied
+arguments heading. The previously recorded §10.55.1 in RL-030 and Umbra's
+older contract is also too narrow for this service-description statement.
+
+Umbra retains the immutable requirement ID and records a source-backed §10.55
+crosswalk in the support-switches contract. This is a Lab section-assignment
+defect, not a claim of a standard defect. No Lab resynchronization was run.
+The full shared MinGW suite also revealed many other contract/bundle revision
+mismatches; those require individual review and are not all attributed to this
+issue.

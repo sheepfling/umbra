@@ -39,7 +39,7 @@
     {
       "id": "umbra-unsubscribe-object-class-directed-interactions-uses-the-table-five-interaction-class-set-form",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
-      "clause_id": "clause-11.5.2",
+      "clause_id": "clause-11.5.1",
       "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
       "source_symbol": "formatMomInteractionClassHandleSet",
       "tests": [

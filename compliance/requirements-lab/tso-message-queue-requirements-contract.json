@@ -31,7 +31,7 @@
     {
       "id": "umbra-tso-queue-retraction-removes-pending-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/time/tso_message_queue.cpp",
       "source_symbol": "TsoMessageQueue::retractPending",
       "tests": [
@@ -42,7 +42,7 @@
     {
       "id": "umbra-tso-queue-rejects-nonrepresentable-timestamps",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/time/tso_message_queue.cpp",
       "source_symbol": "TsoMessageQueue::enqueue",
       "tests": [

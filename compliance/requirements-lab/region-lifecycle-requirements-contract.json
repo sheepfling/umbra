@@ -8,7 +8,7 @@
     {
       "id": "umbra-region-create-specified-dimensions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
-      "clause_id": "clause-9.3",
+      "clause_id": "clause-9.2",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::createRegion",
       "tests": [
@@ -33,7 +33,7 @@
     {
       "id": "umbra-region-incomplete-commit-is-invalid",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l26-6",
-      "clause_id": "clause-9.4",
+      "clause_id": "clause-9.3",
       "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModifications",
       "tests": [
@@ -55,7 +55,7 @@
     {
       "id": "umbra-region-delete-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l62-20",
-      "clause_id": "clause-9.1.2",
+      "clause_id": "clause-9.1.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteRegion",
       "tests": [
@@ -66,7 +66,7 @@
     {
       "id": "umbra-region-range-bounds-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l74-24",
-      "clause_id": "clause-9.1.2",
+      "clause_id": "clause-9.1.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getRangeBounds",
       "tests": [
@@ -78,7 +78,7 @@
     {
       "id": "umbra-region-dimension-set-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l83-27",
-      "clause_id": "clause-9.1.2",
+      "clause_id": "clause-9.1.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionHandleSet",
       "tests": [
@@ -90,7 +90,7 @@
     {
       "id": "umbra-region-set-range-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l92-30",
-      "clause_id": "clause-9.1.2",
+      "clause_id": "clause-9.1.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [

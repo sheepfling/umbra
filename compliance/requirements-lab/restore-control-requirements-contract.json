@@ -49,7 +49,7 @@
     {
       "id": "umbra-confirm-restore-request-reports-the-requester-result",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-073-l127-35",
-      "clause_id": "clause-4.28.1",
+      "clause_id": "clause-4.28",
       "source": "cpp/src/internal/federation/federation_registry_restore_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
       "tests": [
@@ -60,7 +60,7 @@
     {
       "id": "umbra-negative-confirm-restore-request-leaves-no-restore-operation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-073-l166-48",
-      "clause_id": "clause-4.28.1",
+      "clause_id": "clause-4.28",
       "source": "cpp/src/internal/federation/federation_registry_restore_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
       "tests": [
@@ -129,7 +129,7 @@
     {
       "id": "umbra-restore-complete-returns-saved-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -177,7 +177,7 @@
     {
       "id": "umbra-restore-failure-reports-reason",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l11-1",
-      "clause_id": "clause-4.33",
+      "clause_id": "clause-4.32",
       "source": "cpp/src/internal/federation/federation_registry_restore_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateRestoreNotComplete",
       "tests": [
@@ -240,7 +240,7 @@
     {
       "id": "umbra-restore-resignation-fails-remaining-members",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l71-21",
-      "clause_id": "clause-4.33",
+      "clause_id": "clause-4.32",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
@@ -251,7 +251,7 @@
     {
       "id": "umbra-restore-resignation-reports-failure-to-survivors",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l74-22",
-      "clause_id": "clause-4.33",
+      "clause_id": "clause-4.32",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp",
       "source_symbol": "submitAmbassadorFederationRestoreNotifications",
       "tests": [
@@ -314,7 +314,7 @@
     {
       "id": "umbra-restore-terminal-attribute-tso-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -325,7 +325,7 @@
     {
       "id": "umbra-restore-terminal-object-deletion-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -336,7 +336,7 @@
     {
       "id": "umbra-restore-terminal-directed-interaction-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -347,7 +347,7 @@
     {
       "id": "umbra-restore-terminal-regional-interaction-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -358,7 +358,7 @@
     {
       "id": "umbra-restore-terminal-regional-attribute-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -369,7 +369,7 @@
     {
       "id": "umbra-restore-terminal-default-region-attribute-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -380,7 +380,7 @@
     {
       "id": "umbra-restore-terminal-default-region-interaction-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -391,7 +391,7 @@
     {
       "id": "umbra-restore-timed-default-region-interaction-payload",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -402,7 +402,7 @@
     {
       "id": "umbra-restore-timed-directed-interaction-payload",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
@@ -424,7 +424,7 @@
     {
       "id": "umbra-restore-synchronization-point-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [

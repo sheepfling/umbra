@@ -55,7 +55,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused public process-restart application-value requirement total drifted"
         )
-    if public_process_restart_focus.get("standard_section_count") != 5:
+    if public_process_restart_focus.get("standard_section_count") != 7:
         raise AssertionError(
             "focused public process-restart application-value section total drifted"
         )
@@ -136,7 +136,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused federation save-history requirement mapping drifted"
         )
-    if len(save_history.get("standard_sections", [])) != 8:
+    if len(save_history.get("standard_sections", [])) != 9:
         raise AssertionError("focused federation save-history section mapping drifted")
     if len(save_history.get("selected_cpp_api_surface_ids", [])) != 5:
         raise AssertionError("focused federation save-history API mapping drifted")
@@ -151,7 +151,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused federation save-history lane assertion total drifted"
         )
-    if save_history_focus.get("standard_section_count") != 8:
+    if save_history_focus.get("standard_section_count") != 9:
         raise AssertionError(
             "focused federation save-history lane section total drifted"
         )
@@ -317,7 +317,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAsetSwitches requirement mapping drifted"
         )
-    if len(mom_federate_set_switches.get("standard_sections", [])) != 3:
+    if len(mom_federate_set_switches.get("standard_sections", [])) != 4:
         raise AssertionError(
             "focused joined-federate HLAsetSwitches section mapping drifted"
         )
@@ -344,7 +344,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAsetSwitches lane requirement total drifted"
         )
-    if mom_federate_set_switches_focus.get("standard_section_count") != 3:
+    if mom_federate_set_switches_focus.get("standard_section_count") != 4:
         raise AssertionError(
             "focused joined-federate HLAsetSwitches lane section total drifted"
         )
@@ -437,7 +437,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
             "assertions": 56,
             "lane": "timestamped-directed-interaction-tso-retraction",
             "requirements": 15,
-            "sections": 13,
+            "sections": 19,
         },
     ]
     for expectation in focused_timestamped_slices:
@@ -545,7 +545,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused handle-normalization row is not mapped")
     if len(handle_normalization.get("lab_requirement_ids", [])) != 6:
         raise AssertionError("focused handle-normalization requirement mapping drifted")
-    if len(handle_normalization.get("standard_sections", [])) != 6:
+    if len(handle_normalization.get("standard_sections", [])) != 11:
         raise AssertionError("focused handle-normalization section mapping drifted")
     if len(handle_normalization.get("selected_cpp_api_surface_ids", [])) != 5:
         raise AssertionError("focused handle-normalization API mapping drifted")
@@ -560,7 +560,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused handle-normalization assertion total drifted")
     if handle_normalization_focus.get("requirement_count") != 6:
         raise AssertionError("focused handle-normalization requirement total drifted")
-    if handle_normalization_focus.get("standard_section_count") != 6:
+    if handle_normalization_focus.get("standard_section_count") != 11:
         raise AssertionError("focused handle-normalization section total drifted")
     if handle_normalization_focus.get("requirement_section_pair_count") != 6:
         raise AssertionError("focused handle-normalization direct pair drifted")

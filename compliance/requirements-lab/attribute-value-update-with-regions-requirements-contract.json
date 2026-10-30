@@ -8,7 +8,7 @@
     {
       "id": "umbra-regional-request-solicits-class-and-subclass-owners",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l88-26",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
       "tests": [
@@ -23,7 +23,7 @@
     {
       "id": "umbra-regional-request-filters-by-update-region-overlap",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateAttributeValueUpdateClassProvideRecipient",
       "tests": [
@@ -38,7 +38,7 @@
     {
       "id": "umbra-regional-request-empty-region-pair-is-no-op",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l136-42",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateAttributeValueUpdateClassProvideRecipient",
       "tests": [
@@ -48,7 +48,7 @@
     {
       "id": "umbra-regional-request-default-region-remains-eligible",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l91-27",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateAttributeValueUpdateClassProvideRecipient",
       "tests": [
@@ -58,7 +58,7 @@
     {
       "id": "umbra-regional-request-validates-region-context-and-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-242-l78-22",
-      "clause_id": "clause-9.13.6",
+      "clause_id": "clause-9.13.3",
       "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
       "tests": [
@@ -68,7 +68,7 @@
     {
       "id": "umbra-regional-request-preserves-user-tag-for-provider",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l145-45",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions",
       "tests": [
@@ -101,7 +101,7 @@
     {
       "id": "umbra-regional-request-provider-response-preserves-explicit-sent-region",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
-      "clause_id": "clause-6.11.1",
+      "clause_id": "clause-6.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueAmbassadorReceiveOrderAttributeUpdate",
       "tests": [
@@ -125,7 +125,7 @@
     {
       "id": "umbra-regional-request-attribute-value-update-with-regions-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l88-26",
-      "clause_id": "clause-9.13.1",
+      "clause_id": "clause-9.13",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions",
       "notes": "The accepted regional request appends its requester-local private §6.22 successful-void record before any eligible provider callback can be delivered. The record uses the official type-36 ObjectClassHandle, type-4 AttributeSetRegionSetPairList, and copied type-63 UserSuppliedTag arguments; it is gated by the requester's service-report and file switches. This is distinct from the provider's later type-37/type-1/type-63 Provide Attribute Value Update callback record and does not claim public MOM delivery or conformance.",

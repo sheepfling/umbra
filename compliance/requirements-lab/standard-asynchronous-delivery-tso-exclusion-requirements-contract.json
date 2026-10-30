@@ -8,7 +8,7 @@
     {
       "id": "portable-tck-timestamped-interaction-time-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l121-36",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h; third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
       "source_symbol": "sendInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData, LogicalTime); receiveInteraction(..., LogicalTime, OrderType, OrderType, ...) ",
       "statement": "Asynchronous delivery permits the receive-order positive-control callback while the time-constrained receiver is Time Granted, but does not permit timestamped interaction delivery until the receiver is Time Advancing. After the receiver's Time Advance Request, the timestamped receive callback precedes the matching Time Advance Grant and preserves the sent timestamp and order metadata.",

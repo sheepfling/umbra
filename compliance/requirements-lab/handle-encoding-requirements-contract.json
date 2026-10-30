@@ -8,7 +8,7 @@
     {
       "id": "umbra-cpp-handle-encoding-uses-the-corresponding-standard-mim-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l24-7",
-      "clause_id": "clause-12.12.5.1",
+      "clause_id": "clause-12.12.4.2",
       "source": "cpp/src/internal/handles/handle_variable_array_encoding.hpp",
       "source_symbol": "encodeUmbraHandleVariableArray",
       "tests": [

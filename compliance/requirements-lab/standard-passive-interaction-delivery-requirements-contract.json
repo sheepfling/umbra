@@ -20,7 +20,7 @@
     {
       "id": "cpp-tck-interaction-active-passive-modes-send-class",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5",
-      "clause_id": "clause-5.1.4",
+      "clause_id": "clause-5.1.3",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "sendInteraction",
       "statement": "The active receiver's callback identifies the adapter-selected interaction class used as the Send Interaction argument.",
@@ -32,7 +32,7 @@
     {
       "id": "cpp-tck-interaction-active-passive-modes-received-class",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l44-14",
-      "clause_id": "clause-5.1.4",
+      "clause_id": "clause-5.1.3",
       "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
       "source_symbol": "receiveInteraction",
       "statement": "The active receiver's Receive Interaction callback class matches its handle for the adapter-selected interaction class.",
@@ -44,7 +44,7 @@
     {
       "id": "cpp-tck-interaction-active-passive-modes-sent-parameters",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l74-24",
-      "clause_id": "clause-5.1.4",
+      "clause_id": "clause-5.1.3",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "sendInteraction",
       "statement": "The parameter value sent by the publisher is preserved in the successful active receiver callback.",
@@ -56,7 +56,7 @@
     {
       "id": "cpp-tck-interaction-active-passive-modes-received-parameters",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l83-27",
-      "clause_id": "clause-5.1.4",
+      "clause_id": "clause-5.1.3",
       "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
       "source_symbol": "receiveInteraction",
       "statement": "The active receiver's Receive Interaction callback contains the expected parameter handle and value.",

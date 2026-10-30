@@ -8,7 +8,7 @@
     {
       "id": "umbra-whole-class-unpublish-disables-registration",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l103-29",
-      "clause_id": "clause-5.3.3",
+      "clause_id": "clause-5.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClass",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-whole-class-unpublish-removes-attribute-ownership-capability",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l109-31",
-      "clause_id": "clause-5.3.3",
+      "clause_id": "clause-5.3",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributePublication",
       "tests": [
@@ -29,7 +29,7 @@
     {
       "id": "umbra-whole-class-unpublish-subset-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l115-33",
-      "clause_id": "clause-5.3.3",
+      "clause_id": "clause-5.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClass",
       "tests": [
@@ -39,7 +39,7 @@
     {
       "id": "umbra-whole-class-unpublish-removes-all-current-publications",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l118-34",
-      "clause_id": "clause-5.3.3",
+      "clause_id": "clause-5.3",
       "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::publishedObjectClassAttributeHandles",
       "tests": [
@@ -69,7 +69,7 @@
     {
       "id": "umbra-whole-class-unpublish-rejects-later-updates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
-      "clause_id": "clause-5.3.3",
+      "clause_id": "clause-5.3",
       "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [

@@ -1016,8 +1016,8 @@
   "portable_tck_application_multiple_federates_across_executions_2026_10_21_handoff": "Verified 2026-10-21: added primary and contract C++ TCK scenarios for one application using four distinct RTIambassador sessions to join two federates in each of two federation executions, including resignation/rejoin. The direct mapping is limited to requirement-candidate-content-clauses-04-federation-management-page-039-l4-1 -> broad §4; no narrower subsection was inferred. MinGW/Ninja installed-package CTest passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE; direct runner evidence passed 4/4; focused evidence validator reports no findings; Catch2 plan validation passes. Catalog now has 1,510/1,510 promoted scenarios. Portable C++ direct requirement coverage moved to 581/2,220 (26.17%). No Java parity, multiprocess behavior, interoperability, or conformance claim. The same bounded gap review selected final-federate resignation cleanup as the next portable C++ slice, based on existing Catch2 evidence and requirement page 40 line 54; its exported crosswalk is only broad §4, so inspect the exact normative clause before asserting more. Existing Lab issue RL-369 remains open and RL-372 records the corrected dangling-pointer recurrence; no new Lab defect or resync in this slice. Next (reconstructed from saved evidence; original wording unavailable): use the recorded final-federate resignation cleanup as the next slice; its direct mappings belong to that separate case and must not be inferred from the multiple-execution scenario.",
   "portable_tck_final_federate_resignation_cleanup_mapping_2026_10_21_handoff": "Verified 2026-10-21: corrected the roadmap's stale new-case-needed pointer—the final-federate cleanup behavior already existed as a promoted C++ primary/contract pair and a Java source parity scenario. Added the five direct Requirement Lab ID-to-canonical-section pairs already present in the Catch2 source case to both C++ rows and the Java row: page 40 -> clause 4; page 58 -> clause 4.12; page 59 -> clause 4.12.4; page 113 -> clauses 6.2 and 6.3. Each of the five exact portable-C++ gap queries now reports 1/1 promoted. MinGW installed-package focused CTest and direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE; promoted evidence validation has no findings. Java catalog/API and parity checks pass, but Java remains unsupported pending provider runtime. Direct C++ TCK mapping increased to 584/2,220 (26.31%). A separate clean TCK build attempt exhausted C: disk at 134/255 steps; only its task-created partial 993 MiB directory was removed, restoring about 1 GiB. The existing target binary then passed current focused CTest and direct gates without rebuilding. RL-369 remains open; RL-372 remains resolved; no new Lab defect or Lab resync. Next (reconstructed from saved evidence; original wording unavailable): the separate invalid-FOM-create atomicity case is the adjacent federation-management follow-up. Keep its rejection-and-reuse assertions and page-42 clause-4 mapping separate from the cleanup mappings.",
   "portable_tck_invalid_fom_create_atomicity_mapping_2026_10_21_handoff": "Verified 2026-10-21: connected the promoted C++ invalid-FOM-create primary/contract and Java source parity to requirement-candidate-content-clauses-04-federation-management-page-042-l100-33 -> clause 4. The assertion is deliberately limited to rejection of the adapter-supplied invalid FOM inputs followed by successful use of the same federation name for valid creation and membership. Installed-package MinGW CTest and direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE; focused promoted-evidence validation, Java catalog/API validation, parity audit, exact gap query, and Catch2 plan check pass. Java provider runtime remains unverified. The earlier final-federate cleanup mapping in this turn also remains verified (five direct Lab pairs). Global portable C++ mapped requirement coverage is now 585/2,220 (26.35%). A clean build attempt exhausted C: space; its task-created partial build was removed, and both focused slices were tested with the existing built TCK executable. No new Lab deficiency or resync. Next (reconstructed from saved evidence; original wording unavailable): use a bounded portable-C++ gap query to select another distinct direct 2025 requirement. Keep this evidence limited to invalid-input rejection followed by valid reuse of the same federation name.",
-  "active_handoff_note": "Verified 2026-10-23: Full built MinGW CTest health is clean (1907 passed, one intentional skip, zero failures; 649.60 seconds). The grouped IEEE 1516.1-2025 connection runner is now included in umbra_test_all, and the complete available built-test scope was exercised with a 180-second per-test timeout and local loopback enabled for process tests. Query-matrix regression and Catch2 mapping/requirements-lab plan checks passed. The latest process regional interaction case directly maps one §8.1.4 Table 2 cell; other process cells remain open. Resume with python tools/query_rti_work.py gaps --family portable-cpp-tck-2025 --summary --compact --limit 12 and select one distinct actionable 2025 C++ mapping. Exclude the page-40 line-33 candidate already logged under RL-373 as compound/truncated; do not repeat the completed embedded Update/Delete/Send Interaction matrices or resync unchanged Lab inputs. No Java runtime, interoperability, validation, or conformance claim.",
-  "latest_verified_slice": "Verified 2026-10-22: embedded Delete Object Instance and regional Send Interaction now each have all eight §8.1.4 Table 2 rows in focused official C++ tests. Delete Object Instance passed five repeats with 97 assertions and an 8,313,279-byte image; the regional matrix passed 138 assertions with a 53,579,830-byte MinGW g5 shared runner; both have zero DWARF. The embedded and coordinator/process deletion classifiers require TIMESTAMP preference plus active sender regulation for timestamped TSO. A configured-process deletion case verifies the unregulated TIMESTAMP-preferred supplied-timestamp cell as RECEIVE/no retraction under HLA_EVOKED and HLA_IMMEDIATE (CTest 1/1 with loopback access; 46,663,528-byte image, zero DWARF). Regional full process parity remains open; next verify its matching unregulated-sender cell. RL-332 and RL-387 remain tracked; no Lab resync, validation, interoperability, full-suite, or conformance claim.",
+  "active_handoff_note": "2026-10-29: the official shared MinGW umbra_test_all health target passed 1,915 of 1,916 routine CTests; one optional provider-switch test was skipped because no alternate provider prefix is configured, with zero failures. The target excludes 278 intentionally unbuilt focused-executable placeholders. After the health gate, the portable C++ TCK regional-interaction-subscription-filtering primary and contract pair was mapped directly to the selected §9.1.5 Unsubscribe Interaction Class default-region requirement and passed installed-package CTest plus direct runs in HLA_EVOKED/HLA_IMMEDIATE (4/4 each); focused evidence and the 1,530-row C++ catalog validate with no findings. The exact TCK gap query reports 1/1 mapped. The Java catalog validates structurally (756 scenarios); Java provider runtime remains unverified. No Requirements Lab resync, interoperability, validation, or conformance claim. Next: continue with one bounded tck-gaps query for the next direct C++ slice.",
+  "latest_verified_slice": "Verified 2026-10-29: the official shared MinGW umbra_test_all target passed 1,915/1,916 routine CTests, with one intentional provider-switch skip and zero failures; 278 focused one-case _NOT_BUILT- placeholders were excluded by the configured target. The installed-package regional-interaction-subscription-filtering primary and contract C++ TCK scenarios passed both callback models (CTest 4/4, direct 4/4) and directly map requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction to §9.1.5. Focused evidence, the full 1,530-row C++ TCK catalog, the 756-scenario Java catalog, the Catch2 plan, and the query-matrix regression report no findings. Evidence: out/mgw/cpp-tck-regional-object-update-20261029/regional-interaction-unsubscribe-pair-results.json. No Requirements Lab resync, Java provider runtime, interoperability, or conformance claim.",
   "portable_tck_time_constrained_enable_galt_equality_handoff": "2026-10-16: Added a pure adapter-backed C++ scenario/contract pair and Java parity ID for the existing §8.6.3 GALT-equality behavior. The first installed-package failure came from a stale archive, not the focused process test: built only the missing 2010 archive target and installed a fresh isolated package whose libumbra_rti.a SHA-256 (4310618de21517949f5ca7a7178c27d2e86eced408a8d3b970557b4cbd30af52) matches the in-tree process-test archive. Both C++ catalog entries are now promoted after the portable scenario and contract twin each passed evoked and immediate callback modes; focused promotion evidence validation and the 518-ID Java/C++ parity audit pass. The §8.6.3 process test also passes 1/1. Java API-source compilation passes, but its catalog entry remains unsupported pending provider runtime evidence. Evidence: out/mgw/cpp-tck-time-constrained-galt-equality-fresh-evidence-20261016/candidate-matrix.json; fresh package: out/mgw/umbra-process-galt-install-20261016; focused CTest: out/mgw/cpp-tck-time-constrained-galt-fresh-20261016. The next handoff is the bounded portable-TCK family lane query recorded in portable_tck_base_subscription_attribute_scope_handoff. No Requirements Lab resync or conformance claim.",
   "portable_tck_time_constrained_enable_galt_equality_followup": "2026-10-16: Resolved the stale-install discrepancy without broad provider rebuilding: compiled the missing umbra_rti_2010 target (12 build steps), installed to the isolated out/mgw/umbra-process-galt-install-20261016 prefix, and verified its archive hash and size exactly match out/mgw/process-time-constrained-galt/libumbra_rti.a. Fresh MinGW TCK build against that package passed the GALT-equality scenario and contract twin in both evoked and immediate modes; both are promoted after focused evidence validation. Java parity now directly maps requirement-candidate-content-clauses-08-time-management-page-192-l72-20 -> hla-1516.1-2025:clause-8.6.3, and the runner records the same requirement ID. The adjacent time-bounds-query pair and Java parity now directly map page-206-l29-4 -> clause-8.18.1 (Query GALT) and page-207-l112-28 -> clause-8.19.3 (Query LITS); its primary and contract twin passed installed-package evoked and immediate runs (4/4). Java API-source compilation, catalog validation, parity audit, mapping check, and focused diff checks pass; no Java provider runtime evidence is claimed. The README now matches the promoted C++ evidence. Evidence: out/mgw/cpp-tck-time-constrained-galt-equality-fresh-evidence-20261016/candidate-matrix.json and out/mgw/tck-dse-ro-regional-20261016/time-bounds-queries-verified-20261016.json. Next: select another distinct standard-API scenario using its exact C++ source and installed-package evidence, then reconcile Java semantics/mapping without treating Catch2 gap output as portable-TCK coverage. No provider rebuild or Requirements Lab resync in this follow-up.",
   "portable_tck_base_subscription_attribute_scope_handoff": "2026-10-16: Translated the existing standard C++ declaration test into a portable subscription-scope scenario: a valid attribute handle declared only by a derived object class must raise AttributeNotDefined when supplied to subscribeObjectClassAttributes for the base class; the contract twin verifies valid base and derived subscriptions as positive controls. Uses the adapter-supplied known-class FOM and class/attribute names; no Umbra fixture identifiers. Direct mapping: requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27 -> hla-1516.1-2025:clause-5.8. C++ scenario and contract passed evoked and immediate callbacks against the fresh installed package (4/4); focused promotion evidence validation has no findings, so both C++ catalog entries are promoted. Java 2025 API source compilation, Java catalog validation, and the 518-ID parity audit pass; Java remains unsupported pending provider runtime evidence. Evidence: out/mgw/cpp-tck-base-subscription-scope-fresh-evidence-20261016/candidate-matrix.json; CTest/build: out/mgw/cpp-tck-time-constrained-galt-fresh-20261016; Java compile: out/java-tck/base-subscription-attribute-scope-compile-20261016. Next run python tools/query_rti_work.py lanes --family portable-cpp-tck-2025 --focused --summary --compact --limit 12 to select the next mapped portable slice. No provider rebuild or Requirements Lab resync.",
@@ -1074,6 +1074,47 @@
     "next": "Reconstructed from saved evidence; the original next text was not retained. The adjacent process-profile federation-members case is recorded separately; retain it as the follow-on check, with its connection-loss behavior mapped only when an exact normative requirement supports it."
   },
   "active_handoff": {
+    "family": "portable-cpp-tck-2025",
+    "id": "portable-tck-regional-interaction-default-unsubscribe-mapping",
+    "plan_id": "cpp-tck.regional-interaction-subscription-filtering",
+    "mapping_seed_plan_id": "umbra-cpp-ddm-default-region-dm-services-independence-integration",
+    "test_case": "Filter ordinary regional interactions across ordinary, empty, overlapping, disjoint, and invalid region declarations",
+    "lane": "regional-interaction-subscription",
+    "source_location": "packages/hla-rti-cpp-tck/src/main.cpp:12137",
+    "source_target": "packages/hla-rti-cpp-tck/src/main.cpp",
+    "ctest_target": "hla_rti_cpp_tck",
+    "ctest_filter": "^hla_rti_cpp_tck\\.cpp_tck_regional_interaction_subscription_filtering(_contract)?\\.(evoked|immediate)$",
+    "state": "verified",
+    "objective": "Map and verify the ordinary Unsubscribe Interaction Class default-region behavior in the portable C++ TCK without widening its tested scope. The official C++ API scenario invokes ordinary Unsubscribe Interaction Class and then verifies that an overlapping region-qualified send still reaches the receiver\u0027s explicit regional subscription. The primary/contract pair passed the installed-package CTest and direct evidence in HLA_EVOKED and HLA_IMMEDIATE (4/4 each); focused evidence and full C++ catalog validation report no findings. Both rows map only requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction to §9.1.5. The exact tck-gaps query recognizes the mapping (1/1 mapped). The shared MinGW umbra_test_all suite passed 1,915/1,916 routine tests with one optional provider-switch skip and zero failures. No conformance or interoperability claim. Next: use one bounded tck-gaps query for the next direct C++ behavior; do not resynchronize unchanged Requirements-Lab inputs.",
+    "mapping_seed_policy": "Keep exact requirement-to-clause pairs separate from broader standard-section scope. Map only behavior directly asserted by the selected C++ case; retain setup/context as partial scope and never infer validation or conformance.",
+    "acceptance": [
+      "Keep the primary and contract TCK rows mapped only to the selected IEEE 1516.1-2025 §9.1.5 Unsubscribe Interaction Class requirement.",
+      "Require current installed-package CTest and direct evidence in both callback models, plus focused evidence and catalog validation.",
+      "Keep Java runtime, independent-provider interoperability, and conformance claims out of this C++-only slice."
+    ],
+    "commands": {
+      "scenario": "cpp-tck.regional-interaction-subscription-filtering",
+      "paired_scenario": "cpp-tck.regional-interaction-subscription-filtering-contract",
+      "results": "out/mgw/cpp-tck-regional-object-update-20261029/regional-interaction-unsubscribe-pair-results.json",
+      "next_gap_query": "python tools/query_rti_work.py tck-gaps --summary --compact --limit 12"
+    },
+    "follow_up_observations": [
+      "An earlier pre-fix shared-suite run recorded 95 failures and one intentional skip. The Request Attribute Value Update fixture's fixed-order deadlock was corrected with independent requester-session teardown and passed 100 focused repetitions; the pulled-retraction fixture now accepts acknowledgement/fence either order and passed 300 repetitions. The later 2026-10-29 aggregate below supersedes that earlier failure count: all 1,913 routine CTests completed with zero failures and one intentional skip.",
+      "The local e8c63e7a bundle and contracts last backflowed at de86ea1f disagree on hundreds of clause labels. Some newer labels are correct by 2025 semantic page headings and at least RL-391 is wrong; review individual requirements against source instead of bulk replacing section labels. The default-region traceability test now passes after six source-reviewed contract corrections.",
+      "The reference-time, logical-time-encoding, authorization, federation-management-preparation, FOM-source-diagnostics, and embedded federation-management traceability checks pass after twenty-four additional source-reviewed clause corrections. Two dangling final-resignation TCK references were removed because the retired disconnect obligation was used only for cleanup. The 26 C++ page-199 NMRA section disagreements and corresponding Java labels were corrected to the source's §8.11 service description, not §8.11.3 preconditions; the latter now honestly reports 0 of 2 direct portable C++ preconditions covered. TAR-only cutoff cases no longer claim NMRA or TARA service-specific requirements. Catalog validators pass; these metadata corrections do not promote or establish conformance.",
+      "Explicit-MIM and resign-action traceability now pass. The current Lab split page-059-l8-1-last-federate candidate supplies the source §4.12 final-federate directive-two rule; four directly testing Catch2 cases and the portable C++/Java final-resignation scenarios now use it, while a nonfinal no-action case no longer claims the unrelated assumption-search candidate. The original tentative missing-candidate finding was withdrawn after locating the split ID. Three final-federate CTests pass; the later 2026-10-29 query regression also passes.",
+      "Connection-lost, federate-lost-report, and federate-lookup traceability checks pass after source-reviewing their §4.1.6 and §10.3 references. The C++/Java late assumption-search catalog crosswalks were corrected to §4.12; the focused C++ 4.12 TCK query now has zero unresolved or section-disagreement entries. A monolithic planning regression exposed stale lane-section counts, which were checked against focused lane queries and updated; the 2026-10-29 query regression passes. Remaining explicit-versus-derived section differences need exact case-level review, not another broad scan.",
+      "The four directed-interaction declaration, unsubscribe-object-attributes, and order-type traceability checks now pass after source-reviewed section corrections. After reconciling federate lookup, a targeted core-case audit found 31 explicit-versus-derived section mismatches; asynchronous delivery was then reconciled, leaving 30. Review each against the standard rather than accepting a union of stale and current sections. The 2026-10-29 query regression passed; continue the remaining review by exact case, not bulk replacement.",
+      "Unverified: immediate directed-interaction events are constructed without explicit order metadata; test sent TSO to a nonconstrained receiver and its retraction designator through the public API.",
+      "Unverified: the process callback bridge currently selects receive-order gating partly by timestamp presence; test timestamp-bearing RO callbacks across time-constrained and asynchronous-delivery transitions.",
+      "Unverified: pull-mode beginTsoInteractionCallback checks a message timestamp against receiver time; test whether a nonconstrained recipient can receive an otherwise valid RO callback with an earlier timestamp.",
+      "2026-10-29 clean-health gate: `cmake --build --preset mingw-shared-debug --target umbra_test_all --parallel 4` built the shared runners and 15 focused prerequisites; each generated executable passed the MinGW image/DWARF check (largest shown 14,014,216 bytes, 0 DWARF). The project aggregate excluded intentionally unbuilt `_NOT_BUILT` one-case targets and completed 1,913 routine CTests in 655.52 seconds: 1,912 passed, 1 intentionally skipped (`umbra.package_runtime_provider_switch`), 0 failed. The exact process NMR/NMRA future-interaction case that failed once in an unfiltered raw run passed in the aggregate and 20 consecutive focused repetitions with loopback enabled. The timed multi-recipient regional restore family also passed a 100-repeat CTest stress run. `python tools/query_rti_work_regression.py`, `python tools/requirements_lab.py check-plan`, the shared MinGW build, and `git diff --check` passed. A sandboxed raw CTest attempt denied loopback with Windows socket error 10013, and an unfiltered raw run included intentionally excluded `_NOT_BUILT` placeholders; neither is a product health result. Preserve the one raw-run process-send error as an unexplained historical anomaly; repeated and aggregate evidence did not reproduce it, so do not claim its root cause is fixed. The bounded Time Advance Request metadata review found no justified mapping change: direct leaves remain §§8.1.2, 8.8, 8.14, and 8.18, with §8 retained as contextual parent.",
+      "2026-10-29 bounded Flush Queue mapping review: the process endpoint case retains four direct Lab requirement pairs, all to §8.12. The separately listed §8.12.3 is the FQR preconditions subsection; the case successfully calls FQR after connecting, creating the execution, and joining, but does not exercise the full invalid-precondition rejection matrix. Keep §8.12.3 as partial scope metadata only, not as a direct requirement pair or complete subsection coverage. RL-337 already records the page-200 FQR candidate fragmentation; this review found no new Lab defect and did not resynchronize the Lab. The exact lane check passes with 31 mapped and 2 tests without requirement mappings.",
+      "2026-10-29 bounded GALT-frontier mapping review: the process FQR/GALT case's 18 direct pairs resolve to nine sections: §§5.1.3, 6.12, 6.13, 8.2, 8.5, 8.6, 8.8, 8.12, and 10.59. The three additional listed sections (§§4, 4.1, and 8.12.3) describe federation setup context and the satisfied positive-path FQR preconditions; they do not claim full §8.12.3 rejection coverage. This is a scope clarification, not a direct-pair correction or new Lab defect. The plan row now says so explicitly. The multiple-record FQR case is the next exact review; no Lab resync was performed.",
+      "2026-10-29 source-backed mapping corrections: the multiple-record FQR case's timestamp-14 message is retracted before delivery; its selected §8.22 l30 candidate concerned Request Retraction after delivery and was replaced with the pinned §8.23 l89 dequeue/never-deliver candidate. The embedded FQR baseline source pointer was corrected from line 140 to TEST_CASE line 157. Its explicit TAR(4) rejection at actual time 5 is mapped to full-text §§8.8.3(d)/8.8.5(a); the pinned bundle lacks those Lab candidates, logged as new RL-392 (separate from the existing RL-391 DDM finding and resolved RL-321 NMRA finding). The 2025 plan and query regression were updated without Lab resync."
+    ]
+  },
+  "previous_active_handoff_2026_10_22": {
     "family": "portable-cpp-tck-2025",
     "id": "cpp-tck.regional-interaction-routing",
     "plan_id": "cpp-tck.regional-interaction-routing",
@@ -3469,10 +3510,10 @@
     "current_counts": {
       "catch2_actionable_cases_without_cpp_source_location": 0,
       "catch2_cases_without_cpp_source_location": 1,
-      "catch2_cases_without_lab_requirement_mapping": 121,
+      "catch2_cases_without_lab_requirement_mapping": 122,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1764,
-      "catch2_unmapped_explicit_disposition": 121,
+      "catch2_plan_cases": 1769,
+      "catch2_unmapped_explicit_disposition": 122,
       "catch2_unmapped_unclassified": 0,
       "ddm_sent_region_designators_2025_lane_cases": 1,
       "ddm_sent_region_designators_2025_lane_mapped_cases": 1,
@@ -3623,21 +3664,21 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1764,
-      "catch2_plan_cases": 1764,
-      "mapped_cases": 1643,
-      "unmapped_cases": 121,
-      "catch2_cases_without_lab_requirement_mapping": 121,
-      "explicit_unmapped_cases": 121,
-      "catch2_unmapped_explicit_disposition": 121,
+      "plan_cases": 1769,
+      "catch2_plan_cases": 1769,
+      "mapped_cases": 1647,
+      "unmapped_cases": 122,
+      "catch2_cases_without_lab_requirement_mapping": 122,
+      "explicit_unmapped_cases": 122,
+      "catch2_unmapped_explicit_disposition": 122,
       "unclassified_unmapped_cases": 0,
       "source_unlocated_cases": 1,
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-      "direct_requirement_section_pairs": 1191,
+      "direct_requirement_section_pairs": 1193,
       "standard_requirement_total": 2374,
-      "standard_requirement_coverage_percent": 50.17,
+      "standard_requirement_coverage_percent": 50.25,
       "service_report_store_cases": 21,
       "service_report_store_mapped_cases": 13,
       "ddm_sent_region_designators_2025_lane_cases": 1,
@@ -3655,9 +3696,9 @@
       "status": "ready",
       "objective": "Continue evidence-first mapping of current IEEE 1516.1-2025 requirement gaps; do not bulk-assign requirements or resynchronize the unchanged Requirements Lab.",
       "baseline_tag": "remapping-baseline-2026-10-29",
-      "current_mapped_requirements": 1191,
+      "current_mapped_requirements": 1192,
       "standard_requirement_total": 2374,
-      "coverage_percent": 50.17,
+      "coverage_percent": 50.21,
       "current_clause_9_1_5": {
         "main_clause_mapped": 16,
         "main_clause_total": 28,
@@ -3741,31 +3782,31 @@
         "python tools/query_rti_work.py case <exact-plan-id> --summary --compact",
         "python tools/query_rti_work.py check --lane object-ddm-ownership --summary --compact"
       ],
-      "evidence_boundary": "The plan has 1764 classified rows (1643 with normative mappings, 121 explicitly dispositioned, zero unclassified). This is 100% row classification, not requirement coverage; 1183 of 2374 requirements still lack direct mapped evidence. Current test evidence is development-profile traceability, not conformance."
+      "evidence_boundary": "The plan has 1769 classified rows (1647 with normative mappings, 122 explicitly dispositioned, zero unclassified). This is 100% row classification, not requirement coverage; 1181 of 2374 requirements still lack direct mapped evidence. Current test evidence is development-profile traceability, not conformance."
     },
     "latest_completed_slice": {
-      "lane": "process-regional-send-unregulated-timestamp-order",
-      "owner": "transport-and-conformance",
-      "plan_id": "umbra-cpp-process-regional-send-unregulated-timestamp-order",
-      "test_case": "RTIambassadors send timestamped regional interactions as receive order when the sender is not regulating",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp:6",
-      "primary_lane": "regional-interaction-order-classification-matrix",
-      "focus_lane": "process-regional-send-unregulated-timestamp-order",
-      "ctest_cases": 2,
+      "lane": "directed-tso-retraction-designator",
+      "owner": "time-save-restore",
+      "plan_id": "umbra-cpp-directed-tso-federation-unique-retraction-handle",
+      "test_case": "Embedded TSO-preferred directed sends return federation-unique retraction handles",
+      "source_location": "cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:300",
+      "primary_lane": "directed-tso-retraction-designator",
+      "focus_lane": "directed-tso-retraction-designator",
+      "ctest_cases": 1,
       "direct_adapter_cases": 0,
       "callback_models": [
-        "HLA_EVOKED"
+        "HLA_IMMEDIATE"
       ],
-      "ctest_command": "ctest --test-dir out/mgw/h -R \"RTIambassadors send timestamped regional interactions as receive order when the sender is not regulating\" --output-on-failure (grouped and dedicated connection runners; local loopback enabled)",
-      "direct_command": ".\\out\\mgw\\h\\umbra_ieee1516_2025_connection_catch2.exe \"RTIambassadors send timestamped regional interactions as receive order when the sender is not regulating\" --reporter compact",
+      "ctest_command": "ctest --test-dir out/mgw/shared -C Debug -R \"^umbra\\.delay_subscription_evaluation_timestamped_directed_interaction\\.catch2\\.Embedded TSO-preferred directed sends return federation-unique retraction handles$\" --output-on-failure",
+      "direct_command": ".\\out\\mgw\\shared\\umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2.exe \"Embedded TSO-preferred directed sends return federation-unique retraction handles\" --reporter compact",
       "direct_results": [
-        "Passed 52 assertions in 1 test case"
+        "Passed 47 assertions in 1 test case"
       ],
-      "assertions": 52,
-      "requirements": 6,
+      "assertions": 47,
+      "requirements": 1,
       "standard_sections": 1,
       "api_surfaces": 21,
-      "next_action": "Verified 2026-10-23: the full built MinGW CTest scope passed 1907 tests, skipped one intentional package-runtime-provider-switch test, and had zero failures in 649.60 seconds. Query-matrix regression, Catch2 plan traceability, and requirements-lab plan guard passed. The process regional-send test maps one Table 2 cell directly to §8.1.4; it does not imply parity for the remaining seven process cells. Next continue from the bounded portable-cpp-tck-2025 family using a new direct 2025 requirement gap, excluding the page-40 line-33 candidate already logged under RL-373 as compound/truncated and without repeating the already-complete embedded Table 2 matrices or claiming conformance."
+      "next_action": "Current shared MinGW aggregate passed 1,914 of 1,915 tests with one intentional skip and zero failures; the exact focused case and query regression passed. The bounded ready query recommends the existing portable-cpp-tck-2025 family; use its work card to choose one direct C++ TCK gap. Keep the push-mode retraction follow-up separate under transport-and-conformance. This case proves only embedded TSO-preferred directed-send handle uniqueness for two regulating senders; no other timestamped service families, process interoperability, validation, or conformance are claimed."
     },
     "previous_slice": {
       "lane": "process-class-request-tso-response-independent-processes",
@@ -8361,7 +8402,7 @@
       "regional-object-attribute-subscription-isolation": 40,
       "zero-dimensional-region": 26,
       "zero-dimensional-regional-interaction": 28,
-      "focused-positive-dimensional-regional-interaction": 58,
+      "focused-positive-dimensional-regional-interaction": 50,
       "whole-class-unsubscribe": 20,
       "no-common-dimension": 45,
       "time-axis-independence": 94,
@@ -35242,7 +35283,7 @@
       ],
       "latest_completed_slice_id": "umbra-cpp-process-tso-authoritative-coordinator-tara-attribute-update-future-arrival",
       "latest_completed_slice_lane": "process-tso-cross-endpoint-arrival-coordination",
-      "next_action": "Verified 2026-10-22: current MinGW CTests pass for the separate-process timestamped attribute update before TARA grant (2 assertions), separate-proxy NMR/NMRA under HLA_IMMEDIATE (86 assertions) and HLA_EVOKED (92), and three registry-free proxy OS processes forwarding two senders and one constrained receiver to one authoritative coordinator (91). The process-tso-cross-endpoint-arrival-coordination lane check passes with 16 mapped cases, zero unmapped, and 39 direct requirement-section pairs. These results close only the tested 2025 service families through one authoritative coordinator; multiple scheduler authorities, arbitrary network-delay watermarks, other TSO service families, interoperability, and conformance remain open. No new HLA Requirements Lab issue was observed; existing RL-373/RL-378 records remain unchanged. Next choose one distinct direct 2025 behavior from the bounded work queue, not a broad clause scan."
+      "next_action": "Verified 2026-10-29: the configured-process HLA_EVOKED polling regression for a sent TSO received in RO by a nonconstrained receiver passes after the process event and callback-order fix (59 assertions); the eight-row regional sent-order matrix passes (465 assertions). Both pass three repeats, 17 timestamped process interaction regressions and four private callback-bridge regressions pass. Next implement the explicit process-regional-tso-ro-push-retraction handoff; verify push delivery and callback-admission retraction before claiming broader transport support."
     },
     {
       "id": "annex-c-and-reference-resolution",
@@ -35485,7 +35526,7 @@
       ],
       "current_handoff": "Verified 2026-10-22: promoted two bounded Clause 8 TCK increments. Added `cpp-tck.non-regulating-federate-peer-advance-independence` plus contract (installed-package MinGW direct pass 4/4 across HLA_EVOKED/HLA_IMMEDIATE; evidence: out/mgw/cpp-tck-alt-time-advances-20261022/non-regulating-peer-advance-20261022.json/.xml; focused runner build was 53,079,942 bytes with 0 DWARF; RTI/provider not rebuilt). Also mapped page-181-l157-16 to the existing `cpp-tck.timestamped-interaction-cross-producer-order` primary/contract: two constrained recipients receive the timestamp-5 cohort before timestamp 7 despite send order 7,5,5 across two producers; no tie-order claim. Installed-package MinGW direct pass 4/4; evidence: out/mgw/cpp-tck-alt-time-advances-20261022/cross-producer-order-20261022.json/.xml. The p179-l67-2 and p181-l157-16 requirements map only to Clause 8 at pinned-Lab granularity; focused tck-gaps reports both 1/1 promoted with no subsection crosswalk, and cpp_tck.py reports no findings. Clause 8 TCK coverage is 192/213 direct requirements (21 absent; 74 subsection crosswalk reviews remain). Additional embedded official-API progress: the timestamped-interaction sender-order Catch2 case now exercises all eight Table 2 combinations for Send Interaction, checking receive-order callback routes for untimestamped sends and order/retraction metadata for timestamp-bearing sends. The separate regulator advances to 2 so GALT=7 safely exceeds receiver TAR(6). MinGW shared build passes; the exact CTest passes five repeats and the runner reports 153 assertions (image 8,236,174 bytes, 0 DWARF). The mapping check passes for both the original sender-transition lane and new `interaction-send-order-classification-matrix` lane. RL-387 logs the page-181 false-positive caption candidate; it remains unmapped and no Lab resynchronization was performed. No Java runtime rerun, provider rebuild, or conformance claim.",
       "latest_parallel_validation": "2026-10-16: Existing installed MinGW package was exercised without configure/build/install. Seven promoted regional scenario/contract pairs passed under both callback models: timed regional save/restore, timed default-region save/restore, multi-region routing, zero-dimensional routing, regional multi-attribute update, three-dimensional overlap, and timed regional attribute negotiated-ownership continuation after restore. The final ownership pair first skipped all four runs with the wrong fixture, then passed all four after supplying the adapter's required multi-attribute ownership FOM/class/attributes plus dimensional FOM; the corrected evidence used HLAinteger64Time. Earlier checks also passed default-region routing, passive transition, subscription replacement, receive-order regional-attribute DSE, and the Annex C conflict Catch2 test; exact Annex lane check is 1 explicitly internal unmapped case, 0 unclassified. C++/Java catalog-source parity was checked; Java provider runtime was not run. Temporary TCK results were inspected and removed. Experimental evidence only, not conformance. D2 process immediate Catch2 behavior remains unverified because Windows socket 10013 blocks loopback connect before behavior.",
-      "next_action": "Verified 2026-10-23: the full built MinGW CTest scope passed 1907 tests, skipped one intentional package-runtime-provider-switch test, and had zero failures. The embedded Send Interaction and Send Interaction With Regions matrices already cover all eight §8.1.4 Table 2 cells; do not repeat that audit. A configured-process regional-send case now covers one cell (unregulated sender, TIMESTAMP preference, timestamp supplied) with a direct §8.1.4 mapping; the other seven process cells remain open. Resume mapping by selecting one distinct direct 2025 portable C++ requirement using a bounded family gap query, excluding page-40 line-33 already logged under RL-373 as compound/truncated; keep Java runtime, interoperability, validation, and conformance claims separate. No Requirements Lab resync."
+      "next_action": "The embedded and configured-process regional sent-order matrices now each cover all eight Table 2 rows in their stated profiles. A separate configured-process HLA_EVOKED polling case covers a nonconstrained receiver of sent TSO; this is not a portable TCK or full process-transport claim. The current next implementation is the push-mode retraction handoff under transport-and-conformance. Keep portable C++ TCK gaps and RL-373 separate; do not resync unchanged Lab inputs."
     },
     {
       "id": "portable-java-tck-2025",

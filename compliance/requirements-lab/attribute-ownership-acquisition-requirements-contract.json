@@ -48,7 +48,7 @@
     {
       "id": "umbra-regular-acquisition-notifies-after-atomic-ownership-assignment",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
-      "clause_id": "clause-7.7.3",
+      "clause_id": "clause-7.7",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification",
       "tests": [
@@ -82,7 +82,7 @@
     {
       "id": "umbra-release-denied-propagates-tag-to-unavailable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
-      "clause_id": "clause-7.2",
+      "clause_id": "clause-7.1.4",
       "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
       "tests": [

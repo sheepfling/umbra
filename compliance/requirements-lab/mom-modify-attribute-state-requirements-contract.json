@@ -8,7 +8,7 @@
     {
       "id": "umbra-mom-modify-attribute-state-receives-adjust-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l18-5",
-      "clause_id": "clause-11.4.1",
+      "clause_id": "clause-11.3.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
@@ -20,7 +20,7 @@
     {
       "id": "umbra-mom-modify-attribute-state-acts-on-leaf-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l36-11",
-      "clause_id": "clause-11.4.1",
+      "clause_id": "clause-11.3.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
@@ -32,7 +32,7 @@
     {
       "id": "umbra-mom-modify-attribute-state-targets-joined-federate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-287-l108-35",
-      "clause_id": "clause-11",
+      "clause_id": "clause-11.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
@@ -44,7 +44,7 @@
     {
       "id": "umbra-mom-modify-attribute-state-changes-explicit-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l121-38",
-      "clause_id": "clause-7",
+      "clause_id": "clause-7.1",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setFederateMomAttributeState",
       "tests": [
@@ -56,7 +56,7 @@
     {
       "id": "umbra-mom-modify-attribute-state-preserves-rti-owned-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l4-1",
-      "clause_id": "clause-1",
+      "clause_id": "clause-1.4.1",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setFederateMomAttributeState",
       "tests": [

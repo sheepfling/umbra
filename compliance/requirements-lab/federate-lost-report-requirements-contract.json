@@ -8,7 +8,7 @@
     {
       "id": "umbra-federate-lost-report-notifies-subscribed-survivors",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l18-5",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
       "tests": [
@@ -24,7 +24,7 @@
     {
       "id": "umbra-federate-lost-report-captures-time-regulator-last-known-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l21-6",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
       "tests": [

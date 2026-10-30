@@ -206,36 +206,22 @@ void deliverReceiveOrder(
   }
   if (event.timestamp) {
     auto timestamp = decodeEventTimestamp(*event.timestamp);
-    // The legacy process timestamp probe has no time-management identity and
-    // intentionally retains RECEIVE classifications.  A queued timestamped
-    // interaction carries an execution-owned message id, however, and must
-    // surface the normative TIMESTAMP/TIMESTAMP callback shape with the same
-    // retraction designator returned to the producer.
-    if (event.retractionMessageId) {
-      recipient.receiveInteraction(
-          interactionClass,
-          parameterValues,
-          userSuppliedTag,
-          transportationType,
-          producingFederate,
-          optionalSentRegions ? &*optionalSentRegions : nullptr,
-          *timestamp,
-          rti1516_2025::TIMESTAMP,
-          rti1516_2025::TIMESTAMP,
-          &*optionalRetraction);
-    } else {
-      recipient.receiveInteraction(
-          interactionClass,
-          parameterValues,
-          userSuppliedTag,
-          transportationType,
-          producingFederate,
-          optionalSentRegions ? &*optionalSentRegions : nullptr,
-          *timestamp,
-          rti1516_2025::RECEIVE,
-          rti1516_2025::RECEIVE,
-          nullptr);
-    }
+    // A sent TSO interaction keeps its retraction designator even when a
+    // nonconstrained receiver receives it in RO. Legacy event payloads may
+    // omit order metadata, so retain their previous identity-based default.
+    auto const defaultOrder = event.retractionMessageId
+        ? rti1516_2025::TIMESTAMP : rti1516_2025::RECEIVE;
+    recipient.receiveInteraction(
+        interactionClass,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        optionalSentRegions ? &*optionalSentRegions : nullptr,
+        *timestamp,
+        event.sentOrderType.value_or(defaultOrder),
+        event.receivedOrderType.value_or(defaultOrder),
+        optionalRetraction ? &*optionalRetraction : nullptr);
     return;
   }
   recipient.receiveInteraction(
@@ -1365,14 +1351,16 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
   auto const timeConstrainedDisableGeneration =
       asynchronousReceiveOrderDelivery->disableGeneration();
   // A private id on an untimestamped event marks a queued TSO payload that
-  // Disable Time Constrained converted to receive order. Ordinary timestamped
-  // messages cross the same completion fence only with TIMESTAMP receive
-  // order; immediate timestamp probes have no private id.
+  // Disable Time Constrained converted to receive order. A sent TSO event
+  // with explicit RO reception also needs completion acknowledgement; its
+  // retraction identity remains valid independently of received order.
   auto const tsoMessageId =
       event.retractionMessageId &&
               (!timestamped ||
                (event.receivedOrderType &&
-                *event.receivedOrderType == rti1516_2025::TIMESTAMP))
+                (*event.receivedOrderType == rti1516_2025::TIMESTAMP ||
+                 (event.sentOrderType &&
+                  *event.sentOrderType == rti1516_2025::TIMESTAMP))))
           ? event.retractionMessageId
           : std::optional<std::uint64_t>{};
   dispatcher_->submit(

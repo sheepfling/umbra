@@ -53,7 +53,7 @@
     {
       "id": "umbra-object-class-attribute-value-request-does-not-provide-to-requester-owner",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
-      "clause_id": "clause-6.21.5",
+      "clause_id": "clause-6.21",
       "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "candidateAttributeValueUpdateClassProvideRecipient",
       "tests": [
@@ -64,7 +64,7 @@
     {
       "id": "umbra-object-class-attribute-value-request-propagates-user-tag",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-      "clause_id": "clause-6.21.5",
+      "clause_id": "clause-6.21",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "provider.provideAttributeValueUpdate",
       "tests": [

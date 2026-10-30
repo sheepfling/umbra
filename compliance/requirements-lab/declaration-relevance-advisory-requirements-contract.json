@@ -19,7 +19,7 @@
     {
       "id": "umbra-declaration-advisory-passive-interaction-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l105-30",
-      "clause_id": "clause-5.10.2",
+      "clause_id": "clause-5.10",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -30,7 +30,7 @@
     {
       "id": "umbra-start-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l117-31",
-      "clause_id": "clause-5.14.3",
+      "clause_id": "clause-5.14",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -41,7 +41,7 @@
     {
       "id": "umbra-start-registration-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l132-36",
-      "clause_id": "clause-5.14.3",
+      "clause_id": "clause-5.14",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -52,7 +52,7 @@
     {
       "id": "umbra-start-registration-advisory-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l135-37",
-      "clause_id": "clause-5.14.3",
+      "clause_id": "clause-5.14",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
@@ -65,7 +65,7 @@
     {
       "id": "umbra-stop-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l77-19",
-      "clause_id": "clause-5.15.3",
+      "clause_id": "clause-5.15",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -76,7 +76,7 @@
     {
       "id": "umbra-stop-registration-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l95-25",
-      "clause_id": "clause-5.15.3",
+      "clause_id": "clause-5.15",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -87,7 +87,7 @@
     {
       "id": "umbra-stop-registration-advisory-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l95-25",
-      "clause_id": "clause-5.15.3",
+      "clause_id": "clause-5.15",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "notes": "The Lab exports one §5.15 candidate for the switch gate and callback-invocation boundary; it is retained here for both traceability roles rather than inventing a source row.",
@@ -101,7 +101,7 @@
     {
       "id": "umbra-turn-interactions-on-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l46-8",
-      "clause_id": "clause-5.16.5",
+      "clause_id": "clause-5.16",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -112,7 +112,7 @@
     {
       "id": "umbra-turn-interactions-on-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l55-11",
-      "clause_id": "clause-5.16.5",
+      "clause_id": "clause-5.16",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -123,7 +123,7 @@
     {
       "id": "umbra-turn-interactions-on-advisory-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l61-13",
-      "clause_id": "clause-5.16.5",
+      "clause_id": "clause-5.16",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
@@ -136,7 +136,7 @@
     {
       "id": "umbra-turn-interactions-off-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l24-3",
-      "clause_id": "clause-5.17.6",
+      "clause_id": "clause-5.17",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -147,7 +147,7 @@
     {
       "id": "umbra-turn-interactions-off-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l30-5",
-      "clause_id": "clause-5.17.6",
+      "clause_id": "clause-5.17",
       "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
@@ -158,7 +158,7 @@
     {
       "id": "umbra-turn-interactions-off-advisory-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l36-7",
-      "clause_id": "clause-5.17.6",
+      "clause_id": "clause-5.17",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [

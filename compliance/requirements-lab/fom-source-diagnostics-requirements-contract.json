@@ -8,7 +8,7 @@
     {
       "id": "umbra-fom-source-readability-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l57-18",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.4.1",
       "source": "cpp/src/internal/fom/libxml2_fom_document.cpp",
       "source_symbol": "resolveRegularFile",
       "tests": [

@@ -78,7 +78,7 @@
     {
       "id": "umbra-timestamped-delete-preserves-tag-on-removal",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-      "clause_id": "clause-6.16.4",
+      "clause_id": "clause-6.16",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
@@ -94,7 +94,7 @@
     {
       "id": "umbra-timestamped-remove-propagates-time-and-orders",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
-      "clause_id": "clause-6.17.1",
+      "clause_id": "clause-6.17",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueTimestampedObjectInstanceRemoval",
       "tests": [
@@ -111,7 +111,7 @@
     {
       "id": "umbra-timestamped-remove-provides-retraction-handle",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
-      "clause_id": "clause-6.17.1",
+      "clause_id": "clause-6.17",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
@@ -128,7 +128,7 @@
     {
       "id": "umbra-timestamped-remove-excludes-deleting-sender",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-      "clause_id": "clause-6.17.1",
+      "clause_id": "clause-6.17",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
       "tests": [
@@ -139,7 +139,7 @@
     {
       "id": "umbra-timestamped-delete-enforces-clause-8-lower-bound",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-      "clause_id": "clause-8.1.5",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
       "tests": [
@@ -149,7 +149,7 @@
     {
       "id": "umbra-timestamped-delete-survives-time-constrained-reenable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
       "tests": [
@@ -160,7 +160,7 @@
     {
       "id": "umbra-timestamped-delete-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -172,7 +172,7 @@
     {
       "id": "umbra-timestamped-delete-terminal-designator-reclaims-deletion-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
@@ -182,7 +182,7 @@
     {
       "id": "portable-cpp-tck-delete-object-instance-returns-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_scenarios.cpp",
       "source_symbol": "scenarioTimestampedObjectDeletion(",
       "tests": [
@@ -194,7 +194,7 @@
     {
       "id": "umbra-timestamped-delete-retraction-reconstitutes-instance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l36-8",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -210,7 +210,7 @@
     {
       "id": "umbra-timestamped-delete-retraction-reassumes-committed-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l39-9",
-      "clause_id": "clause-8.22.3",
+      "clause_id": "clause-8.22",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
@@ -224,7 +224,7 @@
     {
       "id": "umbra-timestamped-delete-connection-loss-retains-cutoff-removal",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
@@ -237,7 +237,7 @@
     {
       "id": "umbra-timestamped-delete-connection-loss-automatic-delete-preserves-cutoff-removal",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
@@ -247,7 +247,7 @@
     {
       "id": "umbra-timestamped-delete-connection-loss-drains-each-pending-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.6",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reclaimTsoMessagePayload",
       "tests": [
@@ -268,7 +268,7 @@
     {
       "id": "umbra-timestamped-delete-drains-per-recipient-ledger-after-voluntary-source-resignation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-      "clause_id": "clause-8.1.6",
+      "clause_id": "clause-8.1.7",
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTsoPayloadDelivery",
       "tests": [
@@ -279,7 +279,7 @@
     {
       "id": "umbra-timestamped-delete-save-restore-preserves-terminal-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
-      "clause_id": "clause-4.32",
+      "clause_id": "clause-4.31",
       "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [

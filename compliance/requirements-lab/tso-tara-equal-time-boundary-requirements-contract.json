@@ -8,7 +8,7 @@
     {
       "id": "cpp-tck-tso-tara-later-equal-time-delivery-after-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l51-14",
-      "clause_id": "clause-8.9",
+      "clause_id": "clause-8.1.2",
       "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp",
       "source_symbol": "runTimestampedInteractionMixedAdvancesScenario",
       "tests": [

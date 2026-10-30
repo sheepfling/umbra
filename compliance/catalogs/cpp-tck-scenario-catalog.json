@@ -9463,14 +9463,13 @@
         "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-4.12.4"
+        "hla-1516.1-2025:clause-4.12"
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
-        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
-      "mapping_note": "Direct §4.12 resignation and §4.12.4 late ownership-assumption continuation: the known but nonpublishing candidate receives no assumption when the owner unconditionally divests on resignation; publishing the attribute afterward triggers the standard assumption callback with the object, attribute plus privilege, and empty tag. Current-source installed-package primary/contract passed 4/4 under evoked/immediate callbacks. Java provider runtime remains unverified.",
+      "mapping_note": "Direct §4.12 resignation and §4.12 late ownership-assumption continuation: the known but nonpublishing candidate receives no assumption when the owner unconditionally divests on resignation; publishing the attribute afterward triggers the standard assumption callback with the object, attribute plus privilege, and empty tag. Current-source installed-package primary/contract passed 4/4 under evoked/immediate callbacks. Java provider runtime remains unverified.",
       "contract_refs": ["standard-resign-assumption-later-publication-contract.json"],
       "native_equivalent_runner_ids": [
         "umbra-cpp-resign-action-assumption-publication-continuation-integration"
@@ -9499,14 +9498,13 @@
         "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-4.12.4"
+        "hla-1516.1-2025:clause-4.12"
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
-        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
-      "mapping_note": "Contract twin invokes the same pure public-API scenario. Direct §4.12 and §4.12.4 mappings cover resignation and the later eligible-publication callback, not broader ownership-assumption arbitration. Installed-package primary/contract passed 4/4 under both callback models.",
+      "mapping_note": "Contract twin invokes the same pure public-API scenario. Direct §4.12 and §4.12 mappings cover resignation and the later eligible-publication callback, not broader ownership-assumption arbitration. Installed-package primary/contract passed 4/4 under both callback models.",
       "contract_refs": ["standard-resign-assumption-later-publication-contract.json"],
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioResignAssumptionLaterPublicationContract",
       "runner_id": "cpp-tck.resign-assumption-later-publication-contract",
@@ -9772,12 +9770,12 @@
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-4.12", "hla-1516.1-2025:clause-4.12.4"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.12"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
-        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
-      "mapping_note": "Direct §4.12 resignation and §4.12.4 continuation: an observer retains the execution after the owner unconditionally divests on resignation; a later joining federate subscribes and discovers the retained object without an assumption offer, then becomes eligible by publishing and receives exactly one grouped empty-tag assumption. Native 26-assertion lane maps page-058-l112-33 to §4.12 and page-059-l8-1 to §4.12.4. Current-source installed-package C++ primary/contract passed 4/4 across evoked/immediate callbacks; Java provider runtime is unverified.",
+      "mapping_note": "Direct §4.12 resignation and §4.12 continuation: an observer retains the execution after the owner unconditionally divests on resignation; a later joining federate subscribes and discovers the retained object without an assumption offer, then becomes eligible by publishing and receives exactly one grouped empty-tag assumption. Native 26-assertion lane maps page-058-l112-33 to §4.12 and page-059-l8-1 to §4.12. Current-source installed-package C++ primary/contract passed 4/4 across evoked/immediate callbacks; Java provider runtime is unverified.",
       "contract_refs": ["standard-resign-assumption-later-discovery-contract.json"],
       "native_equivalent_runner_ids": ["umbra-cpp-resign-action-assumption-discovery-continuation-integration"],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioResignAssumptionLaterDiscovery",
@@ -9803,10 +9801,10 @@
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-4.12", "hla-1516.1-2025:clause-4.12.4"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.12"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
-        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12"}
       ],
       "mapping_note": "Contract twin executes the same official public-API late-join/discovery assertions as the primary. Installed-package C++ primary/contract passed 4/4 under evoked/immediate callback models.",
       "contract_refs": ["standard-resign-assumption-later-discovery-contract.json"],
@@ -10240,27 +10238,23 @@
         "cpp-1516.1-object-instance-name-lifecycle"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4",
         "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3"
       ],
       "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15", "standard_section": "hla-1516.1-2025:clause-4.1.1" },
         { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12" },
-        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate", "standard_section": "hla-1516.1-2025:clause-4.12" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3", "standard_section": "hla-1516.1-2025:clause-6.2" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40", "standard_section": "hla-1516.1-2025:clause-6.3" }
       ],
-      "mapping_note": "The five Lab requirement rows map respectively to clauses 4, 4.12, 4.12.4, 6.2, and 6.3. The scenario creates an execution, joins its sole federate, publishes/registers an object, resigns with NO_ACTION, rejoins the still-existing execution, reserves the old object name, and registers that name after the reservation callback. Mapping is limited to these externally observed lifecycle, final-resignation cleanup, registration, and deletion outcomes; handle reuse policy, multiprocess behavior, provider interoperability, and conformance are not inferred.",
+      "mapping_note": "Four selected Lab requirements map to §§4.12, 6.2, and 6.3, including the split final-federate directive-two candidate. Disconnect is scenario cleanup, not direct evidence for the federate obligation to disconnect. The scenario creates an execution, joins its sole federate, publishes/registers an object, resigns with NO_ACTION, rejoins the still-existing execution, reserves the old object name, and registers that name after the reservation callback. Direct mappings are limited to the selected resignation, registration, and deletion requirements; handle reuse policy, multiprocess behavior, provider interoperability, and conformance are not inferred.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-api-contract.json",
@@ -10304,27 +10298,23 @@
         "cpp-1516.1-object-instance-name-lifecycle"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15",
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
-        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate",
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4",
         "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-4.12.4",
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3"
       ],
       "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l54-15", "standard_section": "hla-1516.1-2025:clause-4.1.1" },
         { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12" },
-        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1", "standard_section": "hla-1516.1-2025:clause-4.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate", "standard_section": "hla-1516.1-2025:clause-4.12" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3", "standard_section": "hla-1516.1-2025:clause-6.2" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40", "standard_section": "hla-1516.1-2025:clause-6.3" }
       ],
-      "mapping_note": "The five Lab requirement rows map respectively to clauses 4, 4.12, 4.12.4, 6.2, and 6.3. The contract twin runs the same observable public-API lifecycle: the sole federate resigns with NO_ACTION, a new member rejoins the still-existing execution, and the former object name is reserved and used for named registration. Mapping is limited to those externally observed lifecycle, final-resignation cleanup, registration, and deletion outcomes; handle reuse policy, multiprocess behavior, provider interoperability, and conformance are not inferred.",
+      "mapping_note": "Four selected Lab requirements map to §§4.12, 6.2, and 6.3, including the split final-federate directive-two candidate. Disconnect is scenario cleanup, not direct evidence for the federate obligation to disconnect. The contract twin runs the same observable public-API lifecycle: the sole federate resigns with NO_ACTION, a new member rejoins the still-existing execution, and the former object name is reserved and used for named registration. Mapping is limited to those externally observed lifecycle, final-resignation cleanup, registration, and deletion outcomes; handle reuse policy, multiprocess behavior, provider interoperability, and conformance are not inferred.",
       "contract_refs": [
         "standard-final-federate-resignation-cleanup-contract.json"
       ],
@@ -14776,7 +14766,6 @@
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.18.1",
         "hla-1516.1-2025:clause-6.13"
       ],
@@ -14786,12 +14775,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28", "standard_section": "hla-1516.1-2025:clause-6.13"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"}
       ],
-      "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11, §8.11.3); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. The FQG-versus-TAG callback-selection assertion remains supplemental under RL-378 because the cited page-178 l93 candidate is incomplete and does not state callback selection. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
+      "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. The FQG-versus-TAG callback-selection assertion remains supplemental under RL-378 because the cited page-178 l93 candidate is incomplete and does not state callback selection. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-interaction-mixed-advances",
       "parity": "java-tck.timestamped-interaction-mixed-advances",
@@ -14840,7 +14829,6 @@
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.18.1",
         "hla-1516.1-2025:clause-6.13"
       ],
@@ -14850,12 +14838,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28", "standard_section": "hla-1516.1-2025:clause-6.13"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"}
       ],
-      "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11, §8.11.3); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. The FQG-versus-TAG callback-selection assertion remains supplemental under RL-378 because the cited page-178 l93 candidate is incomplete and does not state callback selection. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
+      "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. The FQG-versus-TAG callback-selection assertion remains supplemental under RL-378 because the cited page-178 l93 candidate is incomplete and does not state callback selection. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-mixed-advances-contract",
       "parity": "cpp-tck.timestamped-interaction-mixed-advances",
@@ -15083,35 +15071,18 @@
         "cpp-1516.1-time-advance-request"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
-        "requirement-candidate-content-clauses-08-time-management-page-196-l12-2",
-        "requirement-candidate-content-clauses-08-time-management-page-199-l91-29",
         "requirement-candidate-content-clauses-08-time-management-page-203-l104-28"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.9.5",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.14"
       ],
       "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
-          "standard_section": "hla-1516.1-2025:clause-8.9.5"
-        },
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l12-2",
-          "standard_section": "hla-1516.1-2025:clause-8.9.5"
-        },
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l91-29",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
-        },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l104-28",
           "standard_section": "hla-1516.1-2025:clause-8.14"
         }
       ],
-      "mapping_note": "Direct mappings page-196-l9-1 and page-196-l12-2 -> Clause 8.9.5, page-199-l91-29 -> Clause 8.11.3, and page-203-l104-28 -> Clause 8.14: after receiver TAR(5) grants, a newly regulating producer sends an accepted timestamp-5 interaction; it is not delivered during the later TAR(6). The timestamp-4 send may be rejected by the producer. The page-199 l91 mapping is limited to this no-post-grant TSO-at-or-below-grant outcome; no TARA/NMR, transport-lateness, or cross-process claim is made.",
+      "mapping_note": "The selected Clause 8.14 requirement covers the TAR post-grant cutoff: after the receiver is granted time 5, an accepted timestamp-5 interaction is not delivered during a later TAR(6); the producer may reject timestamp 4. The case does not invoke TARA or NMRA, so it is not direct evidence for their service-specific requirements. Transport-lateness, cross-process behavior, and conformance remain out of scope.",
       "contract_refs": [
         "timestamped-interaction-api-contract.json",
         "timestamped-interaction-requirements-contract.json",
@@ -15139,35 +15110,18 @@
         "cpp-1516.1-time-advance-request"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
-        "requirement-candidate-content-clauses-08-time-management-page-196-l12-2",
-        "requirement-candidate-content-clauses-08-time-management-page-199-l91-29",
         "requirement-candidate-content-clauses-08-time-management-page-203-l104-28"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.9.5",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.14"
       ],
       "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
-          "standard_section": "hla-1516.1-2025:clause-8.9.5"
-        },
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l12-2",
-          "standard_section": "hla-1516.1-2025:clause-8.9.5"
-        },
-        {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l91-29",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
-        },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l104-28",
           "standard_section": "hla-1516.1-2025:clause-8.14"
         }
       ],
-      "mapping_note": "The contract twin executes the shared post-grant cutoff scenario. The page-199 l91 -> Clause 8.11.3 mapping is limited to the accepted timestamp-5 interaction sent after receiver TAR(5) has granted not being delivered during later TAR(6); the producer may reject timestamp 4. Claims remain limited to the mapped Clause 8.9.5, Clause 8.11.3, and Clause 8.14 post-grant delivery rules.",
+      "mapping_note": "The contract twin executes the shared TAR post-grant cutoff scenario and maps only the selected Clause 8.14 requirement. The case does not invoke TARA or NMRA, so their service-specific requirements are not direct evidence. The producer may reject timestamp 4.",
       "contract_refs": [
         "timestamped-interaction-requirements-contract.json",
         "time-advance-requirements-contract.json"
@@ -19465,7 +19419,6 @@
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-8.18.1"
       ],
@@ -19482,12 +19435,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12", "standard_section": "hla-1516.1-2025:clause-8.12.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"}
       ],
-      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), and selected time-management service request/coordination distinctions (page 178 line 27) under the Clause 8 overview. The general message-delivery overview fragment is supplemental under RL-378, not a direct mapping. The scenario observes publisher TAR plus recipient FQR, TARA, NMRA, and NMR flows through their timestamped reflection and corresponding grant callbacks. Service-specific delivery and grant behavior remains mapped to narrower clauses (§8.1.6, §8.12, §8.12.3, §8.9, §8.11, §8.11.3, and §8.10.2), with queried logical time under §8.18.1. These overview mappings are limited to the tested combinations; they do not claim complete Clause 8 coverage or a general FQR request-argument boundary. Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental. Setup and teardown are supplemental.",
+      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), and selected time-management service request/coordination distinctions (page 178 line 27) under the Clause 8 overview. The general message-delivery overview fragment is supplemental under RL-378, not a direct mapping. The scenario observes publisher TAR plus recipient FQR, TARA, NMRA, and NMR flows through their timestamped reflection and corresponding grant callbacks. Service-specific delivery and grant behavior remains mapped to narrower clauses (§8.1.6, §8.12, §8.12.3, §8.9, §8.11, and §8.10.2), with queried logical time under §8.18.1. These overview mappings are limited to the tested combinations; they do not claim complete Clause 8 coverage or a general FQR request-argument boundary. Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental. Setup and teardown are supplemental.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "parity": "java-tck.timestamped-attribute-update-alternate-advances",
@@ -19564,7 +19517,6 @@
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-8.18.1"
       ],
@@ -19580,12 +19532,12 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12", "standard_section": "hla-1516.1-2025:clause-8.12.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"}
       ],
-      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), TSO delivery before the advance grant (§8.1.6), queued delivery and Flush Queue grant reporting (§8.12, §8.12.3), TARA delivery/grant (§8.9), NMRA target/delivery/grant (§8.11, §8.11.3), NMR target/delivery/grant (§8.10.2), and queried logical time (§8.18.1). Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental; the test does not assert a general FQR request-argument rule. Setup and teardown are supplemental.",
+      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), TSO delivery before the advance grant (§8.1.6), queued delivery and Flush Queue grant reporting (§8.12, §8.12.3), TARA delivery/grant (§8.9), NMRA target/delivery/grant (§8.11), NMR target/delivery/grant (§8.10.2), and queried logical time (§8.18.1). Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental; the test does not assert a general FQR request-argument rule. Setup and teardown are supplemental.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances-contract",
       "parity": "cpp-tck.timestamped-attribute-update-alternate-advances",
@@ -23350,7 +23302,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-6.16", "hla-1516.1-2025:clause-6.16.4", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.3", "hla-1516.1-2025:clause-8.11", "hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.16", "hla-1516.1-2025:clause-6.16.4", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.3", "hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16"},
@@ -23365,7 +23317,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l39-11", "standard_section": "hla-1516.1-2025:clause-8.1.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l45-13", "standard_section": "hla-1516.1-2025:clause-8.1.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"}
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"}
       ],
       "mapping_note": "Direct mappings: page-180-l21-5 identifies timestamped Delete Object Instance as sending a message; page-180-l39-11 and page-180-l45-13 define the receiving-service and sent-to-received message relationship in §8.1.3. This scenario invokes NMRA before a qualifying timestamped deletion arrives and checks one Remove Object Instance callback before grant, without claiming all service mappings or fanout patterns. page-198-l177-52 -> §8.11 requires NMRA to target the next TSO message deliverable at or before the requested time; page-199-l40-12 requires post-invocation delivery through Remove Object Instance. Deletion, removal, and retraction assertions map to §§6.16, 6.16.4, and 6.17.1.",
       "contract_refs": [
@@ -23409,7 +23361,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-6.16", "hla-1516.1-2025:clause-6.16.4", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.11", "hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.16", "hla-1516.1-2025:clause-6.16.4", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16"},
@@ -23421,9 +23373,9 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"}
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11"}
       ],
-      "mapping_note": "Contract twin of the promoted NMRA case; the direct §§8.11 and 8.11.3 mappings cover the next qualifying TSO arrival after request invocation and its callback delivery, with deletion/removal/retraction details mapped to §§6.16, 6.16.4, and 6.17.1.",
+      "mapping_note": "Contract twin of the promoted NMRA case; the direct §8.11 mappings cover the next qualifying TSO arrival after request invocation and its callback delivery, with deletion/removal/retraction details mapped to §§6.16, 6.16.4, and 6.17.1.",
       "contract_refs": ["next-message-request-available-api-contract.json", "next-message-request-available-requirements-contract.json"],
       "cpp_test": "src/tck_nmra_future_timestamped_object_deletion.cpp#scenarioNmraFutureTimestampedObjectDeletionContract",
       "runner_id": "cpp-tck.timestamped-object-deletion-future-nmra-arrival-contract",
@@ -24083,7 +24035,6 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.22.3"
@@ -24097,7 +24048,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31", "standard_section": "hla-1516.1-2025:clause-8.9" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11" },
-        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41", "standard_section": "hla-1516.1-2025:clause-8.12" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12" },
@@ -24189,7 +24140,6 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.9",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.22.3"
@@ -24203,7 +24153,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31", "standard_section": "hla-1516.1-2025:clause-8.9" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11" },
-        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41", "standard_section": "hla-1516.1-2025:clause-8.12" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12" },
@@ -24371,18 +24321,18 @@
         "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
         "requirement-candidate-content-clauses-08-time-management-page-199-l79-25"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
-      "mapping_note": "Direct mapping covers two no-delivered-TSO assertions in §8.11.3: requirement page-199-l64-20 covers the no-pregrant-input branch; page-199-l79-25 covers NMRA granting at request time when no TSO is delivered. The case then rejects Send Interaction at request time below the actual-lookahead floor and accepts request time plus queried lookahead. The delivered-TSO grant-time branch is covered separately by the candidate nmra-ro-earliest-tso-cohort pair; other timestamped services and provider conformance remain separate.",
+      "mapping_note": "Direct mapping covers two no-delivered-TSO assertions in §8.11: requirement page-199-l64-20 covers the no-pregrant-input branch; page-199-l79-25 covers NMRA granting at request time when no TSO is delivered. The case then rejects Send Interaction at request time below the actual-lookahead floor and accepts request time plus queried lookahead. The delivered-TSO grant-time branch is covered separately by the candidate nmra-ro-earliest-tso-cohort pair; other timestamped services and provider conformance remain separate.",
       "contract_refs": [
         "next-message-request-api-contract.json",
         "next-message-request-requirements-contract.json",
@@ -24413,15 +24363,15 @@
         "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
         "requirement-candidate-content-clauses-08-time-management-page-199-l79-25"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
       "mapping_note": "The contract twin maps the no-delivered-TSO branch of requirement page-199-l79-25 to NMRA granting at request time. It also retains the page-199-l64-20 actual-lookahead floor assertion. The delivered-TSO branch is covered by a separate candidate scenario; no other timestamped service or provider conformance is inferred.",
@@ -24462,11 +24412,11 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-199-l73-23"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l73-23",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
       "mapping_note": "Directly exercises the received-TSO NMRA branch only: the requester asks for 10, receives timestamp-5 input and is granted at actual time 5, then its post-grant Send Interaction at 5 is rejected while time 6 (actual grant time plus the queried lookahead 1) is accepted. This is distinct from the no-pregrant-input request-time branch; it does not imply behavior for other advance services or establish provider conformance.",
@@ -24500,11 +24450,11 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-199-l73-23"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l73-23",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
       "mapping_note": "The contract twin preserves only the received-TSO branch: NMRA(10) with timestamp-5 input grants at 5, and Send Interaction at 5 is below the post-grant actual-time-plus-lookahead floor while 6 is admissible. The empty-input request-time branch remains the separate nmra-no-pregrant-tso-floor scenario.",
@@ -24563,16 +24513,16 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.6",
-        "hla-1516.1-2025:clause-8.11.3"
+        "hla-1516.1-2025:clause-8.11"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l16-4",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l5-1",
@@ -24591,7 +24541,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "Direct mappings cover two bounded §8.11.3 branches: page-199-l16-4 maps the queued receive-order set, complete earliest equal-time timestamp-5 cohort before TAG(5), and later timestamp-8 exclusion; page-199-l79-25 maps the delivered-TSO grant-time branch, where NMRA(10) delivers timestamp 5 and grants at 5. Page-185-l5-1 -> §8.1.6 is directly exercised for NMRA: the sent timestamp set (5/8) and the requested advance form determine that the complete timestamp-5 cohort is delivered while timestamp 8 is excluded. Page-185-l20-6 -> §8.1.6 is directly exercised for the observable queue subset: both queued receive-order messages and the selected TSO cohort are delivered at their respective eligibility boundaries. Page-185-l23-7 -> §8.1.6 is directly exercised by a follow-on NMRA(10): after timestamp 5 is delivered, it does not recur and the still-pending timestamp-8 message is delivered as the next cohort. This case contributes the NMRA member of the aggregate page-185-l14-4 coverage; the TAR, TARA, FQR, NMR, and NMRA service-specific pairs together exercise the all-services 'received' definition, while this row alone does not cover every service. The HLA_EVOKED-only selector preserves the observable request boundary; no behavior for other advance services or provider conformance is implied.",
+      "mapping_note": "Direct mappings cover two bounded §8.11 branches: page-199-l16-4 maps the queued receive-order set, complete earliest equal-time timestamp-5 cohort before TAG(5), and later timestamp-8 exclusion; page-199-l79-25 maps the delivered-TSO grant-time branch, where NMRA(10) delivers timestamp 5 and grants at 5. Page-185-l5-1 -> §8.1.6 is directly exercised for NMRA: the sent timestamp set (5/8) and the requested advance form determine that the complete timestamp-5 cohort is delivered while timestamp 8 is excluded. Page-185-l20-6 -> §8.1.6 is directly exercised for the observable queue subset: both queued receive-order messages and the selected TSO cohort are delivered at their respective eligibility boundaries. Page-185-l23-7 -> §8.1.6 is directly exercised by a follow-on NMRA(10): after timestamp 5 is delivered, it does not recur and the still-pending timestamp-8 message is delivered as the next cohort. This case contributes the NMRA member of the aggregate page-185-l14-4 coverage; the TAR, TARA, FQR, NMR, and NMRA service-specific pairs together exercise the all-services 'received' definition, while this row alone does not cover every service. The HLA_EVOKED-only selector preserves the observable request boundary; no behavior for other advance services or provider conformance is implied.",
       "callback_models": ["evoked"],
       "callback_model_scope_note": "This witness observes receive-order messages pending for explicit HLA_EVOKED service before the NMRA request boundary. It does not claim an equivalent pre-service queue boundary under HLA_IMMEDIATE, so only the evoked callback model is in scope.",
       "contract_refs": [
@@ -24637,16 +24587,16 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.6",
-        "hla-1516.1-2025:clause-8.11.3"
+        "hla-1516.1-2025:clause-8.11"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l16-4",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l5-1",
@@ -26061,14 +26011,14 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-199-l79-25"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the page-199 §8.11.3 rule exercised here: after a grant to T, a zero-lookahead federate can submit a new TSO interaction timestamped T. The case verifies sender-side acceptance after TAR(9) grants 9 and lookahead is set to zero; it deliberately makes no delivery-timing or callback-order assertion. The separate page-198 non-guarantee candidate remains unmapped (RL-386). Installed-package MinGW CTest passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE.",
+      "mapping_note": "The selected page-199 §8.11 requirement is directly exercised when NMRA(10) delivers a timestamp-9 interaction and grants at timestamp 9. A separate supplemental probe advances the sender to time 9 with zero lookahead and checks acceptance of a timestamp-9 send; it is not the basis of this direct mapping. The page-198 non-guarantee candidate remains unmapped (RL-386). Historical installed-package MinGW CTest passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE.",
       "contract_refs": [
         "timestamped-interaction-api-contract.json",
         "timestamped-interaction-requirements-contract.json",
@@ -26119,14 +26069,14 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-199-l79-25"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l79-25",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
-      "mapping_note": "Contract twin of the primary §8.11.3 probe: with zero lookahead, the sender's new TSO interaction at T is accepted after its grant to T. It asserts neither callback ordering nor that the new interaction is delivered before/after any particular grant. The page-198 non-guarantee candidate remains unmapped (RL-386). Focused installed-package MinGW CTest passed under both callback models.",
+      "mapping_note": "The contract twin maps the page-199 §8.11 NMRA delivered-TSO grant-time requirement through the same timestamp-9 delivery and grant as the primary scenario. The zero-lookahead post-grant send probe is supplemental. The page-198 non-guarantee candidate remains unmapped (RL-386). Historical installed-package MinGW CTest passed under both callback models.",
       "contract_refs": [
         "standard-available-time-advances-inclusive-galt-contract.json"
       ],
@@ -33684,16 +33634,21 @@
         "cpp-1516.1-ddm-default-region-attribute-update"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2"],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
         }
       ],
-      "mapping_note": "The official C++ API scenario moves an object's explicit update region to disjoint bounds, removes the final explicit association, then verifies an ordinary attribute update reaches the existing regional subscriber through the default region. Direct evidence is limited to the selected §9.1.3.2 candidate; both callback models passed in the installed-package C++ TCK, with no conformance claim.",
+      "mapping_note": "The official C++ API scenario exercises object-class/attribute and object-instance/instance-attribute DDM relationships, moves an object's explicit update region to disjoint bounds, then removes its final explicit association and verifies ordinary update delivery through the default region. Direct mappings are limited to the selected §9.1.3.2 candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
@@ -33739,16 +33694,21 @@
         "cpp-1516.1-ddm-default-region-attribute-update"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43"
       ],
       "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2"],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
         }
       ],
-      "mapping_note": "The contract runner invokes the same official C++ API scenario and verifies default-region fallback when the final explicit attribute-update region association is removed. Direct evidence is limited to the selected §9.1.3.2 candidate; both callback models passed in the installed-package C++ TCK, with no conformance claim.",
+      "mapping_note": "The contract runner invokes the same official C++ API scenario, exercising object-class/attribute and object-instance/instance-attribute DDM relationships, and verifies default-region fallback when the final explicit attribute-update region association is removed. Direct mappings are limited to the selected §9.1.3.2 candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
       "contract_refs": [
         "standard-regional-object-update-contract.json",
         "default-region-requirements-contract.json"
@@ -37037,6 +36997,17 @@
         "cpp-1516.1-ddm-regional-interaction-filtering",
         "cpp-1516.1-ddm-range-validation"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.5"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        }
+      ],
+      "mapping_note": "The official C++ API scenario establishes an explicit regional interaction subscription, invokes ordinary Unsubscribe Interaction Class, and then receives a later overlapping region-qualified send. This directly proves the standard default-region interpretation: the ordinary unsubscribe removes only the default-region subscription, leaving the explicit regional declaration active. Mapping is limited to the selected §9.1.5 Unsubscribe Interaction Class candidate; no broader DDM or conformance claim.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -37075,6 +37046,17 @@
         "cpp-1516.1-ddm-regional-interaction-filtering",
         "cpp-1516.1-ddm-range-validation"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.5"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-interaction",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        }
+      ],
+      "mapping_note": "The contract runner invokes the same official C++ API scenario: after ordinary Unsubscribe Interaction Class, an overlapping region-qualified send still reaches the receiver with its explicit regional subscription. This directly maps only the selected §9.1.5 default-region interpretation for Unsubscribe Interaction Class; no broader DDM or conformance claim.",
       "contract_refs": [
         "standard-regional-interaction-subscription-filtering-contract.json"
       ],
@@ -44967,7 +44949,6 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.8.3",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
@@ -45024,7 +45005,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
@@ -45147,7 +45128,6 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.8.3",
         "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
@@ -45204,7 +45184,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
@@ -45323,8 +45303,7 @@
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.8.3",
-        "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3"
+        "hla-1516.1-2025:clause-8.11"
       ],
       "requirement_mappings": [
         {
@@ -45393,7 +45372,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
       "mapping_note": "Independently green native 218-assertion HLA_EVOKED/HLA_IMMEDIATE timestamped object-deletion replay under pending NMRA at GALT equality. Portable C++ primary/contract passed isolated installed-package runs under both callback models and integer64/float64 time. Java compiles against official API-only JAR; provider runtime remains unverified.",
@@ -45480,8 +45459,7 @@
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.8.3",
-        "hla-1516.1-2025:clause-8.11",
-        "hla-1516.1-2025:clause-8.11.3"
+        "hla-1516.1-2025:clause-8.11"
       ],
       "requirement_mappings": [
         {
@@ -45550,7 +45528,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
-          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+          "standard_section": "hla-1516.1-2025:clause-8.11"
         }
       ],
       "mapping_note": "Independently green native 218-assertion HLA_EVOKED/HLA_IMMEDIATE timestamped object-deletion replay under pending NMRA at GALT equality. Portable C++ primary/contract passed isolated installed-package runs under both callback models and integer64/float64 time. Java compiles against official API-only JAR; provider runtime remains unverified.",

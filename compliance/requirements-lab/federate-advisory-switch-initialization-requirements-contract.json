@@ -8,7 +8,7 @@
     {
       "id": "umbra-federate-advisory-switches-use-current-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l42-13",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.4.1",
       "source": "cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinImpl",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-federate-advisory-switches-retain-per-federate-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l48-15",
-      "clause_id": "clause-4",
+      "clause_id": "clause-4.1.4.1",
       "source": "cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinImpl",
       "tests": [

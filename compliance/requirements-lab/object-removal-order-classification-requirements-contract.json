@@ -19,7 +19,7 @@
     {
       "id": "standard-object-removal-asynchronous-delivery-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
-      "clause_id": "clause-8.15.3",
+      "clause_id": "clause-8.15",
       "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "source_symbol": "scenarioObjectRemovalOrderClassification",
       "tests": [

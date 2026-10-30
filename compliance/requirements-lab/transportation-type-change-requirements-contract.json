@@ -8,7 +8,7 @@
     {
       "id": "umbra-attribute-transport-initializes-from-fdd-or-federate-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
-      "clause_id": "clause-6.25.1",
+      "clause_id": "clause-6.25",
       "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-attribute-transport-change-affects-future-updates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
-      "clause_id": "clause-6.25.1",
+      "clause_id": "clause-6.25",
       "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeTransportationTypeChange",
       "tests": [

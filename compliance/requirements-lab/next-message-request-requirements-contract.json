@@ -8,7 +8,7 @@
     {
       "id": "umbra-next-message-request-selects-next-tso-target",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
-      "clause_id": "clause-8.10.2",
+      "clause_id": "clause-8.10",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp",
       "source_symbol": "UmbraRtiAmbassador::nextMessageRequest",
       "tests": [
@@ -23,7 +23,7 @@
     {
       "id": "umbra-next-message-request-delivers-before-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
-      "clause_id": "clause-8.10.2",
+      "clause_id": "clause-8.10",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -35,7 +35,7 @@
     {
       "id": "umbra-embedded-next-message-request-report-preserves-supplied-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
-      "clause_id": "clause-8.10.2",
+      "clause_id": "clause-8.10",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp",
       "source_symbol": "UmbraRtiAmbassador::nextMessageRequest",
       "tests": [
