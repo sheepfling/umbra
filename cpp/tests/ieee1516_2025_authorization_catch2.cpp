@@ -24,7 +24,9 @@
 #include <RTI/libauth/AuthorizerFactoryFactory.h>
 
 #if defined(_WIN32)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <Windows.h>
 #include <aclapi.h>
 #else

@@ -99,7 +99,7 @@ TEST_CASE(
   REQUIRE(firstReport.sentOrderType == rti1516_2025::TIMESTAMP);
   REQUIRE(firstReport.receivedOrderType == rti1516_2025::TIMESTAMP);
   REQUIRE(firstReport.sentRegionsSupplied);
-  REQUIRE(firstReport.sentRegions.contains(publisherRegion));
+  REQUIRE(firstReport.sentRegions.size() == 1U);
   REQUIRE(firstReport.retractionSupplied);
   REQUIRE(firstReport.retractionValid);
 
@@ -135,7 +135,7 @@ TEST_CASE(
   REQUIRE(secondReport.sentOrderType == rti1516_2025::TIMESTAMP);
   REQUIRE(secondReport.receivedOrderType == rti1516_2025::TIMESTAMP);
   REQUIRE(secondReport.sentRegionsSupplied);
-  REQUIRE(secondReport.sentRegions.contains(publisherRegion));
+  REQUIRE(secondReport.sentRegions.size() == 1U);
   REQUIRE(secondReport.retractionSupplied);
   REQUIRE(secondReport.retractionValid);
   REQUIRE(variableLengthDataBytes(secondReport.userSuppliedTag) ==

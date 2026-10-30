@@ -934,6 +934,11 @@ void scenarioTimestampedDefaultRegionInteractionSourceResignation(
       *clockTime.initial,
       *clockTime.epsilon,
       2U);
+  auto const clockSafeTarget = timeAfter(
+      *clockTime.factory,
+      *clockTime.initial,
+      *clockTime.epsilon,
+      3U);
   std::vector<std::uint8_t> parameterBytes{0x44U, 0x45U, 0x46U, 0x2DU, 0x46U};
   std::vector<std::uint8_t> tagBytes{0x44U, 0x45U, 0x46U, 0x2DU, 0x52U, 0x53U};
   rti::ParameterHandleValueMap parameters;
@@ -974,6 +979,12 @@ void scenarioTimestampedDefaultRegionInteractionSourceResignation(
       [&] { return clock.recorder().timeAdvanceGrants().size() >= 1U; },
       options,
       "timestamped default-region interaction source resignation clock frontier");
+  clock.rtiAmbassador().timeAdvanceRequest(*clockSafeTarget);
+  waitFor(
+      clock,
+      [&] { return clock.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped default-region interaction source resignation safe clock frontier");
   waitFor(
       first,
       [&] {
@@ -1160,11 +1171,6 @@ void scenarioTimestampedDefaultRegionInteractionReenable(
       *publisherTime.initial,
       *publisherTime.epsilon,
       6U);
-  auto const publisherTarget = timeAfter(
-      *publisherTime.factory,
-      *publisherTime.initial,
-      *publisherTime.epsilon,
-      2U);
   std::vector<std::uint8_t> parameterBytes{0x52U, 0x45U, 0x49U, 0x4EU};
   std::vector<std::uint8_t> tagBytes{0x44U, 0x45U, 0x46U, 0x52U};
   rti::ParameterHandleValueMap parameters;
@@ -1191,6 +1197,20 @@ void scenarioTimestampedDefaultRegionInteractionReenable(
   require(
       receiver.recorder().timedInteractions().empty(),
       "timestamped default-region interaction re-enable delivered while time constrained was disabled");
+  auto const receiveOrderInteractions = receiver.recorder().interactions();
+  require(
+      receiveOrderInteractions.size() == 1U,
+      "disabling time constrained did not deliver the queued default-region TSO as receive order");
+  auto const& receiveOrderInteraction = receiveOrderInteractions.front();
+  require(
+      receiveOrderInteraction.interaction == receiverHandles.interactionClass &&
+          receiveOrderInteraction.parameters.size() == 1U &&
+          receiveOrderInteraction.parameters.count(receiverHandles.parameter) == 1U &&
+          copyBytes(receiveOrderInteraction.parameters.at(receiverHandles.parameter)) ==
+              parameterBytes &&
+          receiveOrderInteraction.tag == tagBytes &&
+          receiveOrderInteraction.producer == publisher.federateHandle(),
+      "time-constrained disable changed the default-region receive-order interaction data");
   receiver.rtiAmbassador().enableTimeConstrained();
   waitFor(
       receiver,
@@ -1200,64 +1220,36 @@ void scenarioTimestampedDefaultRegionInteractionReenable(
   receiver.recorder().clearCallbackOrder();
   publisher.recorder().clearCallbackOrder();
   receiver.rtiAmbassador().timeAdvanceRequest(*messageTime);
-  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
-  publisher.pump();
-  receiver.pump();
-  require(
-      publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-          receiver.recorder().timeAdvanceGrants().size() >= 1U &&
-          receiver.recorder().timedInteractions().size() >= 1U,
-      "timestamped default-region interaction re-enable delivery and grant");
+  publisher.rtiAmbassador().timeAdvanceRequest(*messageTime);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped default-region interaction grants after receive-order conversion");
 
   require(
-      receiver.recorder().timedInteractions().size() == 1U &&
+      receiver.recorder().interactions().size() == 1U &&
+          receiver.recorder().timedInteractions().empty() &&
           receiver.recorder().timeConstrainedEnabled().size() == 2U &&
           publisher.recorder().timeAdvanceGrants().size() == 1U &&
           receiver.recorder().timeAdvanceGrants().size() == 1U,
       "timestamped default-region interaction re-enable returned the wrong callback counts");
   require(
-      receiver.recorder().callbackOrder() ==
-          std::vector<std::string>{"interaction", "grant"},
-      "timestamped default-region interaction re-enable delivered after its grant");
-  auto const interactions = receiver.recorder().timedInteractions();
-  auto const& interaction = interactions.front();
-  require(
-      interaction.interaction == receiverHandles.interactionClass &&
-          interaction.parameters.size() == 1U &&
-          interaction.parameters.count(receiverHandles.parameter) == 1U,
-      "timestamped default-region interaction re-enable returned the wrong class or parameter");
-  require(
-      interaction.tag == tagBytes &&
-          interaction.time == encodeTime(*messageTime) &&
-          !interaction.timeText.empty(),
-      "timestamped default-region interaction re-enable did not preserve payload or time");
-  require(
-      interaction.producer == publisher.federateHandle() &&
-          interaction.sentOrder == rti::TIMESTAMP &&
-          interaction.receivedOrder == rti::TIMESTAMP,
-      "timestamped default-region interaction re-enable returned the wrong producer or order");
-  require(
-      interaction.transportation.isValid() &&
-          !receiver.rtiAmbassador().getTransportationTypeName(
-              interaction.transportation).empty(),
-      "timestamped default-region interaction re-enable returned an unresolvable transport");
-  require(
-      interaction.regions.has_value() && interaction.regions->empty(),
-      "timestamped default-region interaction re-enable returned a non-empty source region");
-  require(
-      interaction.retractionPresent &&
-          interaction.retraction == copyBytes(retraction.encode()),
-      "timestamped default-region interaction re-enable omitted its retraction handle");
+      receiver.recorder().callbackOrder() == std::vector<std::string>{"grant"},
+      "default-region interaction was redelivered after time-constrained re-enable");
   require(
       publisher.recorder().timeAdvanceGrants().front().encoded ==
-              encodeTime(*publisherTarget) &&
+              encodeTime(*messageTime) &&
           receiver.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*messageTime),
       "timestamped default-region interaction re-enable returned the wrong grants");
   requireException(
       [&] { publisher.rtiAmbassador().retract(retraction); },
       L"MessageCanNoLongerBeRetracted",
-      "timestamped default-region interaction re-enable post-delivery retraction");
+      "timestamped default-region interaction retraction after receive-order delivery");
 
   receiver.rtiAmbassador().disableTimeConstrained();
   publisher.rtiAmbassador().disableTimeRegulation();
@@ -1418,18 +1410,34 @@ void scenarioTimestampedDefaultRegionInteractionRegulationReenable(
   publisher.recorder().clearCallbackOrder();
   receiver.rtiAmbassador().timeAdvanceRequest(*messageTime);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
-  publisher.pump();
-  receiver.pump();
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timedInteractions().size() >= 1U;
+      },
+      options,
+      "timestamped default-region interaction delivery at the GALT boundary");
   require(
-      publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-          receiver.recorder().timeAdvanceGrants().size() >= 1U &&
-          receiver.recorder().timedInteractions().size() >= 1U,
-      "timestamped default-region interaction regulation re-enable delivery and grant");
+      receiver.recorder().timeAdvanceGrants().empty() &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction"},
+      "timestamped default-region interaction TAR granted at the strict GALT boundary");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*changedLookaheadTime);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped default-region interaction safe grant after GALT advancement");
 
   require(
       receiver.recorder().timedInteractions().size() == 1U &&
           publisher.recorder().timeRegulationEnabled().size() == 2U &&
-          publisher.recorder().timeAdvanceGrants().size() == 1U &&
+          publisher.recorder().timeAdvanceGrants().size() == 2U &&
           receiver.recorder().timeAdvanceGrants().size() == 1U,
       "timestamped default-region interaction regulation re-enable returned the wrong callback counts");
   require(
@@ -1469,6 +1477,8 @@ void scenarioTimestampedDefaultRegionInteractionRegulationReenable(
   require(
       publisher.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*publisherTarget) &&
+          publisher.recorder().timeAdvanceGrants().back().encoded ==
+              encodeTime(*changedLookaheadTime) &&
           receiver.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*messageTime),
       "timestamped default-region interaction regulation re-enable returned the wrong grants");
@@ -2055,6 +2065,23 @@ void scenarioTimestampedRegionalAttributeSourceResignation(
       receiverPair,
       true,
       L"");
+  bool sourceRegionDesignatorVerified = false;
+  receiver.recorder().setTimedReflectionHook(
+      [&](rti::RegionHandleSet const* callbackRegions) {
+        require(
+            callbackRegions != nullptr && callbackRegions->size() == 1U,
+            "timestamped regional attribute source resignation omitted its callback region copy");
+        verifyDdmRegion(
+            receiver,
+            receiverHandles,
+            *callbackRegions->begin(),
+            1UL,
+            5UL,
+            1UL,
+            5UL,
+            "timestamped regional attribute source resignation callback region");
+        sourceRegionDesignatorVerified = true;
+      });
   auto const object = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
       publisherHandles.objectClass,
       publisherPair);
@@ -2120,6 +2147,11 @@ void scenarioTimestampedRegionalAttributeSourceResignation(
       *clockTime.initial,
       *clockTime.epsilon,
       2U);
+  auto const clockSafeTarget = timeAfter(
+      *clockTime.factory,
+      *clockTime.initial,
+      *clockTime.epsilon,
+      3U);
   std::vector<std::uint8_t> valueBytes{0xA9U, 0x72U, 0x31U};
   std::vector<std::uint8_t> tagBytes{0x52U, 0x45U, 0x47U, 0x2DU, 0x52U};
   rti::AttributeHandleValueMap values;
@@ -2155,6 +2187,12 @@ void scenarioTimestampedRegionalAttributeSourceResignation(
       [&] { return clock.recorder().timeAdvanceGrants().size() >= 1U; },
       options,
       "timestamped regional attribute source resignation clock frontier");
+  clock.rtiAmbassador().timeAdvanceRequest(*clockSafeTarget);
+  waitFor(
+      clock,
+      [&] { return clock.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped regional attribute source resignation safe clock frontier");
   waitFor(
       receiver,
       [&] {
@@ -2190,8 +2228,8 @@ void scenarioTimestampedRegionalAttributeSourceResignation(
       "timestamped regional attribute source resignation returned an unresolvable transport");
   require(
       reflection.regions.has_value() && reflection.regions->size() == 1U &&
-          reflection.regions->count(sourceRegion) == 1U,
-      "timestamped regional attribute source resignation omitted the source region snapshot");
+          sourceRegionDesignatorVerified,
+      "timestamped regional attribute source resignation omitted the queryable source region snapshot");
   require(
       reflection.retractionPresent &&
           reflection.retraction == copyBytes(retraction.encode()),
@@ -2375,6 +2413,11 @@ void scenarioTimestampedObjectDeletionSourceResignationFanout(
       *clockTime.initial,
       *clockTime.epsilon,
       2U);
+  auto const clockSafeTarget = timeAfter(
+      *clockTime.factory,
+      *clockTime.initial,
+      *clockTime.epsilon,
+      3U);
   std::vector<std::uint8_t> const tagBytes{
       0x52U, 0x45U, 0x53U, 0x49U, 0x47U, 0x2DU, 0x44U};
   rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
@@ -2416,6 +2459,12 @@ void scenarioTimestampedObjectDeletionSourceResignationFanout(
       [&] { return clock.recorder().timeAdvanceGrants().size() >= 1U; },
       options,
       "timestamped object-deletion source resignation fanout clock frontier");
+  clock.rtiAmbassador().timeAdvanceRequest(*clockSafeTarget);
+  waitFor(
+      clock,
+      [&] { return clock.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped object-deletion source resignation fanout safe clock frontier");
   waitFor(
       first,
       [&] {
@@ -2633,7 +2682,7 @@ void scenarioTimestampedObjectDeletionMixedAdvances(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
 
   std::vector<std::uint8_t> const tagBytes{0xD8U, 0x61U, 0x4EU};
   rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
@@ -3996,7 +4045,7 @@ void scenarioTimestampedLocalDeleteAttribute(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const secondRetraction = publisher.rtiAmbassador().updateAttributeValues(
       object,
       values,
@@ -4205,10 +4254,9 @@ void scenarioTimestampedObjectDeletionTombstone(
       deletion.isValid(),
       "Timestamped object-deletion tombstone returned an invalid deletion handle");
 
-  // The target is exactly current time plus the actual lookahead. The
-  // timestamp is therefore no longer eligible for Retract under the strict
-  // timestamp boundary, while the terminal deletion tombstone may reclaim
-  // the named-instance mapping.
+  // The request time plus actual lookahead equals the deletion timestamp, so
+  // the strict Retract precondition is no longer satisfied. The object name
+  // remains reserved until the producer reaches the deletion timestamp.
   owner.rtiAmbassador().timeAdvanceRequest(*advanceTarget);
   waitFor(
       owner,
@@ -4219,6 +4267,13 @@ void scenarioTimestampedObjectDeletionTombstone(
       [&] { owner.rtiAmbassador().retract(deletion); },
       L"MessageCanNoLongerBeRetracted",
       "retracting a terminal timestamped object-deletion tombstone");
+
+  owner.rtiAmbassador().timeAdvanceRequest(*deletionTime);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped object-deletion tombstone effective deletion boundary");
 
   owner.recorder().clearReservations();
   owner.rtiAmbassador().reserveObjectInstanceName(objectName);
@@ -4439,7 +4494,7 @@ void scenarioTimestampedObjectDeletionRegulationReenable(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const changedLookaheadTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,

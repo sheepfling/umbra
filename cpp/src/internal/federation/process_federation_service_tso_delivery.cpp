@@ -368,9 +368,53 @@ void ProcessFederationService::dispatchTsoInteractionDelivery(
   }
   event.defaultRegionUsed =
       projection->conveyRegionDesignatorSets && message.defaultRegionUsed;
+  ProcessTsoCallbackRegionDesignatorCopyLease callbackRegionCopies(
+      registry_, federationName, receivingFederateId);
   if (projection->conveyRegionDesignatorSets &&
       (!message.sentRegionHandles.empty() || message.defaultRegionUsed)) {
-    event.sentRegionHandles = message.sentRegionHandles;
+    if (message.sentRegionHandles.empty()) {
+      event.sentRegionHandles = message.sentRegionHandles;
+    } else {
+      CallbackRegionDesignatorCopyMap copies;
+      auto const copyStatus = registry_.createCallbackScopedRegionDesignatorCopies(
+          federationName,
+          receivingFederateId,
+          message.sentRegionHandles,
+          message.sentRegionSnapshots,
+          copies);
+      if (copyStatus != RegionServiceStatus::applied) {
+        throw std::runtime_error(
+            "The process federation could not create timestamped interaction callback region designator copies.");
+      }
+      auto const& callbackCopies = callbackRegionCopies.add(std::move(copies));
+      std::set<std::uint64_t> conveyedCopyHandles;
+      for (auto const& [sourceRegionHandle, copiedRegionHandle] : callbackCopies) {
+        static_cast<void>(sourceRegionHandle);
+        conveyedCopyHandles.insert(copiedRegionHandle);
+      }
+      event.sentRegionHandles = std::move(conveyedCopyHandles);
+    }
+  }
+
+  if (!callbackRegionCopies.empty()) {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != federationName ||
+        state->second.federateId != receivingFederateId) {
+      throw std::runtime_error(
+          "The process federation lost the timestamped interaction recipient before retaining callback region copies.");
+    }
+    auto const [pending, inserted] = state->second
+        .pendingTsoInteractionCallbackRegionDesignatorCopies.try_emplace(
+            message.messageId,
+            std::move(callbackRegionCopies));
+    static_cast<void>(pending);
+    if (!inserted) {
+      throw std::runtime_error(
+          "The process federation already retains timestamped interaction callback region copies for this message.");
+    }
   }
 
   // TSO payloads must cross the process event boundary before the matching

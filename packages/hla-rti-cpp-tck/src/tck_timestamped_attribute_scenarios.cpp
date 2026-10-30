@@ -873,6 +873,11 @@ void scenarioTimestampedAttributeOrderCohort(
       *publisherTime.initial,
       *publisherTime.epsilon,
       6U);
+  auto const publisherEight = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      8U);
 
   std::vector<std::uint8_t> const earlyValue{0x41U, 0x56U, 0x2DU, 0x35U};
   std::vector<std::uint8_t> const equalValue{
@@ -931,23 +936,21 @@ void scenarioTimestampedAttributeOrderCohort(
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
             tara.recorder().timedReflections().size() >= 2U &&
-            tara.recorder().timeAdvanceGrants().size() >= 1U &&
             nmra.recorder().timedReflections().size() >= 2U &&
-            nmra.recorder().timeAdvanceGrants().size() >= 1U;
+            tara.recorder().timeAdvanceGrants().empty() &&
+            nmra.recorder().timeAdvanceGrants().empty();
       },
       options,
       "Timestamped attribute-order cohort first boundary");
   require(
       tara.recorder().timedReflections().size() == 2U &&
-          tara.recorder().timeAdvanceGrants().size() == 1U &&
-          tara.recorder().callbackOrder() ==
-              std::vector<std::string>{"reflect", "reflect", "grant"},
+          tara.recorder().timeAdvanceGrants().empty() &&
+          tara.recorder().callbackOrder() == std::vector<std::string>{"reflect", "reflect"},
       "Timestamped attribute-order cohort first recipient boundary was unordered");
   require(
       nmra.recorder().timedReflections().size() == 2U &&
-          nmra.recorder().timeAdvanceGrants().size() == 1U &&
-          nmra.recorder().callbackOrder() ==
-              std::vector<std::string>{"reflect", "reflect", "grant"},
+          nmra.recorder().timeAdvanceGrants().empty() &&
+          nmra.recorder().callbackOrder() == std::vector<std::string>{"reflect", "reflect"},
       "Timestamped attribute-order cohort second recipient boundary was unordered");
 
   auto assertCommon = [&](TimedReflectionRecord const& reflection,
@@ -1004,18 +1007,30 @@ void scenarioTimestampedAttributeOrderCohort(
   };
   assertCohort(tara.recorder().timedReflections(), taraAttribute, tara);
   assertCohort(nmra.recorder().timedReflections(), nmraAttribute, nmra);
-  require(
-      tara.recorder().timeAdvanceGrants().front().encoded == encodeTime(*taraFive) &&
-          nmra.recorder().timeAdvanceGrants().front().encoded == encodeTime(*nmraFive),
-      "Timestamped attribute-order cohort returned the wrong first grants");
-
-  tara.rtiAmbassador().timeAdvanceRequest(*taraSeven);
-  nmra.rtiAmbassador().timeAdvanceRequest(*nmraSeven);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherSix);
   waitForSessions(
       {&publisher, &tara, &nmra},
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            tara.recorder().timeAdvanceGrants().size() >= 1U &&
+            nmra.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "Timestamped attribute-order cohort safe first grant");
+  require(
+      publisher.recorder().timeAdvanceGrants().at(0).encoded == encodeTime(*publisherFour) &&
+          publisher.recorder().timeAdvanceGrants().at(1).encoded == encodeTime(*publisherSix) &&
+          tara.recorder().timeAdvanceGrants().front().encoded == encodeTime(*taraFive) &&
+          nmra.recorder().timeAdvanceGrants().front().encoded == encodeTime(*nmraFive),
+      "Timestamped attribute-order cohort returned the wrong first grants");
+
+  tara.rtiAmbassador().timeAdvanceRequest(*taraSeven);
+  nmra.rtiAmbassador().timeAdvanceRequest(*nmraSeven);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherEight);
+  waitForSessions(
+      {&publisher, &tara, &nmra},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
             tara.recorder().timedReflections().size() >= 3U &&
             tara.recorder().timeAdvanceGrants().size() >= 2U &&
             nmra.recorder().timedReflections().size() >= 3U &&
@@ -1050,7 +1065,8 @@ void scenarioTimestampedAttributeOrderCohort(
               std::vector<std::string>{"reflect", "reflect", "grant", "reflect", "grant"},
       "Timestamped attribute-order cohort second boundary was unordered");
   require(
-      tara.recorder().timeAdvanceGrants().back().encoded == encodeTime(*taraSeven) &&
+      publisher.recorder().timeAdvanceGrants().back().encoded == encodeTime(*publisherEight) &&
+          tara.recorder().timeAdvanceGrants().back().encoded == encodeTime(*taraSeven) &&
           nmra.recorder().timeAdvanceGrants().back().encoded == encodeTime(*nmraSeven),
       "Timestamped attribute-order cohort returned the wrong final grants");
 
@@ -2016,11 +2032,6 @@ void scenarioTimestampedAttributeUpdateReenable(
       *publisherTime.initial,
       *publisherTime.epsilon,
       5U);
-  auto const publisherTarget = timeAfter(
-      *publisherTime.factory,
-      *publisherTime.initial,
-      *publisherTime.epsilon,
-      4U);
   std::vector<std::uint8_t> valueBytes{0x41U, 0x54U, 0x54U, 0x52U};
   std::vector<std::uint8_t> tagBytes{0x52U, 0x45U, 0x45U, 0x4EU, 0x2DU, 0x41U};
   rti::AttributeHandleValueMap values;
@@ -2047,6 +2058,19 @@ void scenarioTimestampedAttributeUpdateReenable(
   require(
       receiver.recorder().timedReflections().empty(),
       "timestamped attribute-update re-enable delivered while time constrained was disabled");
+  auto const receiveOrderReflections = receiver.recorder().reflections();
+  require(
+      receiveOrderReflections.size() == 1U,
+      "disabling time constrained did not deliver the queued TSO update as receive order");
+  auto const& receiveOrderReflection = receiveOrderReflections.front();
+  require(
+      receiveOrderReflection.object == object &&
+          receiveOrderReflection.values.size() == 1U &&
+          receiveOrderReflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(receiveOrderReflection.values.at(receiverAttribute)) == valueBytes &&
+          receiveOrderReflection.tag == tagBytes &&
+          receiveOrderReflection.producer == publisher.federateHandle(),
+      "time-constrained disable changed the receive-order attribute-update data");
   receiver.rtiAmbassador().enableTimeConstrained();
   waitFor(
       receiver,
@@ -2060,63 +2084,33 @@ void scenarioTimestampedAttributeUpdateReenable(
   receiver.recorder().clearCallbackOrder();
   publisher.recorder().clearCallbackOrder();
   receiver.rtiAmbassador().timeAdvanceRequest(*updateTime);
-  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  publisher.rtiAmbassador().timeAdvanceRequest(*updateTime);
   waitForSessions(
       {&publisher, &receiver},
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timedReflections().size() >= 1U;
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
       },
       options,
-      "timestamped attribute-update re-enable delivery and grants");
+      "timestamped attribute-update re-enable grants after receive-order conversion");
   require(
-      receiver.recorder().timedReflections().size() == 1U &&
+      receiver.recorder().reflections().size() == 1U &&
+          receiver.recorder().timedReflections().empty() &&
           receiver.recorder().timeConstrainedEnabled().size() == 2U,
       "timestamped attribute-update re-enable returned the wrong callback counts");
   require(
-      receiver.recorder().callbackOrder() ==
-          std::vector<std::string>{"reflect", "grant"},
-      "timestamped attribute-update re-enable delivered after its grant");
-  auto const reflections = receiver.recorder().timedReflections();
-  auto const& reflection = reflections.front();
-  require(
-      reflection.object == object &&
-          reflection.values.size() == 1U &&
-          reflection.values.count(receiverAttribute) == 1U &&
-          copyBytes(reflection.values.at(receiverAttribute)) == valueBytes,
-      "timestamped attribute-update re-enable returned the wrong object or value");
-  require(
-      reflection.tag == tagBytes && reflection.time == encodeTime(*updateTime) &&
-          !reflection.timeText.empty(),
-      "timestamped attribute-update re-enable did not preserve value metadata");
-  require(
-      reflection.producer == publisher.federateHandle() &&
-          reflection.sentOrder == rti::TIMESTAMP &&
-          reflection.receivedOrder == rti::TIMESTAMP,
-      "timestamped attribute-update re-enable returned the wrong producer or order");
-  require(
-      reflection.transportation.isValid() &&
-          !receiver.rtiAmbassador().getTransportationTypeName(
-              reflection.transportation).empty(),
-      "timestamped attribute-update re-enable returned an unresolvable transport");
-  require(
-      !reflection.regions.has_value(),
-      "timestamped attribute-update re-enable unexpectedly supplied source regions");
-  require(
-      reflection.retractionPresent &&
-          reflection.retraction == copyBytes(retraction.encode()),
-      "timestamped attribute-update re-enable omitted its retraction handle");
+      receiver.recorder().callbackOrder() == std::vector<std::string>{"grant"},
+      "timestamped attribute update was redelivered after time-constrained re-enable");
   require(
       publisher.recorder().timeAdvanceGrants().front().encoded ==
-              encodeTime(*publisherTarget) &&
+              encodeTime(*updateTime) &&
           receiver.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*updateTime),
       "timestamped attribute-update re-enable returned the wrong grants");
   requireException(
       [&] { publisher.rtiAmbassador().retract(retraction); },
       L"MessageCanNoLongerBeRetracted",
-      "timestamped attribute-update re-enable retraction after delivery");
+      "timestamped attribute update retraction after receive-order delivery");
 
   receiver.rtiAmbassador().disableTimeConstrained();
   publisher.rtiAmbassador().disableTimeRegulation();
@@ -2228,7 +2222,7 @@ void scenarioTimestampedAttributeUpdateRegulationReenable(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const changedLookaheadTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -2509,6 +2503,11 @@ void scenarioTimestampedAttributeSourceResignationFanout(
       *clockTime.initial,
       *clockTime.epsilon,
       2U);
+  auto const clockSafeTarget = timeAfter(
+      *clockTime.factory,
+      *clockTime.initial,
+      *clockTime.epsilon,
+      3U);
   std::vector<std::uint8_t> const valueBytes{0xA7U, 0x71U, 0x52U};
   std::vector<std::uint8_t> const tagBytes{
       0x52U, 0x45U, 0x53U, 0x2DU, 0x46U, 0x41U, 0x4EU};
@@ -2556,6 +2555,12 @@ void scenarioTimestampedAttributeSourceResignationFanout(
       [&] { return clock.recorder().timeAdvanceGrants().size() >= 1U; },
       options,
       "timestamped attribute source resignation fanout clock frontier");
+  clock.rtiAmbassador().timeAdvanceRequest(*clockSafeTarget);
+  waitFor(
+      clock,
+      [&] { return clock.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped attribute source resignation fanout safe clock frontier");
   waitFor(
       first,
       [&] {
@@ -2741,6 +2746,30 @@ void scenarioTimestampedRegionalAttributeUpdate(
       disjointAttributes,
       disjointRegionSet,
   }};
+  auto verifyCallbackRegion = [&](Session& receiver,
+                                  DdmHandles const& handles,
+                                  rti::RegionHandleSet const* regions,
+                                  std::string const& description) {
+    require(regions != nullptr && regions->size() == 1U,
+            description + " omitted its source region designator set");
+    verifyDdmRegion(
+        receiver,
+        handles,
+        *regions->begin(),
+        1UL,
+        5UL,
+        1UL,
+        5UL,
+        description);
+  };
+  immediate.recorder().setTimedReflectionHook([&](rti::RegionHandleSet const* regions) {
+    verifyCallbackRegion(immediate, immediateHandles, regions,
+                         "immediate timestamped regional reflection callback");
+  });
+  constrained.recorder().setTimedReflectionHook([&](rti::RegionHandleSet const* regions) {
+    verifyCallbackRegion(constrained, constrainedHandles, regions,
+                         "constrained timestamped regional reflection callback");
+  });
   immediate.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   constrained.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   disjoint.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
@@ -2830,9 +2859,7 @@ void scenarioTimestampedRegionalAttributeUpdate(
     require(
         record.sentOrder == rti::TIMESTAMP && record.receivedOrder == expectedReceivedOrder,
         "timestamped regional attribute reflection returned the wrong order metadata");
-    require(
-        record.regions.has_value() && record.regions->size() == 1U &&
-            record.regions->count(sourceRegion) == 1U,
+    require(record.regions.has_value() && record.regions->size() == 1U,
         "timestamped regional attribute reflection omitted the source region designator set");
   };
 

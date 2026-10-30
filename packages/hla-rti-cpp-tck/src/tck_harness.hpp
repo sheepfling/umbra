@@ -518,18 +518,25 @@ class Recorder final : public rti::FederateAmbassador {
       rti::TransportationTypeHandle const& transportation,
       rti::FederateHandle const& producer,
       rti::RegionHandleSet const* regions) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    reflection_.present = true;
-    reflection_.object = object;
-    reflection_.values = values;
-    reflection_.tag = copyBytes(tag);
-    reflection_.transportation = transportation;
-    reflection_.producer = producer;
-    reflection_.regions = regions == nullptr
-        ? std::nullopt
-        : std::optional<rti::RegionHandleSet>(*regions);
-    reflections_.push_back(reflection_);
-    ++reflectionCount_;
+    std::function<void(rti::RegionHandleSet const*)> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      reflection_.present = true;
+      reflection_.object = object;
+      reflection_.values = values;
+      reflection_.tag = copyBytes(tag);
+      reflection_.transportation = transportation;
+      reflection_.producer = producer;
+      reflection_.regions = regions == nullptr
+          ? std::nullopt
+          : std::optional<rti::RegionHandleSet>(*regions);
+      reflections_.push_back(reflection_);
+      ++reflectionCount_;
+      hook = reflectionHook_;
+    }
+    if (hook) {
+      hook(regions);
+    }
   }
 
   void reflectAttributeValues(
@@ -578,17 +585,24 @@ class Recorder final : public rti::FederateAmbassador {
       rti::TransportationTypeHandle const& transportation,
       rti::FederateHandle const& producer,
       rti::RegionHandleSet const* regions) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    interaction_.present = true;
-    interaction_.interaction = interaction;
-    interaction_.parameters = parameters;
-    interaction_.tag = copyBytes(tag);
-    interaction_.transportation = transportation;
-    interaction_.producer = producer;
-    interaction_.regions = regions == nullptr
-        ? std::nullopt
-        : std::optional<rti::RegionHandleSet>(*regions);
-    interactions_.push_back(interaction_);
+    std::function<void(rti::RegionHandleSet const*)> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      interaction_.present = true;
+      interaction_.interaction = interaction;
+      interaction_.parameters = parameters;
+      interaction_.tag = copyBytes(tag);
+      interaction_.transportation = transportation;
+      interaction_.producer = producer;
+      interaction_.regions = regions == nullptr
+          ? std::nullopt
+          : std::optional<rti::RegionHandleSet>(*regions);
+      interactions_.push_back(interaction_);
+      hook = receiveInteractionHook_;
+    }
+    if (hook) {
+      hook(regions);
+    }
   }
 
   void receiveInteraction(
@@ -602,28 +616,35 @@ class Recorder final : public rti::FederateAmbassador {
       rti::OrderType sentOrder,
       rti::OrderType receivedOrder,
       rti::MessageRetractionHandle const* optionalRetraction) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    TimedInteractionRecord record{
-        interaction,
-        parameters,
-        copyBytes(tag),
-        transportation,
-        producer,
-        copyBytes(time.encode()),
-        time.toString(),
-        sentOrder,
-        receivedOrder,
-        optionalRetraction != nullptr,
-        optionalRetraction == nullptr ? std::vector<std::uint8_t>{}
-                                      : copyBytes(optionalRetraction->encode()),
-        regions == nullptr
-            ? std::nullopt
-            : std::optional<rti::RegionHandleSet>(*regions),
-    };
-    timedInteractions_.push_back(std::move(record));
-    callbackOrder_.push_back("interaction");
-    timeConstrainedEnablementOrder_.push_back("interaction");
-    timeRegulationEnablementOrder_.push_back("interaction");
+    std::function<void(rti::RegionHandleSet const*)> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      TimedInteractionRecord record{
+          interaction,
+          parameters,
+          copyBytes(tag),
+          transportation,
+          producer,
+          copyBytes(time.encode()),
+          time.toString(),
+          sentOrder,
+          receivedOrder,
+          optionalRetraction != nullptr,
+          optionalRetraction == nullptr ? std::vector<std::uint8_t>{}
+                                        : copyBytes(optionalRetraction->encode()),
+          regions == nullptr
+              ? std::nullopt
+              : std::optional<rti::RegionHandleSet>(*regions),
+      };
+      timedInteractions_.push_back(std::move(record));
+      callbackOrder_.push_back("interaction");
+      timeConstrainedEnablementOrder_.push_back("interaction");
+      timeRegulationEnablementOrder_.push_back("interaction");
+      hook = timedInteractionHook_;
+    }
+    if (hook) {
+      hook(regions);
+    }
   }
 
   void multipleObjectInstanceNameReservationSucceeded(
@@ -1383,6 +1404,24 @@ class Recorder final : public rti::FederateAmbassador {
     timedReflectionHook_ = std::move(hook);
   }
 
+  void setReflectionHook(
+      std::function<void(rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    reflectionHook_ = std::move(hook);
+  }
+
+  void setReceiveInteractionHook(
+      std::function<void(rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    receiveInteractionHook_ = std::move(hook);
+  }
+
+  void setTimedInteractionHook(
+      std::function<void(rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    timedInteractionHook_ = std::move(hook);
+  }
+
 
   void setFederateSaveInitiateHook(std::function<void()> hook) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1630,7 +1669,10 @@ class Recorder final : public rti::FederateAmbassador {
       rti::ObjectInstanceHandle const&,
       rti::AttributeHandleSet const&,
       rti::VariableLengthData const&)> ownershipReleaseHook_;
+  std::function<void(rti::RegionHandleSet const*)> reflectionHook_;
   std::function<void(rti::RegionHandleSet const*)> timedReflectionHook_;
+  std::function<void(rti::RegionHandleSet const*)> receiveInteractionHook_;
+  std::function<void(rti::RegionHandleSet const*)> timedInteractionHook_;
   std::function<void()> federateSaveInitiateHook_;
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation_;
   std::optional<OwnershipEventRecord> ownershipNotOwned_;

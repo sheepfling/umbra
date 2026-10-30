@@ -1,4 +1,5 @@
 #include "tck_restore_multi_pending_time_advance.hpp"
+#include "tck_scenario_fom.hpp"
 
 #include <chrono>
 #include <condition_variable>
@@ -14,7 +15,8 @@ namespace {
 void runRestoreMultiPendingTimeAdvance(Options const& options, rti::CallbackModel model) {
   require(model == rti::HLA_EVOKED,
           "Multi-member pending-TAR restore has native evidence only for evoked callbacks");
-  require(!options.fom.empty() && !options.logicalTimeImplementationName.empty(),
+  auto const fom = adapterScenarioFom(options, "restore-pending-time-advance");
+  require(!fom.empty() && !options.logicalTimeImplementationName.empty(),
           "Multi-member pending-TAR restore requires adapter NRG-enabled FOM and time implementation");
 
   Session first(options, model, "member");
@@ -24,7 +26,7 @@ void runRestoreMultiPendingTimeAdvance(Options const& options, rti::CallbackMode
   first.connect();
   second.connect();
   first.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   first.join(options.ownerFederateName, options.federateType, federation);
   second.join(options.memberFederateName, options.federateType, federation);
 

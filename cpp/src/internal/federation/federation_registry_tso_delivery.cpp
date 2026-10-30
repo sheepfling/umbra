@@ -1043,17 +1043,7 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
       continue;
     }
     FederationTimeBounds const bounds = boundsCalculator.calculate(*snapshot, federateId);
-    // The no-TSO policy remains strict at ordinary GALT equality. A pending
-    // TAR can complete at that boundary only after its equal-time TSO callback
-    // has been acknowledged and the bounds snapshot confirms no equal-frontier
-    // message remains queued or in transit.
-    bool const grantAtDeliveredTsoBoundary =
-        bounds.galtIsDeliveredTsoBoundary && requester->time.timeConstrained &&
-        requester->time.timeAdvancePending &&
-        requester->time.advanceMode ==
-            FederateTimeAdvanceMode::time_advance_request;
     bool const grantEligible = grantPolicy.decide(requester->time, bounds).mayGrant() ||
-        grantAtDeliveredTsoBoundary ||
         connectionLossTsoDeliveryMayGrant(
             federation,
             federateId,
@@ -1070,11 +1060,24 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
             [&](TsoQueuedMessage const& message) {
               if (message.recipientFederateId != federateId || !message.timestamp ||
                   message.timestamp->implementationName() !=
-                      requester->time.implementationName) {
+                      requester->time.implementationName ||
+                  (bounds.galt &&
+                   bounds.galt->implementationName() !=
+                       requester->time.implementationName)) {
                 return false;
               }
               try {
-                return *message.timestamp <= *requester->time.requestedTime;
+                bool const noLaterThanRequestedTime =
+                    *message.timestamp <= *requester->time.requestedTime;
+                // A pending TAR may drive delivery through its requested
+                // time so an equal-GALT TSO can be acknowledged before the
+                // strictly-below-GALT grant. It must not drive a message
+                // that is still beyond the current safe frontier; resignation
+                // of that message's producer does not remove other regulators
+                // from GALT.
+                bool const noLaterThanGalt =
+                    !bounds.galt || *message.timestamp <= *bounds.galt;
+                return noLaterThanRequestedTime && noLaterThanGalt;
               } catch (rti1516_2025::Exception const&) {
                 return false;
               }

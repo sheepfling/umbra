@@ -494,7 +494,26 @@ void scenarioRegionalAutoProvideResponse(
         owner.rtiAmbassador().updateAttributeValues(object, values, updateTag);
       });
   requesterReports.setDiscoveryHook([&] { callbackOrder.push_back("discover"); });
-  requesterReports.setReflectionHook([&] { callbackOrder.push_back("reflect"); });
+  std::vector<std::pair<unsigned long, unsigned long>> callbackRegionBounds;
+  requesterReports.setReflectionHook([&] {
+    callbackOrder.push_back("reflect");
+    auto const currentReflections = requesterReports.reflections();
+    auto const& currentReflection = currentReflections.back();
+    require(
+        currentReflection.regions.has_value() &&
+            currentReflection.regions->size() == 1U,
+        "regional Auto Provide callback did not convey one source region copy");
+    auto const callbackRegion = *currentReflection.regions->begin();
+    require(
+        requester.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            rti::DimensionHandleSet{requesterDimension},
+        "regional Auto Provide callback region copy changed its dimension set");
+    auto const bounds = requester.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        requesterDimension);
+    callbackRegionBounds.emplace_back(
+        bounds.getLowerBound(), bounds.getUpperBound());
+  });
 
   auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
       ownerClass,
@@ -543,7 +562,9 @@ void scenarioRegionalAutoProvideResponse(
           reflection.tag == responseTag && reflection.transportation ==
               owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable") &&
           reflection.producer == owner.federateHandle() && reflection.regions.has_value() &&
-          reflection.regions.value() == rti::RegionHandleSet{ownerRegion},
+          reflection.regions->size() == 1U &&
+          callbackRegionBounds ==
+              std::vector<std::pair<unsigned long, unsigned long>>{{0UL, 2UL}},
       "regional Auto Provide reflection did not preserve scoped value metadata");
 
   requester.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
@@ -742,9 +763,26 @@ void scenarioRegionalAutoProvideTimestampedResponse(
             *responseTime);
       });
   requesterReports.setDiscoveryHook([&] { callbackOrder.push_back("discover"); });
+  std::vector<std::pair<unsigned long, unsigned long>> callbackRegionBounds;
   requesterReports.setReflectionHook([&] {
     callbackOrder.push_back("reflect");
     requesterCallbackOrder.push_back("reflect");
+    auto const currentReflections = requesterReports.reflections();
+    auto const& currentReflection = currentReflections.back();
+    require(
+        currentReflection.regions.has_value() &&
+            currentReflection.regions->size() == 1U,
+        "timestamped regional Auto Provide callback did not convey one source region copy");
+    auto const callbackRegion = *currentReflection.regions->begin();
+    require(
+        requester.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            rti::DimensionHandleSet{requesterDimension},
+        "timestamped regional Auto Provide callback region copy changed its dimension set");
+    auto const bounds = requester.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        requesterDimension);
+    callbackRegionBounds.emplace_back(
+        bounds.getLowerBound(), bounds.getUpperBound());
   });
   requesterReports.setTimeAdvanceGrantHook(
       [&] { requesterCallbackOrder.push_back("grant"); });
@@ -820,7 +858,9 @@ void scenarioRegionalAutoProvideTimestampedResponse(
           reflection.transportation ==
               owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable") &&
           reflection.producer == owner.federateHandle() && reflection.regions.has_value() &&
-          reflection.regions.value() == rti::RegionHandleSet{ownerRegion} &&
+          reflection.regions->size() == 1U &&
+          callbackRegionBounds ==
+              std::vector<std::pair<unsigned long, unsigned long>>{{0UL, 2UL}} &&
           reflection.timeImplementation == ownerTimeFactory->getName() &&
           reflection.timeValue == responseTime->toString() &&
           reflection.sentOrder == rti::TIMESTAMP &&
@@ -1227,6 +1267,45 @@ void scenarioRegionalAutoProvideMultiSource(
         }
       });
 
+  std::vector<std::pair<unsigned long, unsigned long>> flavorCallbackRegionBounds;
+  flavorReports.setReflectionHook([&] {
+    auto const callbackReflections = flavorReports.reflections();
+    auto const& callbackReflection = callbackReflections.back();
+    require(
+        callbackReflection.regions.has_value() &&
+            callbackReflection.regions->size() == 1U,
+        "regional Auto Provide multi-source flavor callback did not convey one region copy");
+    auto const callbackRegion = *callbackReflection.regions->begin();
+    require(
+        flavor.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            rti::DimensionHandleSet{flavorDimension},
+        "regional Auto Provide multi-source flavor region copy changed its dimension set");
+    auto const bounds = flavor.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        flavorDimension);
+    flavorCallbackRegionBounds.emplace_back(
+        bounds.getLowerBound(), bounds.getUpperBound());
+  });
+  std::vector<std::pair<unsigned long, unsigned long>> organicCallbackRegionBounds;
+  organicReports.setReflectionHook([&] {
+    auto const callbackReflections = organicReports.reflections();
+    auto const& callbackReflection = callbackReflections.back();
+    require(
+        callbackReflection.regions.has_value() &&
+            callbackReflection.regions->size() == 1U,
+        "regional Auto Provide multi-source organic callback did not convey one region copy");
+    auto const callbackRegion = *callbackReflection.regions->begin();
+    require(
+        organic.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            rti::DimensionHandleSet{organicDimension},
+        "regional Auto Provide multi-source organic region copy changed its dimension set");
+    auto const bounds = organic.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        organicDimension);
+    organicCallbackRegionBounds.emplace_back(
+        bounds.getLowerBound(), bounds.getUpperBound());
+  });
+
   auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
       ownerClass,
       ownerPairs);
@@ -1301,7 +1380,9 @@ void scenarioRegionalAutoProvideMultiSource(
           flavorReflection.transportation == reliable &&
           flavorReflection.producer == owner.federateHandle() &&
           flavorReflection.regions.has_value() &&
-          flavorReflection.regions.value() == rti::RegionHandleSet{ownerFlavorRegion},
+          flavorReflection.regions->size() == 1U &&
+          flavorCallbackRegionBounds ==
+              std::vector<std::pair<unsigned long, unsigned long>>{{0UL, 2UL}},
       "regional Auto Provide multi-source flavor delivery changed scoped value metadata");
   auto const& organicReflection = organicReflections.front();
   require(
@@ -1312,7 +1393,9 @@ void scenarioRegionalAutoProvideMultiSource(
           organicReflection.transportation == reliable &&
           organicReflection.producer == owner.federateHandle() &&
           organicReflection.regions.has_value() &&
-          organicReflection.regions.value() == rti::RegionHandleSet{ownerOrganicRegion},
+          organicReflection.regions->size() == 1U &&
+          organicCallbackRegionBounds ==
+              std::vector<std::pair<unsigned long, unsigned long>>{{5UL, 7UL}},
       "regional Auto Provide multi-source organic delivery changed scoped value metadata");
 
   flavor.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
@@ -1641,6 +1724,28 @@ void scenarioRegionalAutoProvideMultiProvider(
             secondProviderTagData);
       });
 
+  std::vector<std::pair<unsigned long, unsigned long>> ownerCallbackRegionBounds;
+  requesterReports.setReflectionHook([&] {
+    auto const callbackReflections = requesterReports.reflections();
+    auto const& callbackReflection = callbackReflections.back();
+    if (callbackReflection.producer != owner.federateHandle()) {
+      return;
+    }
+    require(
+        callbackReflection.regions.has_value() &&
+            callbackReflection.regions->size() == 1U,
+        "regional Auto Provide multi-provider owner callback did not convey one region copy");
+    auto const callbackRegion = *callbackReflection.regions->begin();
+    require(
+        requester.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            rti::DimensionHandleSet{requesterDimension},
+        "regional Auto Provide multi-provider owner callback region copy changed its dimension set");
+    auto const bounds = requester.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        requesterDimension);
+    ownerCallbackRegionBounds.emplace_back(
+        bounds.getLowerBound(), bounds.getUpperBound());
+  });
   requester.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
       requesterClass,
       requesterPair);
@@ -1688,12 +1793,18 @@ void scenarioRegionalAutoProvideMultiProvider(
         "regional Auto Provide multi-provider reflection changed common metadata");
     if (reflection.producer == owner.federateHandle()) {
       require(
-          !sawOwnerReflection &&
-              reflection.values.count(requesterAAttribute) == 1U &&
-              copyBytes(reflection.values.at(requesterAAttribute)) == ownerValue &&
-              reflection.tag == ownerTag &&
-              reflection.regions.value() == rti::RegionHandleSet{ownerRegion},
-          "regional Auto Provide multi-provider owner reflection changed its value or source region");
+          !sawOwnerReflection,
+          "regional Auto Provide multi-provider reflected the owner value more than once");
+      require(
+          reflection.values.count(requesterAAttribute) == 1U &&
+              copyBytes(reflection.values.at(requesterAAttribute)) == ownerValue,
+          "regional Auto Provide multi-provider owner reflection changed its attribute value");
+      require(
+          reflection.tag == ownerTag,
+          "regional Auto Provide multi-provider owner reflection changed its tag");
+      require(
+          reflection.regions->size() == 1U,
+          "regional Auto Provide multi-provider owner reflection changed its source region designator count");
       sawOwnerReflection = true;
     } else if (reflection.producer == secondProvider.federateHandle()) {
       require(
@@ -1714,6 +1825,10 @@ void scenarioRegionalAutoProvideMultiProvider(
   require(
       sawOwnerReflection && sawSecondProviderReflection,
       "regional Auto Provide multi-provider did not reflect once from each owner");
+  require(
+      ownerCallbackRegionBounds ==
+          std::vector<std::pair<unsigned long, unsigned long>>{{0UL, 2UL}},
+      "regional Auto Provide multi-provider owner callback region copy changed its source range");
 
   requester.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       requesterClass,

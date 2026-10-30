@@ -140,6 +140,7 @@ void ProcessFederationService::detach(ProcessTransportSession& session) noexcept
     }
     // Erasing the session-owned leases releases every pending TSO copy.
     found->second.pendingTsoAttributeCallbackRegionDesignatorCopies.clear();
+    found->second.pendingTsoInteractionCallbackRegionDesignatorCopies.clear();
   }
   if (found->second.federateId != 0U) {
     sessionsByFederateId_.erase(found->second.federateId);
@@ -193,6 +194,15 @@ TransportServiceMessage ProcessFederationService::handleAcknowledgeTsoDelivery(
         // acknowledgement has crossed the process boundary.
         state->second.pendingTsoAttributeCallbackRegionDesignatorCopies.erase(
             pending);
+      }
+      auto const interactionPending = state->second
+          .pendingTsoInteractionCallbackRegionDesignatorCopies.find(
+              acknowledgement.messageId);
+      if (interactionPending != state->second
+                                    .pendingTsoInteractionCallbackRegionDesignatorCopies
+                                    .end()) {
+        state->second.pendingTsoInteractionCallbackRegionDesignatorCopies.erase(
+            interactionPending);
       }
     }
   }
@@ -280,6 +290,12 @@ TransportServiceMessage ProcessFederationService::handleReceiveAttributeUpdate(
         // A legal Retract may have won before this pull-mode event crossed
         // the callback boundary. Consume the stale frame without exposing a
         // reflection callback.
+        continue;
+      }
+      if (!recheckAttributeUpdateAtReceive(
+              receiveRequest.federationName,
+              receiveRequest.receivingFederateId,
+              event)) {
         continue;
       }
       result.event = std::move(event);

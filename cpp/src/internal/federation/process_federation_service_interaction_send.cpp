@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -518,6 +519,8 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
 
   std::vector<ProcessFederationInteractionEvent> events;
   events.reserve(plan.recipients.size());
+  std::map<std::uint64_t, ProcessTsoCallbackRegionDesignatorCopyLease>
+      timestampedCallbackRegionCopies;
   std::uint32_t queuedRecipientCount = 0U;
   for (auto const& recipient : plan.recipients) {
     if (queueTimestampedInteraction &&
@@ -576,6 +579,32 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
           !sendRequest.sentRegionHandles->empty()) {
         event.sentRegionSnapshots = plan.sentRegionSnapshots;
       }
+      if (queueTimestampedInteraction && sendRequest.sentRegionHandles &&
+          !sendRequest.sentRegionHandles->empty()) {
+        CallbackRegionDesignatorCopyMap copies;
+        auto const copyStatus = registry_.createCallbackScopedRegionDesignatorCopies(
+            sendRequest.federationName,
+            resolvedRecipient.federateId,
+            *sendRequest.sentRegionHandles,
+            plan.sentRegionSnapshots,
+            copies);
+        if (copyStatus != RegionServiceStatus::applied) {
+          return internalError(request);
+        }
+        auto [lease, inserted] = timestampedCallbackRegionCopies.try_emplace(
+            resolvedRecipient.federateId,
+            registry_,
+            sendRequest.federationName,
+            resolvedRecipient.federateId);
+        static_cast<void>(inserted);
+        auto const& callbackCopies = lease->second.add(std::move(copies));
+        std::set<std::uint64_t> conveyedCopyHandles;
+        for (auto const& [sourceRegionHandle, copiedRegionHandle] : callbackCopies) {
+          static_cast<void>(sourceRegionHandle);
+          conveyedCopyHandles.insert(copiedRegionHandle);
+        }
+        event.sentRegionHandles = std::move(conveyedCopyHandles);
+      }
     }
     events.push_back(std::move(event));
   }
@@ -612,6 +641,19 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       auto const state = sessions_.find(receivingSession->second);
       if (state == sessions_.end()) {
         continue;
+      }
+      auto const callbackCopies =
+          timestampedCallbackRegionCopies.find(event.receivingFederateId);
+      if (callbackCopies != timestampedCallbackRegionCopies.end() &&
+          !callbackCopies->second.empty()) {
+        auto const [pending, inserted] = state->second
+            .pendingTsoInteractionCallbackRegionDesignatorCopies.try_emplace(
+                messageId,
+                std::move(callbackCopies->second));
+        static_cast<void>(pending);
+        if (!inserted) {
+          return internalError(request);
+        }
       }
       if (options_.pushReceiveOrderEvents) {
         // The push path is exactly-once at this service boundary: the event

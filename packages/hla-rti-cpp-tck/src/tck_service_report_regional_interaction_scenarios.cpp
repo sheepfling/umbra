@@ -107,6 +107,23 @@ void scenarioServiceReportRegionalInteraction(
   publisher.recorder().clearInteraction();
   receiver.recorder().clearInteraction();
   observer.recorder().clearInteraction();
+  std::size_t inspectedCallbackRegionCount = 0U;
+  receiver.recorder().setReceiveInteractionHook(
+      [&](rti::RegionHandleSet const* regions) {
+        require(
+            regions != nullptr && regions->size() == 1U,
+            "Regional application callback did not convey one source region copy");
+        verifyDdmRegion(
+            receiver,
+            receiverHandles,
+            *regions->begin(),
+            1UL,
+            5UL,
+            1UL,
+            5UL,
+            "Regional application callback source region copy");
+        ++inspectedCallbackRegionCount;
+      });
 
   std::vector<std::uint8_t> const valueBytes{0x52U, 0x45U, 0x47U};
   std::vector<std::uint8_t> const tagBytes{0x52U, 0x53U, 0x52U};
@@ -191,7 +208,7 @@ void scenarioServiceReportRegionalInteraction(
   require(
       interaction.regions.has_value() &&
           interaction.regions->size() == 1U &&
-          interaction.regions->count(sourceRegion) == 1U,
+          inspectedCallbackRegionCount == 1U,
       "Regional application callback did not convey the source region designator set");
 
   publisher.rtiAmbassador().setServiceReportingSwitch(false);

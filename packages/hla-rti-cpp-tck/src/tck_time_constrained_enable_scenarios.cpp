@@ -643,10 +643,19 @@ void scenarioTimeConstrainedEnableRetainsQueuedTsoDirectedInteraction(
       receiver,
       [&] {
         return receiver.recorder().timedDirectedInteractions().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "Time-constrained directed queued-TSO delivery at the strict GALT boundary");
+  publisher.rtiAmbassador().timeAdvanceRequest(*six);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
             receiver.recorder().timeAdvanceGrants().size() == 2U;
       },
       options,
-      "Time-constrained directed queued-TSO delivery before grant six");
+      "Time-constrained directed queued-TSO safe grant six");
   auto const timedInteractions = receiver.recorder().timedDirectedInteractions();
   auto const grants = receiver.recorder().timeAdvanceGrants();
   auto const callbackOrder = receiver.recorder().callbackOrder();
@@ -1076,10 +1085,19 @@ void scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(
       receiver,
       [&] {
         return receiver.recorder().timedReflections().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "Time-constrained queued-attribute TSO reflection at the strict GALT boundary");
+  publisher.rtiAmbassador().timeAdvanceRequest(*six);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
             receiver.recorder().timeAdvanceGrants().size() == 2U;
       },
       options,
-      "Time-constrained queued-attribute TSO reflection before grant six");
+      "Time-constrained queued-attribute TSO safe grant six");
   auto const reflections = receiver.recorder().timedReflections();
   auto const grants = receiver.recorder().timeAdvanceGrants();
   auto const callbackOrder = receiver.recorder().callbackOrder();

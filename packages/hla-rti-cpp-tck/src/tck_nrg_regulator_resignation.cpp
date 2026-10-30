@@ -1,11 +1,13 @@
 #include "tck_nrg_regulator_resignation.hpp"
+#include "tck_scenario_fom.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
 
 void runNrgRegulatorRelease(
     Options const& options, rti::CallbackModel model, bool disableRegulation) {
-  require(!options.fom.empty(),
+  auto const fom = adapterScenarioFom(options, "nrg-regulator-release");
+  require(!fom.empty(),
           "NRG regulator release requires an adapter-supplied complete NRG-enabled FOM");
   require(!options.logicalTimeImplementationName.empty(),
           "NRG regulator resignation requires an adapter-supplied logical-time implementation");
@@ -17,7 +19,7 @@ void runNrgRegulatorRelease(
   receiver.connect();
   regulator.connect();
   receiver.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   receiver.join(options.ownerFederateName, options.federateType, federation);
   regulator.join(options.memberFederateName, options.federateType, federation);
   require(receiver.rtiAmbassador().getNonRegulatedGrantSwitch() &&

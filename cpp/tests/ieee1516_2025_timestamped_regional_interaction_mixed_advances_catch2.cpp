@@ -61,7 +61,30 @@ TEST_CASE(
       RangeBounds(0UL, 10UL)));
   REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
 
-  auto prepareReceiver = [&](auto& rti) {
+  bool fqrCallbackRegionMatchesSentDesignator = false;
+  bool taraCallbackRegionMatchesSentDesignator = false;
+  bool nmraCallbackRegionMatchesSentDesignator = false;
+  auto prepareReceiver = [&](auto& rti, auto& reports, bool& callbackRegionMatchesSentDesignator) {
+    auto const receiverDimension = rti->getDimensionHandle(fixture_hla::fixture::server_id);
+    auto* const receiverRti = rti.get();
+    reports.onTimestampedInteraction = [
+        receiverRti,
+        &reports,
+        &callbackRegionMatchesSentDesignator,
+        receiverDimension] {
+      auto const& report = reports.timestampedInteractionReports.back();
+      if (!report.sentRegionsSupplied || report.sentRegions.size() != 1U) {
+        return;
+      }
+      auto const callbackRegion = *report.sentRegions.begin();
+      if (receiverRti->getDimensionHandleSet(callbackRegion) !=
+          DimensionHandleSet{receiverDimension}) {
+        return;
+      }
+      auto const bounds = receiverRti->getRangeBounds(callbackRegion, receiverDimension);
+      callbackRegionMatchesSentDesignator =
+          bounds.getLowerBound() == 0UL && bounds.getUpperBound() == 10UL;
+    };
     auto const region = rti->createRegion(DimensionHandleSet{serverId});
     REQUIRE_NOTHROW(rti->setRangeBounds(region, serverId, RangeBounds(5UL, 15UL)));
     REQUIRE_NOTHROW(rti->commitRegionModifications(RegionHandleSet{region}));
@@ -74,9 +97,9 @@ TEST_CASE(
     REQUIRE_FALSE(rti->evokeCallback(0.0));
     return region;
   };
-  auto const fqrRegion = prepareReceiver(fqr);
-  auto const taraRegion = prepareReceiver(tara);
-  auto const nmraRegion = prepareReceiver(nmra);
+  auto const fqrRegion = prepareReceiver(fqr, fqrReports, fqrCallbackRegionMatchesSentDesignator);
+  auto const taraRegion = prepareReceiver(tara, taraReports, taraCallbackRegionMatchesSentDesignator);
+  auto const nmraRegion = prepareReceiver(nmra, nmraReports, nmraCallbackRegionMatchesSentDesignator);
 
   REQUIRE_NOTHROW(publisher->enableTimeRegulation(
       rti1516_2025::HLAinteger64Interval(5)));
@@ -115,7 +138,7 @@ TEST_CASE(
     REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
     REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
     REQUIRE(report.sentRegionsSupplied);
-    REQUIRE(report.sentRegions.contains(publisherRegion));
+    REQUIRE(report.sentRegions.size() == 1U);
     REQUIRE(report.retractionSupplied);
     REQUIRE(report.retractionValid);
   };
@@ -141,6 +164,9 @@ TEST_CASE(
   requireRegionalReport(fqrReports.timestampedInteractionReports.front());
   requireRegionalReport(taraReports.timestampedInteractionReports.front());
   requireRegionalReport(nmraReports.timestampedInteractionReports.front());
+  REQUIRE(fqrCallbackRegionMatchesSentDesignator);
+  REQUIRE(taraCallbackRegionMatchesSentDesignator);
+  REQUIRE(nmraCallbackRegionMatchesSentDesignator);
   REQUIRE(variableLengthDataBytes(fqrReports.timestampedInteractionReports.front().userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
 

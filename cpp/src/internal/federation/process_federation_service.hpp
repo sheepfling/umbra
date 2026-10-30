@@ -196,6 +196,12 @@ class ProcessFederationService final {
         std::uint64_t,
         ProcessTsoCallbackRegionDesignatorCopyLease>
         pendingTsoAttributeCallbackRegionDesignatorCopies;
+    // Timestamped interaction callbacks retain their receiver-owned region
+    // copies until the receiver acknowledges completion of the callback.
+    std::map<
+        std::uint64_t,
+        ProcessTsoCallbackRegionDesignatorCopyLease>
+        pendingTsoInteractionCallbackRegionDesignatorCopies;
     std::deque<ProcessFederationAttributeUpdateEvent> attributeUpdateEvents;
     std::map<std::uint64_t, ProcessFederationAttributeUpdateEvent>
         pendingPushedAttributeUpdates;

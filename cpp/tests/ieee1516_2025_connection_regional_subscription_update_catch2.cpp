@@ -716,7 +716,6 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::join_federation_execution,
           "The public process regional-subscription server lost receiver Join.");
-
       for (auto const operation : {
                TransportServiceOperation::get_object_class_handle,
                TransportServiceOperation::get_attribute_handle,
@@ -907,8 +906,8 @@ TEST_CASE(
     REQUIRE(received.attributeCount == 1U);
     REQUIRE(received.value == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
     REQUIRE(received.tag == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
-    REQUIRE(received.hasOptionalSentRegions);
-    REQUIRE(received.sentRegionCount == 1U);
+    REQUIRE_FALSE(received.hasOptionalSentRegions);
+    REQUIRE(received.sentRegionCount == 0U);
     REQUIRE(received.transportationType.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
     REQUIRE(expectedObjectInstance.load(std::memory_order_acquire) != 0U);

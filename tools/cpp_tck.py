@@ -65,6 +65,7 @@ STANDARD_HEADERS = {
     "sstream",
     "stdexcept",
     "string",
+    "string_view",
     "system_error",
     "thread",
     "type_traits",
@@ -79,6 +80,7 @@ PLATFORM_INCLUDES = {
 
 
 LOCAL_TCK_HEADERS = {
+    "tck_scenario_fom.hpp",
     "tck_nmr_regional_timestamped_interaction.hpp",
     "tck_timestamped_tso_message_set_router.hpp",
     "pending_negotiated_restore_tck.hpp",

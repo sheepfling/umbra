@@ -54,7 +54,7 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
   // owns a callback from the previous poll. The next Evoke call should drain
   // that callback first; this keeps push-mode fixture lifecycles deterministic.
   if (callbacks_->pendingCount() == 0U) {
-    pumpProcessReceiveOrder();
+    pumpProcessReceiveOrder(false, true);
   }
 #endif
   bool callbackInvoked = false;
@@ -121,7 +121,7 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
   // leave the remainder for a later Evoke instead of polling past the gated
   // callback. The single-callback service also keeps its one-poll behavior.
   if (callbacks_->pendingCount() == 0U) {
-    pumpProcessReceiveOrder(callbacks_->isEnabled());
+    pumpProcessReceiveOrder(callbacks_->isEnabled(), true);
   }
 #endif
   auto const result = callbacks_->evokeMultiple(
@@ -144,7 +144,9 @@ void UmbraRtiAmbassador::disableCallbacks() {
 }
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
+void UmbraRtiAmbassador::pumpProcessReceiveOrder(
+    bool drainAll,
+    bool avoidPollingDuringCallbackAdmission) {
   if (!processEndpointActive_) {
     return;
   }
@@ -165,6 +167,15 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
     }
     federationName = *joinedFederationName_;
     receivingFederateId = *joinedFederateId_;
+  }
+
+  // The process stream dispatcher can have removed a frame from its internal
+  // queue but not yet admitted it to CallbackDispatcher. Do not start another
+  // blocking poll in that interval; return to Evoke so the received callback
+  // can be admitted and delivered first.
+  if (avoidPollingDuringCallbackAdmission &&
+      processClient->isPushedDataCallbackAdmissionInProgress()) {
+    return;
   }
 
   try {

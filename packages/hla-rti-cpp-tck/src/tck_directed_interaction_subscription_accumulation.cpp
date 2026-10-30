@@ -18,7 +18,12 @@ void scenarioDirectedInteractionSubscriptionAccumulation(
   auto const federation = federationName(
       options,
       "directed-interaction-subscription-accumulation");
-  connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+  auto const accumulationFom = options.scenarioFoms.find(
+      "directed-interaction-subscription-accumulation");
+  require(
+      accumulationFom != options.scenarioFoms.end(),
+      "directed-interaction subscription accumulation requires its scenario FOM");
+  connectAndJoin(publisher, subscriber, options, federation, accumulationFom->second);
 
   auto& publisherAmbassador = publisher.rtiAmbassador();
   auto& subscriberAmbassador = subscriber.rtiAmbassador();

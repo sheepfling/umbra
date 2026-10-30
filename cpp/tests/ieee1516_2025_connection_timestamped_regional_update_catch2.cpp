@@ -896,8 +896,8 @@ TEST_CASE(
     REQUIRE(receiverFederate.attributeCount == 1U);
     REQUIRE(receiverFederate.value == std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
     REQUIRE(receiverFederate.tag == std::vector<std::uint8_t>{0x54U, 0x52U, 0x47U});
-    REQUIRE(receiverFederate.hasOptionalSentRegions);
-    REQUIRE(receiverFederate.sentRegionCount == 1U);
+    REQUIRE_FALSE(receiverFederate.hasOptionalSentRegions);
+    REQUIRE(receiverFederate.sentRegionCount == 0U);
     REQUIRE(receiverFederate.transportationType.isValid());
     REQUIRE(receiverFederate.producingFederate == senderHandle);
     REQUIRE(receiverFederate.timestampImplementationName == L"HLAinteger64Time");

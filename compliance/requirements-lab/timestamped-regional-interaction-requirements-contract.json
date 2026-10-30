@@ -39,7 +39,8 @@
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
         "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
+        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout"
       ]
     },
     {
@@ -126,7 +127,8 @@
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
-        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
+        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout"
       ]
     },
     {
@@ -150,7 +152,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout"
       ]
     },
     {
@@ -160,7 +163,8 @@
       "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout"
       ]
     },
     {

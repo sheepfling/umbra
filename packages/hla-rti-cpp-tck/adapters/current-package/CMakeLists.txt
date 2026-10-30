@@ -137,11 +137,71 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml"
   "switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml"
   "switch-duplicate-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml"
+  "attribute-fdd-preferred-order-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"
+  "directed-interaction-subscription-accumulation=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-interaction-subscription-accumulation-tck.xml"
   "advisory-switch-duplicate-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-disabled-tck.xml"
   "advisory-switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-equal-tck.xml"
   "advisory-switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml"
   "advisory-switch-duplicate-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-omitted-tck.xml"
+  "restore-pending-time-advance=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
+  "restore-pending-flush-queue-request=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
+  "nrg-regulator-release=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
+set(_directed_interaction_accumulation_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^directed-interaction-subscription-accumulation=")
+    set(_directed_interaction_accumulation_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _directed_interaction_accumulation_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "directed-interaction-subscription-accumulation=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-interaction-subscription-accumulation-tck.xml")
+endif()
+set(_attribute_fdd_preferred_order_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^attribute-fdd-preferred-order-default=")
+    set(_attribute_fdd_preferred_order_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _attribute_fdd_preferred_order_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "attribute-fdd-preferred-order-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml")
+endif()
+set(_restore_pending_fqr_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^restore-pending-flush-queue-request=")
+    set(_restore_pending_fqr_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _restore_pending_fqr_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "restore-pending-flush-queue-request=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml")
+endif()
+set(_pending_time_advance_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^restore-pending-time-advance=")
+    set(_pending_time_advance_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _pending_time_advance_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "restore-pending-time-advance=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml")
+endif()
+set(_nrg_regulator_release_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^nrg-regulator-release=")
+    set(_nrg_regulator_release_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _nrg_regulator_release_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "nrg-regulator-release=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml")
+endif()
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")

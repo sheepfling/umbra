@@ -613,6 +613,24 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
 
   std::vector<std::uint8_t> firstValue{0x11U, 0x22U, 0x33U};
   std::vector<std::uint8_t> firstTag{0x52U, 0x31U};
+  bool callbackRegionVerified = false;
+  overlap.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    require(regions != nullptr,
+            "regional reflection callback supplied no source region designator set");
+    require(regions->size() == 1U,
+            "regional reflection callback supplied " +
+                std::to_string(regions->size()) + " source region designators");
+    verifyDdmRegion(
+        overlap,
+        overlapHandles,
+        *regions->begin(),
+        1UL,
+        5UL,
+        1UL,
+        5UL,
+        "regional reflection callback region");
+    callbackRegionVerified = true;
+  });
   rti::AttributeHandleValueMap firstValues;
   firstValues.emplace(
       ownerHandles.attribute,
@@ -624,6 +642,8 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       [&] { return overlap.recorder().reflection().present; },
       options,
       "regional ordinary attribute reflection");
+  require(callbackRegionVerified,
+          "regional reflection did not expose callback-scoped source region metadata");
   auto const firstReflection = overlap.recorder().reflection();
   require(firstReflection.object == object &&
               firstReflection.values.size() == 1U &&
@@ -636,9 +656,7 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
               firstReflection.transportation.isValid(),
           "regional reflection did not preserve ordinary metadata");
   verifyTransportation(overlap, firstReflection.transportation, "regional reflection");
-  require(firstReflection.regions.has_value() &&
-              firstReflection.regions->size() == 1U &&
-              firstReflection.regions->count(sourceRegion) == 1U,
+  require(firstReflection.regions.has_value() && firstReflection.regions->size() == 1U,
           "regional reflection did not convey the source region designator set");
   for (int pass = 0; pass != 8; ++pass) {
     disjoint.pump();
@@ -728,6 +746,14 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
 
   owner.rtiAmbassador().unassociateRegionsForUpdates(object, disjointSourcePair);
   overlap.recorder().clearReflection();
+  bool defaultRegionCallbackVerified = false;
+  overlap.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    require(regions != nullptr,
+            "default-region reflection callback omitted its region designator set");
+    require(regions->empty(),
+            "default-region reflection callback supplied explicit source regions");
+    defaultRegionCallbackVerified = true;
+  });
   std::vector<std::uint8_t> defaultRegionValue{0x91U, 0x92U, 0x93U};
   std::vector<std::uint8_t> defaultRegionTag{0x52U, 0x44U};
   rti::AttributeHandleValueMap defaultRegionValues;
@@ -744,6 +770,8 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       [&] { return overlap.recorder().reflection().present; },
       options,
       "default-region attribute reflection after final explicit association removal");
+  require(defaultRegionCallbackVerified,
+          "default-region reflection did not expose an empty callback region set");
   auto const defaultRegionReflection = overlap.recorder().reflection();
   require(
       defaultRegionReflection.values.size() == 1U &&
@@ -1125,10 +1153,61 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
         description + " returned the wrong object, value, or delivery metadata");
     require(
         reflection.regions.has_value() &&
-            reflection.regions->size() == 1U &&
-            reflection.regions->count(sourceRegion) == 1U,
-        description + " omitted the source region designator");
+            reflection.regions->size() == 1U,
+        description + " omitted the source region designator copy");
   };
+
+  std::size_t activeInspectedRegionCallbacks = 0U;
+  auto inspectCallbackRegion = [&](Session& receiver,
+                                   rti::DimensionHandle const& firstDimension,
+                                   rti::DimensionHandle const& secondDimension,
+                                   std::size_t& inspected,
+                                   std::string const& description) {
+    auto* receiverPtr = &receiver;
+    auto* inspectedPtr = &inspected;
+    receiver.recorder().setReflectionHook(
+        [receiverPtr,
+         inspectedPtr,
+         firstDimension,
+         secondDimension,
+         description](
+            rti::RegionHandleSet const* callbackRegions) {
+          require(
+              callbackRegions != nullptr && callbackRegions->size() == 1U,
+              description + " omitted its source region copy");
+          auto const callbackRegion = *callbackRegions->begin();
+          require(
+              receiverPtr->rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+                  rti::DimensionHandleSet{firstDimension, secondDimension},
+              description + " changed the source dimensions");
+          auto const firstBounds = receiverPtr->rtiAmbassador().getRangeBounds(
+              callbackRegion,
+              firstDimension);
+          auto const secondBounds = receiverPtr->rtiAmbassador().getRangeBounds(
+              callbackRegion,
+              secondDimension);
+          require(
+              firstBounds.getLowerBound() == 1UL &&
+                  firstBounds.getUpperBound() == 5UL &&
+                  secondBounds.getLowerBound() == 1UL &&
+                  secondBounds.getUpperBound() == 5UL,
+              description + " changed the source range bounds");
+          ++*inspectedPtr;
+        });
+  };
+  inspectCallbackRegion(
+      active,
+      activeHandles.firstDimension,
+      activeHandles.secondDimension,
+      activeInspectedRegionCallbacks,
+      "regional attribute callback DDM active reflection");
+  std::size_t recheckedInspectedRegionCallbacks = 0U;
+  inspectCallbackRegion(
+      rechecked,
+      recheckedHandles.firstDimension,
+      recheckedHandles.secondDimension,
+      recheckedInspectedRegionCallbacks,
+      "regional attribute callback DDM rechecked reflection");
 
   active.recorder().clearReflection();
   rechecked.recorder().clearReflection();
@@ -1178,7 +1257,13 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
         firstValue,
         firstTag,
         "immediate regional attribute callback DDM rechecked reflection");
+    require(
+        recheckedInspectedRegionCallbacks == 1U,
+        "immediate regional attribute callback DDM did not expose a queryable source region copy");
   }
+  require(
+      activeInspectedRegionCallbacks == 1U,
+      "regional attribute callback DDM active reflection did not expose a queryable source region copy");
   require(
       publisher.recorder().reflectionCount() == 0U,
       "regional attribute callback DDM looped a reflection to the publisher");
@@ -1205,6 +1290,9 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       secondValue,
       secondTag,
       "regional attribute callback DDM surviving reflection");
+  require(
+      activeInspectedRegionCallbacks == 2U,
+      "regional attribute callback DDM surviving reflection did not expose a queryable source region copy");
 
   moveRecheckedRegion(true);
   active.recorder().clearReflection();
@@ -1569,6 +1657,25 @@ void scenarioDefaultRegionObjectRouting(
       options,
       publisherHandles,
       "default-region object routing");
+  auto const firstDimensionUpperBound =
+      publisher.rtiAmbassador().getDimensionUpperBound(
+          publisherHandles.firstDimension);
+  auto const secondDimensionUpperBound =
+      publisher.rtiAmbassador().getDimensionUpperBound(
+          publisherHandles.secondDimension);
+  require(
+      firstDimensionUpperBound >= 2UL && secondDimensionUpperBound >= 2UL,
+      "default-region boundary routing requires a positive unit in each FDD dimension");
+  require(
+      regional.rtiAmbassador().getDimensionUpperBound(
+          regionalHandles.firstDimension) == firstDimensionUpperBound &&
+          regional.rtiAmbassador().getDimensionUpperBound(
+              regionalHandles.secondDimension) == secondDimensionUpperBound &&
+          mixed.rtiAmbassador().getDimensionUpperBound(
+              mixedHandles.firstDimension) == firstDimensionUpperBound &&
+          mixed.rtiAmbassador().getDimensionUpperBound(
+              mixedHandles.secondDimension) == secondDimensionUpperBound,
+      "default-region members reported different FDD dimension upper bounds");
 
   rti::AttributeHandleSet const publisherAttributes{publisherHandles.attribute};
   rti::AttributeHandleSet const regionalAttributes{regionalHandles.attribute};
@@ -1580,24 +1687,31 @@ void scenarioDefaultRegionObjectRouting(
   auto const sourceRegion = createDdmRegion(
       publisher,
       publisherHandles,
-      1UL,
-      5UL,
-      1UL,
-      5UL);
+      0UL,
+      firstDimensionUpperBound - 1UL,
+      0UL,
+      secondDimensionUpperBound - 1UL);
   auto const regionalRegion = createDdmRegion(
       regional,
       regionalHandles,
-      2UL,
-      6UL,
-      2UL,
-      6UL);
+      0UL,
+      1UL,
+      0UL,
+      1UL);
   auto const mixedRegion = createDdmRegion(
       mixed,
       mixedHandles,
-      7UL,
-      9UL,
-      7UL,
-      9UL);
+      firstDimensionUpperBound - 1UL,
+      firstDimensionUpperBound,
+      secondDimensionUpperBound - 1UL,
+      secondDimensionUpperBound);
+  auto const mixedSourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      firstDimensionUpperBound - 1UL,
+      firstDimensionUpperBound,
+      secondDimensionUpperBound - 1UL,
+      secondDimensionUpperBound);
 
   rti::AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
       publisherAttributes,
@@ -1610,6 +1724,10 @@ void scenarioDefaultRegionObjectRouting(
   rti::AttributeHandleSetRegionHandleSetPairVector const mixedPair{{
       mixedAttributes,
       rti::RegionHandleSet{mixedRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const mixedSourcePair{{
+      publisherAttributes,
+      rti::RegionHandleSet{mixedSourceRegion},
   }};
 
   regional.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
@@ -1805,12 +1923,91 @@ void scenarioDefaultRegionObjectRouting(
           mixedRestored.regions->empty(),
       "mixed restored default-source reflection was not projected correctly");
 
-  mixed.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
-      mixedHandles.objectClass,
-      mixedPair);
+  // The ordinary unsubscribe removes the implicit default-region declaration,
+  // while leaving the independent explicit regional declaration intact.
   mixed.rtiAmbassador().unsubscribeObjectClassAttributes(
       mixedHandles.objectClass,
       mixedAttributes);
+  std::vector<std::uint8_t> unsubscribedDefaultValue{0xD0U, 0x04U};
+  std::vector<std::uint8_t> unsubscribedDefaultTag{0x44U, 0x34U};
+  rti::AttributeHandleValueMap unsubscribedDefaultValues;
+  unsubscribedDefaultValues.emplace(
+      publisherHandles.attribute,
+      rti::VariableLengthData(
+          unsubscribedDefaultValue.data(),
+          unsubscribedDefaultValue.size()));
+  rti::VariableLengthData unsubscribedDefaultUserTag(
+      unsubscribedDefaultTag.data(),
+      unsubscribedDefaultTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      unsubscribedDefaultValues,
+      unsubscribedDefaultUserTag);
+  waitFor(
+      regional,
+      [&] { return regional.recorder().reflectionCount() >= 4U; },
+      options,
+      "default-source update after ordinary unsubscribe");
+  for (int pass = 0; pass != 8; ++pass) {
+    mixed.pump();
+  }
+  auto const regionalAfterDefaultUnsubscribe = regional.recorder().reflection();
+  require(
+      regionalAfterDefaultUnsubscribe.object == object &&
+          copyBytes(regionalAfterDefaultUnsubscribe.values.at(
+              regionalHandles.attribute)) == unsubscribedDefaultValue &&
+          regionalAfterDefaultUnsubscribe.tag == unsubscribedDefaultTag &&
+          regionalAfterDefaultUnsubscribe.regions.has_value() &&
+          regionalAfterDefaultUnsubscribe.regions->empty(),
+      "default-source update was not delivered to the remaining regional subscriber");
+  require(
+      mixed.recorder().reflectionCount() == 2U,
+      "ordinary unsubscribe retained the implicit default-region subscription");
+
+  // A source region matching the still-subscribed explicit region remains
+  // effective after the ordinary default-region subscription is removed.
+  publisher.rtiAmbassador().associateRegionsForUpdates(object, mixedSourcePair);
+  std::vector<std::uint8_t> retainedRegionalValue{0xE0U, 0x04U};
+  std::vector<std::uint8_t> retainedRegionalTag{0x44U, 0x35U};
+  rti::AttributeHandleValueMap retainedRegionalValues;
+  retainedRegionalValues.emplace(
+      publisherHandles.attribute,
+      rti::VariableLengthData(
+          retainedRegionalValue.data(),
+          retainedRegionalValue.size()));
+  rti::VariableLengthData retainedRegionalUserTag(
+      retainedRegionalTag.data(),
+      retainedRegionalTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      retainedRegionalValues,
+      retainedRegionalUserTag);
+  waitFor(
+      mixed,
+      [&] { return mixed.recorder().reflectionCount() >= 3U; },
+      options,
+      "explicit regional update after ordinary unsubscribe");
+  for (int pass = 0; pass != 8; ++pass) {
+    regional.pump();
+  }
+  auto const mixedAfterDefaultUnsubscribe = mixed.recorder().reflection();
+  require(
+      mixedAfterDefaultUnsubscribe.object == object &&
+          copyBytes(mixedAfterDefaultUnsubscribe.values.at(
+              mixedHandles.attribute)) == retainedRegionalValue &&
+          mixedAfterDefaultUnsubscribe.tag == retainedRegionalTag &&
+          mixedAfterDefaultUnsubscribe.regions.has_value() &&
+          mixedAfterDefaultUnsubscribe.regions->size() == 1U &&
+          mixedAfterDefaultUnsubscribe.regions->count(mixedSourceRegion) == 1U,
+      "ordinary unsubscribe removed the independent explicit regional subscription");
+  require(
+      regional.recorder().reflectionCount() == 4U,
+      "disjoint regional subscriber received the explicit-source update");
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, mixedSourcePair);
+
+  mixed.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      mixedHandles.objectClass,
+      mixedPair);
   regional.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       regionalHandles.objectClass,
       regionalPair);
@@ -1818,6 +2015,7 @@ void scenarioDefaultRegionObjectRouting(
       publisherHandles.objectClass,
       publisherAttributes);
   publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  publisher.rtiAmbassador().deleteRegion(mixedSourceRegion);
   regional.rtiAmbassador().deleteRegion(regionalRegion);
   mixed.rtiAmbassador().deleteRegion(mixedRegion);
 

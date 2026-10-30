@@ -348,11 +348,20 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                           L"The embedded federation could not reconstruct a timestamped interaction callback transportation type.");
                     }
                     std::optional<RegionHandleSet> optionalSentRegions;
+                    CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+                        federationName, federateId);
                     if (projection->conveyRegionDesignatorSets &&
                         (!message.sentRegionHandles.empty() || message.defaultRegionUsed)) {
                       optionalSentRegions.emplace();
-                      for (auto const regionHandle : message.sentRegionHandles) {
-                        optionalSentRegions->insert(makeRegionHandle(regionHandle));
+                      if (!message.sentRegionHandles.empty()) {
+                        auto const copyStatus = callbackRegionDesignatorCopies.create(
+                            message.sentRegionHandles,
+                            message.sentRegionSnapshots,
+                            *optionalSentRegions);
+                        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+                          throw RTIinternalError(
+                              L"The RTI could not create callback-scoped region designator copies for a timestamped interaction.");
+                        }
                       }
                     }
                     auto retraction = makeMessageRetractionHandle(message.messageId);

@@ -52,10 +52,26 @@ struct InteractionReport final {
 
 class RecordingFederate final : public NullFederateAmbassador {
  public:
+  void timeConstrainedEnabled(LogicalTime const&) override {
+    {
+      std::scoped_lock lock(mutex_);
+      ++timeConstrainedEnabled_;
+    }
+    callbackChanged_.notify_all();
+  }
+
   void timeRegulationEnabled(LogicalTime const&) override {
     {
       std::scoped_lock lock(mutex_);
       ++regulationEnabled_;
+    }
+    callbackChanged_.notify_all();
+  }
+
+  void timeAdvanceGrant(LogicalTime const&) override {
+    {
+      std::scoped_lock lock(mutex_);
+      ++timeAdvanceGrants_;
     }
     callbackChanged_.notify_all();
   }
@@ -111,6 +127,16 @@ class RecordingFederate final : public NullFederateAmbassador {
     return regulationEnabled_;
   }
 
+  [[nodiscard]] unsigned timeConstrainedEnabledCount() const {
+    std::scoped_lock lock(mutex_);
+    return timeConstrainedEnabled_;
+  }
+
+  [[nodiscard]] unsigned timeAdvanceGrantCount() const {
+    std::scoped_lock lock(mutex_);
+    return timeAdvanceGrants_;
+  }
+
   [[nodiscard]] std::vector<InteractionReport> interactionReports() const {
     std::scoped_lock lock(mutex_);
     return interactions_;
@@ -129,7 +155,9 @@ class RecordingFederate final : public NullFederateAmbassador {
  private:
   mutable std::mutex mutex_;
   std::condition_variable callbackChanged_;
+  unsigned timeConstrainedEnabled_ = 0U;
   unsigned regulationEnabled_ = 0U;
+  unsigned timeAdvanceGrants_ = 0U;
   std::vector<InteractionReport> interactions_;
   std::vector<MessageRetractionHandle> retractions_;
 };
@@ -334,6 +362,191 @@ void verifyPushedRegionalTsoRoRetraction(
   REQUIRE_NOTHROW(authority.rethrowIfFailed());
 }
 
+void verifyPushedRegionalTsoRoRetractionMixedFanout(CallbackModel callbackModel) {
+  umbra::detail::EmbeddedFederationRegistry registry;
+  umbra::detail::ProcessFederationServiceOptions options;
+  options.pushReceiveOrderEvents = true;
+  umbra::detail::ProcessFederationServiceHost authority(
+      registry,
+      umbra::test::process_fom_support_2025::composedProcessDefinition(),
+      {"127.0.0.1", 0U},
+      {"regional-tso-ro-mixed-fanout", 0xA97CU},
+      options);
+  authority.start();
+  REQUIRE(authority.address().port != 0U);
+
+  RecordingFederate senderReports;
+  RecordingFederate nonconstrainedReports;
+  RecordingFederate constrainedReports;
+  RTIambassadorFactory factory;
+  auto sender = factory.createRTIambassador();
+  auto nonconstrained = factory.createRTIambassador();
+  auto constrained = factory.createRTIambassador();
+  auto const configuration = RtiConfiguration::createConfiguration()
+      .withRtiAddress(L"tcp://127.0.0.1:" +
+                      std::to_wstring(authority.address().port));
+  constexpr wchar_t const* federation = L"regional-tso-ro-mixed-fanout";
+  constexpr wchar_t const* className =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr wchar_t const* parameterName = L"TimelinessOk";
+  constexpr wchar_t const* dimensionName = L"ServerId";
+
+  REQUIRE(sender->connect(senderReports, callbackModel, configuration).addressUsed);
+  REQUIRE_NOTHROW(sender->createFederationExecution(federation, L"server-owned-fom.xml"));
+  auto const senderHandle = sender->joinFederationExecution(
+      L"regional-mixed-sender", L"publisher", federation);
+  REQUIRE(senderHandle.isValid());
+  REQUIRE(nonconstrained->connect(nonconstrainedReports, callbackModel, configuration)
+              .addressUsed);
+  auto const nonconstrainedHandle = nonconstrained->joinFederationExecution(
+      L"regional-mixed-nonconstrained", L"subscriber", federation);
+  REQUIRE(nonconstrainedHandle.isValid());
+  REQUIRE(constrained->connect(constrainedReports, callbackModel, configuration)
+              .addressUsed);
+  auto const constrainedHandle = constrained->joinFederationExecution(
+      L"regional-mixed-constrained", L"subscriber", federation);
+  REQUIRE(constrainedHandle.isValid());
+
+  auto const senderClass = sender->getInteractionClassHandle(className);
+  auto const nonconstrainedClass =
+      nonconstrained->getInteractionClassHandle(className);
+  auto const constrainedClass = constrained->getInteractionClassHandle(className);
+  auto const senderParameter = sender->getParameterHandle(senderClass, parameterName);
+  auto const nonconstrainedParameter =
+      nonconstrained->getParameterHandle(nonconstrainedClass, parameterName);
+  auto const senderDimension = sender->getDimensionHandle(dimensionName);
+  auto const nonconstrainedDimension =
+      nonconstrained->getDimensionHandle(dimensionName);
+  auto const constrainedDimension = constrained->getDimensionHandle(dimensionName);
+  REQUIRE(senderClass == nonconstrainedClass);
+  REQUIRE(senderClass == constrainedClass);
+  REQUIRE(senderParameter == nonconstrainedParameter);
+
+  auto const sourceRegion = sender->createRegion(DimensionHandleSet{senderDimension});
+  auto const nonconstrainedRegion =
+      nonconstrained->createRegion(DimensionHandleSet{nonconstrainedDimension});
+  auto const constrainedRegion =
+      constrained->createRegion(DimensionHandleSet{constrainedDimension});
+  REQUIRE_NOTHROW(sender->setRangeBounds(
+      sourceRegion, senderDimension, RangeBounds(0UL, 5UL)));
+  REQUIRE_NOTHROW(sender->commitRegionModifications(RegionHandleSet{sourceRegion}));
+  REQUIRE_NOTHROW(nonconstrained->setRangeBounds(
+      nonconstrainedRegion, nonconstrainedDimension, RangeBounds(0UL, 5UL)));
+  REQUIRE_NOTHROW(nonconstrained->commitRegionModifications(
+      RegionHandleSet{nonconstrainedRegion}));
+  REQUIRE_NOTHROW(constrained->setRangeBounds(
+      constrainedRegion, constrainedDimension, RangeBounds(0UL, 5UL)));
+  REQUIRE_NOTHROW(constrained->commitRegionModifications(
+      RegionHandleSet{constrainedRegion}));
+  REQUIRE_NOTHROW(sender->publishInteractionClass(senderClass));
+  REQUIRE_NOTHROW(sender->changeInteractionOrderType(senderClass, TIMESTAMP));
+  REQUIRE_NOTHROW(nonconstrained->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(constrained->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(nonconstrained->subscribeInteractionClassWithRegions(
+      nonconstrainedClass, RegionHandleSet{nonconstrainedRegion}, true));
+  REQUIRE_NOTHROW(constrained->subscribeInteractionClassWithRegions(
+      constrainedClass, RegionHandleSet{constrainedRegion}, true));
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  callbackUntil(
+      *constrained,
+      callbackModel,
+      constrainedReports,
+      [&] { return constrainedReports.timeConstrainedEnabledCount() == 1U; });
+  REQUIRE_NOTHROW(sender->enableTimeRegulation(HLAinteger64Interval(1)));
+  callbackUntil(
+      *sender,
+      callbackModel,
+      senderReports,
+      [&] { return senderReports.regulationEnabledCount() == 1U; });
+
+  std::array<std::uint8_t, 2> const valueBytes{0x41U, 0x42U};
+  std::array<std::uint8_t, 2> const tagBytes{0x4DU, 0x46U};
+  ParameterHandleValueMap parameters;
+  parameters.emplace(
+      senderParameter, VariableLengthData(valueBytes.data(), valueBytes.size()));
+  auto const retraction = sender->sendInteractionWithRegions(
+      senderClass,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      VariableLengthData(tagBytes.data(), tagBytes.size()),
+      HLAinteger64Time(5));
+  REQUIRE(retraction.isValid());
+
+  callbackUntil(
+      *nonconstrained,
+      callbackModel,
+      nonconstrainedReports,
+      [&] { return nonconstrainedReports.interactionReports().size() == 1U; });
+  auto const delivered = nonconstrainedReports.interactionReports();
+  REQUIRE(delivered.size() == 1U);
+  REQUIRE(delivered.front().interaction == nonconstrainedClass);
+  REQUIRE(delivered.front().parameter == nonconstrainedParameter);
+  REQUIRE(delivered.front().value == std::vector<std::uint8_t>{0x41U, 0x42U});
+  REQUIRE(delivered.front().tag == std::vector<std::uint8_t>{0x4DU, 0x46U});
+  REQUIRE(delivered.front().producer == senderHandle);
+  REQUIRE(delivered.front().sentRegionsPresent);
+  REQUIRE(delivered.front().sentRegionCount == 1U);
+  REQUIRE(delivered.front().time == 5);
+  REQUIRE(delivered.front().sentOrder == TIMESTAMP);
+  REQUIRE(delivered.front().receivedOrder == RECEIVE);
+  REQUIRE(delivered.front().hasRetraction);
+  REQUIRE(delivered.front().retraction == retraction);
+
+  // The matching constrained subscription has a queued TSO copy but no
+  // delivery callback before its time-advance grant.
+  REQUIRE(constrained->getInteractionClassHandle(className) == constrainedClass);
+  REQUIRE(constrainedReports.interactionReports().empty());
+  REQUIRE(constrainedReports.retractionReports().empty());
+  REQUIRE_NOTHROW(sender->retract(retraction));
+  callbackUntil(
+      *nonconstrained,
+      callbackModel,
+      nonconstrainedReports,
+      [&] { return nonconstrainedReports.retractionReports().size() == 1U; });
+  auto const retractions = nonconstrainedReports.retractionReports();
+  REQUIRE(retractions.size() == 1U);
+  REQUIRE(retractions.front() == retraction);
+  REQUIRE(constrained->getInteractionClassHandle(className) == constrainedClass);
+  REQUIRE(constrainedReports.interactionReports().empty());
+  REQUIRE(constrainedReports.retractionReports().empty());
+
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(sender->timeAdvanceRequest(HLAinteger64Time(7)));
+  callbackUntil(
+      *sender,
+      callbackModel,
+      senderReports,
+      [&] { return senderReports.timeAdvanceGrantCount() == 1U; });
+  callbackUntil(
+      *constrained,
+      callbackModel,
+      constrainedReports,
+      [&] { return constrainedReports.timeAdvanceGrantCount() == 1U; });
+  drainCallbacks(*constrained, callbackModel, constrainedReports);
+  drainCallbacks(*nonconstrained, callbackModel, nonconstrainedReports);
+  REQUIRE(constrainedReports.interactionReports().empty());
+  REQUIRE(constrainedReports.retractionReports().empty());
+  REQUIRE(nonconstrainedReports.interactionReports().size() == 1U);
+  REQUIRE(nonconstrainedReports.retractionReports().size() == 1U);
+
+  REQUIRE_NOTHROW(nonconstrained->unsubscribeInteractionClassWithRegions(
+      nonconstrainedClass, RegionHandleSet{nonconstrainedRegion}));
+  REQUIRE_NOTHROW(constrained->unsubscribeInteractionClassWithRegions(
+      constrainedClass, RegionHandleSet{constrainedRegion}));
+  REQUIRE_NOTHROW(sender->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(nonconstrained->deleteRegion(nonconstrainedRegion));
+  REQUIRE_NOTHROW(constrained->deleteRegion(constrainedRegion));
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(nonconstrained->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(sender->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(sender->destroyFederationExecution(federation));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(nonconstrained->disconnect());
+  REQUIRE_NOTHROW(sender->disconnect());
+  authority.stop();
+  REQUIRE_NOTHROW(authority.rethrowIfFailed());
+}
+
 }  // namespace
 
 TEST_CASE(
@@ -358,6 +571,24 @@ TEST_CASE(
     "[unit][internal-only][no-normative-mapping][2025][process-boundary]"
     "[process-pushed-regional-tso-ro-delivery-ledger]") {
   verifyPushedRegionalTsoRoRetraction(true, HLA_EVOKED);
+}
+
+TEST_CASE(
+    "Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout",
+    "[integration][development-profile][2025][data-distribution-management]"
+    "[interaction-management][time-management][retraction][process-boundary]"
+    "[process-regional-interaction-receiver-order-conversion-push]"
+    "[rti.service.send-interaction-with-regions][rti.service.retract]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request][rti.service.evoke-callback]"
+    "[federate.callback.receive-interaction][federate.callback.request-retraction]"
+    "[federate.callback.time-advance-grant]") {
+  SECTION("HLA_EVOKED") {
+    verifyPushedRegionalTsoRoRetractionMixedFanout(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyPushedRegionalTsoRoRetractionMixedFanout(HLA_IMMEDIATE);
+  }
 }
 
 #endif

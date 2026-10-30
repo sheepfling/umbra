@@ -265,6 +265,8 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
       // the receiver's then-current subscription at the delivery fence.
       ReceiveOrderAttributeUpdateRecipient deferredRecipient;
       deferredRecipient.federateId = federateId;
+      deferredRecipient.conveyRegionDesignatorSets =
+          membership.conveyRegionDesignatorSetsSwitch;
       deferredRecipient.callbackRoute = callbackRoute->second;
       passel.recipients.push_back(std::move(deferredRecipient));
     }

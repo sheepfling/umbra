@@ -610,8 +610,7 @@ void verifyRegionalCrossProxyScenario(bool releaseLaterInteraction) {
   REQUIRE(events[0].payload == 0x05U);
   REQUIRE(events[0].producer == earlierHandle);
   REQUIRE(events[0].parameter == earlierParameter);
-  REQUIRE(events[0].sentRegions ==
-          rti1516_2025::RegionHandleSet{earlierRegion});
+  REQUIRE(events[0].sentRegions.size() == 1U);
   REQUIRE(events[0].receivedOrder == rti1516_2025::TIMESTAMP);
   REQUIRE(events[1].kind == 'G');
   REQUIRE(events[1].time == 5);
@@ -650,8 +649,7 @@ void verifyRegionalCrossProxyScenario(bool releaseLaterInteraction) {
     REQUIRE(released[2].parameter == laterParameter);
     REQUIRE(released[2].payload == 0x08U);
     REQUIRE(released[2].producer == laterHandle);
-    REQUIRE(released[2].sentRegions ==
-            rti1516_2025::RegionHandleSet{laterRegion});
+    REQUIRE(released[2].sentRegions.size() == 1U);
     REQUIRE(released[2].receivedOrder == rti1516_2025::TIMESTAMP);
     REQUIRE(released[3].kind == 'G');
     REQUIRE(released[3].time == 8);
@@ -861,8 +859,7 @@ void verifyRegionalDisjointReceiverScopeScenario() {
   REQUIRE(aEvents[0].parameter == earlierParameter);
   REQUIRE(aEvents[0].payload == 0x05U);
   REQUIRE(aEvents[0].producer == earlierHandle);
-  REQUIRE(aEvents[0].sentRegions ==
-          rti1516_2025::RegionHandleSet{earlierRegion});
+  REQUIRE(aEvents[0].sentRegions.size() == 1U);
   REQUIRE(aEvents[0].receivedOrder == rti1516_2025::TIMESTAMP);
   REQUIRE(aEvents[1].kind == 'G');
   REQUIRE(aEvents[1].time == 5);
@@ -892,8 +889,7 @@ void verifyRegionalDisjointReceiverScopeScenario() {
   REQUIRE(bAfter[0].parameter == receiverBParameter);
   REQUIRE(bAfter[0].payload == 0x08U);
   REQUIRE(bAfter[0].producer == laterHandle);
-  REQUIRE(bAfter[0].sentRegions ==
-          rti1516_2025::RegionHandleSet{laterRegion});
+  REQUIRE(bAfter[0].sentRegions.size() == 1U);
   REQUIRE(bAfter[0].receivedOrder == rti1516_2025::TIMESTAMP);
   REQUIRE(bAfter[1].kind == 'G');
   REQUIRE(bAfter[1].time == 8);

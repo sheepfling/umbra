@@ -3,6 +3,7 @@
 #include "internal/runtime/ambassador_string_helpers.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 #include "internal/runtime/ambassador_federation_lifecycle_support.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 
 #include "internal/encoding/byte_order.hpp"
 #include "internal/encoding/variable_length_data_2025.hpp"
@@ -1671,12 +1672,25 @@ void queueTimestampedReflectAttributeUpdate(
                                       receivingFederateId,
                                       objectInstanceHandle));
           }
+          CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+              federationName, receivingFederateId);
           std::optional<RegionHandleSet> optionalSentRegions;
           if (projection->conveyRegionDesignatorSets &&
               (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
             optionalSentRegions.emplace();
-            for (std::uint64_t const regionHandle : passel.sentRegionHandles) {
-              optionalSentRegions->insert(makeRegionHandle(regionHandle));
+            if (!passel.sentRegionHandles.empty()) {
+              if (passel.sentRegionSnapshots.empty()) {
+                throw RTIinternalError(
+                    L"A timestamped regional attribute callback has no send-time region snapshots.");
+              }
+              auto const copyStatus = callbackRegionDesignatorCopies.create(
+                  passel.sentRegionHandles,
+                  passel.sentRegionSnapshots,
+                  *optionalSentRegions);
+              if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+                throw RTIinternalError(
+                    L"The RTI could not create callback-scoped region designator copies for a timestamped attribute update.");
+              }
             }
           }
 

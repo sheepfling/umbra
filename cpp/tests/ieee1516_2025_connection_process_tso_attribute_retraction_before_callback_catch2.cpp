@@ -611,11 +611,6 @@ TEST_CASE(
           TransportServiceOperation::retract,
           "The process attribute-retraction server lost Retract.");
       serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::acknowledge_tso_delivery,
-          "The process attribute-retraction server lost the suppressed-delivery acknowledgement.");
-      serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
@@ -740,6 +735,8 @@ TEST_CASE(
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(senderFederate.timeAdvanceGrantValue == 2);
+    REQUIRE(receiverFederate.reflectedCount == 0U);
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_NOTHROW(senderRti->retract(retraction));
     REQUIRE(receiverFederate.reflectedCount == 0U);
 

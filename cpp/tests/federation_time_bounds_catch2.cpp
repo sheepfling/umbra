@@ -288,11 +288,10 @@ TEST_CASE(
   REQUIRE(bounds.status == FederationTimeBoundStatus::available);
   REQUIRE(asIntegerTime(bounds.galt).getTime() == 6);
   REQUIRE(asIntegerTime(bounds.lits).getTime() == 6);
-  REQUIRE_FALSE(bounds.galtIsDeliveredTsoBoundary);
 
-  // An acknowledged TSO at the pending TAR target permits the scheduler to
-  // release the request at the equal regulator frontier once no matching TSO
-  // remains in transit or queued.
+  // Acknowledged history does not pin GALT to the message timestamp, but a
+  // TAR at the other regulator's equal frontier must still wait for that
+  // frontier to advance.
   execution.federates.front().time.requestedTime =
       std::make_shared<HLAinteger64Time const>(6);
   auto const boundaryMessage = umbra::detail::TsoQueuedMessage{
@@ -306,7 +305,6 @@ TEST_CASE(
   bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
   REQUIRE(bounds.status == FederationTimeBoundStatus::available);
   REQUIRE(asIntegerTime(bounds.galt).getTime() == 6);
-  REQUIRE(bounds.galtIsDeliveredTsoBoundary);
 
   // Any not-yet-acknowledged message at the same frontier still holds the
   // grant behind its callback, even when another equal-time message completed.
@@ -314,7 +312,6 @@ TEST_CASE(
   bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
   REQUIRE(bounds.status == FederationTimeBoundStatus::available);
   REQUIRE(bounds.galtIsTsoBoundary);
-  REQUIRE_FALSE(bounds.galtIsDeliveredTsoBoundary);
 }
 
 TEST_CASE(

@@ -28,6 +28,7 @@ endif()
 
 add_executable(hla_rti_cpp_tck
   src/main.cpp
+  src/tck_scenario_dispatch.cpp
   src/tck_auto_provide_scenarios.cpp
   src/tck_receive_order_callback_cancellation.cpp
   src/tck_attribute_value_update_request_response.cpp
@@ -419,12 +420,25 @@ if(BUILD_TESTING)
          _tck_scenario STREQUAL "cpp-tck.default-region-class-request-equivalence" OR
          _tck_scenario STREQUAL "cpp-tck.default-region-class-request-equivalence-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-multi-pending-time-advance" OR
-         _tck_scenario STREQUAL "cpp-tck.restore-multi-pending-time-advance-contract")
+         _tck_scenario STREQUAL "cpp-tck.restore-multi-pending-time-advance-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary" OR
+         _tck_scenario STREQUAL "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timestamped-directed-zero-lookahead-tar-send-boundary" OR
+         _tck_scenario STREQUAL "cpp-tck.time-role-pending-enable" OR
+         _tck_scenario STREQUAL "cpp-tck.time-role-pending-enable-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.save-active-callback-resignation-guard" OR
+         _tck_scenario STREQUAL "cpp-tck.save-active-callback-resignation-guard-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.ownership-acquisition-cancellation-denial-race" OR
+         _tck_scenario STREQUAL "cpp-tck.ownership-acquisition-cancellation-denial-race-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.ownership-acquisition-cancellation-mixed-replies" OR
+         _tck_scenario STREQUAL "cpp-tck.ownership-acquisition-cancellation-mixed-replies-contract")
         set(_tck_callback_models evoked)
       elseif(_tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance-immediate" OR
              _tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance-immediate-contract" OR
              _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-immediate" OR
              _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-immediate-contract" OR
+             _tck_scenario STREQUAL "cpp-tck.disable-time-regulation-send-order" OR
+             _tck_scenario STREQUAL "cpp-tck.disable-time-regulation-send-order-contract" OR
              _tck_scenario STREQUAL "cpp-tck.restore-object-snapshot-status" OR
              _tck_scenario STREQUAL "cpp-tck.restore-object-snapshot-status-contract")
         set(_tck_callback_models immediate)

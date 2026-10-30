@@ -202,16 +202,8 @@ FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
   FederationTimeBounds const bounds = FederationTimeBoundsCalculator{}.calculate(*snapshot, federateId);
   FederationTimeAdvanceGrantDecision const decision =
       FederationTimeAdvanceGrantPolicy{}.decide(requester->time, bounds);
-  // Keep the no-TSO grant policy strict at ordinary GALT equality. A pending
-  // ordinary TAR may cross that frontier only after its equal-time TSO was
-  // acknowledged and the current snapshot contains no matching pending TSO.
-  bool const grantAtDeliveredTsoBoundary =
-      bounds.galtIsDeliveredTsoBoundary && requester->time.timeConstrained &&
-      requester->time.timeAdvancePending &&
-      requester->time.advanceMode ==
-          FederateTimeAdvanceMode::time_advance_request;
   bool const grantEligible = decision.mayGrant() ||
-      grantAtDeliveredTsoBoundary || connectionLossTsoDeliveryMayGrant(
+      connectionLossTsoDeliveryMayGrant(
           federation->second,
           federateId,
           requester->time,

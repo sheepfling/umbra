@@ -84,12 +84,12 @@
       "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/timestamped_interaction_reenable_catch2.cpp::Embedded ordinary timestamped interaction survives time-constrained re-enable",
+        "cpp/tests/timestamped_interaction_reenable_catch2.cpp::Embedded queued ordinary TSO becomes receive order on time-constrained disable",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ],
-      "notes": "The ordinary non-regional case isolates the joined-federate lifecycle boundary: a queued TSO interaction remains pending across Disable Time Constrained and callback-gated Enable Time Constrained, then is delivered exactly once before the matching Time Advance Grant with the original metadata. Regional and default-region companions cover their distinct source-region realizations separately. This is development-profile evidence only; alternate advances, remote transport, save/restore, package/JUnit/protected-review, and conformance remain open."
+      "notes": "The ordinary non-regional case verifies that the timestamped interaction remains queued while the receiver is time constrained, is delivered once as receive order when Time Constrained is disabled, and is not replayed as TSO after callback-gated re-enable. Regional and default-region companions cover their distinct source-region realizations separately. This is bounded development-profile evidence for queueing/lifecycle behavior, not a claim that the ordinary interaction remains timestamp ordered across disable/re-enable; alternate advances, remote transport, save/restore, package/JUnit/protected-review, and conformance remain open."
     },
     {
       "id": "umbra-timestamped-send-interaction-survives-time-regulation-reenable",

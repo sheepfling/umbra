@@ -2260,6 +2260,36 @@ void scenarioOwnershipTransferRegionalUpdate(
   require(
       receiver.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
       "ownership transfer receiver did not enable region designator callbacks");
+  using RegionRange = std::pair<unsigned long, unsigned long>;
+  using RegionBoundsSnapshot = std::pair<RegionRange, RegionRange>;
+  std::vector<RegionBoundsSnapshot> inspectedRegionBounds;
+  std::size_t callbacksWithoutSourceRegions = 0U;
+  receiver.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    if (regions == nullptr || regions->empty()) {
+      ++callbacksWithoutSourceRegions;
+      return;
+    }
+    require(
+        regions->size() == 1U,
+        "ownership transfer reflection conveyed an unexpected number of region copies");
+    auto const callbackRegion = *regions->begin();
+    rti::DimensionHandleSet const expectedDimensions{
+        receiverHandles.firstDimension,
+        receiverHandles.secondDimension};
+    require(
+        receiver.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            expectedDimensions,
+        "ownership transfer callback region copy changed its dimension set");
+    auto const firstBounds = receiver.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        receiverHandles.firstDimension);
+    auto const secondBounds = receiver.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        receiverHandles.secondDimension);
+    inspectedRegionBounds.emplace_back(
+        RegionRange{firstBounds.getLowerBound(), firstBounds.getUpperBound()},
+        RegionRange{secondBounds.getLowerBound(), secondBounds.getUpperBound()});
+  });
   newOwner.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
       newOwnerHandles.objectClass,
       newOwnerPair,
@@ -2323,7 +2353,9 @@ void scenarioOwnershipTransferRegionalUpdate(
   require(
       initialReflection.regions.has_value() &&
           initialReflection.regions->size() == 1U &&
-          initialReflection.regions->count(ownerRegion) == 1U,
+          inspectedRegionBounds.size() == 1U &&
+          inspectedRegionBounds.front() ==
+              RegionBoundsSnapshot{{1UL, 3UL}, {1UL, 3UL}},
       "ownership transfer/update-region initial reflection lost the source region");
 
   newOwner.recorder().clearOwnershipRecords();
@@ -2404,6 +2436,9 @@ void scenarioOwnershipTransferRegionalUpdate(
   require(
       !defaultReflection.regions.has_value() || defaultReflection.regions->empty(),
       "former owner's source region was incorrectly inherited by the new owner");
+  require(
+      callbacksWithoutSourceRegions == 1U,
+      "ownership transfer default-source callback conveyed a source-region copy");
 
   receiver.recorder().clearReflection();
   newOwner.rtiAmbassador().setRangeBounds(
@@ -2446,7 +2481,9 @@ void scenarioOwnershipTransferRegionalUpdate(
   require(
       replacementReflection.regions.has_value() &&
           replacementReflection.regions->size() == 1U &&
-          replacementReflection.regions->count(newOwnerRegion) == 1U,
+          inspectedRegionBounds.size() == 2U &&
+          inspectedRegionBounds.back() ==
+              RegionBoundsSnapshot{{6UL, 8UL}, {6UL, 8UL}},
       "new owner replacement association did not supply its source region");
 
   receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
@@ -2601,6 +2638,56 @@ void scenarioOwnershipTransferDeferredRegionalUpdate(
       options,
       "deferred ownership transfer/update-region object discovery");
 
+  // Keep both candidate regions relevant, but make their callback-visible
+  // realizations distinct so the receiver can distinguish the current
+  // owner's source from the pending owner's deferred association.
+  newOwner.rtiAmbassador().setRangeBounds(
+      deferredRegion,
+      newOwnerHandles.firstDimension,
+      rti::RangeBounds(6UL, 8UL));
+  newOwner.rtiAmbassador().setRangeBounds(
+      deferredRegion,
+      newOwnerHandles.secondDimension,
+      rti::RangeBounds(6UL, 8UL));
+  newOwner.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{deferredRegion});
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverDeferredRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(6UL, 8UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverDeferredRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(6UL, 8UL));
+  receiver.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{receiverDeferredRegion});
+
+  using RegionRange = std::pair<unsigned long, unsigned long>;
+  using RegionBoundsSnapshot = std::pair<RegionRange, RegionRange>;
+  std::vector<RegionBoundsSnapshot> inspectedRegionBounds;
+  receiver.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    require(
+        regions != nullptr && regions->size() == 1U,
+        "deferred ownership transfer reflection did not convey one region copy");
+    auto const callbackRegion = *regions->begin();
+    rti::DimensionHandleSet const expectedDimensions{
+        receiverHandles.firstDimension,
+        receiverHandles.secondDimension};
+    require(
+        receiver.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+            expectedDimensions,
+        "deferred ownership transfer callback copy changed its dimension set");
+    auto const firstBounds = receiver.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        receiverHandles.firstDimension);
+    auto const secondBounds = receiver.rtiAmbassador().getRangeBounds(
+        callbackRegion,
+        receiverHandles.secondDimension);
+    inspectedRegionBounds.emplace_back(
+        RegionRange{firstBounds.getLowerBound(), firstBounds.getUpperBound()},
+        RegionRange{secondBounds.getLowerBound(), secondBounds.getUpperBound()});
+  });
+
   std::vector<std::uint8_t> const ownerValue{
       0x4FU,
       0x4CUL,
@@ -2655,7 +2742,9 @@ void scenarioOwnershipTransferDeferredRegionalUpdate(
   require(
       ownerReflection.regions.has_value() &&
           ownerReflection.regions->size() == 1U &&
-          ownerReflection.regions->count(ownerRegion) == 1U,
+          inspectedRegionBounds.size() == 1U &&
+          inspectedRegionBounds.front() ==
+              RegionBoundsSnapshot{{1UL, 3UL}, {1UL, 3UL}},
       "deferred ownership transfer/update-region association retargeted the owner update");
 
   newOwner.recorder().clearOwnershipRecords();
@@ -2736,7 +2825,9 @@ void scenarioOwnershipTransferDeferredRegionalUpdate(
   require(
       promotedReflection.regions.has_value() &&
           promotedReflection.regions->size() == 1U &&
-          promotedReflection.regions->count(deferredRegion) == 1U,
+          inspectedRegionBounds.size() == 2U &&
+          inspectedRegionBounds.back() ==
+              RegionBoundsSnapshot{{6UL, 8UL}, {6UL, 8UL}},
       "deferred ownership transfer did not promote the pending update-region association");
 
   receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(

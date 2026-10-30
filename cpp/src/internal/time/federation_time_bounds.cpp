@@ -73,31 +73,6 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
     return result;
   }
 
-  bool deliveredTsoAtPendingTarBoundary = false;
-  if (requester->time.timeConstrained &&
-      requester->time.timeAdvancePending && requester->time.requestedTime &&
-      requester->time.advanceMode ==
-          FederateTimeAdvanceMode::time_advance_request &&
-      requester->time.requestedTime->implementationName() ==
-          execution.definition.logicalTimeImplementationName) {
-    for (auto const& message : requester->deliveredTsoMessagesSinceLastAdvance) {
-      if (message.recipientFederateId != requestingFederateId ||
-          !message.timestamp ||
-          message.timestamp->implementationName() !=
-              execution.definition.logicalTimeImplementationName) {
-        continue;
-      }
-      try {
-        if (*message.timestamp == *requester->time.requestedTime) {
-          deliveredTsoAtPendingTarBoundary = true;
-          break;
-        }
-      } catch (rti1516_2025::Exception const&) {
-        return result;
-      }
-    }
-  }
-
   bool hasOtherRegulator = false;
   std::shared_ptr<rti1516_2025::LogicalTime const> earliestFutureIncoming;
   bool const implicitRegulationAdvance = requester->time.timeRegulationPending &&
@@ -241,14 +216,6 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
     result.lits = std::move(earliestFutureIncoming);
   }
   result.status = FederationTimeBoundStatus::available;
-  if (deliveredTsoAtPendingTarBoundary && !result.galtIsTsoBoundary) {
-    try {
-      result.galtIsDeliveredTsoBoundary =
-          *result.galt == *requester->time.requestedTime;
-    } catch (rti1516_2025::Exception const&) {
-      return FederationTimeBounds{};
-    }
-  }
   return result;
 }
 

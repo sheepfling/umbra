@@ -49,13 +49,23 @@ bool ProcessFederationService::recheckAttributeUpdateAtReceive(
     static_cast<void>(value);
     sentAttributeHandles.push_back(attributeHandle);
   }
+  std::set<std::uint64_t> sentRegionsFromSnapshot;
+  if (!event.sentRegionHandles) {
+    for (auto const& [regionHandle, snapshot] : event.sentRegionSnapshots) {
+      static_cast<void>(snapshot);
+      sentRegionsFromSnapshot.insert(regionHandle);
+    }
+  }
+  auto const* sentRegionHandles = event.sentRegionHandles
+      ? &*event.sentRegionHandles
+      : sentRegionsFromSnapshot.empty() ? nullptr : &sentRegionsFromSnapshot;
   auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
       federationName,
       event.producingFederateId,
       receivingFederateId,
       event.objectInstanceHandle,
       sentAttributeHandles,
-      event.sentRegionHandles ? &*event.sentRegionHandles : nullptr,
+      sentRegionHandles,
       event.sentRegionSnapshots.empty()
           ? nullptr
           : &event.sentRegionSnapshots);

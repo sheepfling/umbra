@@ -706,6 +706,9 @@ void verifyProcessTsoAttributeBeforeGrant(
         umbra::test::serveExpectedProcessSuccessfulVoidService(
             serveExpected, receiver, receiverHandler,
             TransportServiceOperation::time_advance_request);
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::time_advance_request);
       } else if (requestKind == ProcessTimeRequest::nmra) {
         umbra::test::serveExpectedProcessSuccessfulVoidService(
             serveExpected, receiver, receiverHandler,
@@ -971,6 +974,17 @@ void verifyProcessTsoAttributeBeforeGrant(
       }
       REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(6)));
+      // TAR(6) cannot grant while the other regulator's lower bound is still
+      // 6. Advance the producer to 6 so, after the receiver acknowledges the
+      // timestamp-6 callback, its next possible send is strictly later.
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE(senderFederate.timeAdvanceGrantCount == 3U);
+        REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
+      }
     } else {
       REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(6)));
@@ -988,8 +1002,9 @@ void verifyProcessTsoAttributeBeforeGrant(
       }
     }
     // In the ordinary lane the producer advances to 6 while the constrained
-    // receiver has TAR(5) pending. In the transition lane it advances only to
-    // 5, enabling Time Constrained before the receiver requests TAR(6).
+    // receiver has TAR(5) pending. In the transition lane the receiver first
+    // enables Time Constrained at 5 and requests TAR(6); the producer then
+    // advances to 6 so that the grant is strictly below its new lower bound.
     if (callbackModel == HLA_EVOKED) {
       // The attribute event has crossed transport but remains in the
       // coordinator's inTransit phase until the public reflection callback
@@ -1075,16 +1090,19 @@ void verifyProcessTsoAttributeBeforeGrant(
     receiverRti->disconnect();
   } catch (...) {
     clientError = std::current_exception();
-    if (receiverJoined) {
-      try {
-        receiverRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
+    // The deterministic fixture is serving sender operations first; keep
+    // failure cleanup in that same order so a failed assertion cannot leave
+    // the receiver blocked behind the server's expected sender Resign.
     if (senderJoined) {
       try {
         senderRti->resignFederationExecution(
             rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+      } catch (...) {
+      }
+    }
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
       } catch (...) {
       }
     }

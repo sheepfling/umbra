@@ -1,4 +1,5 @@
 #include "tck_restore_pending_time_advance.hpp"
+#include "tck_scenario_fom.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
@@ -7,7 +8,8 @@ void runRestorePendingTimeAdvance(
     Options const& options, rti::CallbackModel model) {
   require(model == rti::HLA_EVOKED,
           "Pending-TAR restore requires evoked callbacks");
-  require(!options.fom.empty(),
+  auto const fom = adapterScenarioFom(options, "restore-pending-time-advance");
+  require(!fom.empty(),
           "Pending-TAR restore requires an adapter-supplied standard NRG-enabled FOM");
   require(!options.logicalTimeImplementationName.empty(),
           "Pending-TAR restore requires an adapter-supplied logical-time implementation");
@@ -17,7 +19,7 @@ void runRestorePendingTimeAdvance(
   std::wstring const saveLabel = L"tck-pending-time-advance-baseline";
   member.connect();
   member.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   member.join(options.ownerFederateName, options.federateType, federation);
 
   auto const time = makeTimeContext(member);
@@ -120,7 +122,8 @@ void runRestorePendingTimeAdvanceImmediate(
     Options const& options, rti::CallbackModel model) {
   require(model == rti::HLA_IMMEDIATE,
           "Immediate pending-TAR restore requires immediate callbacks");
-  require(!options.fom.empty(),
+  auto const fom = adapterScenarioFom(options, "restore-pending-time-advance");
+  require(!fom.empty(),
           "Immediate pending-TAR restore requires an adapter-supplied standard NRG-enabled FOM");
   require(!options.logicalTimeImplementationName.empty(),
           "Immediate pending-TAR restore requires an adapter-supplied logical-time implementation");
@@ -130,7 +133,7 @@ void runRestorePendingTimeAdvanceImmediate(
   std::wstring const saveLabel = L"tck-pending-time-advance-immediate";
   member.connect();
   member.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   member.join(options.ownerFederateName, options.federateType, federation);
 
   auto const time = makeTimeContext(member);

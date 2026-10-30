@@ -41,6 +41,19 @@ int runPortableScenarioPair(
     PortableScenario scenario,
     PortableScenario contract,
     CallbackScope scope) {
+  return runPortableScenarioPair(
+      argc, argv, scenarioId, contractId, scenario, contract, scope, nullptr);
+}
+
+int runPortableScenarioPair(
+    int argc,
+    char** argv,
+    char const* scenarioId,
+    char const* contractId,
+    PortableScenario scenario,
+    PortableScenario contract,
+    CallbackScope scope,
+    PortableScenarioSkipReason skipReason) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
   for (auto const& callback : callbackModels(options)) {
@@ -50,12 +63,18 @@ int runPortableScenarioPair(
       }
       auto const started = std::chrono::steady_clock::now();
       ScenarioResult result{selected, callback.first, "passed", "", 0};
+      auto const unavailableReason = skipReason == nullptr
+          ? std::string_view{}
+          : skipReason(options);
       if ((scope == CallbackScope::EvokedOnly && callback.second != rti::HLA_EVOKED) ||
           (scope == CallbackScope::ImmediateOnly && callback.second != rti::HLA_IMMEDIATE)) {
         result.status = "skipped";
         result.message = scope == CallbackScope::EvokedOnly
             ? "this scenario requires evoked callback ordering"
             : "this scenario requires immediate callbacks";
+      } else if (!unavailableReason.empty()) {
+        result.status = "skipped";
+        result.message.assign(unavailableReason);
       } else try {
         if (selected == scenarioId) {
           scenario(options, callback.second);

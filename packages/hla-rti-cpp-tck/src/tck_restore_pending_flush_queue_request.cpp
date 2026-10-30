@@ -15,9 +15,14 @@ void runRestorePendingFlushQueueRequest(
   Session member(options, model, "member");
   auto const federation = federationName(options, "restore-pending-flush-queue-request");
   std::wstring const saveLabel = L"tck-pending-flush-queue";
+  auto const restoreFom = options.scenarioFoms.find(
+      "restore-pending-flush-queue-request");
+  require(
+      restoreFom != options.scenarioFoms.end(),
+      "Pending-FQR restore requires its non-regulated-grant FOM");
   member.connect();
   member.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, restoreFom->second.wstring(), options.logicalTimeImplementationName);
   member.join(options.ownerFederateName, options.federateType, federation);
 
   auto const time = makeTimeContext(member);

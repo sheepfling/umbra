@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -201,6 +203,8 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
   }
 
   std::vector<ProcessFederationAttributeUpdateEvent> events;
+  std::map<std::uint64_t, ProcessTsoCallbackRegionDesignatorCopyLease>
+      timestampedCallbackRegionCopies;
   std::uint32_t recipientCount = 0U;
   std::uint32_t queuedRecipientCount = 0U;
   for (auto const& passel : plan.passels) {
@@ -247,10 +251,12 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
       event.objectInstanceHandle = updateRequest.objectInstanceHandle;
       event.userSuppliedTag = updateRequest.userSuppliedTag;
       event.transportationName = passel.transportationName;
-      event.sentRegionHandles = passel.sentRegionHandles.empty()
-          ? std::nullopt
-          : std::optional<std::set<std::uint64_t>>(passel.sentRegionHandles);
-      event.defaultRegionUsed = passel.defaultRegionUsed;
+      if (recipient.conveyRegionDesignatorSets) {
+        event.sentRegionHandles = passel.sentRegionHandles.empty()
+            ? std::nullopt
+            : std::optional<std::set<std::uint64_t>>(passel.sentRegionHandles);
+        event.defaultRegionUsed = passel.defaultRegionUsed;
+      }
       event.recheckAtReceive = recheckAtReceive;
       if (recheckAtReceive) {
         event.sentRegionSnapshots = passel.sentRegionSnapshots;
@@ -259,6 +265,32 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
       if (queueTimestampedAttributeUpdate &&
           passel.preferredOrderType == rti1516_2025::TIMESTAMP) {
         event.retractionMessageId = messageId;
+        if (recipient.conveyRegionDesignatorSets &&
+            !passel.sentRegionHandles.empty()) {
+          CallbackRegionDesignatorCopyMap copies;
+          auto const copyStatus = registry_.createCallbackScopedRegionDesignatorCopies(
+              updateRequest.federationName,
+              recipient.federateId,
+              passel.sentRegionHandles,
+              passel.sentRegionSnapshots,
+              copies);
+          if (copyStatus != RegionServiceStatus::applied) {
+            return internalError(request);
+          }
+          auto [lease, inserted] = timestampedCallbackRegionCopies.try_emplace(
+              recipient.federateId,
+              registry_,
+              updateRequest.federationName,
+              recipient.federateId);
+          static_cast<void>(inserted);
+          auto const& callbackCopies = lease->second.add(std::move(copies));
+          std::set<std::uint64_t> conveyedCopyHandles;
+          for (auto const& [sourceRegionHandle, copiedRegionHandle] : callbackCopies) {
+            static_cast<void>(sourceRegionHandle);
+            conveyedCopyHandles.insert(copiedRegionHandle);
+          }
+          event.sentRegionHandles = std::move(conveyedCopyHandles);
+        }
       }
       for (auto const attributeHandle : passel.sentAttributeHandles) {
         if ((!recheckAtReceive || !*delaySubscriptionEvaluation) &&
@@ -295,6 +327,25 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
                       *event.retractionMessageId);
             }),
         events.end());
+  }
+
+  std::map<std::uint64_t, std::size_t> tsoEventsRemainingByRecipient;
+  for (auto const& event : events) {
+    if (event.retractionMessageId) {
+      ++tsoEventsRemainingByRecipient[event.receivingFederateId];
+    }
+  }
+  std::map<std::uint64_t, std::size_t> tsoEventsSeenByRecipient;
+  for (auto& event : events) {
+    if (!event.retractionMessageId) {
+      continue;
+    }
+    auto& seen = tsoEventsSeenByRecipient[event.receivingFederateId];
+    ++seen;
+    event.tsoCallbackGroupPosition =
+        seen == tsoEventsRemainingByRecipient[event.receivingFederateId]
+            ? ProcessFederationTsoAttributeUpdateCallbackGroupPosition::final
+            : ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more;
   }
 
   struct PushedAttributeEvent final {
@@ -349,6 +400,29 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
       }
       if (recipientCount != std::numeric_limits<std::uint32_t>::max()) {
         ++recipientCount;
+      }
+    }
+    for (auto& [receivingFederateId, callbackRegionCopies] :
+         timestampedCallbackRegionCopies) {
+      if (callbackRegionCopies.empty() ||
+          !tsoEventsRemainingByRecipient.contains(receivingFederateId)) {
+        continue;
+      }
+      auto const receivingSession = sessionsByFederateId_.find(receivingFederateId);
+      if (receivingSession == sessionsByFederateId_.end()) {
+        continue;
+      }
+      auto const receivingState = sessions_.find(receivingSession->second);
+      if (receivingState == sessions_.end()) {
+        continue;
+      }
+      auto const [pending, inserted] = receivingState->second
+          .pendingTsoAttributeCallbackRegionDesignatorCopies.try_emplace(
+              messageId,
+              std::move(callbackRegionCopies));
+      static_cast<void>(pending);
+      if (!inserted) {
+        return internalError(request);
       }
     }
   }

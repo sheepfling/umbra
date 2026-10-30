@@ -1,14 +1,28 @@
 #include "tck_restore_regional_interaction_multi_recipient.hpp"
 
 #include <array>
+#include <memory>
+#include <mutex>
+#include <utility>
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
+
+struct CallbackRegionSnapshot {
+  std::mutex mutex;
+  bool observed = false;
+  rti::DimensionHandleSet dimensions;
+  std::pair<unsigned long, unsigned long> firstBounds{};
+  std::pair<unsigned long, unsigned long> secondBounds{};
+};
 
 struct RecipientRegion {
   rti::InteractionClassHandle interaction;
   rti::ParameterHandle parameter;
   rti::RegionHandle region;
+  rti::DimensionHandle firstDimension;
+  rti::DimensionHandle secondDimension;
+  std::shared_ptr<CallbackRegionSnapshot> callbackRegion;
 };
 
 rti::RegionHandle createRegion(Session& member, rti::DimensionHandle const& x,
@@ -42,11 +56,30 @@ RecipientRegion subscribe(Session& receiver, Options const& options,
   require(!ambassador.getConveyRegionDesignatorSetsSwitch(),
           "Default conveyed-region switch was not false");
   ambassador.setConveyRegionDesignatorSetsSwitch(true);
-  return {interaction, parameter, region};
+  auto callbackRegion = std::make_shared<CallbackRegionSnapshot>();
+  auto* receiverSession = &receiver;
+  receiver.recorder().setTimedInteractionHook(
+      [receiverSession, x, y, callbackRegion](rti::RegionHandleSet const* regions) {
+        require(
+            regions != nullptr && regions->size() == 1U,
+            "Restored regional interaction omitted its conveyed source-region copy");
+        auto& recipientAmbassador = receiverSession->rtiAmbassador();
+        auto const sourceCopy = *regions->begin();
+        auto const dimensions = recipientAmbassador.getDimensionHandleSet(sourceCopy);
+        auto const firstBounds = recipientAmbassador.getRangeBounds(sourceCopy, x);
+        auto const secondBounds = recipientAmbassador.getRangeBounds(sourceCopy, y);
+        std::lock_guard<std::mutex> lock(callbackRegion->mutex);
+        callbackRegion->observed = true;
+        callbackRegion->dimensions = dimensions;
+        callbackRegion->firstBounds = {
+            firstBounds.getLowerBound(), firstBounds.getUpperBound()};
+        callbackRegion->secondBounds = {
+            secondBounds.getLowerBound(), secondBounds.getUpperBound()};
+      });
+  return {interaction, parameter, region, x, y, std::move(callbackRegion)};
 }
 
 void checkDelivered(Session& receiver, RecipientRegion const& handles,
-                    rti::RegionHandle const& sourceRegion,
                     rti::FederateHandle const& publisherHandle,
                     rti::MessageRetractionHandle const& saved,
                     rti::LogicalTime const& time7, rti::LogicalTime const& time5,
@@ -67,8 +100,7 @@ void checkDelivered(Session& receiver, RecipientRegion const& handles,
               delivered.time == copyBytes(time7.encode()) &&
               delivered.sentOrder == rti::TIMESTAMP &&
               delivered.receivedOrder == rti::TIMESTAMP &&
-              delivered.regions.has_value() &&
-              delivered.regions.value() == rti::RegionHandleSet{sourceRegion} &&
+              delivered.regions.has_value() && delivered.regions->size() == 1U &&
               delivered.retractionPresent &&
               delivered.retraction == copyBytes(saved.encode()) &&
               grants.front().time == copyBytes(time5.encode()) &&
@@ -76,6 +108,14 @@ void checkDelivered(Session& receiver, RecipientRegion const& handles,
               receiver.recorder().callbackOrder() ==
                   std::vector<std::string>{"interaction", "flush-grant"},
           "Restored regional interaction, source region, grant, or callback order changed");
+  std::lock_guard<std::mutex> lock(handles.callbackRegion->mutex);
+  require(
+      handles.callbackRegion->observed &&
+          handles.callbackRegion->dimensions ==
+              rti::DimensionHandleSet{handles.firstDimension, handles.secondDimension} &&
+          handles.callbackRegion->firstBounds == std::pair<unsigned long, unsigned long>{1UL, 7UL} &&
+          handles.callbackRegion->secondBounds == std::pair<unsigned long, unsigned long>{1UL, 7UL},
+      "Restored regional interaction callback copy changed its source bounds");
 }
 
 void runRestoreRegionalInteractionMultiRecipient(Options const& options,
@@ -210,9 +250,9 @@ void runRestoreRegionalInteractionMultiRecipient(Options const& options,
     return second.recorder().timedInteractions().size() == 1U &&
            second.recorder().flushQueueGrants().size() == 1U;
   }, options, "second restored regional interaction and FQG");
-  checkDelivered(first, firstHandles, sourceRegion, publisherHandle, saved,
+  checkDelivered(first, firstHandles, publisherHandle, saved,
                  *time7, *time5, payload, tagBytes);
-  checkDelivered(second, secondHandles, sourceRegion, publisherHandle, saved,
+  checkDelivered(second, secondHandles, publisherHandle, saved,
                  *time7, *time5, payload, tagBytes);
 
   first.recorder().clearCallbackOrder();

@@ -2731,7 +2731,7 @@ void scenarioTimeRegulationImplicitAdvance(
       *producerTime.factory,
       *producerTime.initial,
       *producerTime.epsilon,
-      5U);
+      8U);
   auto const producerTarget = timeAfter(
       *producerTime.factory,
       *producerTime.initial,

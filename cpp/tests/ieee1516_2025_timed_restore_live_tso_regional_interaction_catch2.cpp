@@ -39,9 +39,27 @@ TEST_CASE(
   auto const parameter = publisher->getParameterHandle(
       interactionClass, fixture_hla::fixture::temperature_ok);
   auto const dimension = publisher->getDimensionHandle(fixture_hla::fixture::server_id);
+  auto const receiverDimension = receiver->getDimensionHandle(
+      fixture_hla::fixture::server_id);
   REQUIRE(interactionClass.isValid());
   REQUIRE(parameter.isValid());
   REQUIRE(dimension.isValid());
+  REQUIRE(receiverDimension.isValid());
+  bool callbackRegionMatchesSentDesignator = false;
+  receiverReports.onTimestampedInteraction = [&] {
+    auto const& report = receiverReports.timestampedInteractionReports.back();
+    if (!report.sentRegionsSupplied || report.sentRegions.size() != 1U) {
+      return;
+    }
+    auto const callbackRegion = *report.sentRegions.begin();
+    if (receiver->getDimensionHandleSet(callbackRegion) !=
+        DimensionHandleSet{receiverDimension}) {
+      return;
+    }
+    auto const bounds = receiver->getRangeBounds(callbackRegion, receiverDimension);
+    callbackRegionMatchesSentDesignator =
+        bounds.getLowerBound() == 0UL && bounds.getUpperBound() == 10UL;
+  };
   parameterValues.emplace(parameter,
       VariableLengthData(parameterBytes, sizeof(parameterBytes)));
   REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
@@ -103,7 +121,7 @@ TEST_CASE(
   REQUIRE(report.producingFederate == publisherHandle);
   REQUIRE(report.timeValue == L"8");
   REQUIRE(report.sentRegionsSupplied);
-  REQUIRE(report.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(callbackRegionMatchesSentDesignator);
   REQUIRE(report.retractionSupplied);
   REQUIRE(report.retractionValid);
   REQUIRE_NOTHROW(publisher->retract(retraction));

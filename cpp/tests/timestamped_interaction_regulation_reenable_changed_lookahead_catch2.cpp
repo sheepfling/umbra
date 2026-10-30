@@ -214,9 +214,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->queryLookahead(changedLookahead));
   REQUIRE(changedLookahead.getInterval() == 3);
 
-  // This sets up the timestamp-five GALT boundary case: after the queued
-  // message at five is delivered, the inclusive GALT boundary also permits
-  // TAR(5) to complete.
+  // At GALT five, TAR(5) may receive the equal-time callback, but its grant
+  // remains blocked until the other regulator moves GALT strictly above five.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(5)));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
@@ -226,11 +225,11 @@ TEST_CASE(
   drainCallbacks(*receiver);
   REQUIRE(publisherReports.timeAdvanceGrantCount == 1U);
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
-  REQUIRE(receiverReports.timeAdvanceGrantCount == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantCount == 0U);
   REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"interaction", "grant"});
+          std::vector<std::string>{"interaction"});
 
-  // Advancing the producer again must not grant the receiver a second time.
+  // Advancing the producer moves GALT to six, making TAR(5) safe to grant.
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(3)));
   drainCallbacks(*publisher);

@@ -852,7 +852,9 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   // official callback dispatcher before an Evoke service drains it.  The
   // process slice keeps this seam private; the public API remains the
   // standard Evoke/EvokeMultiple callback surface.
-  void pumpProcessReceiveOrder(bool drainAll = false);
+  void pumpProcessReceiveOrder(
+      bool drainAll = false,
+      bool avoidPollingDuringCallbackAdmission = false);
   void pumpProcessAttributeUpdates(bool drainAll = false);
 
   // HLA_IMMEDIATE has no caller-side Evoke boundary. The scheduler claims

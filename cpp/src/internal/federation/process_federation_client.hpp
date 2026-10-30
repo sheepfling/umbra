@@ -1002,6 +1002,10 @@ class ProcessFederationClient final {
       std::chrono::milliseconds minimumWait,
       std::chrono::milliseconds maximumWait);
   [[nodiscard]] std::size_t pendingCallbackCount() const;
+  // True while a data callback is between removal from the process queue and
+  // submission to the callback bridge. Request Retraction notifications do
+  // not fence the next receive poll.
+  [[nodiscard]] bool isPushedDataCallbackAdmissionInProgress() const;
 
   [[nodiscard]] std::shared_ptr<ProcessTransportConnection> connection() const
       noexcept;
@@ -1132,6 +1136,7 @@ class ProcessFederationClient final {
   std::deque<PendingEvent> pendingEvents_;
   std::thread::id dispatchOwner_;
   std::size_t dispatchDepth_ = 0U;
+  std::size_t dataCallbackAdmissionDepth_ = 0U;
   // An unsolicited Request Retraction can arrive while a receive poll is
   // still awaiting its response.  Queue its delivery acknowledgement until
   // that outer response has been consumed so the single process stream never

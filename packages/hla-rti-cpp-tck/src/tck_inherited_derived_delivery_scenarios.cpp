@@ -1385,7 +1385,7 @@ void scenarioTimestampedDirectedDerivedObjectTargetDelivery(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const expectedTime = encodeTime(*sentTime);
   auto const expectedGrantTime = encodeTime(*targetAdvanceTime);
   require(

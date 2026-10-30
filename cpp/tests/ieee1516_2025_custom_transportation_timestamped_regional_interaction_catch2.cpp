@@ -145,7 +145,7 @@ TEST_CASE(
   REQUIRE(report.retractionSupplied);
   REQUIRE(report.retractionValid);
   REQUIRE(report.sentRegionsSupplied);
-  REQUIRE(report.sentRegions.contains(sourceRegion));
+  REQUIRE(report.sentRegions.size() == 1U);
 
   REQUIRE_NOTHROW(consumer->unsubscribeInteractionClassWithRegions(
       consumerInteraction,

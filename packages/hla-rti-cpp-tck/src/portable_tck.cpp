@@ -14644,6 +14644,21 @@ void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
       receiverTime,
       regional,
       "custom transportation timestamped regional interaction");
+  bool callbackRegionVerified = false;
+  receiver.recorder().setTimedInteractionHook([&](rti::RegionHandleSet const* regions) {
+    require(regions != nullptr && regions->size() == 1U,
+            "custom transportation timestamped regional interaction callback omitted its source region set");
+    verifyDdmRegion(
+        receiver,
+        receiverHandles,
+        *regions->begin(),
+        1UL,
+        5UL,
+        1UL,
+        5UL,
+        "custom transportation timestamped regional interaction callback region");
+    callbackRegionVerified = true;
+  });
   auto const messageTime = timeAfter(
       *producerTime.factory,
       *producerTime.initial,
@@ -14690,6 +14705,8 @@ void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
   require(
       deliveries.size() == 1U,
       "custom transportation timestamped regional interaction produced duplicate callbacks");
+  require(callbackRegionVerified,
+          "custom transportation timestamped regional interaction did not expose callback-scoped source region metadata");
   auto const& delivery = deliveries.front();
   require(
       delivery.interaction == receiverHandles.interactionClass &&
@@ -14712,10 +14729,7 @@ void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
           receiver.rtiAmbassador().getTransportationTypeName(delivery.transportation) ==
               regional.fomCustomTransportationName,
       "custom transportation timestamped regional interaction changed transportation identity");
-  require(
-      delivery.regions.has_value() &&
-          delivery.regions->size() == 1U &&
-          delivery.regions->count(sourceRegion) == 1U,
+  require(delivery.regions.has_value() && delivery.regions->size() == 1U,
       "custom transportation timestamped regional interaction omitted the source region designator set");
 
   producer.rtiAmbassador().disableTimeRegulation();
@@ -15473,6 +15487,19 @@ int runServiceReportResignFederationExecutionScenarios(int argc, char** argv) {
       scenarioServiceReportResignFederationExecutionContractPortable);
 }
 
+std::string_view federateLostMomReportSkipReason(Options const& options) {
+  if (!options.connectionLossServerManaged) {
+    return "requires an adapter-managed fault fixture";
+  }
+  if (options.fom.empty()) {
+    return "requires an adapter-supplied application FOM module";
+  }
+  if (options.mimFom.empty()) {
+    return "requires an adapter-supplied standard MIM";
+  }
+  return {};
+}
+
 int runFederateLostMomReportScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15480,7 +15507,9 @@ int runFederateLostMomReportScenarios(int argc, char** argv) {
       federateLostReportScenario,
       federateLostReportContractScenario,
       scenarioFederateLostMomReportPortable,
-      scenarioFederateLostMomReportContractPortable);
+      scenarioFederateLostMomReportContractPortable,
+      CallbackScope::All,
+      federateLostMomReportSkipReason);
 }
 
 int runHandleNormalizationMembershipBoundariesScenarios(int argc, char** argv) {

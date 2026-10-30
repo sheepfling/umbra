@@ -194,6 +194,11 @@ void scenarioServiceReportTimestampedInteraction(
       *publisherTime.initial,
       *publisherTime.epsilon,
       1U);
+  auto const publisherSafeTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
   waitFor(
@@ -201,11 +206,21 @@ void scenarioServiceReportTimestampedInteraction(
       receiver,
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
-            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timeAdvanceGrants().empty() &&
             receiver.recorder().timedInteractions().size() >= 1U;
       },
       options,
-      "timestamped service-report source interaction delivery");
+      "timestamped service-report source interaction at the strict GALT boundary");
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherSafeTarget);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped service-report source interaction safe grant");
   auto const interactions = receiver.recorder().timedInteractions();
   require(
       interactions.size() == 1U,

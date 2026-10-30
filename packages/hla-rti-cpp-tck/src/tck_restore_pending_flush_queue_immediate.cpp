@@ -1,4 +1,5 @@
 #include "tck_restore_pending_flush_queue_immediate.hpp"
+#include "tck_scenario_fom.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
@@ -7,7 +8,8 @@ void runRestorePendingFlushQueueImmediate(
     Options const& options, rti::CallbackModel model) {
   require(model == rti::HLA_IMMEDIATE,
           "Pending-FQR immediate restore has native evidence only for immediate callbacks");
-  require(!options.fom.empty() && !options.logicalTimeImplementationName.empty(),
+  auto const fom = adapterScenarioFom(options, "restore-pending-time-advance");
+  require(!fom.empty() && !options.logicalTimeImplementationName.empty(),
           "Pending-FQR immediate restore requires adapter NRG-enabled FOM and time implementation");
 
   Session member(options, model, "member");
@@ -15,7 +17,7 @@ void runRestorePendingFlushQueueImmediate(
   std::wstring const saveLabel = L"tck-pending-flush-queue-immediate";
   member.connect();
   member.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   member.join(options.ownerFederateName, options.federateType, federation);
 
   auto const time = makeTimeContext(member);

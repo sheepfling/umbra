@@ -163,7 +163,18 @@ EmbeddedFederationRegistry::knownObjectInstanceByNameFor(
   auto const handle = federation->second.objectInstanceHandlesByName.find(objectInstanceName);
   if (handle != federation->second.objectInstanceHandlesByName.end()) {
     auto const instance = federation->second.objectInstances.find(handle->second);
-    if (instance != federation->second.objectInstances.end()) {
+    bool const producerStillWithinTimestampedDeleteBoundary =
+        instance != federation->second.objectInstances.end() &&
+        instance->second.producingFederateId == federateId &&
+        instance->second.pendingTimestampedDeletionMessageId.has_value() &&
+        instance->second.knownObjectClassHandlesByFederate.contains(federateId);
+    bool const knownNonProducerDuringDeletion =
+        instance != federation->second.objectInstances.end() &&
+        instance->second.producingFederateId != federateId &&
+        instance->second.knownObjectClassHandlesByFederate.contains(federateId);
+    if (instance != federation->second.objectInstances.end() &&
+        (!instance->second.deleteAccepted || producerStillWithinTimestampedDeleteBoundary ||
+         knownNonProducerDuringDeletion)) {
       return knownObjectInstanceSnapshot(federation->second, instance->second, federateId);
     }
   }

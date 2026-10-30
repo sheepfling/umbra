@@ -534,6 +534,7 @@ void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
       publisher.rtiAmbassador().updateAttributeValues(
           object, values, rti::VariableLengthData(&marker, 1U));
     };
+    std::vector<unsigned char> inspectedCallbackMarkers;
     auto checkReflection = [&](ReflectionRecord const& reflection,
                                unsigned char marker,
                                std::string const& description) {
@@ -548,9 +549,31 @@ void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
               reflection.producer == publisher.federateHandle() &&
               reflection.transportation.isValid() && reflection.regions.has_value() &&
               reflection.regions->size() == 1U &&
-              reflection.regions->count(sourceRegion) == 1U,
+              std::find(
+                  inspectedCallbackMarkers.begin(),
+                  inspectedCallbackMarkers.end(),
+                  marker) != inspectedCallbackMarkers.end(),
           description + " did not preserve tag, producer, transport, or source region");
     };
+    receiver.recorder().setReflectionHook(
+        [&](rti::RegionHandleSet const* regions) {
+          require(
+              regions != nullptr && regions->size() == 1U,
+              "receive-order regional delay-subscription reflection omitted its region copy");
+          auto const callbackRegion = *regions->begin();
+          rti::DimensionHandleSet const expectedDimensions{
+              received.firstDimension,
+              received.secondDimension};
+          require(
+              receiver.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+                  expectedDimensions,
+              "receive-order regional delay-subscription callback copy changed its dimension set");
+          auto const reflection = receiver.recorder().reflection();
+          require(
+              !reflection.tag.empty(),
+              "receive-order regional delay-subscription reflection lost its identifying tag");
+          inspectedCallbackMarkers.push_back(reflection.tag.front());
+        });
     auto openCallbackGate = [&] {
       if (model == rti::HLA_IMMEDIATE) receiver.rtiAmbassador().enableCallbacks();
     };
@@ -1368,6 +1391,22 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
         publisherHandles.attribute,
         rti::VariableLengthData(secondValueBytes, sizeof(secondValueBytes)));
 
+    std::size_t inspectedCallbackRegionCount = 0U;
+    receiver.recorder().setTimedReflectionHook(
+        [&](rti::RegionHandleSet const* regions) {
+          require(
+              regions != nullptr && regions->size() == 1U,
+              "timestamped regional delay-subscription reflection omitted its callback region copy");
+          auto const callbackRegion = *regions->begin();
+          rti::DimensionHandleSet const expectedDimensions{
+              receiverHandles.firstDimension,
+              receiverHandles.secondDimension};
+          require(
+              receiver.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+                  expectedDimensions,
+              "timestamped regional delay-subscription callback copy changed its dimension set");
+          ++inspectedCallbackRegionCount;
+        });
     auto assertReflection = [&](TimedReflectionRecord const& reflection,
                                 std::vector<std::uint8_t> const& expectedValue,
                                 std::vector<std::uint8_t> const& expectedTime,
@@ -1397,7 +1436,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
           description + " returned the wrong order metadata");
       require(
           reflection.regions.has_value() && reflection.regions->size() == 1U &&
-              reflection.regions->count(sourceRegion) == 1U,
+              inspectedCallbackRegionCount == 1U,
           description + " omitted the source region designator set");
     };
 
@@ -1581,6 +1620,23 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
         6UL);
     rti::RegionHandleSet const sourceRegions{sourceRegion};
     rti::RegionHandleSet const receiverRegions{receiverRegion};
+    std::size_t inspectedSourceRegionCallbacks = 0U;
+    receiver.recorder().setTimedInteractionHook(
+        [&](rti::RegionHandleSet const* callbackRegions) {
+          require(
+              callbackRegions != nullptr && callbackRegions->size() == 1U,
+              "timestamped regional delay-subscription callback omitted its source region copy");
+          verifyDdmRegion(
+              receiver,
+              receiverHandles,
+              *callbackRegions->begin(),
+              1UL,
+              5UL,
+              1UL,
+              5UL,
+              "timestamped regional delay-subscription callback region");
+          ++inspectedSourceRegionCallbacks;
+        });
 
     auto publisherTime = makeTimeContext(publisher);
     auto receiverTime = makeTimeContext(receiver);
@@ -1639,9 +1695,8 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
           description + " returned the wrong order metadata");
       require(
           interaction.regions.has_value() &&
-              interaction.regions->size() == 1U &&
-              interaction.regions->count(sourceRegion) == 1U,
-          description + " omitted the source region designator set");
+              interaction.regions->size() == 1U,
+          description + " omitted its source region designator copy");
       if (expectedRetraction.isValid()) {
         require(
             interaction.retractionPresent &&
@@ -1747,6 +1802,10 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
     require(
         receiver.recorder().timedInteractions().size() == firstDeliveryCount,
         "timestamped regional interaction was delivered after unsubscribe");
+    require(
+        inspectedSourceRegionCallbacks ==
+            receiver.recorder().timedInteractions().size(),
+        "timestamped regional interactions did not expose queryable source region copies");
 
     receiver.rtiAmbassador().disableTimeConstrained();
     publisher.rtiAmbassador().disableTimeRegulation();

@@ -328,6 +328,11 @@ void scenarioServiceReportTimestampedDirectedInteraction(
       *publisherTime.initial,
       *publisherTime.epsilon,
       1U);
+  auto const publisherAdvanceBeyondMessage = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvance);
   auto const deadline = Clock::now() +
       std::chrono::milliseconds(options.timeoutMilliseconds);
@@ -335,7 +340,6 @@ void scenarioServiceReportTimestampedDirectedInteraction(
     publisher.pump();
     receiver.pump();
     if (publisher.recorder().timeAdvanceGrants().size() == 1U &&
-        receiver.recorder().timeAdvanceGrants().size() == 1U &&
         receiver.recorder().timedDirectedInteractions().size() == 1U) {
       break;
     }
@@ -343,15 +347,24 @@ void scenarioServiceReportTimestampedDirectedInteraction(
   }
   require(
       publisher.recorder().timeAdvanceGrants().size() == 1U &&
-          receiver.recorder().timeAdvanceGrants().size() == 1U &&
-          receiver.recorder().timedDirectedInteractions().size() == 1U,
-      "Timestamped directed-interaction service-report delivery and grants timed out (publisher grants=" +
+          receiver.recorder().timedDirectedInteractions().size() == 1U &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "Timestamped directed-interaction service-report delivery or strict grant boundary timed out (publisher grants=" +
           std::to_string(publisher.recorder().timeAdvanceGrants().size()) +
           ", receiver grants=" +
           std::to_string(receiver.recorder().timeAdvanceGrants().size()) +
           ", receiver directed=" +
           std::to_string(receiver.recorder().timedDirectedInteractions().size()) +
           ")");
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvanceBeyondMessage);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 2U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "timestamped directed-interaction service-report safe receiver grant");
   require(
       receiver.recorder().callbackOrder() ==
           std::vector<std::string>{"directed", "grant"},

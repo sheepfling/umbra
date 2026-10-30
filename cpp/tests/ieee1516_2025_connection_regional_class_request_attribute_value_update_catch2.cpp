@@ -982,8 +982,8 @@ TEST_CASE(
     REQUIRE(requesterFederate.reflectedProducingFederate ==
             rti1516_2025::umbra_binding_detail::makeFederateHandle(
                 expectedProviderFederate.load(std::memory_order_acquire)));
-    REQUIRE(requesterFederate.reflectedHasSentRegions);
-    REQUIRE(requesterFederate.reflectedSentRegionCount == 1U);
+    REQUIRE_FALSE(requesterFederate.reflectedHasSentRegions);
+    REQUIRE(requesterFederate.reflectedSentRegionCount == 0U);
 
     providerRti->resignFederationExecution(DELETE_OBJECTS);
     providerJoined = false;

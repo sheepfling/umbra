@@ -385,7 +385,7 @@ TEST_CASE(
           receiver->getTransportationTypeHandle(standard_hla::mom::reliable));
   REQUIRE(interaction.producingFederate == publisherHandle);
   REQUIRE(interaction.sentRegionsSupplied);
-  REQUIRE(interaction.sentRegions == RegionHandleSet{publisherRegion});
+  REQUIRE(interaction.sentRegions.size() == 1U);
   REQUIRE(interaction.timeImplementationName == standard_hla::mom::integer64_time);
   REQUIRE(interaction.timeValue == timestamp.toString());
   REQUIRE(interaction.sentOrderType == TIMESTAMP);

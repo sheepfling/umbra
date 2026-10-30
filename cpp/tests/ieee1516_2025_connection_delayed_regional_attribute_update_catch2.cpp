@@ -214,6 +214,7 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
       federationName, L"server-owned-fom.xml"));
   REQUIRE_NOTHROW(sender->joinFederationExecution(L"sender", L"test", federationName));
   REQUIRE_NOTHROW(receiver->joinFederationExecution(L"receiver", L"test", federationName));
+  receiver->setConveyRegionDesignatorSetsSwitch(true);
   auto const receiverMembership = registry.memberByName(federationName, L"receiver");
   REQUIRE(receiverMembership);
   REQUIRE(registry.delaySubscriptionEvaluationSwitchFor(
@@ -252,6 +253,7 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
   auto const object = sender->registerObjectInstanceWithRegions(senderClass, senderPairs);
   REQUIRE(object.isValid());
+  receiverFederate.ignoreRtiOwnedMomReflections = true;
   pumpCallbacksUntil(*receiver, callbackModel, [&] {
     return receiverFederate.discoveries == 1U;
   });
@@ -769,6 +771,7 @@ TEST_CASE(
     "[process-delayed-regional-attribute][2025]"
     "[rti.service.update-attribute-values]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
     "[federate.callback.reflect-attribute-values]") {
   SECTION("enabled delays eligibility to the HLA_EVOKED receive fence") {
     runScenario(true, HLA_EVOKED);
@@ -796,6 +799,7 @@ TEST_CASE(
     "[process-delayed-regional-attribute-immediate][2025]"
     "[rti.service.update-attribute-values]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
     "[federate.callback.reflect-attribute-values]") {
   SECTION("enabled defers eligibility to HLA_IMMEDIATE callback-task admission") {
     runScenario(true, HLA_IMMEDIATE);

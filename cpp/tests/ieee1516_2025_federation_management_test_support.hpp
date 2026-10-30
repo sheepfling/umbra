@@ -227,6 +227,8 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     VariableLengthData userSuppliedTag;
     TransportationTypeHandle transportationType;
     FederateHandle producingFederate;
+    // Callback designators are receiver-owned copies, so do not compare their
+    // handle values with the sender's local region handles.
     bool sentRegionsSupplied = false;
     RegionHandleSet sentRegions;
   };
@@ -244,6 +246,8 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     OrderType receivedOrderType = rti1516_2025::RECEIVE;
     bool retractionSupplied = false;
     bool retractionValid = false;
+    // Callback designators are receiver-owned copies, so do not compare their
+    // handle values with the sender's local region handles.
     bool sentRegionsSupplied = false;
     RegionHandleSet sentRegions;
   };
@@ -293,6 +297,8 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     VariableLengthData userSuppliedTag;
     TransportationTypeHandle transportationType;
     FederateHandle producingFederate;
+    // Callback designators are receiver-owned copies, so do not compare their
+    // handle values with the sender's local region handles.
     bool sentRegionsSupplied = false;
     RegionHandleSet sentRegions;
     std::wstring timeImplementationName;

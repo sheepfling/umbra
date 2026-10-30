@@ -7,7 +7,12 @@ void scenarioAttributeFddPreferredOrderDefault(
   Session sender(options, model, "attribute-fdd-order-sender");
   Session receiver(options, model, "attribute-fdd-order-receiver");
   auto const federation = federationName(options, "attribute-fdd-preferred-order-default");
-  connectAndJoin(sender, receiver, options, federation, options.fom);
+  auto const preferredOrderFom = options.scenarioFoms.find(
+      "attribute-fdd-preferred-order-default");
+  require(
+      preferredOrderFom != options.scenarioFoms.end(),
+      "FDD-preferred attribute order requires its scenario FOM");
+  connectAndJoin(sender, receiver, options, federation, preferredOrderFom->second);
 
   auto const senderClass = sender.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);

@@ -83,6 +83,33 @@ class ReportingFederateAmbassador final
     std::wstring value;
   };
 
+  struct ReceiveOrderInteractionReport final {
+    InteractionClassHandle interactionClass;
+    ParameterHandleValueMap parameterValues;
+    VariableLengthData userSuppliedTag;
+    TransportationTypeHandle transportationType;
+    FederateHandle producingFederate;
+    bool sentRegionsSupplied = false;
+  };
+
+  void receiveInteraction(
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+    receiveOrderInteractionReports.push_back({
+        interactionClass,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        optionalSentRegions != nullptr,
+    });
+    callbackOrder.push_back("interaction");
+  }
+
   void receiveInteraction(
       InteractionClassHandle const& interactionClass,
       ParameterHandleValueMap const& parameterValues,
@@ -122,6 +149,7 @@ class ReportingFederateAmbassador final
   }
 
   std::vector<TimestampedInteractionReport> timestampedInteractionReports;
+  std::vector<ReceiveOrderInteractionReport> receiveOrderInteractionReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
   std::vector<std::string> callbackOrder;
   std::size_t timeConstrainedEnabledCount = 0U;
@@ -135,7 +163,7 @@ std::unique_ptr<RTIambassador> makeRti() {
 }  // namespace
 
 TEST_CASE(
-    "Embedded ordinary timestamped interaction survives time-constrained re-enable",
+    "Embedded queued ordinary TSO becomes receive order on time-constrained disable",
     "[integration][development-profile][interaction-management][time-management]"
     "[timestamped-interaction][tso][re-enable]"
     "[rti.service.send-interaction][rti.service.subscribe-interaction-class]"
@@ -199,30 +227,29 @@ TEST_CASE(
   REQUIRE(retraction.isValid());
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
 
-  // A queued ordinary TSO passel belongs to the joined-federate lifetime,
-  // not to one particular Time Constrained enablement. Disable and callback-
-  // gated re-enable must preserve one pending delivery.
+  // Disabling Time Constrained drains already queued TSO as receive-order
+  // callbacks; a subsequent enablement must not redeliver them as TSO.
   REQUIRE_NOTHROW(receiver->disableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.receiveOrderInteractionReports.size() == 1U);
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeConstrainedEnabledCount == 2U);
 
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(5)));
-  // The producer's lookahead-one GALT must reach the message timestamp before
-  // the recipient's matching grant can be admitted.
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(4)));
+      rti1516_2025::HLAinteger64Time(5)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.receiveOrderInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(receiverReports.callbackOrder ==
           std::vector<std::string>{"interaction", "grant"});
 
-  auto const& report = receiverReports.timestampedInteractionReports.front();
+  auto const& report = receiverReports.receiveOrderInteractionReports.front();
   REQUIRE(report.interactionClass == interactionClass);
   REQUIRE(report.parameterValues.size() == 1U);
   REQUIRE(report.parameterValues.contains(identifier));
@@ -233,12 +260,6 @@ TEST_CASE(
   REQUIRE(report.transportationType == reliableTransportation);
   REQUIRE(report.producingFederate == publisherHandle);
   REQUIRE_FALSE(report.sentRegionsSupplied);
-  REQUIRE(report.timeImplementationName == standard_hla::mom::integer64_time);
-  REQUIRE(report.timeValue == L"5");
-  REQUIRE(report.sentOrderType == TIMESTAMP);
-  REQUIRE(report.receivedOrderType == TIMESTAMP);
-  REQUIRE(report.retractionSupplied);
-  REQUIRE(report.retractionValid);
   REQUIRE_THROWS_AS(
       publisher->retract(retraction),
       rti1516_2025::MessageCanNoLongerBeRetracted);

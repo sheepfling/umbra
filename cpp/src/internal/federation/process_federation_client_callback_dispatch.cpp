@@ -301,88 +301,104 @@ void ProcessFederationClient::dispatchPendingPushedEvents(
       auto bridge = callbackBridge_;
       auto event = std::move(pendingEvents_.front());
       pendingEvents_.pop_front();
+      bool const fenceReceivePoll =
+          !std::holds_alternative<PendingRequestRetraction>(event);
+      if (fenceReceivePoll) {
+        ++dataCallbackAdmissionDepth_;
+      }
       lock.unlock();
-      std::visit([&bridge](auto value) {
-        using Event = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent>) {
-          bridge->submitReceiveOrder(std::move(value));
+      try {
+        std::visit([&bridge](auto value) {
+          using Event = std::decay_t<decltype(value)>;
+          if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent>) {
+            bridge->submitReceiveOrder(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeUpdateEvent>) {
+            bridge->submitAttributeUpdate(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, PendingDeferredAttributeUpdate>) {
+            bridge->submitDeferredAttributeUpdate(
+                std::move(value.federationName), value.receivingFederateId);
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeValueUpdateRequestEvent>) {
+            bridge->submitAttributeValueUpdateRequest(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipQueryEvent>) {
+            bridge->submitAttributeOwnershipQuery(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>) {
+            bridge->submitAttributeOwnershipAcquisitionIfAvailable(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionEvent>) {
+            bridge->submitAttributeOwnershipAcquisition(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipUnavailableEvent>) {
+            bridge->submitAttributeOwnershipUnavailable(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceDiscoveryEvent>) {
+            bridge->submitObjectInstanceDiscovery(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceRemovalEvent>) {
+            bridge->submitObjectInstanceRemoval(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceScopeChangeEvent>) {
+            bridge->submitObjectInstanceScopeChange(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeRelevanceAdvisoryEvent>) {
+            bridge->submitAttributeRelevanceAdvisory(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeChangeEvent>) {
+            bridge->submitAttributeTransportationTypeChange(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeQueryEvent>) {
+            bridge->submitAttributeTransportationTypeQuery(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeChangeEvent>) {
+            bridge->submitInteractionTransportationTypeChange(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeQueryEvent>) {
+            bridge->submitInteractionTransportationTypeQuery(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationSynchronizationPointAnnouncementEvent>) {
+            bridge->submitSynchronizationPointAnnouncement(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationFederationSynchronizedEvent>) {
+            bridge->submitFederationSynchronized(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationSaveEvent>) {
+            bridge->submitFederationSave(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationRestoreEvent>) {
+            bridge->submitFederationRestore(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, ProcessFederationLogicalTime>) {
+            bridge->submitTimeAdvanceGrant(std::move(value));
+          }
+          else if constexpr (std::is_same_v<Event, PendingFlushQueueGrant>) {
+            bridge->submitFlushQueueGrant(
+                std::move(value.grantedTime), std::move(value.optimisticTime));
+          }
+          else if constexpr (std::is_same_v<Event, PendingTimeRegulationEnabled>) {
+            bridge->submitTimeRegulationEnabled(std::move(value.enabledTime));
+          }
+          else if constexpr (std::is_same_v<Event, PendingTimeConstrainedEnabled>) {
+            bridge->submitTimeConstrainedEnabled(std::move(value.enabledTime));
+          }
+          else if constexpr (std::is_same_v<Event, PendingRequestRetraction>) {
+            bridge->submitRequestRetraction(value.messageId);
+          }
+        }, std::move(event));
+      } catch (...) {
+        lock.lock();
+        if (fenceReceivePoll) {
+          --dataCallbackAdmissionDepth_;
         }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeUpdateEvent>) {
-          bridge->submitAttributeUpdate(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, PendingDeferredAttributeUpdate>) {
-          bridge->submitDeferredAttributeUpdate(
-              std::move(value.federationName), value.receivingFederateId);
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeValueUpdateRequestEvent>) {
-          bridge->submitAttributeValueUpdateRequest(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipQueryEvent>) {
-          bridge->submitAttributeOwnershipQuery(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>) {
-          bridge->submitAttributeOwnershipAcquisitionIfAvailable(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionEvent>) {
-          bridge->submitAttributeOwnershipAcquisition(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipUnavailableEvent>) {
-          bridge->submitAttributeOwnershipUnavailable(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceDiscoveryEvent>) {
-          bridge->submitObjectInstanceDiscovery(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceRemovalEvent>) {
-          bridge->submitObjectInstanceRemoval(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceScopeChangeEvent>) {
-          bridge->submitObjectInstanceScopeChange(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeRelevanceAdvisoryEvent>) {
-          bridge->submitAttributeRelevanceAdvisory(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeChangeEvent>) {
-          bridge->submitAttributeTransportationTypeChange(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeQueryEvent>) {
-          bridge->submitAttributeTransportationTypeQuery(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeChangeEvent>) {
-          bridge->submitInteractionTransportationTypeChange(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeQueryEvent>) {
-          bridge->submitInteractionTransportationTypeQuery(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationSynchronizationPointAnnouncementEvent>) {
-          bridge->submitSynchronizationPointAnnouncement(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationFederationSynchronizedEvent>) {
-          bridge->submitFederationSynchronized(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationSaveEvent>) {
-          bridge->submitFederationSave(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationRestoreEvent>) {
-          bridge->submitFederationRestore(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, ProcessFederationLogicalTime>) {
-          bridge->submitTimeAdvanceGrant(std::move(value));
-        }
-        else if constexpr (std::is_same_v<Event, PendingFlushQueueGrant>) {
-          bridge->submitFlushQueueGrant(
-              std::move(value.grantedTime), std::move(value.optimisticTime));
-        }
-        else if constexpr (std::is_same_v<Event, PendingTimeRegulationEnabled>) {
-          bridge->submitTimeRegulationEnabled(std::move(value.enabledTime));
-        }
-        else if constexpr (std::is_same_v<Event, PendingTimeConstrainedEnabled>) {
-          bridge->submitTimeConstrainedEnabled(std::move(value.enabledTime));
-        }
-        else if constexpr (std::is_same_v<Event, PendingRequestRetraction>) {
-          bridge->submitRequestRetraction(value.messageId);
-        }
-      }, std::move(event));
+        throw;
+      }
       lock.lock();
+      if (fenceReceivePoll) {
+        --dataCallbackAdmissionDepth_;
+      }
     }
     finish();
   } catch (...) {
@@ -588,6 +604,11 @@ std::size_t ProcessFederationClient::pendingCallbackCount() const {
     bridge = callbackBridge_;
   }
   return bridge ? bridge->pendingCount() : 0U;
+}
+
+bool ProcessFederationClient::isPushedDataCallbackAdmissionInProgress() const {
+  std::scoped_lock lock(transactionMutex_);
+  return callbackBridge_ && dataCallbackAdmissionDepth_ != 0U;
 }
 
 std::shared_ptr<ProcessTransportConnection>

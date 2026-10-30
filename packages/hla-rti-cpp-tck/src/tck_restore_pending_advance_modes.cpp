@@ -1,4 +1,5 @@
 #include "tck_restore_pending_advance_modes.hpp"
+#include "tck_scenario_fom.hpp"
 
 #include <array>
 
@@ -38,7 +39,8 @@ void runMode(
     Options const& options,
     rti::CallbackModel model,
     AdvanceMode mode) {
-  require(!options.fom.empty(),
+  auto const fom = adapterScenarioFom(options, "restore-pending-time-advance");
+  require(!fom.empty(),
           "Pending-mode restore requires an adapter-supplied standard NRG-enabled FOM");
   require(!options.logicalTimeImplementationName.empty(),
           "Pending-mode restore requires an adapter-supplied logical-time implementation");
@@ -54,7 +56,7 @@ void runMode(
 
   member.connect();
   member.rtiAmbassador().createFederationExecution(
-      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+      federation, fom.wstring(), options.logicalTimeImplementationName);
   member.join(options.ownerFederateName, options.federateType, federation);
 
   auto const time = makeTimeContext(member);

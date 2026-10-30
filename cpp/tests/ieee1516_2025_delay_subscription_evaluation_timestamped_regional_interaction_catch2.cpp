@@ -129,7 +129,7 @@ TEST_CASE(
       REQUIRE(interaction.sentOrderType == TIMESTAMP);
       REQUIRE(interaction.receivedOrderType == TIMESTAMP);
       REQUIRE(interaction.sentRegionsSupplied);
-      REQUIRE(interaction.sentRegions.contains(sourceRegion));
+      REQUIRE(interaction.sentRegions.size() == 1U);
     }
 
     // The second passel is generated while the regional subscription is

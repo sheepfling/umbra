@@ -163,6 +163,13 @@ TransportServiceMessage ProcessFederationService::handleRetract(
       // designator report MessageCanNoLongerBeRetracted instead of looking
       // like an unrelated invalid handle.
       for (auto& [ignoredSession, state] : sessions_) {
+        // A successful retraction removes any callback that had not yet
+        // crossed the recipient boundary. Release its callback-scoped region
+        // copies with the queued payload so they cannot leak until resignation.
+        state.pendingTsoAttributeCallbackRegionDesignatorCopies.erase(
+            retractRequest.messageId);
+        state.pendingTsoInteractionCallbackRegionDesignatorCopies.erase(
+            retractRequest.messageId);
         state.interactionEvents.erase(
             std::remove_if(
                 state.interactionEvents.begin(),

@@ -33418,6 +33418,14 @@
         "cpp-1516.1-ddm-region-lifecycle",
         "cpp-1516.1-ddm-range-validation"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l84-25",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l90-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l84-25", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l87-26", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l90-27", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "The scenario creates a two-dimensional region, asserts its exact two-handle dimension set, and reads back the independent ranges [1,5] and [2,7]. It then replaces the first range, commits, and rechecks that the dimension set remains exactly two members with one current range per dimension. These assertions directly exercise the §9.1.1 set-of-ranges, dimension-membership, and one-range-per-dimension requirements; the mapping does not extend to unrelated lifecycle behavior.",
       "contract_refs": [
         "dimension-lookup-api-contract.json",
         "dimension-lookup-requirements-contract.json",
@@ -33464,6 +33472,14 @@
         "cpp-1516.1-ddm-region-lifecycle",
         "cpp-1516.1-ddm-range-validation"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l84-25",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l90-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l84-25", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l87-26", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l90-27", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "Contract twin of the primary region-lifecycle scenario: creates a two-dimensional region, asserts the exact two-handle dimension set, reads both ranges [1,5] and [2,7], then replaces/commits one range and rechecks exactly one current range per dimension. Directly maps the §9.1.1 set-of-ranges, dimension-membership, and one-range-per-dimension behaviors only.",
       "contract_refs": [
         "standard-region-lifecycle-contract.json"
       ],
@@ -33490,18 +33506,24 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16"
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l102-31"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.3.1"
+        "hla-1516.1-2025:clause-9.1.3.1",
+        "hla-1516.1-2025:clause-9.1.1"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l102-31",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
         }
       ],
-      "mapping_note": "The candidate's exported clause field says §9.1.3.2, but RL-359 records that the full region-template rule occurs under the visible §9.1.3.1 Region relationships heading before §9.1.3.2 begins. This official-API case checks InvalidRegion on a partial commit, retention of the first dimension's pending bounds, rejection of region use before completion, and successful use after the remaining bounds are set and committed. It is bounded development evidence, not conformance evidence.",
+      "mapping_note": "For requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16, RL-359 records that the full region-template rule occurs under the visible §9.1.3.1 Region relationships heading before §9.1.3.2 begins. Separately, the scenario directly witnesses §9.1.1's region-template definition: it creates a two-dimension template, assigns only one range, confirms commit and regional use fail while incomplete, then assigns the missing range and commits successfully. It also checks retention of the first pending bounds. This is bounded development evidence, not conformance evidence.",
       "contract_refs": [
         "region-commit-complete-ranges-requirements-contract.json"
       ],
@@ -33635,9 +33657,10 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43"
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l111-34"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2"],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2", "hla-1516.1-2025:clause-9.1.1"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
@@ -33646,9 +33669,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l111-34",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
         }
       ],
-      "mapping_note": "The official C++ API scenario exercises object-class/attribute and object-instance/instance-attribute DDM relationships, moves an object's explicit update region to disjoint bounds, then removes its final explicit association and verifies ordinary update delivery through the default region. Direct mappings are limited to the selected §9.1.3.2 candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
+      "mapping_note": "The official C++ API scenario exercises object-class/attribute and object-instance/instance-attribute DDM relationships, moves an object's explicit update region to disjoint bounds, then removes its final explicit association and verifies ordinary update delivery through the default region. For the separate §9.1.1 mapping, the region is a realization through regional object registration, explicit update-region association, and regional class-attribute subscription. Direct mappings remain limited to these selected candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
@@ -33695,9 +33722,10 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43"
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l111-34"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2"],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.3.2", "hla-1516.1-2025:clause-9.1.1"],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36",
@@ -33706,9 +33734,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l111-34",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
         }
       ],
-      "mapping_note": "The contract runner invokes the same official C++ API scenario, exercising object-class/attribute and object-instance/instance-attribute DDM relationships, and verifies default-region fallback when the final explicit attribute-update region association is removed. Direct mappings are limited to the selected §9.1.3.2 candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
+      "mapping_note": "The contract runner invokes the same official C++ API scenario, exercising object-class/attribute and object-instance/instance-attribute DDM relationships, and verifies default-region fallback when the final explicit attribute-update region association is removed. Its separate §9.1.1 witness is the region realization through regional registration, explicit attribute-update association, and regional class-attribute subscription. Direct mappings remain limited to these selected candidates; the current MinGW installed-package C++ TCK passed both callback models, with no conformance claim.",
       "contract_refs": [
         "standard-regional-object-update-contract.json",
         "default-region-requirements-contract.json"
@@ -34008,6 +34040,7 @@
         "RTIambassador.subscribeObjectClassAttributesWithRegions",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.getDimensionUpperBound",
         "RTIambassador.updateAttributeValues",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "FederateAmbassador.discoverObjectInstance",
@@ -34018,6 +34051,35 @@
         "cpp-1516.1-ddm-regional-object-update",
         "cpp-1516.1-ddm-region-designator-callback"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l126-39"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.5",
+        "hla-1516.1-2025:clause-9.1.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l126-39",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        }
+      ],
+      "mapping_note": "Direct §9.1.5 witness for the ordinary Subscribe/Unsubscribe Object Class Attributes default-region interpretations and one DDM extension example. The case observes discovery/delivery under ordinary subscription alongside explicit regional subscriptions; after ordinary unsubscribe, default-source updates stop while a matching explicit regional subscription remains effective. It also checks ordinary Update Attribute Values against explicit/default source-region behavior, including supplied-empty default-source callback metadata. For §9.1.1, it queries each FDD dimension upper bound U, uses source ranges [0,U-1) and subscriptions at [0,1) and [U-1,U) in both dimensions, then removes the source association and requires delivery at both boundary regions from the RTI default region. This directly witnesses the default region's [0,U) range for each FDD dimension. The installed-package MinGW CTest passed 4/4 primary/contract runs across HLA_EVOKED and HLA_IMMEDIATE; this strengthened boundary case is separately re-run for the current change. No Java-provider, interoperability, or conformance claim.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
@@ -34046,6 +34108,7 @@
         "RTIambassador.subscribeObjectClassAttributesWithRegions",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.getDimensionUpperBound",
         "RTIambassador.updateAttributeValues",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "FederateAmbassador.discoverObjectInstance",
@@ -34056,6 +34119,35 @@
         "cpp-1516.1-ddm-regional-object-update",
         "cpp-1516.1-ddm-region-designator-callback"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l126-39"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.5",
+        "hla-1516.1-2025:clause-9.1.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l126-39",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        }
+      ],
+      "mapping_note": "Contract twin for the bounded §9.1.5 witness. Its shared assertions exercise ordinary Subscribe and Unsubscribe Object Class Attributes as default-region behavior, verify default-source delivery stops after ordinary unsubscribe while the matching explicit regional declaration remains effective, and retain the explicit/default source Update Attribute Values checks. The shared scenario also queries each FDD dimension upper bound U, tests regional subscriptions at [0,1) and [U-1,U) for both dimensions, and requires default-source delivery at both boundary regions after removing the explicit source association, directly witnessing §9.1.1's [0,U) default range. This strengthened boundary case is separately re-run for the current change. No Java-provider, interoperability, or conformance claim.",
       "contract_refs": [
         "standard-default-region-object-routing-contract.json"
       ],
@@ -34224,6 +34316,12 @@
         "cpp-1516.1-ddm-regional-interaction-delivery",
         "cpp-1516.1-ddm-regional-interaction-filtering"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l111-34"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l111-34", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "The official-API scenario publishes an interaction class, subscribes to it with regional region sets, and sends interactions with a source region set; callbacks confirm the regional deliveries and designator. This directly witnesses the §9.1.1 realization alternatives for an interaction-class subscription and a sent interaction, without broadening to unrelated transition behavior.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -34257,6 +34355,12 @@
         "cpp-1516.1-ddm-regional-interaction-delivery",
         "cpp-1516.1-ddm-regional-interaction-filtering"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l111-34"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.1"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l111-34", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "Contract twin of the primary regional interaction case: verifies regional interaction-class subscriptions and interactions sent with a region realization through the official API. This directly witnesses the interaction-subscription and sent-interaction alternatives in §9.1.1, not a conformance claim.",
       "contract_refs": [
         "standard-passive-regional-interaction-transition-contract.json"
       ],
@@ -36618,18 +36722,24 @@
         "cpp-1516.1-ddm-regional-interaction-filtering"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46"
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.3.3"
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.5"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
         }
       ],
-      "mapping_note": "Direct mapping to the source-backed §9.1.3.3 statement that the default region is used when Send Interaction is invoked for an interaction class with available dimensions (page-220-l143-46). scenarioDefaultRegionInteractionRouting invokes ordinary Send Interaction with no region argument, then verifies delivery to a receiver subscribed only with an explicit region and observes an empty source-region designator set. This is public-API development evidence only; not conformance evidence.",
+      "mapping_note": "Direct mappings: §9.1.3.3 page-220-l143-46 is exercised by ordinary Send Interaction reaching a receiver with a regional-only subscription and an empty source-region designator set. §9.1.5 page-222-l23-6-subscribe-interaction is exercised by ordinary Subscribe Interaction Class remaining an independent default-region route while a disjoint explicit regional subscription exists: a source-region interaction is delivered exactly once with the expected payload and metadata. The regional receiver also queries the callback-scoped source-region copy's dimensions and bounds through the public API during the callback. Public-API development evidence only; not conformance evidence.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -36674,18 +36784,24 @@
         "cpp-1516.1-ddm-regional-interaction-filtering"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46"
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-9.1.3.3"
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.5"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
           "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
         }
       ],
-      "mapping_note": "The adapter-backed contract twin executes scenarioDefaultRegionInteractionRouting and directly verifies page-220-l143-46: ordinary Send Interaction reaches a receiver with a region-only subscription for a dimensioned interaction class, and the callback carries an empty source-region set. Public-API development evidence only; not a conformance claim.",
+      "mapping_note": "The adapter-backed contract twin directly verifies page-220-l143-46 and page-222-l23-6-subscribe-interaction: ordinary Send Interaction reaches a regional-only subscriber with an empty source-region set, and ordinary Subscribe Interaction Class continues to deliver a matching source-region interaction while a disjoint explicit regional subscription is also present. The overlapping regional receiver queries the callback-scoped source-region copy through the standard API. Public-API development evidence only; not a conformance claim.",
       "contract_refs": [
         "standard-default-region-interaction-routing-contract.json"
       ],
@@ -59244,10 +59360,10 @@
       "title": "Reject out-of-bounds dimension ranges and verify half-open routing",
       "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.getDimensionHandle", "RTIambassador.getDimensionName", "RTIambassador.getDimensionUpperBound", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributesWithRegions", "RTIambassador.registerObjectInstanceWithRegions", "RTIambassador.updateAttributeValues", "RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.getRangeBounds", "RTIambassador.commitRegionModifications", "RTIambassador.unsubscribeObjectClassAttributesWithRegions", "RTIambassador.unassociateRegionsForUpdates", "RTIambassador.deleteRegion", "RTIambassador.unpublishObjectClassAttributes", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
       "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "requirement-candidate-content-clauses-08-time-management-page-216-l78-23"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair", "requirement-candidate-content-clauses-08-time-management-page-216-l93-28", "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "requirement-candidate-content-clauses-08-time-management-page-216-l78-23"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.7", "hla-1516.1-2025:clause-9.1.1"],
-      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "standard_section": "hla-1516.2-2025:clause-6.2.7"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
-      "mapping_note": "The public range-bound assertions accept and round-trip the one-unit [0,1) interval and reject [1,1). Routing uses a producer region [0,1), an overlapping subscriber [0,1) that discovers and reflects the update, and an adjacent subscriber [1,2) that gets neither discovery nor reflection; this demonstrates the excluded upper endpoint. Page-216 l66-19/l69-20/l72-21/l78-23 are sentence fragments and are mapped only as a grouped RL-381 passage for the directly asserted range and routing behavior, not as independent requirements. RL-380 records the page metadata's incorrect Clause 8 label. The separate IEEE 1516.2 mapping retains exact InconsistentFOM rejection for [0..101) and acceptance for [0..100) with upperBound 100. Installed-package focused CTest evidence is adapter evidence only, not provider conformance.",
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "standard_section": "hla-1516.2-2025:clause-6.2.7"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l93-28", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "The scenario checks the public [0,100] interval against the dimension's FDD upperBound of 100, including getRangeBounds round-trip; this directly covers the ordered-pair and [0, upperBound) range-bound requirements. It also accepts and round-trips the one-unit [0,1) interval and rejects [1,1). Routing uses a producer region [0,1), an overlapping subscriber [0,1) that discovers and reflects the update, and an adjacent subscriber [1,2) that gets neither discovery nor reflection; this demonstrates the excluded upper endpoint. Page-216 l66-19/l69-20/l72-21/l78-23 are sentence fragments and are mapped only as a grouped RL-381 passage for the directly asserted range and routing behavior, not as independent requirements. RL-380 records the page metadata's incorrect Clause 8 label. The separate IEEE 1516.2 mapping retains exact InconsistentFOM rejection for [0..101) and acceptance for [0..100) with upperBound 100. Installed-package focused CTest evidence is adapter evidence only, not provider conformance.",
       "contract_refs": ["standard-fom-dimension-default-range-contract.json"],
       "cpp_test": "src/tck_fom_dimension_duplicate.cpp#scenarioFomDimensionDefaultRange",
       "runner_id": "cpp-tck.fom-dimension-default-range",
@@ -59262,10 +59378,10 @@
       "title": "Contract twin for default-range validation and half-open routing",
       "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.getDimensionHandle", "RTIambassador.getDimensionName", "RTIambassador.getDimensionUpperBound", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributesWithRegions", "RTIambassador.registerObjectInstanceWithRegions", "RTIambassador.updateAttributeValues", "RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.getRangeBounds", "RTIambassador.commitRegionModifications", "RTIambassador.unsubscribeObjectClassAttributesWithRegions", "RTIambassador.unassociateRegionsForUpdates", "RTIambassador.deleteRegion", "RTIambassador.unpublishObjectClassAttributes", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
       "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "requirement-candidate-content-clauses-08-time-management-page-216-l78-23"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair", "requirement-candidate-content-clauses-08-time-management-page-216-l93-28", "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "requirement-candidate-content-clauses-08-time-management-page-216-l78-23"],
       "standard_sections": ["hla-1516.2-2025:clause-6.2.7", "hla-1516.1-2025:clause-9.1.1"],
-      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "standard_section": "hla-1516.2-2025:clause-6.2.7"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
-      "mapping_note": "Repeats the primary official-API range-bound and endpoint-routing assertions: [0,1) overlaps its matching subscriber but not the adjacent [1,2) subscriber. All four page-216 range candidates l66-19/l69-20/l72-21/l78-23 are sentence fragments and are mapped collectively under RL-381, not as independent requirements; RL-380 records the conflicting page metadata. The IEEE 1516.2 mapping separately covers the FOM boundary rejection/acceptance contract.",
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5", "standard_section": "hla-1516.2-2025:clause-6.2.7"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l48-13", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l93-28", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21", "standard_section": "hla-1516.1-2025:clause-9.1.1"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23", "standard_section": "hla-1516.1-2025:clause-9.1.1"}],
+      "mapping_note": "Repeats the primary official-API assertion of the [0,100] dimension interval against FDD upperBound 100, directly covering the zero-origin/FDD-upper-bound ordered-pair and [0, upperBound) range-bound requirements, plus the [0,1) round-trip and adjacent [1,2) half-open routing checks. The four page-216 range fragments remain grouped under RL-381, not treated as independent requirements; RL-380 records the conflicting page metadata. The IEEE 1516.2 mapping separately covers the FOM boundary rejection/acceptance contract.",
       "contract_refs": ["standard-fom-dimension-default-range-contract.json"],
       "cpp_test": "src/tck_fom_dimension_duplicate.cpp#scenarioFomDimensionDefaultRangeContract",
       "runner_id": "cpp-tck.fom-dimension-default-range-contract",

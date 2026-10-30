@@ -514,6 +514,16 @@ void scenarioTimestampedAttributeUpdateRateReduction(
       *publisherTime.initial,
       *publisherTime.epsilon,
       2U);
+  auto const publisherTargetTwo = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const publisherTargetThree = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
   auto const firstTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -523,12 +533,12 @@ void scenarioTimestampedAttributeUpdateRateReduction(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      7U);
+      8U);
   auto const thirdTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      8U);
+      10U);
   auto const firstRetraction = publisher.rtiAmbassador().updateAttributeValues(
       object,
       values,
@@ -618,7 +628,7 @@ void scenarioTimestampedAttributeUpdateRateReduction(
       secondRetraction.isValid(),
       "Timestamped update-rate reduction second update returned an invalid retraction handle");
   receiver.rtiAmbassador().timeAdvanceRequest(*secondTime);
-  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTargetOne);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTargetTwo);
   waitForSessions(
       {&publisher, &receiver},
       [&] {
@@ -657,19 +667,23 @@ void scenarioTimestampedAttributeUpdateRateReduction(
   require(
       suppressedRetraction.isValid(),
       "Timestamped update-rate reduction suppressed update returned an invalid retraction handle");
+  publisher.rtiAmbassador().retract(suppressedRetraction);
   receiver.rtiAmbassador().timeAdvanceRequest(*thirdTime);
-  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTargetOne);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTargetThree);
   waitForSessions(
       {&publisher, &receiver},
       [&] {
-        return publisher.recorder().timeAdvanceGrants().size() >= 3U;
+        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 3U;
       },
       options,
       "Timestamped update-rate reduction suppressed passel grant");
   require(
       receiver.recorder().timedReflections().size() == 3U,
       "Timestamped update-rate reduction delivered an all-best-effort suppressed passel");
-  publisher.rtiAmbassador().retract(suppressedRetraction);
+  require(
+      receiver.recorder().timeAdvanceGrants().back().encoded == encodeTime(*thirdTime),
+      "Timestamped update-rate reduction returned the wrong final receiver grant");
   requireException(
       [&] { publisher.rtiAmbassador().retract(suppressedRetraction); },
       L"MessageCanNoLongerBeRetracted",

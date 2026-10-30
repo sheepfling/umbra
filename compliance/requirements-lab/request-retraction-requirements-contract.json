@@ -37,6 +37,7 @@
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout",
         "cpp/tests/ieee1516_2025_suppressed_timestamped_interaction_no_retraction_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
@@ -88,6 +89,7 @@
       "tests": [
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
@@ -100,6 +102,7 @@
       "source_symbol": "queueRequestRetraction",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
@@ -113,6 +116,7 @@
       "tests": [
         "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue withdraws pending fanout after another recipient delivery",
         "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp::Process pushed regional TSO retraction notifies delivered nonconstrained recipient and suppresses constrained fanout",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
