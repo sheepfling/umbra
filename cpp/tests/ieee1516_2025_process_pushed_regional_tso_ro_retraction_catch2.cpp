@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -50,7 +53,11 @@ struct InteractionReport final {
 class RecordingFederate final : public NullFederateAmbassador {
  public:
   void timeRegulationEnabled(LogicalTime const&) override {
-    ++regulationEnabled;
+    {
+      std::scoped_lock lock(mutex_);
+      ++regulationEnabled_;
+    }
+    callbackChanged_.notify_all();
   }
 
   void receiveInteraction(
@@ -84,27 +91,81 @@ class RecordingFederate final : public NullFederateAmbassador {
     if (retraction != nullptr) {
       report.retraction = *retraction;
     }
-    interactions.push_back(std::move(report));
+    {
+      std::scoped_lock lock(mutex_);
+      interactions_.push_back(std::move(report));
+    }
+    callbackChanged_.notify_all();
   }
 
   void requestRetraction(MessageRetractionHandle const& retraction) override {
-    retractions.push_back(retraction);
+    {
+      std::scoped_lock lock(mutex_);
+      retractions_.push_back(retraction);
+    }
+    callbackChanged_.notify_all();
   }
 
-  unsigned regulationEnabled = 0U;
-  std::vector<InteractionReport> interactions;
-  std::vector<MessageRetractionHandle> retractions;
+  [[nodiscard]] unsigned regulationEnabledCount() const {
+    std::scoped_lock lock(mutex_);
+    return regulationEnabled_;
+  }
+
+  [[nodiscard]] std::vector<InteractionReport> interactionReports() const {
+    std::scoped_lock lock(mutex_);
+    return interactions_;
+  }
+
+  [[nodiscard]] std::vector<MessageRetractionHandle> retractionReports() const {
+    std::scoped_lock lock(mutex_);
+    return retractions_;
+  }
+
+  void waitForCallbackChange(std::chrono::milliseconds timeout) {
+    std::unique_lock lock(mutex_);
+    callbackChanged_.wait_for(lock, timeout);
+  }
+
+ private:
+  mutable std::mutex mutex_;
+  std::condition_variable callbackChanged_;
+  unsigned regulationEnabled_ = 0U;
+  std::vector<InteractionReport> interactions_;
+  std::vector<MessageRetractionHandle> retractions_;
 };
 
 template <typename Predicate>
-void evokeUntil(RTIambassador& rti, Predicate ready) {
+void callbackUntil(
+    RTIambassador& rti,
+    CallbackModel callbackModel,
+    RecordingFederate& reports,
+    Predicate ready) {
   for (unsigned attempt = 0U; attempt != 40U && !ready(); ++attempt) {
-    static_cast<void>(rti.evokeCallback(0.05));
+    if (callbackModel == HLA_EVOKED) {
+      static_cast<void>(rti.evokeCallback(0.05));
+    } else {
+      reports.waitForCallbackChange(std::chrono::milliseconds(50));
+    }
   }
   REQUIRE(ready());
 }
 
-void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
+void drainCallbacks(
+    RTIambassador& rti,
+    CallbackModel callbackModel,
+    RecordingFederate& reports) {
+  for (unsigned attempt = 0U; attempt != 4U; ++attempt) {
+    if (callbackModel == HLA_EVOKED) {
+      static_cast<void>(rti.evokeCallback(0.02));
+    } else {
+      reports.waitForCallbackChange(std::chrono::milliseconds(20));
+    }
+  }
+}
+
+void verifyPushedRegionalTsoRoRetraction(
+    bool inspectDeliveryLedger,
+    CallbackModel callbackModel) {
   umbra::detail::EmbeddedFederationRegistry registry;
   umbra::detail::ProcessFederationServiceOptions options;
   options.pushReceiveOrderEvents = true;
@@ -131,12 +192,12 @@ void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
   constexpr wchar_t const* parameterName = L"TimelinessOk";
   constexpr wchar_t const* dimensionName = L"ServerId";
 
-  REQUIRE(sender->connect(senderReports, HLA_EVOKED, configuration).addressUsed);
+  REQUIRE(sender->connect(senderReports, callbackModel, configuration).addressUsed);
   REQUIRE_NOTHROW(sender->createFederationExecution(federation, L"server-owned-fom.xml"));
   auto const senderHandle = sender->joinFederationExecution(
       L"regional-push-sender", L"publisher", federation);
   REQUIRE(senderHandle.isValid());
-  REQUIRE(receiver->connect(receiverReports, HLA_EVOKED, configuration).addressUsed);
+  REQUIRE(receiver->connect(receiverReports, callbackModel, configuration).addressUsed);
   auto const receiverHandle = receiver->joinFederationExecution(
       L"regional-push-receiver", L"subscriber", federation);
   REQUIRE(receiverHandle.isValid());
@@ -161,7 +222,11 @@ void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
   REQUIRE_NOTHROW(receiver->subscribeInteractionClassWithRegions(
       receiverClass, RegionHandleSet{subscriptionRegion}, true));
   REQUIRE_NOTHROW(sender->enableTimeRegulation(HLAinteger64Interval(1)));
-  evokeUntil(*sender, [&] { return senderReports.regulationEnabled == 1U; });
+  callbackUntil(
+      *sender,
+      callbackModel,
+      senderReports,
+      [&] { return senderReports.regulationEnabledCount() == 1U; });
 
   std::array<std::uint8_t, 2> const valueBytes{0x31U, 0x32U};
   std::array<std::uint8_t, 2> const preTagBytes{0x50U, 0x31U};
@@ -176,12 +241,16 @@ void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
   REQUIRE(beforeAdmission.isValid());
   // The push frame precedes this response on the receiver's connection.
   REQUIRE(receiver->getInteractionClassHandle(className) == receiverClass);
-  bool pending = false;
-  for (unsigned attempt = 0U; attempt != 40U && !pending; ++attempt) {
-    pending = receiver->evokeCallback(0.05);
+  if (callbackModel == HLA_EVOKED) {
+    bool pending = false;
+    for (unsigned attempt = 0U; attempt != 40U && !pending; ++attempt) {
+      pending = receiver->evokeCallback(0.05);
+    }
+    REQUIRE(pending);
+  } else {
+    // The service-call round-trip above is the event fence in immediate mode.
+    REQUIRE(receiverReports.interactionReports().empty());
   }
-  REQUIRE(pending);
-  REQUIRE(receiverReports.interactions.empty());
   if (inspectDeliveryLedger) {
     auto const receiverId =
         umbra_binding_detail::federateHandleValue(receiverHandle);
@@ -197,18 +266,21 @@ void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
   REQUIRE_NOTHROW(sender->retract(beforeAdmission));
   REQUIRE(receiver->getInteractionClassHandle(className) == receiverClass);
   REQUIRE_NOTHROW(receiver->enableCallbacks());
-  for (unsigned attempt = 0U; attempt != 4U; ++attempt) {
-    static_cast<void>(receiver->evokeCallback(0.02));
-  }
-  REQUIRE(receiverReports.interactions.empty());
+  drainCallbacks(*receiver, callbackModel, receiverReports);
+  REQUIRE(receiverReports.interactionReports().empty());
 
   auto const afterAdmission = sender->sendInteractionWithRegions(
       senderClass, parameters, RegionHandleSet{sourceRegion},
       VariableLengthData(postTagBytes.data(), postTagBytes.size()), HLAinteger64Time(6));
   REQUIRE(afterAdmission.isValid());
-  evokeUntil(*receiver, [&] { return !receiverReports.interactions.empty(); });
-  REQUIRE(receiverReports.interactions.size() == 1U);
-  auto const& delivered = receiverReports.interactions.front();
+  callbackUntil(
+      *receiver,
+      callbackModel,
+      receiverReports,
+      [&] { return receiverReports.interactionReports().size() == 1U; });
+  auto const interactionReports = receiverReports.interactionReports();
+  REQUIRE(interactionReports.size() == 1U);
+  auto const& delivered = interactionReports.front();
   REQUIRE(delivered.interaction == receiverClass);
   REQUIRE(delivered.parameterCount == 1U);
   REQUIRE(delivered.parameter == receiverParameter);
@@ -238,19 +310,16 @@ void verifyPushedRegionalTsoRoRetraction(bool inspectDeliveryLedger) {
   }
   REQUIRE_NOTHROW(sender->retract(afterAdmission));
   auto const hasAfterAdmissionRetraction = [&] {
-    return std::find(receiverReports.retractions.begin(),
-                     receiverReports.retractions.end(),
-                     afterAdmission) != receiverReports.retractions.end();
+    auto const retractions = receiverReports.retractionReports();
+    return std::find(retractions.begin(), retractions.end(), afterAdmission) !=
+        retractions.end();
   };
-  evokeUntil(*receiver, hasAfterAdmissionRetraction);
+  callbackUntil(*receiver, callbackModel, receiverReports, hasAfterAdmissionRetraction);
   REQUIRE(receiver->getInteractionClassHandle(className) == receiverClass);
-  for (unsigned attempt = 0U; attempt != 4U; ++attempt) {
-    static_cast<void>(receiver->evokeCallback(0.02));
-  }
-  REQUIRE(std::count(receiverReports.retractions.begin(),
-                     receiverReports.retractions.end(),
-                     afterAdmission) == 1);
-  REQUIRE(receiverReports.interactions.size() == 1U);
+  drainCallbacks(*receiver, callbackModel, receiverReports);
+  auto const retractions = receiverReports.retractionReports();
+  REQUIRE(std::count(retractions.begin(), retractions.end(), afterAdmission) == 1);
+  REQUIRE(receiverReports.interactionReports().size() == 1U);
 
   REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
       receiverClass, RegionHandleSet{subscriptionRegion}));
@@ -276,14 +345,19 @@ TEST_CASE(
     "[rti.service.enable-time-regulation][rti.service.disable-callbacks]"
     "[rti.service.enable-callbacks][rti.service.evoke-callback]"
     "[federate.callback.receive-interaction][federate.callback.request-retraction]") {
-  verifyPushedRegionalTsoRoRetraction(false);
+  SECTION("HLA_EVOKED") {
+    verifyPushedRegionalTsoRoRetraction(false, HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyPushedRegionalTsoRoRetraction(false, HLA_IMMEDIATE);
+  }
 }
 
 TEST_CASE(
     "Private process push reserves regional TSO-to-RO interaction delivery",
     "[unit][internal-only][no-normative-mapping][2025][process-boundary]"
     "[process-pushed-regional-tso-ro-delivery-ledger]") {
-  verifyPushedRegionalTsoRoRetraction(true);
+  verifyPushedRegionalTsoRoRetraction(true, HLA_EVOKED);
 }
 
 #endif
