@@ -1,0 +1,633 @@
+{
+  "title": "IEEE 1516.1-2025 GitHub Mermaid Render Audit",
+  "schema_version": 1,
+  "audit_date": "2026-11-07",
+  "hosted_branch": "feature/initial-work",
+  "hosted_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+  "scope": "Historical Chromium inspection of the previously published feature/initial-work pages. Current-candidate source links and GFM parsing are recorded separately; the unpublished candidate still needs browser inspection after publication.",
+  "summary": {
+    "guides_checked": 32,
+    "http_200": 31,
+    "http_404": 1,
+    "hosted_diagrams": 340,
+    "rendered": 339,
+    "failed": 1,
+    "pending": 0,
+    "fully_rendered_pages": 30
+  },
+  "current_worktree": {
+    "head_revision": "e6321e842f333427349166df8c5b35350a2ae473",
+    "guide_count": 32,
+    "diagram_count": 490,
+    "local_rendered_diagrams": 490,
+    "local_screenshot_reviewed_diagrams": 490,
+    "time_management_guide_lines": 2535,
+    "hosted_time_guide_lines": 1279,
+    "candidate_matches_hosted": false,
+    "new_mom_reports_guide_present_locally": true,
+    "new_mom_reports_guide_hosted_status": 404,
+    "mermaid_compatibility_scan": {
+      "guide_count": 32,
+      "mermaid_fences": 490,
+      "unclosed_fences": 0,
+      "sequence_diagrams": 180,
+      "sequence_message_labels_with_semicolon": 0,
+      "scope": "Static scan of arrow/message lines inside current Mermaid sequenceDiagram blocks for a semicolon after the message separator. This supplements local rendering; it does not substitute for GitHub rendering."
+    }
+  },
+  "authenticated_markdown_api_candidate": {
+    "checked_at": "2026-11-07",
+    "method": "Authenticated GitHub POST /markdown with mode=gfm and context=sheepfling/umbra. Full 34-page pass after citation cleanup; the roadmap page was rechecked after the final handoff edit.",
+    "markdown_pages_checked": 34,
+    "guide_pages_checked": 32,
+    "source_mermaid_fences": 490,
+    "github_mermaid_render_containers": 490,
+    "heading_elements": 930,
+    "rendered_links": 7381,
+    "api_failures_or_diagram_count_mismatches": 0,
+    "scope_note": "All current guide fences and both supporting Markdown pages returned non-empty GFM; all 490 Mermaid fences emitted render containers. This confirms GFM parsing and container registration, not browser hydration into visible diagrams or rendered file-page links on the unpublished candidate branch.",
+    "excluded_large_index": {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES.md",
+      "reason": "The Markdown API rejects inputs over 400 KB. Its destinations remain covered by local link checks."
+    }
+  },
+  "candidate_source_links": {
+    "worktree_resolved": 4192,
+    "references_checked": 4192,
+    "head_unresolved_references": 0,
+    "head_unresolved_targets": 0,
+    "hosted_unresolved_references": 0,
+    "hosted_unresolved_targets": 0,
+    "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473"
+  },
+  "failure_summary": [
+    {
+      "path": "docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md",
+      "heading": "FQR with HLA_EVOKED: transport-arrival boundary is profile policy",
+      "current_worktree_equivalent": "The current worktree message label says 'TSO at 9, no TSO at 12'; the hosted baseline uses a semicolon in the sequence label and fails GitHub Mermaid parsing.",
+      "disposition": "Keep as a candidate fix; verify after the current guide is published."
+    }
+  ],
+  "scope_note": "The hosted Chromium counts below describe the old feature/initial-work page snapshot. The current unpublished candidate has a 40-path docs-only selection, passes 4,192 source-line references against its hosted base, and has 490/490 Mermaid containers in the authenticated GFM API. Published page rendering and visible Mermaid hydration remain pending.",
+  "guides": [
+    {
+      "path": "docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Attribute Ownership: Flow Guide",
+      "file_lines": 1755,
+      "diagram_count": 25,
+      "rendered_count": 25,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Attribute Scope Advisory: Flow Guide",
+      "file_lines": 323,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Attribute Update-Rate Admission Flow Guide",
+      "file_lines": 306,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 attribute-value update request flow guide",
+      "file_lines": 1061,
+      "diagram_count": 12,
+      "rendered_count": 12,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-AUTHORIZATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Authorization and Credentials Flow",
+      "file_lines": 331,
+      "diagram_count": 5,
+      "rendered_count": 5,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Auto Provide: Flow Guide",
+      "file_lines": 322,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Callback and Service Ordering",
+      "file_lines": 1307,
+      "diagram_count": 18,
+      "rendered_count": 18,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Connect, Disconnect, and Configuration",
+      "file_lines": 350,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 2025: A Cross-Cutting Model of State, Events, and Observation",
+      "file_lines": 941,
+      "diagram_count": 13,
+      "rendered_count": 13,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Data Distribution Management and Regions: Flow Guide",
+      "file_lines": 1898,
+      "diagram_count": 23,
+      "rendered_count": 23,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 C++ DataElement Encoding: Flow Guide",
+      "file_lines": 555,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Delay Subscription Evaluation Flow Guide",
+      "file_lines": 364,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Directed Interaction Flow Guide",
+      "file_lines": 637,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Exception-Reporting Flow Guide",
+      "file_lines": 567,
+      "diagram_count": 7,
+      "rendered_count": 7,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Federation and Federate Lifecycle",
+      "file_lines": 1118,
+      "diagram_count": 15,
+      "rendered_count": 15,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Federation-Scoped MOM Flow Guide",
+      "file_lines": 1121,
+      "diagram_count": 16,
+      "rendered_count": 16,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Federation Save and Restore: Contributor Guide",
+      "file_lines": 1813,
+      "diagram_count": 21,
+      "rendered_count": 21,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Federation Synchronization Points: Contributor Guide",
+      "file_lines": 553,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 FOM Module Admission and Composition: Flow Guide",
+      "file_lines": 890,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Joined-Federate MOM Object: Lifecycle and State Flow Guide",
+      "file_lines": 656,
+      "diagram_count": 9,
+      "rendered_count": 9,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+      "http_status": 404,
+      "page_title": "File not found · GitHub",
+      "heading": null,
+      "file_lines": null,
+      "diagram_count": 0,
+      "rendered_count": 0,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 Names and Handle Resolution",
+      "file_lines": 412,
+      "diagram_count": 7,
+      "rendered_count": 7,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Object and Interaction Information Flow",
+      "file_lines": 2600,
+      "diagram_count": 34,
+      "rendered_count": 34,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "HLA 1516.1-2025 object-attribute subscription state guide",
+      "file_lines": 776,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Object-Instance Name Reservation Flow",
+      "file_lines": 455,
+      "diagram_count": 8,
+      "rendered_count": 8,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Order and Transportation Flow Guide",
+      "file_lines": 468,
+      "diagram_count": 7,
+      "rendered_count": 7,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Ownership Persistence and Resignation: Flow Guide",
+      "file_lines": 335,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Process Endpoint: Request and Callback Flow",
+      "file_lines": 1100,
+      "diagram_count": 14,
+      "rendered_count": 14,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Declaration and Attribute Relevance Advisory Flow Guide",
+      "file_lines": 327,
+      "diagram_count": 4,
+      "rendered_count": 4,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Service Invocation Reporting: Contributor Flow Guide",
+      "file_lines": 727,
+      "diagram_count": 11,
+      "rendered_count": 11,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    },
+    {
+      "path": "docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 Time Management: Contributor Guide",
+      "file_lines": 1279,
+      "diagram_count": 16,
+      "rendered_count": 15,
+      "failed_count": 1,
+      "pending_count": 0,
+      "failed_diagrams": [
+        {
+          "heading": "FQR with HLA_EVOKED: transport-arrival boundary is profile policy",
+          "error_excerpt": "Unable to render rich display\n\nParse error on line 22:\n...tamp 12 is retracted Dispatcher-->>Rec\n-----------------------^\nExpecting '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIREC",
+          "source": "sequenceDiagram\n  autonumber\n  actor Receiver as Evoked receiver application\n  participant RRTI as Receiver RTI\n  participant Dispatcher as Embedded grant dispatcher\n  participant Queue as Federation TSO queue\n  actor Publisher as Publisher application\n  participant PRTI as Publisher RTI\n\n  Receiver->>RRTI: flushQueueRequest(10)\n  RRTI->>Dispatcher: Accept FQR and queue its grant callback\n  Note over Receiver,Queue: No timestamped callback or FQG has run yet\n  Publisher->>PRTI: sendInteraction(timestamp=9)\n  PRTI->>Queue: Enqueue recipient TSO payload at 9\n  Publisher->>PRTI: sendInteraction(timestamp=12)\n  PRTI->>Queue: Enqueue recipient TSO payload at 12\n  Publisher->>PRTI: retract(timestamp=12)\n  PRTI->>Queue: Retire recipient payload at 12\n  Receiver->>RRTI: evokeCallback()\n  RRTI->>Dispatcher: Start the pending FQR grant callback\n  Dispatcher->>Queue: Extract current recipient payloads through final time\n  Queue-->>Dispatcher: TSO at 9; timestamp 12 is retracted\n  Dispatcher-->>Receiver: receiveInteraction(timestamp=9)\n  Dispatcher-->>Receiver: flushQueueGrant(actual=5, optimistic=9)\n"
+        }
+      ]
+    },
+    {
+      "path": "docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/initial-work/docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md",
+      "http_status": 200,
+      "page_title": "umbra/docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md at feature/initial-work · sheepfling/umbra · GitHub",
+      "heading": "IEEE 1516.1-2025 TSO Retraction Flow Guide",
+      "file_lines": 999,
+      "diagram_count": 11,
+      "rendered_count": 11,
+      "failed_count": 0,
+      "pending_count": 0,
+      "failed_diagrams": []
+    }
+  ],
+  "publication_boundary": {
+    "scope": "This documentation goal does not edit or publish changes to the HLA Requirements Lab.",
+    "plan_path": "compliance/requirements-lab/catch2-test-plan.json",
+    "finding": "The five current-only test sources remain outside the docs-only selection. Guides identify their assertions as current-worktree-only evidence in plain text; there are no Markdown links to those five paths. This preserves the evidence limit without pulling the test sources or plan into the documentation candidate.",
+    "sources": [
+      "cpp/tests/fom_handle_allocator_catch2.cpp",
+      "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+      "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+      "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+      "cpp/tests/tls_socket_catch2.cpp"
+    ],
+    "verification": {
+      "worktree_plan_entries_found": true,
+      "head_plan_entries_found": false,
+      "source_files_at_candidate_base": false,
+      "guide_markdown_links_to_these_sources": 0
+    },
+    "candidate_disposition": "Keep all five paths and the Requirements Lab plan outside the selected 40 documentation paths. Their assertions remain explicitly labeled current-worktree-only."
+  },
+  "candidate_scope_review": {
+    "reviewed_at": "2026-11-07",
+    "candidate_documentation_paths": 40,
+    "candidate_non_documentation_paths_present_but_excluded": 48,
+    "selected_non_documentation_paths": 0,
+    "excluded_breakdown": {
+      "source_test_catalog_targets": 43,
+      "fom_fixture_targets": 4,
+      "documentation_link_checker": 1
+    },
+    "requirements_lab_paths_in_selected_candidate": 0,
+    "changed_2010_paths": 0,
+    "current_only_test_sources_without_markdown_links": [
+      "cpp/tests/fom_handle_allocator_catch2.cpp",
+      "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+      "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+      "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+      "cpp/tests/tls_socket_catch2.cpp"
+    ],
+    "source_line_link_gate": {
+      "references_checked": 4192,
+      "worktree_unresolved": 0,
+      "candidate_base_unresolved": 0,
+      "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180"
+    },
+    "finding": "The docs-only selection is 40 documentation paths: 32 topic guides and eight support/handoff files. All 4,192 source-line references resolve in the worktree and against the pinned hosted base. The 48 non-documentation changes remain outside the selection and are preserved.",
+    "status": "reconciled; a local commit contains exactly the 40 documentation paths. The 48 unrelated non-documentation changes remain unstaged and preserved. The candidate branch is not published.",
+    "remote_and_primary_check": {
+      "remote_state": {
+        "feature_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+        "candidate_remote_present": false
+      },
+      "primary_worktree_comparison": {
+        "compared_non_documentation_paths": 48,
+        "identical_to_primary_worktree": 47,
+        "different_from_primary_worktree": 1,
+        "missing_from_primary_worktree": 0,
+        "different_path": "compliance/catalogs/cpp-tck-scenario-catalog.json"
+      }
+    },
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_branch_present_remotely": false,
+    "hosted_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "source_line_references_also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473"
+  },
+  "guide_content_coverage_screen": {
+    "checked_at": "2026-11-07",
+    "guide_count": 32,
+    "text_presence_categories": {
+      "normative basis": 32,
+      "state and observation": 32,
+      "edge/failure boundary": 32,
+      "test evidence": 32,
+      "known limits/gaps": 32
+    },
+    "scope_note": "Bounded text-presence screen across guide bodies. It confirms each guide discusses these areas; it is not a substitute for semantic review of standard citations, implementation paths, or test assertions."
+  },
+  "docs_only_citation_cleanup": {
+    "checked_at": "2026-11-07",
+    "guide_set_checked": 34,
+    "current_only_test_sources": 5,
+    "markdown_links_to_current_only_test_sources": 0,
+    "remaining_source_path_line_references": 4192,
+    "unresolved_against_worktree": 0,
+    "unresolved_against_candidate_base": 0,
+    "gfm_api_pages_checked": 34,
+    "gfm_mermaid_fences_and_github_containers": "490/490",
+    "evidence_note": "Current-only source/test assertions remain labeled as worktree-only prose. Candidate Markdown links now resolve against the hosted base without adding C++ sources, test sources, fixtures, catalog entries, or Requirements Lab files."
+  },
+  "previous_candidate_source_link_snapshot": {
+    "worktree_resolved": 4319,
+    "head_unresolved_references": 124,
+    "head_unresolved_targets": 40,
+    "hosted_unresolved_references": 128,
+    "hosted_unresolved_targets": 43
+  },
+  "previous_candidate_scope_review": {
+    "reviewed_at": "2026-11-07",
+    "candidate_non_documentation_paths": 48,
+    "breakdown": {
+      "source_test_catalog_targets": 43,
+      "fom_fixture_targets": 4,
+      "link_checker_script": 1
+    },
+    "requirements_lab_paths_in_candidate": 0,
+    "flagged_test_sources": [
+      "cpp/tests/fom_handle_allocator_catch2.cpp",
+      "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+      "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+      "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+      "cpp/tests/tls_socket_catch2.cpp"
+    ],
+    "finding": "The render audit publication_boundary says to exclude these five current-only test sources, but they are present in the 88-path candidate and are referenced by 22 guide links. The hosted-source dependency inventory includes them among the targets needed for link closure. The candidate is therefore not a documentation-only change set, and the two audit dispositions conflict.",
+    "status": "unresolved; do not publish until the exact candidate path scope is reconciled. Preserve all source and test work in the primary checkout.",
+    "remote_and_primary_check": {
+      "remote_state": {
+        "feature_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+        "candidate_remote_present": false
+      },
+      "primary_worktree_comparison": {
+        "compared_non_documentation_paths": 48,
+        "identical_to_primary_worktree": 47,
+        "different_from_primary_worktree": 1,
+        "missing_from_primary_worktree": 0,
+        "different_path": "compliance/catalogs/cpp-tck-scenario-catalog.json"
+      }
+    }
+  },
+  "previous_name_and_handle_cleanup": {
+    "checked_at": "2026-11-07",
+    "guide": "docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+    "current_only_link_targets_removed": 5,
+    "remaining_source_path_line_references": 4318,
+    "remaining_source_path_line_unresolved": 0,
+    "guide_mermaid_fences_and_github_containers": "10/10",
+    "evidence_note": "Removed Markdown links to the current-only allocator, allocator tests, and dedicated TCK sources/fixture/catalog entry; preserved their assertions as explicit current-worktree-only evidence. No code, test, catalog, fixture, or Requirements Lab files were changed."
+  }
+}

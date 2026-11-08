@@ -142,7 +142,7 @@ disable its own Service Reporting switch, subscribe, and keep the switch off
 until that subscription (including any regional declaration) is removed. The
 inverse order—subscribe first, then enable reporting—is rejected and leaves the
 switch off. This is directly exercised for active/passive and regional forms
-by the [interlock test](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L50).
+by the [interlock test](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L66).
 
 ## A reportable service call selects one destination
 
@@ -230,20 +230,37 @@ The process callback bridge then submits it to the callback dispatcher and
 delivers `receiveInteraction` with an invalid producing-federate handle.
 
 Push delivery is controlled by a private process-server option that defaults
-to pull. When push is enabled, the server sends each selected recipient event
-before it returns the reporting request's response. The receiving client's
-reader buffers pushed events; its independent dispatch loop submits them once
-that client's own service request is no longer in flight. The report writer
-itself is synchronous: if the reporting federate is also a selected recipient,
-its report request drains the buffered event before returning to the public
-service wrapper. `HLA_IMMEDIATE` submission then invokes that reporter's
-callback synchronously, so it can run before the public service returns;
-`HLA_EVOKED` only queues it for a later evoke. A different observer has its own
-reader and dispatch loop, so its `HLA_IMMEDIATE` callback may run before or
-after the reporting federate's public service returns. The server's send-before-
-response order does not define that cross-session callback/return order. These
-are implementation consequences, not normative HLA timing rules, and no
-focused process test currently exercises them.
+to pull. When push is enabled, the server sends a report event to each selected
+observer before it returns the reporting request's response.
+The Service Reporting interlock makes the reporting member ineligible to
+subscribe to this exact interaction while its reporting switch is enabled;
+the registry also rechecks that switch when it reserves the report. Thus every
+recipient of this report is a distinct observer member, never the service's
+reporting subject. The [interlock test](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L66)
+covers ordinary active/passive and regional declarations, and the configured-
+process report helper sets up separate reporter and observer ambassadors
+([reporter switch](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L479),
+[observer subscription](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L749)).
+
+In pull mode, the event is queued in the observer's session; that observer's
+Receive Interaction poll can dequeue it independently of the reporting request.
+In push mode, the server sends the event before the reporting request's response.
+The observer's reader buffers it, and its own in-flight request or background
+dispatch loop later submits it. `HLA_IMMEDIATE` invokes the callback on that
+observer-side submitter thread; `HLA_EVOKED` queues it until that observer calls
+Evoke. These sessions have no shared callback/return ordering boundary: an
+observer callback may run before or after the reporting subject's public
+service returns, depending on the observer's poll, dispatch, and Evoke schedule.
+The report writer is synchronous on the subject's side, but the observer
+callback is not delivered to that subject. These are implementation
+consequences, not normative HLA timing rules.
+
+The focused process report helper invokes the reporting service before it calls
+the observer's explicit `evokeCallback`, so its pull-mode `HLA_EVOKED` case
+shows callback entry after that service call by test sequencing. It does not
+show when the queued event first became available. No focused service-report
+case exercises push delivery or `HLA_IMMEDIATE`, so those cross-session timing
+edges remain source-derived.
 
 Unlike the embedded callback route above, this process path has no
 `HLAreportServiceInvocation` subscription/DDM recheck at poll or callback
@@ -262,70 +279,127 @@ observer with `HLA_EVOKED`, subscribes one observer, invokes `evokeCallback`,
 and checks reliable transportation, the RTI-originated producer marker, the
 reported-member parameter, and the first interaction serial. The server uses
 the default pull-event mode; the report-specific cases do not configure
-`pushReceiveOrderEvents` or `HLA_IMMEDIATE`. They also do not mutate the
-subscription after planning or establish callback arrival relative to the
-reporting service's return. Other process tests exercise generic push delivery,
-but do not establish service-report timing. A separate process concurrency test
-exercises the `HLAreportException` recheck path, not this service-invocation
-route. These are 2025 configured-process source/test boundaries, not normative
-HLA behavior.
+`pushReceiveOrderEvents` or `HLA_IMMEDIATE` and do not mutate the subscription
+after planning. Other process tests exercise generic push delivery, but do not
+establish service-report timing. A separate process concurrency test exercises
+the `HLAreportException` recheck path, not this service-invocation route. These
+are 2025 configured-process source/test boundaries, not normative HLA behavior.
 
 ```mermaid
 flowchart TD
-  A[Process service-report request] --> B[Validate reporting session and joined member]
-  B --> C[Registry selects subject and service-group report route]
-  C --> D{Interaction route?}
-  D -->|No: suppressed or file sink| E[No HLAreportServiceInvocation callback]
-  D -->|Yes| F{Eligible recipient snapshot empty?}
-  F -->|Yes| G[Return without interaction serial reservation]
-  F -->|No| H[Re-plan eligibility and reserve per-reported-member serial]
-  H --> I{Still eligible at reservation?}
-  I -->|No| G
-  I -->|Yes| J[Encode RTI-owned reliable report with HLAfederate and HLAserialNumber]
-  J --> K{Recipient session still mapped to same federation?}
-  K -->|No| L[Skip this recipient]
-  K -->|Yes| M{Private process push option enabled?}
-  M -->|No: default pull| N[Queue for later Receive Interaction poll]
-  N --> O[Client submits callback after poll]
-  M -->|Yes| P[Send event before reporting response]
-  P --> Q[Recipient reader buffers event]
-  Q --> R{Recipient client has a request in flight?}
-  R -->|Yes| S[Drain buffered event after that response]
-  R -->|No| T[Independent dispatch loop submits event]
-  S --> U{Callback model}
-  T --> U
-  O --> U
-  U -->|HLA_EVOKED| V[Queue callback until explicit evoke]
-  U -->|HLA_IMMEDIATE| W[Invoke callback on submitter thread]
-  W --> X{Delivery route?}
-  X -->|Pull poll| Y[Runs inside the later poll, after report response]
-  X -->|Push to reporting client| Z[Can run before the public service returns]
-  X -->|Push to another client| AA[May race with the reporting service return]
-  V --> AB[Observer receiveInteraction; producer handle is invalid]
-  Y --> AB
-  Z --> AB
-  AA --> AB
-  AB --> AC[No service-report subscription/DDM recheck in this path]
+  A[RTI client submits a report request] --> B[Validate request and reporting session]
+  B --> C[Plan from current switches, subscriptions, and DDM]
+  C -->|Service Reporting off| S[Return OK; no record or serial]
+  C -->|File route| R[Re-plan under registry lock and reserve serial]
+  C -->|Interaction route| E{Initial observer snapshot empty?}
+  E -->|Yes| Z[Return OK; no interaction or serial]
+  E -->|No| R
+  R --> D{Authoritative route after recheck?}
+  D -->|File| F[Append through this session's report writer]
+  F -->|Success| G[Return OK; no interaction callback]
+  F -->|Append error| H[Return internal error after serial reservation]
+  D -->|Interaction| I[Encode reliable receive-order report]
+  D -->|Suppressed or no observers| Z
+  I --> J{Private process push option enabled?}
+  J -->|No: default pull| K[Queue in distinct observer session]
+  J -->|Yes| L[Send event to observer before report response]
 ```
 
-The [process report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L223)
+The file branch is process-specific: Join creates and installs a writer for
+the reporting session, and the report handler reserves the member's serial
+before it appends the record. The registry selects the file route when both
+reporting gates are on and increments the member serial during reservation
+([route selection](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L64),
+[serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L178),
+[session-writer append](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L296)).
+A write failure therefore returns an internal error after reservation; the
+source has no rollback for that serial
+([append error response](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L326)).
+Focused process cases expect `RTIinternalError` after the report file is deleted
+or write permission is removed
+([file-loss case](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L2219),
+[permission-change case](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L2398)).
+Those cases end the failed session and do not observe the next serial, so the
+reservation consequence remains source-derived.
+An interaction with no initial observers returns without reserving a serial;
+when observers exist, the registry re-plans before reservation. The source
+steps are implementation behavior, not a normative callback-timing rule.
+
+The timing view below assumes an interaction report with an eligible observer.
+Its two branches show possible cross-session schedules: either the observer
+callback enters first or the reporting subject's public call returns first.
+They are source-derived alternatives, not an HLA ordering rule or an exhaustive
+set of schedules.
+
+```mermaid
+sequenceDiagram
+  participant Subject as Reporting subject
+  participant Server as Process server
+  participant Observer as Distinct observer client
+  participant App as Observer application
+  Note over Subject,Observer: Interlock prevents the subject from subscribing while Service Reporting is enabled.
+  Subject->>Server: Submit report after service outcome
+  Server->>Server: Validate request and reserve report route
+  alt Pull mode
+    Server->>Observer: Queue report in observer session
+  else Push mode
+    Server-->>Observer: Send event before report response
+    Observer->>Observer: Buffer event, then own request or idle dispatch loop submits
+  end
+  alt Observer callback enters first
+    alt Pull mode
+      Observer->>Server: Receive Interaction poll
+      Server-->>Observer: Return queued report
+    else Push mode
+      Observer->>Observer: Submit buffered event
+    end
+    alt HLA_IMMEDIATE
+      Observer->>App: Invoke callback on observer submitter path
+    else HLA_EVOKED
+      Observer->>Observer: Queue callback until explicit Evoke
+      App->>Observer: evokeCallback
+      Observer->>App: Invoke receiveInteraction
+    end
+    Server-->>Subject: Report request response
+    Subject->>Subject: Wrapper resumes and returns
+  else Reporting subject returns first
+    Server-->>Subject: Report response after route processing
+    Subject->>Subject: Wrapper resumes and returns
+    alt Pull mode
+      Observer->>Server: Receive Interaction poll
+      Server-->>Observer: Return queued report
+    else Push mode
+      Observer->>Observer: Submit buffered event
+    end
+    alt HLA_IMMEDIATE
+      Observer->>App: Invoke callback on observer submitter path
+    else HLA_EVOKED
+      Observer->>Observer: Queue callback until explicit Evoke
+      App->>Observer: evokeCallback
+      Observer->>App: Invoke receiveInteraction
+    end
+  end
+```
+
+The [process report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L232)
 calls the shared [recipient planner](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L53)
-and [serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L144).
-Its post-reservation [session check and event queue/send](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L364)
-are followed by the pull path's [direct interaction dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107)
-and the client's [receive-order callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1211).
-The bridge's [separate exception-report projection key](../../cpp/src/internal/federation/process_federation_service_protocol.hpp#L1351)
-and [callback admission check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1282)
+and [serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L148).
+Its post-reservation [session check and event queue/send](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L367)
+are followed by the pull path's [direct interaction dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L123)
+and the client's [receive-order callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332).
+The bridge's [separate exception-report projection key](../../cpp/src/internal/federation/process_federation_service_protocol.hpp#L1374)
+and [callback admission check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1444)
 do not apply to these service-invocation events.
 
-The private [push/pull server option](../../cpp/src/internal/federation/process_federation_service.hpp#L31)
+The private [push/pull server option](../../cpp/src/internal/federation/process_federation_service.hpp#L80)
 defaults to pull. The public regional [Send Interaction With Regions wrapper and
-success-report point](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L581)
+success-report point](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L586)
 calls the [service-report writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L146),
-which makes a synchronous [process report request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L487).
-The [client request path](../../cpp/src/internal/federation/process_federation_client.cpp#L537)
-dispatches buffered pushed events before it returns at [this boundary](../../cpp/src/internal/federation/process_federation_client.cpp#L612);
-an idle recipient is serviced by its separate [client dispatch loop](../../cpp/src/internal/federation/process_federation_client.cpp#L712).
+which makes a synchronous [process report request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L552).
+The [client request path](../../cpp/src/internal/federation/process_federation_client.cpp#L798)
+dispatches buffered pushed events at [this point](../../cpp/src/internal/federation/process_federation_client.cpp#L907)
+before returning at [this boundary](../../cpp/src/internal/federation/process_federation_client.cpp#L927);
+an idle recipient is serviced by its separate [client dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722).
 The callback dispatcher's [immediate submit path](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122)
 invokes the callback on the submitting thread.
 The shared request-backed and background process callback routes are diagrammed
@@ -333,7 +407,7 @@ in the [2025 callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDE
 this report flow applies those routes specifically to MOM report recipients.
 
 The [process regional-send success case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L626)
-uses the [single-observer helper](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L717),
+uses the [single-observer helper](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L36),
 which checks the report serial at [line 1414](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L1414)
 and the invalid producer handle at [line 982](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L982).
 The helper configures both participants as `HLA_EVOKED`, including the [reporter](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L424).
@@ -356,7 +430,7 @@ show a profile-specific boundary:
 - **Configured process:** the early endpoint branch translates a rejected
   process response to `RTIinternalError` and returns from the wrapper before
   its successful-invocation writer; the reviewed branch has no failed-
-  invocation-writer call. The focused process [ordinary-send case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L525)
+  invocation-writer call. The focused process [ordinary-send case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L524)
   covers success only. Some server-side `HLAsetSwitches` rejections—such as a
   malformed payload or a rejected attempt to enable Service Reporting while
   reports are subscribed—can independently emit `HLAreportMOMexception`.
@@ -384,14 +458,14 @@ flowchart TD
   H --> I[Exit before failed-invocation writer]
 ```
 
-The ordinary-send source boundary is visible in the [embedded catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2396)
+The ordinary-send source boundary is visible in the [embedded catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2399)
 and [configured-process early branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L57),
 whose [service-report call follows a successful process response](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L130).
-The [regional process parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L503),
+The [regional process parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L504),
 [region preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L531),
-[focused invalid-region interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L649),
-the [invalid-parameter file-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L691),
-and [invalid-parameter interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L715)
+[focused invalid-region interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L648),
+the [invalid-parameter file-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L690),
+and [invalid-parameter interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L714)
 show the narrower evidence. The malformed-MOM server path is covered separately
 in the [process exception test](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L460).
 These are implementation/profile observations, not a normative distinction
@@ -435,17 +509,17 @@ flowchart TD
   M -->|No| O[Map rejection to RTIinternalError; no service writer]
 ```
 
-The [receive-order parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L503)
+The [receive-order parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L504)
 and [region preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L531),
-[success writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L581),
-and [process-error translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L600)
+[success writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L586),
+and [process-error translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L605)
 show that wrapper boundary. The [timestamped process fast path](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L49)
-is separate from its later [embedded failure writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L442).
-On the server, [interaction planning/rejection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389)
-is shared by the [regional operation handler](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L631).
+is separate from its later [embedded failure writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L447).
+On the server, [interaction planning/rejection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L79)
+is shared by the [regional operation handler](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L868).
 
-The process report matrix covers [invalid-region](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L649)
-and [invalid-parameter](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L715)
+The process report matrix covers [invalid-region](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L648)
+and [invalid-parameter](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L714)
 preflight reports, not a server-rejected request. The reviewed timestamped
 regional-send report cases are explicitly [embedded file-report](../../cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp#L157)
 and [embedded MOM-report](../../cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp#L90)
@@ -500,8 +574,35 @@ stateDiagram-v2
 
 The file is therefore per joined membership, not per RTI ambassador process or
 per reporting-switch cycle. The focused [embedded file-lifecycle test](../../cpp/tests/ieee1516_2025_service_report_file_lifecycle_catch2.cpp#L4)
-and [process endpoint file cases](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L142)
+and [process endpoint file cases](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L154)
 cover distinct paths; they should not be read as one shared file implementation.
+
+The configured-process endpoint has a separate per-session writer. Its Join
+handler creates the writer, installs the report path in the joined-federate
+MOM state, and stores the writer in the session before replying successfully
+([allocation and MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L738),
+[session installation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L805)).
+The process switch-cycle case turns each gate off and back on, checks that
+disabled intervals add no invocation records, and keeps the same file path
+([switch-cycle case](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L368),
+[file-sink cycle](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L577),
+[master-switch cycle](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L589),
+[stable path assertion](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L598)).
+A separate process MOM case toggles only the file switch, explicitly requests
+the stable path, then rejoins under the same federate name and observes a new
+MOM object with a different absolute path while the earlier file remains
+unchanged
+([file switch](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L481),
+[explicit request](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L486),
+[new path on rejoin](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L548),
+[prior file preserved](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L555)).
+These are complementary evidence slices: the rejoin case does not exercise
+invocation appends or serial continuation, and the switch-cycle case does not
+rejoin. Keep both process paths separate from the embedded state machine above.
+
+For the difference between the Join-time path and the MIM's
+`HLAreportServiceFile` Conditional update trigger, see the
+[Federation MOM source/MIM comparison](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#report-file-condition-and-join-time-value).
 
 ## A failed report append leaves Exception Reporting enabled
 
@@ -513,9 +614,9 @@ work. It then appends that setter's successful service-invocation record. If
 the append fails, the public call reports `RTIinternalError`, but Exception
 Reporting remains `true`; the Service Reporting switch is not the value being
 changed by this call. The focused injected-writer test is written to assert
-that state, but its current local run failed during
+that state, but a previously recorded local run failed during
 `createFederationExecution` at test line 148, before reaching the switch or
-append-failure assertions:
+append-failure assertions. This documentation review did not rerun it:
 
 ```mermaid
 sequenceDiagram
@@ -677,8 +778,8 @@ sequenceDiagram
 ```
 
 The successful append-before-callback route is encoded by the focused
-embedded test, but its current local run failed during
-`createFederationExecution` (test line 521), before reaching those assertions.
+embedded test, but a previously recorded local run failed during
+`createFederationExecution` (test line 521), before reaching those assertions. This documentation review did not rerun it.
 The error branch is source-only: no cited test injects a writer failure
 specifically during `ConnectionLost`. In HLA_IMMEDIATE mode callback submission
 may invoke inline; HLA_EVOKED leaves it for an Evoke service. These diagrams do
@@ -689,17 +790,18 @@ exception, and it does not describe 2010 or the process endpoint.
 
 | Concern | Umbra implementation | Focused evidence |
 | --- | --- | --- |
-| Service Reporting switch and join/leave boundary | [Public switch services](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp#L74), [registry state transition](../../cpp/src/internal/federation/federation_registry_control_state.cpp#L315) | [switch/subscription interlock](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L50) |
-| Ordinary, passive, and regional report-service subscriptions | [Exact subscription predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L464) | [interlock scenarios](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L82) |
-| Subject, sink, and eligible observer planning | [routing plan](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L52), [serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L143) | [service-report interaction scenario](../../cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp#L42) |
-| Success/failure service report writing | [report writers](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L131) | [master-switch suppression despite file switch on](../../cpp/tests/ieee1516_2025_service_report_disabled_suppression_integration_catch2.cpp#L6) |
-| Embedded switch commit before selected file append | [switch service and post-append MOM enqueue](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp#L219), [best-effort exception hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184), [exception-report switch and recipient planning](../../cpp/src/internal/federation/federation_registry.cpp#L1661) | [injected append failure keeps switch enabled](../../cpp/tests/service_report_writer_failure_catch2.cpp#L133); the test body asserts the thrown RTI error and getter value, but the current local run failed during federation creation before those assertions; no MOM projection or exception-report callback is asserted |
-| Timestamped Update Attribute Values queue/report boundary | [embedded timestamped wrapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L369), [TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L687), [post-report accounting and callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L714), [registry queue commit](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L427), [exception/failure-report catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L790) | [time-regulated MOM ordering](../../cpp/tests/ieee1516_2025_time_regulated_timestamped_update_attribute_values_service_report_mom_catch2.cpp#L5) and [file-report before reflection](../../cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp#L5) cover successful paths. The injected writer-failure case covers a different service; no cited test covers this combined failure schedule |
-| Embedded ConnectionLost final file report | [registry reserves the final file serial before erasing the member](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1069), [adapter appends, defers error, completes cleanup, and raises afterward](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L306), [transport failure handler propagation](../../cpp/src/internal/federation/embedded_transport.cpp#L28), [file writer append boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L335) | [embedded record-before-ConnectionLost-callback case](../../cpp/tests/ieee1516_2025_service_report_catch2.cpp#L503) encodes the successful file route but did not reach its callback assertions in the current local run; no cited test injects a failed append during ConnectionLost or establishes process/embedded parity |
-| RTI-originated receive-order callback and callback-time recheck | [interaction callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L276) | [report precedes directed callback](../../cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp#L114); that case does not mutate the subscription between planning and delivery |
-| Embedded per-membership file creation and final lifetime | [join/report setup](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L631) | [embedded immutable file lifetime](../../cpp/tests/ieee1516_2025_service_report_file_lifecycle_catch2.cpp#L4) |
-| Process endpoint selection and file lifetime | [process report handling delegated from the writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L140) | [independent process files](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L142), [file path across switch cycles](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L356), [failed process reports through interaction](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L42) |
-| Process report-recipient snapshot and callback boundary | [process report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L223), [pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1211) | [regional-send success report](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L626), [observer and serial assertions](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L717) — one pull-mode `HLA_EVOKED` observer; no post-plan subscription mutation, push-mode, or `HLA_IMMEDIATE` report test. |
+| Service Reporting switch and join/leave boundary | [Public switch services](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp#L74), [registry state transition](../../cpp/src/internal/federation/federation_registry_control_state.cpp#L316) | [switch/subscription interlock](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L66) |
+| Ordinary, passive, and regional report-service subscriptions | [Exact subscription predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L564) | [interlock scenarios](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L66) |
+| Subject, sink, and eligible observer planning | [routing plan](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L53), [serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L148) | [service-report interaction scenario](../../cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp#L5) |
+| Success/failure service report writing | [report writers](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L132) | [master-switch suppression despite file switch on](../../cpp/tests/ieee1516_2025_service_report_disabled_suppression_integration_catch2.cpp#L6) |
+| Embedded switch commit before selected file append | [switch service and post-append MOM enqueue](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp#L219), [best-effort exception hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L225), [exception-report switch and recipient planning](../../cpp/src/internal/federation/federation_registry.cpp#L1894) | [injected append failure keeps switch enabled](../../cpp/tests/service_report_writer_failure_catch2.cpp#L132); the test body asserts the thrown RTI error and getter value, but a previously recorded local run failed during federation creation before those assertions; this documentation review did not rerun it. No MOM projection or exception-report callback is asserted |
+| Timestamped Update Attribute Values queue/report boundary | [embedded timestamped wrapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L373), [TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L699), [report append](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L727), [post-report accounting/callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L734), [registry queue commit](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L453), [exception/failure-report catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L815) | [time-regulated MOM ordering](../../cpp/tests/ieee1516_2025_time_regulated_timestamped_update_attribute_values_service_report_mom_catch2.cpp#L5) and [file-report before reflection](../../cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp#L5) cover successful paths. The injected writer-failure case covers a different service; no cited test covers this combined failure schedule |
+| Embedded ConnectionLost final file report | [registry reserves the final file serial before erasing the member](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1090), [adapter appends and defers an error](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L306), [post-cleanup error raise](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L462), [transport failure handler propagation](../../cpp/src/internal/federation/embedded_transport.cpp#L46), [file writer append boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L322) | [embedded record-before-ConnectionLost-callback case](../../cpp/tests/ieee1516_2025_service_report_catch2.cpp#L503) encodes the successful file route but did not reach its callback assertions in a previously recorded local run; this documentation review did not rerun it. No cited test injects a failed append during ConnectionLost or establishes process/embedded parity |
+| RTI-originated receive-order callback and callback-time recheck | [interaction callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L227) | [report precedes directed callback](../../cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp#L118); that case does not mutate the subscription between planning and delivery |
+| Embedded per-membership file creation and final lifetime | [join/report setup](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L613) | [embedded immutable file lifetime](../../cpp/tests/ieee1516_2025_service_report_file_lifecycle_catch2.cpp#L4) |
+| Process file route and append response | [switch-based route](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L64), [serial increment](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L178), [session-writer append](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L296), [append error response](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L326) | [append failure after file loss](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L2219), [append failure after permission change](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L2398) |
+| Process file path, switch cycles, and rejoin | [process Join writer creation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L738), [session installation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L805) | [independent files](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L154), [path and append gates across switch cycles](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L368), [new path after rejoin](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L499) |
+| Process report-recipient snapshot and callback boundary | [report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L232), [switch interlock](../../cpp/src/internal/federation/federation_registry_control_state.cpp#L330), [subscription interlock](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L551), [pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L123), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332) | [interlock test](../../cpp/tests/mom_service_reporting_interlock_catch2.cpp#L66), [regional-send success report](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L626), [separate reporter/observer setup](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L424), [serial assertion](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L1414) — the helper invokes the service before explicit observer Evoke; no post-plan subscription mutation, push-mode, or `HLA_IMMEDIATE` report timing test. |
 
 These are selected implementation and integration scenarios. A passing case
 does not establish complete service coverage, every regional boundary, or

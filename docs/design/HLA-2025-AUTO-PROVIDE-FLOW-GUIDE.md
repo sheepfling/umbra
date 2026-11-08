@@ -27,8 +27,8 @@ as the standards starting point and consult the standard for normative rules.
 | Path | Trigger and recipient | Payload or result | Key distinction |
 | --- | --- | --- | --- |
 | Auto Provide | A receiver newly discovers an object; each current owner of relevant in-scope attributes may receive a provider callback. | Object, that provider's attribute subset, and an empty tag in the current automatic path. | RTI-triggered solicitation; no application request tag initiated it. |
-| Explicit Request Attribute Value Update | A federate invokes the service for an ordinary provider-backed object, class, or regional scope; eligible providers may receive the request callback. | The caller-supplied request tag is carried to providers. | A separate service; Auto Provide's switch and callback-time fence must not be applied to it by assumption. The joined-federate MOM object has a direct-reflection exception below. |
-| Explicit request for an RTI-owned `HLAfederate` MOM object | A federate requests selected values from the joined-federate MOM instance. | The RTI directly reflects its current MOM values. | This special object path does not invoke a provider callback; it is neither Auto Provide nor the ordinary provider-backed request flow. See the [attribute-value update request guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#special-case-rti-owned-mom-objects). |
+| Explicit Request Attribute Value Update | A federate invokes the service for an ordinary provider-backed object, class, or regional scope; eligible providers may receive the request callback. | The caller-supplied request tag is carried to providers. | A separate service; Auto Provide's switch and callback-time fence must not be applied to it by assumption. RTI-owned MOM requests follow a direct-reflection path below. |
+| Explicit request for RTI-owned MOM values | A federate requests selected current values from a known `HLAmanager.HLAfederation` or `HLAmanager.HLAfederate` object. | The RTI directly reflects the selected current values to the requester. | No provider callback is solicited; this is neither Auto Provide nor an automatic Conditional update. The embedded `HLAcurrentFDD` request is documented in the [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#the-effective-model-mom-projections-and-module-reports-are-different-views). The configured-process handler calls a shared MOM planner ([handler](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L40), [planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L459), [federation-object value projection](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L630)); its focused request case covers joined-federate `HLAreportServiceFile` only ([request guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#special-case-rti-owned-mom-objects)). No focused process `HLAcurrentFDD` request case was found, so this route is source-backed rather than process-test-observed. |
 | Initial attribute reflection | A receiver discovers an object and eligible values already exist in RTI state. | `reflectAttributeValues` carries values available to the RTI. | In the embedded ordinary path this is separate from Auto Provide planning. The current process source also plans ordinary selected values on a new discovery; a focused public test source asserts this for a late subscription, but this documentation review did not run it. The RTI-owned `HLAfederate` path remains a distinct snapshot-based route. Neither reflection is provider solicitation, and neither establishes process Auto Provide. See the [joined-federate MOM guide](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#separate-2025-process-endpoint-evidence), the [ordinary process late-subscription boundary](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#process-late-subscription-path-same-selectors-an-unresolved-initial-value-edge), and the [initial-state versus DSE pending-send comparison](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#a-subscription-can-be-late-relative-to-two-different-events). |
 | Attributes In/Out Of Scope | A known receiver/object/attribute changes scope. | Scope callback with an attribute set. | It reports scope, not a request for current values. See the [scope-advisory guide](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md). |
 | Attribute relevance advisory | A known object's attribute relevance or effective update-rate designator changes. | The current owner may receive Turn Updates On/Off. | It reports changed demand; unlike Auto Provide, it does not solicit current values. See the [relevance-advisory guide](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md). |
@@ -69,11 +69,13 @@ The API declarations establish the operation surfaces and arguments, not the
 discovery trigger, complete provider eligibility rules, or callback ordering.
 The Auto Provide trigger and empty automatic tag below are current embedded
 profile findings; process-profile automatic discovery planning remains
-unverified. The explicit-request tag handoff and separate provider response
-are backed by the focused embedded object-request cases cited later. The API
-also exposes a class-request overload, but that case is not represented as
-tested behavior here. For the complete explicit request-scope, provider
-projection, callback, response, and save/restore discussion, see the separate
+unverified. Focused embedded object-instance and object-class request cases
+both assert that the caller's tag reaches the provider callback. The class
+case expands to two registered subclass objects for one provider; it does not
+test splitting one object's requested attributes across multiple providers.
+These explicit-request results do not establish Auto Provide behavior. For the
+complete explicit request-scope, provider projection, callback, response, and
+save/restore discussion, see the separate
 [attribute-value update request guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md).
 
 `requestAttributeValueUpdate` and `provideAttributeValueUpdate` exchange a
@@ -181,7 +183,7 @@ source-observed, not a universal callback-order claim. The [initial-value
 test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180)
 covers a value written before the receiver subscribes, but it does not test
 the combined initial-reflection/Auto-Provide sequence; see the
-[embedded discovery path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L379).
+[embedded discovery path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L449).
 
 ## Plan once, revalidate at provider callback entry
 
@@ -195,21 +197,38 @@ requests use their own pending-request path and should not be silently folded
 into this rule.
 
 ~~~mermaid
-flowchart TD
-  A[Object is newly discovered by receiver] --> B{Auto Provide switch enabled?}
-  B -->|No| C[Keep normal discovery; plan no provider callback]
-  B -->|Yes| D[Collect current owners of receiver's in-scope attributes]
-  D --> E{Any eligible owner/attribute groups?}
-  E -->|No| F[No Provide Attribute Value Update callback]
-  E -->|Yes| G[Queue one grouped solicitation per provider and object]
-  G --> H{At provider callback entry: switch still on?}
-  H -->|No| I[Consume stale Auto Provide work]
-  H -->|Yes| J{Object, provider membership, and receiver scope still eligible?}
-  J -->|No| I
-  J -->|Yes| K[Invoke provider callback with the current eligible subset and empty tag]
-  K --> L{Does provider call Update Attribute Values?}
-  L -->|No| M[No value response is implied]
-  L -->|Yes| N[Run independent ownership, DDM, order, and time delivery checks]
+sequenceDiagram
+  participant Receiver
+  participant RTI as 2025 RTI / registry
+  participant Provider
+  RTI->>Receiver: Discover newly visible object
+  Receiver-->>RTI: Discovery callback returns with current subscription/region state
+  alt Auto Provide switch is disabled
+    RTI->>RTI: Keep discovery, queue no provider callback
+  else Auto Provide switch is enabled
+    RTI->>RTI: Group currently in-scope attributes by current owner
+    alt No eligible owner/attribute group
+      RTI->>RTI: Queue no provider callback
+    else At least one eligible group
+      RTI->>RTI: Queue one solicitation per provider and object
+      RTI->>RTI: Recheck switch, object, membership, and receiver scope at callback entry
+      alt Recheck fails
+        RTI->>RTI: Consume stale Auto Provide work
+      else Recheck passes
+        RTI->>Provider: Provide Attribute Value Update(current eligible subset, empty tag)
+      end
+    end
+  end
+~~~
+
+This chart ends at the provider callback. The provider chooses whether to
+respond; any response is a later, independent update service:
+
+~~~mermaid
+flowchart LR
+  A[Provide Attribute Value Update callback] --> B{Provider calls Update Attribute Values?}
+  B -->|No| C[No value response is implied]
+  B -->|Yes| D[Apply independent ownership, DDM, order, and time delivery checks]
 ~~~
 
 Two timing edges are worth keeping separate:
@@ -232,27 +251,28 @@ solicitation work.
 
 | Concern | Source or test evidence | Bounded observation |
 | --- | --- | --- |
-| Explicit request tag and provider response tag are distinct | [Embedded object-request case](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L94); [embedded provider-response case](../../cpp/tests/attribute_value_update_response_catch2.cpp#L130); [process class-request case](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400) | The embedded cases distinguish the caller's request tag at `provideAttributeValueUpdate` from the later response tag at `updateAttributeValues`. The process case requests one attribute for two registered objects from a single provider and observes two callbacks, one per object, each with the caller's tag. That is explicit Request Attribute Value Update evidence—not discovery-triggered Auto Provide or ordinary initial reflection. It does not establish same-object multi-provider fan-out or process Auto Provide. |
-| FDD-seeded switch and discovery-triggered plan | [Membership initialization](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L121); [registry planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L17); [embedded discovery callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L424) | Switch is read before planning; current owned, in-scope attributes are grouped by provider. |
-| Initial reflection is separate from provider solicitation | [Embedded ordinary initial-reflection path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L379); [embedded initial-value case](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180); [process ordinary-value planning](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90); [process late-subscription test source](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652); [process HLAfederate selected-value case](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L359) | Embedded and current process source both have ordinary initial-value paths, through different lifecycle boundaries. The process test source asserts selected stored values for a newly discovered ordinary object, but this documentation review did not run it. The MOM test separately observes selected `HLAfederateName` and `HLAreportServiceFile` values for its RTI-owned instance. None of these tests Auto Provide, and the combined Auto Provide sequence remains untested. |
+| Explicit request tag and provider response tag are distinct | [Embedded object-request tag assertion](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L168); [embedded class-request tag assertion](../../cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp#L188); [embedded provider-response case](../../cpp/tests/attribute_value_update_response_catch2.cpp#L130); [process class-request case](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400) | The embedded object and class cases assert the caller's request tag at `provideAttributeValueUpdate`; the class case expands to two registered subclass objects for one provider. The separate embedded response case distinguishes that solicitation tag from the later `updateAttributeValues` tag. The process case also observes two callbacks, one per registered object, with the caller's tag. These are explicit Request Attribute Value Update results—not discovery-triggered Auto Provide or ordinary initial reflection. They do not establish same-object multi-provider fan-out or process Auto Provide. |
+| FDD-seeded switch and discovery-triggered plan | [Membership initialization](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L125); [registry planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L17); [embedded discovery callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L454) | Switch is read before planning; current owned, in-scope attributes are grouped by provider. |
+| Initial reflection is separate from provider solicitation | [Embedded ordinary initial-reflection path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L396); [embedded initial-value case](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180); [process ordinary-value planning](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90); [process late-subscription test source](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652); [process HLAfederate selected-value case](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L359) | Embedded and current process source both have ordinary initial-value paths, through different lifecycle boundaries. The process test source asserts selected stored values for a newly discovered ordinary object, but this documentation review did not run it. The MOM test separately observes selected `HLAfederateName` and `HLAreportServiceFile` values for its RTI-owned instance. None of these tests Auto Provide, and the combined Auto Provide sequence remains untested. |
 | Default enabled path, grouping, and mandatory empty automatic tag | [Embedded baseline](../../cpp/tests/auto_provide_baseline_catch2.cpp#L84) | Discovery and provider solicitation are distinct callbacks; the provider receives the object's owned attribute set and zero-length tag. |
 | Disabled switch does not block discovery | [Disabled baseline](../../cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp#L84), [HLA_EVOKED setup](../../cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp#L97), [discovery assertion](../../cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp#L126), [no-provider assertion](../../cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp#L128) | In this embedded HLA_EVOKED fixture, the receiver becomes aware of the object while the owner records no provider callback. It does not provide a disabled-baseline case under HLA_IMMEDIATE or in the configured-process profile. |
 | Regional scope and change during discovery | [Regional overlap case](../../cpp/tests/regional_auto_provide_overlap_catch2.cpp#L120) | Initial overlap solicits; moving the receiver out of overlap inside discovery suppresses the stale solicitation without undoing discovery. |
-| Later scope-in for an already-known object | [Post-discovery planner callsite](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L432); [planner definition](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L17) | The inspected embedded call graph enters Auto Provide from discovery, not from later scope mutation. No focused test directly verifies this no-retry edge; do not generalize it to the standard or process profile. |
+| Later scope-in for an already-known object | [Post-discovery planner callsite](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L454); [planner definition](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L17) | The inspected embedded call graph enters Auto Provide from discovery, not from later scope mutation. No focused test directly verifies this no-retry edge; do not generalize it to the standard or process profile. |
 | Separate providers and queued switch mutation | [Two-provider switch case](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L203), [switch-off during first provider callback](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L467), [suppression assertions](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L496), [switch re-enable](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L525), [fresh-discovery assertions](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L536), [both callback-model sections](../../cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp#L585); [multi-provider case](../../cpp/tests/regional_auto_provide_multi_provider_catch2.cpp#L193) | Provider attributes are split by current owner; the test disables the federation-wide switch from the first provider callback, then verifies the queued second solicitation is suppressed and the first response remains reflected. After re-enabling, a fresh discovery solicits again. This tests callback-time fencing under both callback models; it is distinct from the disabled-before-discovery baseline above. |
-| Switch mutation through the 2025 MOM | [Embedded HLAsetSwitches path](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_controls.cpp#L559); [MOM test](../../cpp/tests/auto_provide_mom_catch2.cpp#L120) | A member changes the shared HLAautoProvide setting and all members observe it. |
-| Process discovery delivery (not automatic provider solicitation) | [Process subscription-to-discovery handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L226); [process discovery service](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L54); [ordinary initial-value planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90); [public discovery callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L610); [embedded planner call site](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L432) | A successful process subscription replans existing-instance discoveries, then the service commits known-object state and emits discovery events. Ordinary discoveries can plan initial relevance advisories and selected current-value events; the RTI-owned MOM branch derives values from its separate snapshot. The public ordinary late-subscription test source asserts a selected-value reflection but was not run in this documentation pass. The scanned `planAutoProvideForDiscovery` call site remains embedded-only; these initial reflections are not provider solicitation. |
-| Process HLAautoProvide switch handling | [Process switch handler](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L162); [focused process switch case](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L904); [server-side registry assertions](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L951) | The handler decodes the predefined parameter and updates the federation-wide switch. The case sends `false` and then `true` through public `HLAsetSwitches`; its server-side fixture verifies the registry value is `true` after Join, `false` after the first adjustment, and `true` after re-enabling. It does not exercise the public switch getter, arrange object discovery, or assert a `provideAttributeValueUpdate` callback. |
-| Callback-time switch, scope, membership, and ownership fence | [Provider projection recheck](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L547); [provider/owner projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L436); [provider callback adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1590) | Auto Provide work is revalidated immediately before provider code; explicit pending requests take a separate path. |
+| Switch mutation through the 2025 MOM | [Embedded HLAsetSwitches path](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_controls.cpp#L593); [MOM test](../../cpp/tests/auto_provide_mom_catch2.cpp#L120) | A member changes the shared HLAautoProvide setting and all members observe it. |
+| Process discovery delivery (not automatic provider solicitation) | [Process subscription-to-discovery handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L226); [process discovery service](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L54); [ordinary initial-value planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90); [public discovery callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L610); [embedded planner call site](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L454) | A successful process subscription replans existing-instance discoveries, then the service commits known-object state and emits discovery events. Ordinary discoveries can plan initial relevance advisories and selected current-value events; the RTI-owned MOM branch derives values from its separate snapshot. The public ordinary late-subscription test source asserts a selected-value reflection, but its receiver records discovery/reflection only and does not assert provider solicitation or its absence; this documentation review did not run the test. The scanned `planAutoProvideForDiscovery` call site remains embedded-only. Initial reflection does not establish process Auto Provide. |
+| Process HLAautoProvide switch handling | [Process switch handler](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L319); [focused process switch case](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L917); [server-side registry assertions](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L964) | The handler decodes the predefined parameter and updates the federation-wide switch. The case sends `false` and then `true` through public `HLAsetSwitches`; its server-side fixture verifies the registry value is `true` after Join, `false` after the first adjustment, and `true` after re-enabling. It does not exercise the public switch getter, arrange object discovery, or assert a `provideAttributeValueUpdate` callback. |
+| Callback-time switch, scope, membership, and ownership fence | [Provider projection recheck](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L723); [provider/owner projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L535); [provider callback adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1758) | Auto Provide work is revalidated immediately before provider code; explicit pending requests take a separate path. |
 | Timestamped admission edge | [Regional timestamped switch test](../../cpp/tests/regional_auto_provide_timestamped_switch_admission_catch2.cpp#L212) | This test adds a timestamped regional admission scenario; it is not a substitute for the full time-management/retraction guides. |
 
 The cited Auto Provide scenarios are embedded-profile tests, including both
 HLA_EVOKED and HLA_IMMEDIATE in their relevant cases. The bounded process
 source trace commits discovery state, emits a discovery event, and ultimately
 delivers `discoverObjectInstance`; its separate RTI-owned MOM branch plans
-initial values. A source call-site scan found `planAutoProvideForDiscovery`
-only on the embedded callback route. The focused process HLAsetSwitches case
-sends the public switch adjustments and checks the federation registry's
+initial values. A bounded call-site search of `cpp/src/internal` found
+`planAutoProvideForDiscovery` only on the embedded callback route. The focused
+process HLAsetSwitches case sends the public switch adjustments and checks the
+federation registry's
 stored value from its server-side test fixture; it does not exercise the public
 switch getter, object discovery, or a provider callback. No focused process
 Auto Provide solicitation test was found. Treat automatic
@@ -272,6 +292,18 @@ inspected process chain, `HLAsetSwitches(HLAautoProvide)` updates shared switch
 state independently, and no `planAutoProvideForDiscovery` call connects that
 discovery route to provider solicitation. This is a bounded source observation,
 not a normative omission or an embedded/process parity claim.
+
+The inspected seam is visible in the [process subscription planner](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L234)
+and [discovery enqueue path](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11):
+the discovery worker calls [`beginObjectInstanceDiscovery`](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L64),
+creates a discovery event, and plans ordinary initial reflections separately
+([event creation](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L82),
+[initial-value planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L92)).
+The scanned [`planAutoProvideForDiscovery` callsite](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L449)
+is on the embedded discovery callback route. In the process profile,
+[`HLAsetSwitches` updates the shared switch](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L319),
+and the [focused process switch case](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L917)
+checks that state without arranging discovery or asserting a provider callback.
 
 ~~~mermaid
 flowchart TD
@@ -314,9 +346,8 @@ flowchart TD
 - The pinned API and tests here are IEEE 1516.1-2025. The separate
   [2010 reference-RTI guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md) remains a
   distinct profile; no shared behavior is claimed.
-- The three current diagrams were rendered and visually reviewed in VS Code's
-  Markdown Preview on 2026-10-11. The switch chart now limits the state diagram
-  to initialization and switch transitions, with discovery effects in an
-  adjacent table; the discovery sequence includes the separate initial-
-  reflection step. The wide sequence and tall eligibility flow remain readable
-  while scrolling. GitHub's post-publication rendering is still unverified.
+- The first three diagrams were rendered and visually reviewed in VS Code's
+  Markdown Preview on 2026-10-11. The configured-process discovery chart added
+  on 2026-10-21 was rendered with Mermaid CLI 12.0.0 and screenshot-inspected
+  locally on 2026-11-03; it is readable without clipping or overlap. GitHub's
+  post-publication rendering is still unverified.

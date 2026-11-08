@@ -191,6 +191,60 @@ An RTI-internal inconsistency while calculating or applying the operation can
 produce `RTIinternalError`; the table is not an exhaustive catalogue of every
 failure path.
 
+### Disable Time Regulation temporarily blocks Retract while the designator remains live
+
+The pinned 2025 API lists `TimeRegulationIsNotEnabled` for `RTIambassador::retract`
+([§8.22 declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1371)).
+Umbra's embedded interaction case and configured-process attribute case show
+what happens across that role change: a rejected call during the disabled
+interval does not apply a retraction or consume the designator. After the
+`Time Regulation Enabled` callback, the same handle can be used again if the
+time boundary and message state still allow it.
+
+```mermaid
+sequenceDiagram
+  actor P as Producer
+  participant R as Umbra RTI
+  participant C as Time-constrained recipient
+  Note over P,C: These two cases keep C before the message timestamp
+  P->>R: Send timestamped interaction or attribute update at T=5
+  R-->>P: Return live MessageRetractionHandle H
+  Note over R,C: Accepted TSO copy remains queued at C
+  P->>R: Disable Time Regulation
+  P->>R: Retract(H)
+  R-->>P: TimeRegulationIsNotEnabled
+  Note over P,R: No retraction is applied and H remains usable later
+  P->>R: Enable Time Regulation
+  R-->>P: Time Regulation Enabled callback
+  Note over P,R: The HLA_EVOKED cases drain this callback before retrying
+  P->>R: Retract(H)
+  alt Boundary and message state still allow retraction
+    R-->>P: Retract succeeds
+    R-->>C: Withdraw pending TSO copy and suppress reflection
+    P->>R: Retract(H) again
+    R-->>P: MessageCanNoLongerBeRetracted
+  else Time boundary has passed the retraction limit
+    R-->>P: MessageCanNoLongerBeRetracted
+  end
+```
+
+The [embedded interaction case](../../cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp#L257)
+and [configured-process attribute case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_reenable_catch2.cpp#L459)
+exercise the same disable/re-enable lifecycle with different timestamped
+service families. The process case also checks that `retraction.toString()`
+is unchanged across the failed call and re-enable. Both keep the recipient's
+copy pending; they do not establish the delivered-recipient path, which is
+covered separately under Request Retraction. They are focused Umbra 2025
+observations, not evidence for every timestamped service or every profile.
+
+After re-enable, Retract still has to satisfy the strict §8.22.3 time boundary
+described above. Re-enabling restores the service precondition; it does not
+guarantee that the message remains retractable. For the recipient-side grant
+effect of a queued message surviving producer Disable Time Regulation, see the
+[time-management example](HLA-2025-TIME-MANAGEMENT-GUIDE.md#one-queued-tso-still-limits-an-undefined-galt-grant).
+For the classification of future sends, see the
+[order-control cross-review](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md#disable-time-regulation-is-a-separate-input-to-future-send-interaction-classification).
+
 ### Why retracting can unblock someone else's grant
 
 The federation time coordinator may be waiting for the timestamp of a queued
@@ -226,15 +280,14 @@ sequenceDiagram
   participant TARA as TARA receiver
   participant NMRA as NMRA receiver
 
-  Note over Producer,RTI: Source [0,2) overlaps each [1,3) subscription, lookahead = 5
+  Note over Producer,RTI: Source [0,2) overlaps each [1,3) subscription, L=5
   Producer->>RTI: UpdateAttributeValues(t=8)
   RTI-->>Producer: Return designator
   FQR->>RTI: FQR(10)
   TARA->>RTI: TARA(7)
   NMRA->>RTI: NMRA(7)
-  Producer->>RTI: TAR(2)
-  Note over Producer,RTI: HLA_EVOKED callbacks remain undrained, tested producer frontier is 7
-  Producer->>RTI: Retract(designator), frontier 7 is strictly less than 8
+  Producer->>RTI: TAR(2), producer frontier = 7
+  Producer->>RTI: Retract(designator), boundary 7 before T=8
   RTI->>RTI: Withdraw pending regional work
   Producer->>RTI: Retract(same designator)
   RTI-->>Producer: Throws MessageCanNoLongerBeRetracted
@@ -247,7 +300,7 @@ sequenceDiagram
   RTI-->>TARA: Time Advance Grant(7)
   NMRA->>NMRA: evokeCallback()
   RTI-->>NMRA: Time Advance Grant(7)
-  Note over FQR,NMRA: No Reflect Attribute Values callback reaches any receiver
+  Note over FQR,NMRA: No receiver gets a Reflect Attribute Values callback
 ```
 
 The focused test body asserts that the first Retract succeeds, repeating it
@@ -325,14 +378,13 @@ sequenceDiagram
   participant RTI as Embedded RTI
   participant R as Receiver R (HLA_EVOKED)
 
-  Note over P,RTI: Focused 2025 test, actual lookahead L=5
-  Note over RTI,R: The test drains HLA_EVOKED callbacks with evokeCallback
+  Note over P,R: Focused HLA_EVOKED test, callbacks explicitly evoked, L=5
   P->>RTI: Send interaction at T=6
   R->>RTI: TAR(6)
   P->>RTI: Retract the T=6 designator before delivery
   RTI-->>P: Accepted, withdraw pending recipient entry
   P->>RTI: TAR(2)
-  Note over RTI,R: Receiver later grants to 6 with no T=6 interaction callback
+  Note over RTI,R: Later grant to 6, no T=6 interaction callback
 
   P->>RTI: Send interaction at T=7
   R->>RTI: TAR(7)
@@ -340,28 +392,28 @@ sequenceDiagram
   RTI-->>R: ReceiveInteraction at T=7
   RTI-->>R: TimeAdvanceGrant(7)
   P->>RTI: Retract the delivered T=7 designator
-  Note over P,RTI: 2+5=7, equality does not satisfy the strict boundary
+  Note over P,RTI: 2+5=7, equality fails the strict boundary
   RTI-->>P: MessageCanNoLongerBeRetracted
-  Note over RTI,R: No Request Retraction follows the rejected service
+  Note over RTI,R: Rejected Retract sends no Request Retraction
 
   P->>RTI: Send interaction at T=8
   R->>RTI: TAR(8)
   P->>RTI: TAR(3)
   RTI-->>R: ReceiveInteraction at T=8
   P->>RTI: Retract the delivered T=8 designator
-  Note over P,RTI: 3+5=8, equality is again too late
+  Note over P,RTI: 3+5=8, equality fails again
   RTI-->>P: MessageCanNoLongerBeRetracted
 
   P->>RTI: Send interaction at T=9
   R->>RTI: FlushQueueRequest(9)
   RTI-->>R: ReceiveInteraction at T=9
   P->>RTI: Retract the delivered T=9 designator
-  Note over P,RTI: Current or pending TAR time is 3 plus L=5, which is less than T=9
+  Note over P,RTI: Current or pending TAR time + L = 8 < T=9
   RTI-->>P: Accepted
   RTI-->>R: Request Retraction for the delivered interaction
 ```
 
-The [focused test](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L150)
+The [focused test](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L153)
 checks the pre-delivery withdrawal at T=6, callback order across the T=6/T=7
 requests, rejection at the T=7 and T=8 boundaries, and successful post-delivery
 retraction at T=9. Its dedicated target was freshly rebuilt and the elevated-
@@ -370,7 +422,7 @@ filesystem CTest passes all 61 assertions. The sandboxed failure was traced to
 not to a retraction assertion. Umbra computes the boundary from
 current or pending request time plus actual lookahead ([snapshot and boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L614));
 the registry compares it with strict less-than before processing recipient
-ledger state ([eligibility and ledger](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L132)).
+ledger state ([eligibility and ledger](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L133)).
 The source path is embedded `HLA_EVOKED` behavior only, not evidence of
 process-endpoint, 2010, or every callback-interleaving behavior. The normative
 pointer remains IEEE 1516.1-2025 §8.22.3; consult the licensed clause text for
@@ -417,7 +469,7 @@ focused transfer establish delivery after unrelated receiver state changes.
 
 The embedded registry retains the update's producer identity and a separate
 delivery state for each planned recipient ([enqueue](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L428),
-[producer-bound retraction check](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L114)).
+[producer-bound retraction check](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115)).
 At callback admission it checks the recipient's membership and message-ledger
 state ([callback gate](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L373));
 the delivery path then supplies the stored producer in `reflectAttributeValues`
@@ -451,7 +503,7 @@ attribute ownership: the registry ties it to the original producer and applies
 membership/time/retraction-ledger checks. In the inspected embedded path, the
 [ambassador Retract entry point](../../cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp#L22)
 first requires the caller to remain joined and time-regulating; the registry's
-[producer-bound check](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L114)
+[producer-bound check](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115)
 then checks current membership, that the caller matches the message's recorded
 producer, and the timestamp and retraction-ledger state. That path has no
 current-attribute-owner check, so the source suggests that transfer alone is
@@ -464,6 +516,30 @@ does not include the full §8.22 normative text. The resignation test observes
 a valid designator in the later reflection but does not establish that a
 departed producer can still invoke the service. Process profile behavior is
 not established by these embedded observations.
+
+The combined Restore-then-Resign path has separate one- and two-recipient
+evidence in the Save/Restore guide's [regional AttributeUpdate case](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-a-restored-regional-update-outlives-its-producers-resign).
+Those tests also observe delivery with a valid handle after the producer
+resigns, but do not call `Retract`; they do not extend the separate
+source-resignation service-outcome test to a restored, regional payload.
+
+### Regional interaction delivery can outlive the producer's Retract eligibility
+
+The explicit-source interaction counterpart is the embedded
+[queued regional interaction source-resignation case](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#a-queued-regional-interaction-survives-source-resignation).
+It delivers the already-accepted interaction to its surviving recipient after
+the producer resigns, while the producer's retraction record becomes terminal.
+The callback still contains a `MessageRetractionHandle` whose `isValid()` is
+true; the test then observes `FederateNotExecutionMember` when the departed
+producer invokes `Retract`. A handle object's validity and the producer's
+current membership are separate checks. This case does not exercise
+`Request Retraction`, because it does not successfully invoke `Retract`.
+
+The [Save/Restore interaction case](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-a-saved-regional-tso-interaction-becomes-live-again)
+has a different transition: restoring the earlier image revives its saved live
+retraction record, and the still-joined publisher can later retract the
+original designator. Do not read that restoration result as a consequence of
+source resignation.
 
 ## Service-specific effects: deletion is special
 
@@ -523,6 +599,88 @@ allow it through the later gate, subject to current eligibility. Query callbacks
 are different: their federation-level identity remains absent, so restoring the
 object snapshot does not make the old query closure resolvable. These are source
 traces, not observed public outcomes or process-endpoint behavior.
+
+For the corresponding producer and receiver results from
+`getObjectInstanceName` and `getObjectInstanceHandle`, see the [Name/Handle
+guide's timestamped-deletion lookup comparison](HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#timestamped-deletion-splits-producer-and-receiver-lookup-boundaries).
+
+Restore and Resign are separate paths through this deletion state. The
+[Save/Restore guide's queued-delete case](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-queued-timestamped-object-deletion-returns-after-fresh-registry-restore)
+shows a pending time-9 deletion and its retraction data rebound to the restored
+object and current recipient routes. Its separate
+[restored-delete retraction case](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-retracting-a-restored-deletion-after-one-recipient-receives-it)
+then observes Request Retraction for the receiver that saw Remove, suppression
+of the still-pending receiver copy, and restored object lookup. These are
+embedded fresh-registry tests within one process, not OS-process restart or
+configured-process evidence. Voluntary Resign instead ends the departing
+member's membership and applies a selected cleanup action; see the Lifecycle
+guide's [`ResignAction` effects](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#resignaction-effects-in-the-current-implementation).
+
+### Disable Time Constrained separates known-object removal from the Remove callback
+
+When a constrained receiver disables its role with a timestamped deletion queued,
+the embedded path removes that receiver's known-object entry during the queue drain.
+The receive-order `removeObjectInstance` task reaches the deletion commit gate later.
+Those are separate transitions: Disable changes receiver knowledge, while the later
+gate decides whether this recipient's deletion is still pending or has been accepted.
+
+```mermaid
+flowchart TD
+  A["Timestamped Delete accepted<br/>receiver knows object and is time constrained"] --> B["Receiver disables Time Constrained"]
+  B --> C["Drain queued TSO as receive-order work"]
+  C --> D["Erase receiver's known-object entry now"]
+  D --> E["Queue receive-order Remove task"]
+  E --> F{"Which registry transition wins?"}
+  F -->|Producer's legal Retract first| G["Cancel pending removal;<br/>restore this joined receiver's prior known-object entry"]
+  G --> H["Later Remove task fails its pending-delete gate and is suppressed"]
+  F -->|Remove task reaches its gate first| I["Mark recipient delivered;<br/>commit deletion and invalidate pending object work"]
+  I --> J["Invoke receive-order removeObjectInstance<br/>without timestamp or retraction handle"]
+  I --> K{"Can the producer still legally Retract?"}
+  K -->|Yes| L["Restore the invocation-time object snapshot;<br/>queue Request Retraction for the delivered recipient"]
+  K -->|No| M["The producer's designator has become terminal"]
+```
+
+This chart is an embedded-source trace. A successful Disable erases receiver
+knowledge before the evoked callback task runs, but that erase alone does not
+commit the execution-wide deletion. If a legal producer Retract wins before the
+task's registry gate, the registry cancels the pending deletion and restores the
+receiver's invocation-time knowledge; the already-queued Remove task is then
+suppressed. If the task crosses its gate first, the recipient becomes delivered
+and the deletion is committed before user code. A still-legal Retract follows the
+delivered-recipient restoration path and queues Request Retraction. The producer's
+designator remains governed by its own regulation and timestamp bounds throughout;
+the receiver's Disable call does not itself consume it. After the removal gate,
+the source does not establish whether a concurrent Remove callback or Request
+Retraction becomes observable first.
+
+The embedded source path is the [Disable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L249),
+[queue conversion and known-object erase](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L760),
+[receive-order callback task](../../cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_delivery.cpp#L385),
+[Remove commit gate](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L836),
+and [producer Retract/reconstitution branch](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115).
+
+The configured-process path has a different boundary. Its Disable handler drains
+queued TSO through the process service, which crosses the shared registry Remove
+gate before sending the receive-order event to the client. Client event buffering
+and callback dispatch happen after that server-side gate. Do not move the embedded
+pre-gate Retract branch to the process client's callback-entry point. The reviewed
+process tests do not combine Disable Time Constrained, a queued timestamped Delete,
+and producer Retract, so this guide makes no claim about their combined callback
+order. See the process [Disable handler](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L661)
+and [deletion dispatch before event send](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L246)
+for that earlier server-side gate.
+
+Focused embedded evidence is split across two cases. The [queued-delete Disable
+case](../../cpp/tests/timestamped_object_deletion_retraction_catch2.cpp#L641)
+observes one receive-order removal after Disable. The [re-enable case](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_time_constrained_reenable_catch2.cpp#L5)
+checks that the converted callback has no timestamp or retraction handle and that
+the producer's designator becomes unusable after the producer advances past its
+time bound. Neither case queries receiver knowledge between Disable and callback
+entry or combines Disable with Retract; the early knowledge transition and the
+pre-gate cancellation branch above are source-derived. The process [Disable
+case](../../cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp#L1313)
+covers a queued interaction, not object deletion. For its server-side Remove gate
+and later client event path, see the [configured-process deletion route](#timestamped-object-removal-follows-a-distinct-process-route).
 
 ### Configured-process callback buffers are a separate boundary
 
@@ -591,7 +749,7 @@ that Delete. An already-buffered ownership event is therefore outside those
 deletion-specific sweeps, although its own operation may have another gate.
 The existing [process object callback-gate test](../../cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp#L319)
 checks suppression of a pushed timestamped removal across callback disable,
-Retract, and re-enable. The [process timestamped-delete case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1221)
+Retract, and re-enable. The [process timestamped-delete case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1506)
 and [future-arrival case](../../cpp/tests/ieee1516_2025_connection_process_tso_object_deletion_future_arrival_catch2.cpp#L6)
 cover deletion delivery and time-advance behavior. None combines pending
 ownership-query or ownership-operation callbacks with Delete/Retract, so the
@@ -601,14 +759,14 @@ cross-queue callback outcome remains unverified. Relevant source boundaries:
 [push ownership work enqueue](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12),
 [server Retract queue filtering](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L174),
 [client Retract filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L512), and
-[callback-bridge ownership admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1706).
+[callback-bridge ownership admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1825).
 
-The focused [pending-removal/retraction test](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L68)
+The focused [pending-removal/retraction test](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L6)
 and [delivered-removal/reconstitution test](../../cpp/tests/timestamped_object_deletion_retraction_catch2.cpp#L229)
 do not combine deletion with pending ownership queries or ownership operations,
 and neither arranges the callback-before-versus-after-Retract ordering above.
 Therefore the callback outcome remains unverified. The cited source paths are
-[TSO enqueue and snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L828),
+[TSO enqueue and snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L829),
 [first accepted removal and cleanup](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L779),
 [query-identity cleanup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L43),
 [per-instance ownership state](../../cpp/src/internal/federation/federation_registry.hpp#L2508),
@@ -616,9 +774,9 @@ Therefore the callback outcome remains unverified. The cited source paths are
 [deletion reconstitution](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L230).
 The embedded callback route and representative gates are
 [queued acquisition closures](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L133),
-[regular acquisition gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+[regular acquisition gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L210),
 [assumption callback gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L229), and
-[ownership-query identity lookup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L189).
+[ownership-query identity lookup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L190).
 
 The [ownership guide's accepted-deletion flow](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#accepted-object-deletion-invalidates-pending-ownership-work)
 describes receive-order deletion. Keep its cleanup point distinct from this
@@ -661,36 +819,56 @@ cache differently for attribute updates and ordinary interactions, as
 compared below. Session detachment prunes the cache; producer Resign removes
 cache entries for that producer's own message designators.
 
+#### Attribute route survives receiver Resign
+
+This sequence ends at the server-to-client control event. It follows the
+coordinator-dispatched TSO path; a message still waiting only in the time
+coordinator has not reached this route-cache boundary.
+
 ```mermaid
 sequenceDiagram
     participant P as Producer
     participant S as 2025 process service
-    participant R as Receiver session
+    participant R as Attached receiver session
+
+    P->>S: Send timestamped attribute update at T
+    S-->>P: Return producer-owned designator
+    Note over S,R: Begin after eligible TSO dispatch, not while coordinator-queued
+    S-->>R: Send receive_attribute_update frame
+    S->>S: Cache session after successful send
+    R->>S: Resign
+    S->>S: Clear membership and this session's server queues
+    Note over S,R: Session stays attached in other messages' retraction routes
+    P->>S: Retract while producer remains joined and time regulating
+    S->>S: Apply registry retraction, remove queued copies
+    S-->>R: Send request_retraction using cached route, no membership check
+```
+
+#### Client bridge decides the public callback
+
+The control event reaches the process client later. Whether it becomes a public
+callback depends on the original event's client and bridge state. This client
+boundary is also used by the timestamped object-removal path below.
+
+```mermaid
+sequenceDiagram
     participant C as Process client
     participant B as Callback bridge
 
-    P->>S: Send timestamped attribute update at T
-    S-->>P: Return producer-owned message designator
-    S->>S: Record producer-owned message designator
-    Note over S,R: This trace starts after eligible TSO dispatch, not while the message is only coordinator-queued
-    S-->>R: Send TSO receive_attribute_update event frame
-    S->>S: Cache receiver session after successful send
-    R->>S: Resign after the session route is cached
-    S->>S: Remove federation membership and clear this session's server queues
-    Note over S,R: Federation membership has ended, the transport session remains attached, and Receiver Resign does not prune this session from another message's retraction cache
-    P->>S: Retract while producer remains joined and time regulating
-    S->>S: Apply registry retraction and remove queued message copies
-    S->>S: Drain cached recipient sessions
-    S-->>R: request_retraction event (no receiver-membership check at this send)
-    R->>C: Later client exchange reads and buffers request_retraction
-    C->>C: Keep pending attribute event, enqueue Request Retraction
-    C->>B: Submit Request Retraction message identity
-    alt Tracked original callback has started
-        B->>B: Submit Request Retraction task to the existing dispatcher
-    else No tracked state or original callback has not started
-        B->>B: Suppress Request Retraction, acknowledge suppression when tracked
+    C->>C: Read and buffer request_retraction
+    alt Original event remains in pendingEvents_
+        C->>C: Erase original event, defer its delivery acknowledgement
+    else Original event reached the callback bridge
+        C->>B: Submit Request Retraction identity
+        alt Original callback has started
+            B->>B: Queue Request Retraction on the dispatcher
+        else Tracked original callback has not started
+            B->>B: Suppress both callbacks, acknowledge tracked TSO work if applicable
+        else No per-message state exists
+            B->>B: Suppress public Request Retraction
+        end
     end
-    Note over P,B: Source-supported process route only, post-Resign public outcome is untested
+    Note over C,B: Post-Resign public outcome is source-only and untested
 ```
 
 The process service's recipient cache contains session pointers, not a fresh
@@ -711,6 +889,12 @@ when it has tracked state). The bridge checks its callback session and
 retraction state, not the receiver's current federation membership. Immediate
 versus evoked execution still follows the selected callback model.
 
+Keep this cached-route observation separate from membership cleanup and the
+selected `ResignAction`. The [Lifecycle guide's voluntary-versus-forced exit
+comparison](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#voluntary-resign-and-forced-connectionlost-use-different-entry-contracts)
+explains the distinct Resign and ConnectionLost entry paths; neither path
+establishes that a cached process Request Retraction becomes a public callback.
+
 The source path is not proof that a public callback occurs after receiver
 Resign: the result depends on the exact client/bridge state and has no focused
 process regression test. The [callback-ordering guide's process Resign
@@ -719,15 +903,15 @@ compares the broader buffered-event boundary; do not generalize this route to
 directed interactions or other event families.
 
 Source paths: [attribute coordinator TSO delivery records the route after sending](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L157),
-[attribute send-time dispatch records pull and push recipient sessions](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L291),
-[receiver-Resign queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L28),
-[session detach prunes cached routes](../../cpp/src/internal/federation/process_federation_service.cpp#L61),
+[attribute send-time dispatch records pull and push recipient sessions](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L398),
+[receiver-Resign queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
+[session detach prunes cached routes](../../cpp/src/internal/federation/process_federation_service.cpp#L115),
 [process Retract producer gate](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L77),
 [cached-session frame emission](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L193),
 [the shared recipient ledger](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115),
 [client Resign and joined-identity clearing](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89),
 [Request Retraction event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
-[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L350),
+[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L351),
 and [bridge retraction-state admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1217).
 
 ### Ordinary timestamped interaction comparison
@@ -764,28 +948,185 @@ do not infer a public outcome or an HLA conformance result from the difference.
 | Coordinator-dispatched TSO recipient | Send `receive_attribute_update`, then add the session to the retraction-route cache. | Send `receive_interaction`, then add the session to the same cache. |
 | Send-time recipient that bypasses the coordinator queue | `handleUpdateAttributeValues` records the session for both pushed events and pull-queued attribute events. | `handleSendInteraction` records the session only in its pushed-event branch; its pull branch queues the interaction event without adding the session in this function. This is a source difference, not a tested outcome claim. |
 | Callback-state reservation | Coordinator path reserves before send; pull path reserves when the attribute event is polled. | Coordinator path reserves before send; the inspected send-time pull receive handler has no matching reservation call. |
-| Receiver Resign | Clear joined-session queues and identity; retain this session in other messages' route entries until detach. | Same shared cleanup; no interaction-specific recipient-cache pruning is visible. |
+| Receiver Resign | Clear joined-session queues and identity; retain this session in other messages' route entries until detach. | Remove the session from pending pushed-retraction recipients and clear joined identity/event buffers. Pending attribute Region-copy leases are cleared; pending interaction Region-copy leases are not cleared by this Resign path. |
 | Client receives Request Retraction | Keep a pending attribute event; bridge state decides whether its callback is suppressed or already started. | Erase a still-pending matching interaction and defer acknowledgement; otherwise pass the control event to the bridge. |
 | Focused process evidence | Existing attribute cases exercise retraction before callback observation and fan-out. | The changed-lookahead case observes a coordinator-delivered timestamped interaction with a valid handle, then confirms Retract is too late; it does not test pre-callback retraction, the pull-queued send-time branch, or receiver Resign. |
 
-Sources: [ordinary interaction TSO post-send route insertion](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L297),
+Sources: [ordinary interaction TSO post-send route insertion](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L393),
 [attribute TSO post-send route insertion](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L157),
-[attribute send-time route insertion for pull and push](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L291),
+[attribute send-time route insertion for pull and push](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L398),
 [interaction send-time push-only route insertion](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L608),
 [attribute pull callback reservation](../../cpp/src/internal/federation/process_federation_service.cpp#L160),
 [ordinary interaction pull receive handler](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L37),
 [interaction-versus-attribute client buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
-[interaction bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1128),
-[attribute bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1281),
+[interaction bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332),
+[attribute bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612),
 and the [focused process interaction retraction case](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_regulation_reenable_changed_lookahead_catch2.cpp#L460).
 
+### Directed timestamped interaction: separate dispatch, shared retraction seam
+
+Keep the directed route separate from ordinary `TsoInteractionDelivery`.
+`Send Directed Interaction` creates a `TsoDirectedInteractionMessage` with an
+internal message identity and recipient ledger. When time management releases
+that recipient's queue entry, the process dispatcher resolves the current
+target-aware projection, crosses the registry's interaction-callback gate,
+and sends a `receive_interaction` event carrying that message identity. The
+coordinator entry remains in transit until the recipient acknowledges it.
+The registry gate is earlier than entry into the public callback; the client
+callback bridge keeps a separate per-message state for that later boundary.
+
+On the process Retract route, the server checks that the requesting session
+owns the message and is currently time regulating, applies the strict
+time-plus-lookahead eligibility check, then asks the shared registry to
+retract the queued or unacknowledged in-transit message. A successful result
+removes matching interaction events still buffered on the server and sends
+`request_retraction` to tracked pushed recipients. The client either removes
+the matching event from its own pending-event queue and defers the delivery
+acknowledgment, or passes the retraction event to the callback bridge. The
+bridge exposes public `requestRetraction` only if the original callback has
+started; before that boundary it suppresses the original callback and
+acknowledges the delivery. Normal callback return also reaches the private
+delivery acknowledgment described in the [process TSO delivery
+sequence](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion).
+
+The focused configured-process directed TSO cases exercise delivery to a
+pending NMR/NMRA recipient and assert a valid public retraction handle, but do
+not call Retract. The separate public-endpoint callback-control test uses a
+controlled process server; it exercises client-side pre/post-callback
+retraction handling, not the production process service's registry and
+recipient ledger. No focused test was found that drives a production-service
+directed TSO through Retract while its recipient callback is queued or in
+transit. The behavior below the callback boundary is therefore source-traced,
+not an observed end-to-end result or an HLA-wide callback-order claim.
+
+A separate public process attribute case observes an adjacent TAR sequence:
+the receiver requests TAR(5), the producer queues an update at 5, advances
+only to 2, successfully Retracts, then advances to 5; the receiver observes no
+reflection and receives its grant at 5 after evoking the retracted callback
+work. This is direct evidence for that TAR/pre-callback sequence. It does not
+combine a pending NMR/NMRA's late-arrival retarget with Retract, so it does not
+settle the NMR/NMRA outcome described in the [Time Management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#a-later-retract-removes-tso-work-without-restoring-the-old-target).
+
+The focused public process interaction test uses `ProcessFederationServiceOptions{false}`
+and an `HLA_EVOKED` receiver. It checks Retract before the receiver's poll,
+after the event has been pulled but before callback start, and after the
+interaction callback has started. In the post-poll/pre-start case, neither the
+interaction nor public `requestRetraction` callback runs, and the service later
+receives the private TSO acknowledgment. Its fixture accepts two
+`getInteractionClassHandle` fences before or after that acknowledgment, so the
+test proves eventual acknowledgment but does not establish its order relative
+to those API calls. In the after-start case, the interaction and one
+`requestRetraction` callback are observed; the fixture waits for both the
+callback-start fence and TSO acknowledgment before it issues Retract. A separate
+`pushReceiveOrderEvents=true` receiver-Resign case observes no attribute or
+removal callback after rejoin, but it does not assert TSO acknowledgment
+behavior. These cases cover distinct source paths and do not establish a
+general push/pull ordering rule.
+
+Grant reevaluation is a separate process-service effect. The inspected
+`handleRetract` path does not itself call the grant scheduler. If a delivery
+acknowledgment for the retired in-transit identity arrives later, the
+coordinator reports it as already completed and the acknowledgment handler
+still reevaluates pending grants. An accepted time-advance request also enters
+the scheduler, which checks the pending-grant set. The Time Management guide's
+[retarget-then-Retract flow](HLA-2025-TIME-MANAGEMENT-GUIDE.md#a-later-retract-removes-tso-work-without-restoring-the-old-target)
+shows these source-observed triggers while keeping the combined later
+grant/callback outcome untested.
+
+Sources: [directed service queue admission and recipient routing](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L883),
+[directed message and recipient retraction ledger](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L927),
+[coordinator-dispatched directed payload](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L45),
+[pre-frame registry callback gate](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L96),
+[producer-owned process Retract and pushed-recipient notification](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L77),
+[shared per-recipient retraction state](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115),
+[recipient callback reservation](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L460),
+[client pending-event removal or retraction dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L771),
+[callback-start-aware bridge handling](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1537),
+[directed pending-NMR process case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L1522),
+[directed pending-NMRA process case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L1554),
+[process attribute Retract and subsequent TAR grant](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L712),
+[process interaction retraction across callback entry](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp#L145),
+[push-enabled process Resign before Retract](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp#L654),
+and [controlled-server directed callback/retraction test](../../cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp#L457).
+
 Focused process tests exercise ordinary-member retraction before callback
-observation: the [single-recipient attribute case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L742)
+observation: the [single-recipient attribute case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L741)
 retracts before the receiver polls the update, and the
 [fan-out case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_fanout_catch2.cpp#L968)
 retracts one queued timestamped update across two receivers. Neither resigns a
 receiver between send and Retract or asserts post-Resign `requestRetraction`.
 These test sources were inspected, not run.
+
+### Receiver Resign around a regional interaction callback gate
+
+For a queued regional interaction, distinguish the registry's private TSO
+callback gate from entry into the federate's public callback. The embedded path
+uses the gate immediately before local callback dispatch. The configured-process
+path marks the recipient delivered before sending the `receive_interaction`
+frame, so a callback may still be waiting in the client after the server has
+crossed its gate. The following is an implementation trace, not a normative
+Resign rule.
+
+```mermaid
+flowchart TD
+  Start([Receiver resigns while regional TSO work exists])
+  Start --> Gate{Has this recipient crossed its registry callback gate?}
+
+  Gate -->|No| Unregister[Unregister drops this recipient's time-coordinator queue and in-transit bookkeeping]
+  Unregister --> Reject[The later callback gate rejects the nonmember]
+  Reject --> Ledger[The retraction record may retain a pending recipient entry; a departed member does not pin payload retention]
+
+  Gate -->|Yes, embedded| Embedded[The local dispatch already crossed its gate; focused receiver-Resign evidence does not establish cancellation after this point]
+
+  Gate -->|Yes, process| Delivered[Server marks the recipient delivered before sending receive_interaction]
+  Delivered --> Copy[When region designators are conveyed, create callback Region copies from saved source snapshots and retain a session lease]
+  Copy --> Ack{Does callback acknowledgement complete before Resign cleanup?}
+  Ack -->|Yes| ReleaseAck[The acknowledgement erases the lease and releases the copies]
+  Ack -->|No| Resign[Resign clears joined identity, server event buffers, and the pending retraction-session entry]
+  Resign --> Lease[The Resign path does not erase the pending interaction Region-copy lease]
+  Lease --> LateAck[A post-Resign acknowledgement fails the joined-member/session check]
+  Lease --> RetractCleanup[A successful producer Retract erases the message-keyed lease across session states]
+  Lease --> Detach[Detach clears the lease map; lease destruction releases the copies]
+```
+
+The embedded registry unregisters the federate from the time coordinator,
+which drops its queued, in-transit, and delivered TSO bookkeeping. Its separate
+retraction record is not erased by that operation. After membership is removed,
+the payload-retention predicate counts only pending recipients that remain
+members, and `beginTsoInteractionCallback` rejects a departed receiver. This
+source trace does not establish a public HLA callback outcome for a concurrent
+Resign racing with a gate that has already succeeded.
+
+The configured-process interaction dispatcher calls the registry gate before
+encoding and sending the event. If regional designators are conveyed, it
+retains the callback Region-copy lease by message ID. The Resign handler clears
+the session's joined identity, server-side event buffers, and pending pushed
+Request Retraction recipient entries. Its cleanup currently clears pending
+attribute Region-copy leases but omits
+`pendingTsoInteractionCallbackRegionDesignatorCopies`. The acknowledgement
+handler requires the same joined identity and live membership; the visible
+other cleanup paths are a successful producer `Retract`, which erases that
+message-keyed lease across session states, and session `detach`, which clears
+all outstanding leases. If neither occurs, the lease remains with the attached
+session. This is a source-level Resign-cleanup gap to verify with a focused
+process test, not an HLA rule or an asserted public callback result.
+
+The focused [process callback-gating case](../../cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp#L69)
+and push/retraction case[^worktree-source]
+exercise callback admission and retraction before/after admission, but receiver
+Resign occurs only during cleanup. The embedded [regional TSO case](../../cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp#L5)
+also resigns the receiver during teardown, after its assertions. None tests
+receiver Resign after process dispatch has retained callback Region copies and
+before acknowledgement.
+
+Sources: [time-coordinator unregister and recipient discard](../../cpp/src/internal/time/federation_time_coordinator.cpp#L108),
+[embedded callback gate](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L460),
+[pending-recipient payload rule](../../cpp/src/internal/federation/federation_registry.cpp#L1156),
+[process gate and Region-copy lease](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L299),
+[process Resign cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
+[acknowledgement identity check and lease release](../../cpp/src/internal/federation/process_federation_service.cpp#L153),
+[successful Retract lease cleanup](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L157),
+and [detach cleanup](../../cpp/src/internal/federation/process_federation_service.cpp#L115).
 
 ### Timestamped object removal follows a distinct process route
 
@@ -803,59 +1144,65 @@ Retract legality gate accepts the request. Its optional Resign branch begins
 after that recipient has entered the route cache; it does not describe a
 recipient that resigns while its copy is still waiting in the coordinator.
 
+#### Delivery path creates the cached route
+
+The recipient split is a server-side boundary. Time-constrained recipients
+enter the coordinator queue; push and pull receive-order recipients establish
+their removal and route state through different service paths.
+
 ```mermaid
 sequenceDiagram
     participant P as Producer
     participant S as 2025 process service
-    participant R as Shared 2025 TSO registry
-    participant C as Recipient process client
-    participant B as Callback bridge
+    participant R as Registry
+    participant C as Receiver session
 
     P->>S: deleteObjectInstance(object, tag, T)
-            S->>R: Plan deletion snapshot and recipients, allocate message ID
-    Note over P,S: Public handle requires producer time regulation and HLAprivilegeToDeleteObject order TIMESTAMP
+    S->>R: Plan deletion snapshot/recipients, allocate message ID
+    Note over P,S: Public handle requires regulation and TIMESTAMP delete privilege
 
     alt Time-constrained recipient on retractable timestamped delete
-        R-->>S: Release TSO deletion at recipient delivery frontier
-        S->>R: beginTsoObjectInstanceRemoval(message ID, recipient)
-        S-->>C: Removal event, received order TIMESTAMP
-        S->>S: Cache session after successful event send
+        R-->>S: Release TSO deletion at recipient frontier
+        S->>R: Begin TSO removal(message, recipient)
+        S-->>C: Remove event (TIMESTAMP)
+        S->>S: Cache route after successful send
     else Recipient bypasses the coordinator queue
         alt Push receive-order events
-            S->>R: Begin recipient removal before transport send
-            S->>S: Cache session before sending the removal event
-            S-->>C: Removal event, received order RECEIVE
+            S->>R: Begin removal before transport send
+            S->>S: Cache route before send
+            S-->>C: Remove event (RECEIVE)
         else Pull receive-order events
-            S->>S: Queue removal and cache session at service time
-            C->>S: Poll object-removal event
-            S->>R: Begin recipient removal before returning event
-            S-->>C: Removal result, received order RECEIVE
+            S->>S: Queue removal and cache route at service time
+            C->>S: Poll removal
+            S->>R: Begin removal before returning result
+            S-->>C: Remove result (RECEIVE)
         end
     end
 
-    opt Receiver Resigns while its process session remains attached
+    opt Receiver Resigns while session remains attached
         C->>S: Resign
-        S->>S: Clear joined identity and server-owned event queues
-        Note over S: Keep this session in other retraction routes until Detach
+        S->>S: Clear joined identity and this session's server queues
+        Note over S: Cached route remains until Detach
     end
+```
+
+#### Server Retract sends on the cached route
+
+Once the producer gate accepts Retract, the server applies the deletion-specific
+ledger rule and sends `request_retraction` over the cached session route. The
+client-side pending-event and callback-bridge decisions are shared with the
+[client bridge flow above](#client-bridge-decides-the-public-callback).
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant S as 2025 process service
+    participant C as Receiver client
 
     P->>S: Retract(handle), while the producer gate still accepts it
-    S->>R: Apply deletion-specific pending-cancel or delivered-restore rule
-    S->>S: Erase queued copies and drain cached recipient sessions
-    S-->>C: request_retraction, without a current-member recheck
-
-    alt Removal is still in the client's pending event buffer
-        C->>C: Erase removal event and defer delivery acknowledgement
-    else Removal has reached the callback bridge
-        C->>B: Submit Request Retraction for message ID
-        alt Original removal callback has started
-            B-->>C: Queue public Request Retraction callback
-        else Tracked removal callback has not started
-            B->>B: Suppress both callbacks, acknowledge queued TSO work if applicable
-        else No per-message callback state exists
-            B->>B: Suppress public Request Retraction callback
-        end
-    end
+    S->>S: Apply shared registry's Delete-specific retraction rule
+    S->>S: Erase queued TSO copies, drain cached recipient sessions
+    S-->>C: request_retraction over cached route (no membership recheck)
 ```
 
 The split matters to readers: process-side object removal is not cached by the
@@ -876,21 +1223,23 @@ entries; `detach` does. Therefore the source supports a later transport
 public callback follows depends on the client's buffered event and bridge
 state; no focused process test establishes that post-Resign outcome.
 
-The [focused process delete scenario](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1091)
-covers both callback models, producer regulation, time-constrained recipients,
-preferred receive order, and callback gating. Its assertions cover the
-removal callback and whether a handle is exposed; it does not call `retract`
-or resign the receiver with a cached route. The separate
+The public process Delete [delivery-variation case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1506)
+covers both callback models, producer regulation, queued time-constrained
+recipients, and preferred receive order. A separate [pending-NMRA
+callback-gating case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1500)
+exercises callback disable and re-enable. These cases cover the removal callback
+and whether a handle is exposed; neither calls `retract` or resigns the receiver
+with a cached route. The separate
 [embedded deletion-retraction case](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L6)
 does exercise cancellation before grant and deletion reconstitution, but it is
 not process-endpoint evidence. No 2010 route or parity is inferred.
 
 Sources: [process delete recipient split](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L81),
 [direct removal queue and route-cache insertion](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L12),
-[coordinator-delivered TSO removal](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L170),
+[coordinator-delivered TSO removal](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L172),
 [delete retraction and cached-session notification](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L160),
-[receiver Resign queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L28),
-[Detach route pruning](../../cpp/src/internal/federation/process_federation_service.cpp#L61),
+[receiver Resign queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
+[Detach route pruning](../../cpp/src/internal/federation/process_federation_service.cpp#L115),
 [client removal-event filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
 [callback-bridge retraction admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1217),
 and [removal callback retraction state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1442).
@@ -911,7 +1260,14 @@ The private process TSO completion acknowledgement is a separate recipient
 delivery fence, not a retraction callback or public HLA service. Its
 callback-throws branch and remaining `inTransit` consequences are documented
 in [the process endpoint flow](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion);
-that branch is source-derived and has no focused throwing-callback test.
+that branch is source-derived and has no focused throwing-callback test. For
+timestamped attribute updates, the [grouped callback note](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#grouped-timestamped-attribute-callbacks-share-one-completion-boundary)
+explains how the final projected passel callback becomes the message-level
+completion boundary, including the tested HLA_EVOKED Retract-before-final-
+submission case and the separate source-only after-submission timing branch.
+The [client request-depth note](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#a-completion-ack-waits-only-for-an-active-process-request)
+explains when the private ACK is queued or sent and what the public process
+fan-out test establishes about its order relative to a later TAR.
 
 ## Evidence map
 
@@ -919,14 +1275,14 @@ that branch is source-derived and has no focused throwing-callback test.
 
 - [2025 public Retract service and endpoint split](../../cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp#L22)
 - [Retract current/requested-time plus actual-lookahead boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L613)
-- [Direct Request Retraction callback route and live admission check](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L983)
-- [Per-recipient retraction ledger, pending withdrawal, delivered-recipient notifications, and delete reconstitution](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L114)
+- [Direct Request Retraction callback route and live admission check](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1121)
+- [Per-recipient retraction ledger, pending withdrawal, delivered-recipient notifications, and delete reconstitution](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115)
 - [Process Retract service and process-event cleanup/notification](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L77)
 - [Private per-recipient ledger states](../../cpp/src/internal/federation/federation_registry.hpp#L2203)
 
 ### Focused tests
 
-- [Timestamped Send Interaction: retract before delivery, reject after the time boundary, then Request Retraction after delivery](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L150)
+- [Timestamped Send Interaction: retract before delivery, reject after the time boundary, then Request Retraction after delivery](../../cpp/tests/timestamped_send_interaction_retraction_catch2.cpp#L153)
   — freshly rebuilt dedicated target; elevated-filesystem CTest passes all 61 assertions. The sandboxed failure was
   fixture-path canonicalization access denial.
 - [Regional timestamped attribute update retracted across FQR, TARA, and NMRA](../../cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp#L160)
@@ -943,7 +1299,7 @@ that branch is source-derived and has no focused throwing-callback test.
   captured in this review.
 - [Regional interaction recipient filtering and mixed delivery phases](../../cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp#L4)
 - [Process endpoint cancels a timestamped attribute update before reflection](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L366)
-- [Timestamped deletion reconstitution and pending-removal cancellation](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L5)
+- [Timestamped deletion reconstitution and pending-removal cancellation](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L6)
 - [Deletion/retraction state across save and restore](../../cpp/tests/ieee1516_2025_public_object_deletion_retraction_restore_catch2.cpp#L7)
 
 The root cause of the sandboxed setup failures is identified: the test process
@@ -993,7 +1349,12 @@ restarts preserve the same outcomes.
 - No Requirements Lab rows were edited or added. Documentation and test links
   here are not new requirement mappings or conformance evidence.
 
-Before considering the diagrams visually reviewed, render them with GitHub's
-Markdown/Mermaid renderer or an approved local renderer. Static fence, link,
-and line-anchor checks do not establish that the state, sequence, and
-service-specific diagrams lay out clearly.
+All 16 current diagrams rendered with Mermaid CLI 12.0.0 on 2026-11-06 and
+were visually reviewed as local screenshots. The dense process deletion
+sequences were adjusted to use shorter participant and message labels while
+preserving the timestamped, push, pull, and cached-route distinctions; the
+revised charts remain readable without clipping. This includes the two later
+additions beyond the prior 14-diagram visual note. Local review does not verify
+GitHub's renderer or final page sizing.
+
+[^worktree-source]: This source/test citation refers to a current-worktree change absent from the hosted base and excluded from the documentation-only publication path. See the [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) for its path and line evidence.

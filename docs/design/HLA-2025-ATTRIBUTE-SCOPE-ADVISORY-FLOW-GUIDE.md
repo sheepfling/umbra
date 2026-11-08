@@ -64,6 +64,37 @@ regional declarations have different region rules:
 - Multiple applicable declarations/region pairs are alternatives: one
   matching path is sufficient to keep the attribute in scope.
 
+Keep this receiver-local scope check separate from passive delivery
+eligibility. In the reviewed 2025 registry, this predicate counts the
+receiver's own **active** ordinary subscription
+([ordinary check](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L88))
+or an active regional subscription
+([regional check](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L100)).
+The value-recipient planner separately checks whether an active declaration
+from any other joined member establishes relevance, then can match that
+receiver's own passive declaration and region
+([ordinary recipient check](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L254),
+[regional recipient check](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L323)).
+Consequently, a possible reflection for a passive receiver does not itself
+prove that this scope predicate considered the attribute in scope or planned
+an Attributes In Scope callback. The focused passive tests cover passive-only
+suppression and active transitions, but not a separate active relevance
+establisher plus a passive receiver; see the
+[subscription-state guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#passive-is-not-a-hard-delivery-veto).
+This is an implementation-path distinction, not a complete normative claim.
+
+The subscription-mutation scope planner also has a one-way callback boundary:
+it records a newly in-scope transition, then skips a result that is out of
+scope ([planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L617)).
+So if changing the receiver's last applicable active declaration to passive
+makes this predicate false, the inspected planner does not emit
+`attributesOutOfScope` for that change. The separate owner-relevance planner
+can still emit `turnUpdatesOffForObjectInstance`; an embedded regional test
+observes that active-to-passive owner transition, but does not assert either
+scope callback ([test](../../cpp/tests/regional_declaration_relevance_advisory_catch2.cpp#L402)).
+This callback distinction is source-derived and should not be generalized
+beyond the reviewed subscription-mutation path.
+
 These bullets summarize the current registry predicate, not a complete
 restatement of every normative DDM rule. See
 [the predicate implementation](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L16)
@@ -180,21 +211,33 @@ pushed event is handed across the transport and on to client callback dispatch
 without another registry check visible in the path.
 
 ~~~mermaid
-flowchart TD
-  Plan["Scope transition plan"] --> Filter["Filter planned attributes by current scope and direction"]
-  Filter --> Eligible{"Any eligible attributes remain?"}
-  Eligible -->|No| Drop["Suppress before routing"]
-  Eligible -->|Yes: subset| Mode{"Configured process event path"}
-  Mode -->|Pushed event| Push["Send eligible subset after admission check"]
-  Push --> Client["Client callback pipeline"]
-  Mode -->|Server queue| Queue["Store eligible subset in per-session server queue"]
-  Queue --> Receive["Later process receive_interaction poll"]
-  Receive --> Refilter["Filter queued attributes against current scope again"]
-  Refilter --> Any{"Any eligible attributes remain?"}
-  Any -->|No| Suppress["Consume stale event; continue scanning"]
-  Any -->|Yes: subset| Return["Return current eligible subset"]
-  Return --> Client
-  Client --> Callback["Submit or dispatch scope callback"]
+sequenceDiagram
+  participant Registry as 2025 registry
+  participant Service as Process event service
+  participant Client as Client callback bridge
+  participant App as FederateAmbassador
+  Service->>Registry: Check planned attributes against current scope and direction
+  Registry-->>Service: No attributes or eligible subset
+  alt No attributes remain
+    Service->>Service: Suppress before routing
+  else Eligible subset remains
+    alt Pushed event path
+      Service->>Client: Send eligible subset after admission check
+    else Server queue path
+      Service->>Service: Store eligible subset in session queue
+      Service->>Service: Later receive_interaction poll
+      Service->>Registry: Refilter queued attributes against current scope
+      Registry-->>Service: No attributes or current eligible subset
+      alt No attributes remain
+        Service->>Service: Consume stale event and continue scanning
+      else Current subset remains
+        Service-->>Client: Return current eligible subset
+      end
+    end
+    opt Eligible event reaches client callback pipeline
+      Client->>App: Submit or dispatch scope callback
+    end
+  end
 ~~~
 
 Here, `receive_interaction` is Umbra's private process-protocol poll name, not
@@ -254,7 +297,7 @@ source behavior depends on how far the event has progressed:
 | --- | --- | --- |
 | Embedded callback closure is queued but has not entered the callback | The closure rechecks the switch-dependent registry predicate at callback entry. If the switch is off at that check, the closure returns without invoking the scope callback ([route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1207), [predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12)). | Source-derived; no switch-only pending-callback test. |
 | Process pull event remains in the server session queue | The setter changes registry state but does not purge the queue ([setter](../../cpp/src/internal/federation/process_federation_service_ddm_switches.cpp#L39), [session queue](../../cpp/src/internal/federation/process_federation_service.hpp#L149)). A later receive poll removes the event and rechecks eligibility ([receive recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L157)): while still disabled it is suppressed; if re-enabled before that poll, it may be reconsidered if the current scope still matches. | Source-derived; neither switch/poll interleaving is tested. |
-| Process pushed frame has been sent or its callback task submitted | The server checks eligibility before sending ([push/admission path](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207)), but the client callback bridge has no later scope-switch check ([bridge submit](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844), [delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L684)), and the switch-setting path does not purge client callback tasks. | No post-send cancellation or recheck is visible; callback delivery across a concurrent switch change is untested. |
+| Process pushed frame has been sent or its callback task submitted | The server checks eligibility before sending ([push/admission path](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L313)), but the client callback bridge has no later scope-switch check ([bridge submit](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844), [delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L692)), and the switch-setting path does not purge client callback tasks. | No post-send cancellation or recheck is visible; callback delivery across a concurrent switch change is untested. |
 
 These are three different implementation checkpoints, not one HLA-wide
 “disable cancels pending advisories” rule. “Enqueue no new callback work”
@@ -264,7 +307,7 @@ mean work admitted earlier is removed from every queue.
 No focused test isolates switch-off as the only suppressor. The embedded test
 comment calls its segment switch-gate suppression, but the action is to disable
 the switch and remove the receiver's final regional subscription
-([test segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302));
+([test segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L303));
 the subscription planner's self-final-unsubscribe exception independently
 suppresses the Out advisory ([planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L613)).
 Re-enabling and subscribing later checks a fresh In callback, not whether an
@@ -275,19 +318,19 @@ Other C++ test uses of the setter cover service/MOM reporting, unrelated
 behavior, or rejected save/restore-interlocked calls, not switch-only scope
 suppression. No focused test toggles the switch around an event already waiting
 in the process pull queue, an already-sent pushed frame, or a client callback
-task.
-So that test remains open.
+task. The switch-only suppressor and these pending-event interleavings remain
+untested.
 
 ## Implementation and test evidence
 
 | Concern | Current 2025 implementation | Focused test evidence |
 | --- | --- | --- |
-| Effective in-scope predicate: known object, class ancestry, ordinary and regional declarations, default and explicit region realizations | [Registry scope predicate](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L16) | [Embedded regional scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L97) |
-| Pre/post association comparison and recipient/object/direction grouping | [Association planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L517); [region-association service](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L190) | [Embedded region movement, grouped attributes, and stale evoked callback](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201) |
-| Pre/post receiver-region commit comparison | [Committed region planner](../../cpp/src/internal/federation/federation_registry_regions.cpp#L255) | [Embedded committed-region moves](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L209) |
-| Subscription transition and the final-self-unsubscribe Out exception | [Subscription planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L577) | [Embedded exception and switch scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L238); [process endpoint exception](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
-| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190); [switch-aware eligibility predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12) | [Stale-In transition and callback-model cases](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201); [confounded switch-off segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302) |
-| Process event transport checkpoints | [Admission check and push/queue split](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207); [server dequeue-time recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L154); [client pushed-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L326); [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844) | [Public process endpoint transition test; switch enabled, no stale-event race](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457); [switch setup](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L893); [its callback-model-to-event-mode setting](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L595) |
+| Effective in-scope predicate: known object, class ancestry, ordinary and regional declarations, default and explicit region realizations | [Registry scope predicate](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L16) | [Embedded regional scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L98) |
+| Pre/post association comparison and recipient/object/direction grouping | [Association planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L517); [region-association service](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L191) | [Embedded region movement, grouped attributes, and stale evoked callback](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L202) |
+| Pre/post receiver-region commit comparison | [Committed region planner](../../cpp/src/internal/federation/federation_registry_regions.cpp#L255) | [Embedded committed-region moves](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L210) |
+| Subscription transition and the final-self-unsubscribe Out exception | [Subscription planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L577) | [Embedded exception and switch scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L239); [process endpoint exception](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
+| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190); [switch-aware eligibility predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12) | [Stale-In transition and callback-model cases](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L202); [confounded switch-off segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L303) |
+| Process event transport checkpoints | [Admission check and push/queue split](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L313); [server dequeue-time recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L154); [client pushed-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L348); [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844) | [Public process endpoint transition test; switch enabled, no stale-event race](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457); [switch setup](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L893); [its callback-model-to-event-mode setting](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L595) |
 | Public callback names and API clauses | [Pinned 2025 FederateAmbassador](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L333) | Both tests record callback object and attribute count; the embedded test also checks exact attribute-set equality. |
 
 The embedded test is a focused regional transition scenario: it checks
@@ -306,7 +349,14 @@ race, transport failure, or interleaving with time-managed callbacks.
   region operation but have different recipients and rules.
 - Scope-in does not itself cause an attribute value update. Publication,
   ownership, actual update calls, DDM routing, transportation/order, and time
-  management still govern data delivery.
+  management still govern data delivery. A regional RAVU request screens
+  provider solicitation and does not supply the later Update's source scope;
+  see the [regional request scope map](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#regional-request-scope-is-not-response-ddm).
+- When scope changes follow a subscription change, the [Subscription State
+  late-subscription comparison](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#a-subscription-can-be-late-relative-to-two-different-events)
+  separates discovery and initial values for an object newly known to this
+  receiver from the unresolved value-only effect of adding an attribute to an
+  already-known object.
 - Discovery is a separate earlier/later boundary. This guide starts from a
   known object; see the DDM and object-information guides for discover/remove
   lifecycle details.

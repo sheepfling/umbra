@@ -1,0 +1,2656 @@
+{
+  "title": "IEEE 1516.1-2025 hosted documentation source-link dependencies and migration review",
+  "snapshot_date": "2026-11-07",
+  "hosted_ref": "origin/feature/initial-work",
+  "hosted_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+  "local_head_revision": "e6321e842f333427349166df8c5b35350a2ae473",
+  "local_commits_ahead_of_hosted": 3,
+  "guide_markdown_sources_checked": 34,
+  "unique_source_line_references": 4192,
+  "worktree": {
+    "resolved_references": 4192,
+    "unresolved_references": 0,
+    "unresolved_targets": 0
+  },
+  "hosted_failures": {
+    "references": 0,
+    "targets": 0,
+    "checked_against": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180"
+  },
+  "resolved_by_local_head": {
+    "references": 0,
+    "targets": 0
+  },
+  "remaining_at_local_head": {
+    "references": 0,
+    "targets": 0
+  },
+  "head_failure_breakdown": {
+    "missing_target_references": 0,
+    "missing_targets": 0,
+    "out_of_range_references": 0,
+    "out_of_range_targets": 0
+  },
+  "migration_review_summary": {
+    "reviewed_targets": 56,
+    "pending_targets": 0,
+    "reviewed_missing_at_HEAD_targets": 21,
+    "pending_missing_at_HEAD_targets": 0,
+    "reviewed_families": [
+      "2025 FOM handle allocation",
+      "2025 DDM excluded-dimension and partial-default-range TCK evidence",
+      "2025 configured-process TLS endpoint",
+      "2025 configured-process federation lifecycle/recovery",
+      "2025 embedded MOM reporting/control and TCK handle-valued parameter evidence",
+      "2025 process-federation generic rejection response",
+      "2025 process-client close and callback cleanup boundaries",
+      "2025 process Push frame emission",
+      "2025 process TSO interaction copy lease, event send, and route insertion",
+      "2025 process directed-interaction planner, TSO enqueue, event construction, Push/Pull selection, and pushed-frame citations",
+      "2025 attribute-scoped pairwise and default-region overlap helpers",
+      "2025 process-host inactive-session retention, resume, purge, and cleanup boundaries",
+      "2025 process-host Catch2 evidence for multi-client service, ingress partition, resume, purge, history rejection, and stalled-session shutdown",
+      "2025 process-session receive, resume validation, and history replay citations",
+      "2025 connection and configuration source citations",
+      "2025 C++ TCK scenario-catalog citation and clause-mapping review",
+      "2025 process-client unrecovered stream-failure handoff",
+      "2025 FOM handle allocator and focused internal test citations",
+      "2025 regional TSO callback-gating test cleanup citation",
+      "2025 process time-advance scheduler test citation anchors",
+      "2025 process timestamped-attribute TSO test citation anchors",
+      "2025 embedded MOM exception-report Catch2 citations",
+      "2025 member-scoped FOM-module report and region-designator test citations",
+      "2025 joined-federate MOM public object-lifecycle test citations",
+      "2025 MOM object-instance-information report test citation",
+      "2025 reflected-object distinct-target NULL-response test citation",
+      "2025 updated-object-count distinct-target NULL-response test citation",
+      "2025 DDM fixture default-range citations",
+      "2025 process regional interaction retraction mixed-fanout test",
+      "2025 process ConnectionLost probe fixture evidence",
+      "2025 process production coordinator test citations",
+      "2025 Federate-Lost report TCK source migration review",
+      "2025 object class-view and discovered-class stability TCK source migration review",
+      "2025 passive regional interaction transition TCK source migration review",
+      "2025 selective attribute unsubscription TCK source migration review",
+      "2025 FOM handle uniqueness TCK current-only source review",
+      "2025 process transport message-history bounds, replay gaps, and byte-limit test citations",
+      "2025 embedded authorization shared-provider loader"
+    ],
+    "note": "The 56 semantic source-target migration reviews remain preserved as historical review evidence. After the docs-only citation cleanup, all 4,192 current Markdown source-line references resolve against both candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180 and source revision e6321e842f333427349166df8c5b35350a2ae473. Current-only evidence with no hosted source equivalent is kept as explicitly labeled plain text; no code or test targets need to be included to close Markdown links."
+  },
+  "failure_target_details": [],
+  "scope_note": "Counts cover relative Markdown source-line links only; immutable external GitHub permalinks are excluded and should be verified separately at their pinned commit and line. Each destination_line is a target source line; guide_lines locate the Markdown links. unresolved_on distinguishes hosted and local HEAD. Preserve unrelated staged and unstaged work.",
+  "refresh": "2026-11-07 latest candidate verification: after removing current-only Markdown source links, 4,192/4,192 source-line references resolve against the candidate worktree, pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and source revision e6321e842f333427349166df8c5b35350a2ae473. The exact docs-only selection is 40 paths (32 guides plus eight support assets); 48 unrelated non-documentation changes remain outside it. Authenticated GitHub GFM returned 34/34 pages with 490/490 Mermaid containers and no API/count mismatch. The earlier 131-reference migration snapshot and its 56 semantic reviews are retained for history. No 2010 or Requirements Lab paths are selected. The candidate branch is unpublished; page rendering and Mermaid hydration remain open.",
+  "candidate_assembly": {
+    "status": "committed locally as a 40-path docs-only candidate; not published",
+    "target_base_ref": "origin/feature/initial-work",
+    "target_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_worktree": "C:/Users/peanu/GIT/sheepfling/umbra-hla2025-docs-candidate",
+    "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "candidate_documentation_path_count": 40,
+    "included_guide_count": 32,
+    "documentation_support_assets": [
+      "docs/design/HLA-BEHAVIOR-FLOW-GUIDES.md",
+      "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+      "docs/design/HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json",
+      "docs/design/HLA-2025-GITHUB-RENDER-AUDIT.json",
+      "docs/design/HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json",
+      "docs/design/HLA-2025-THEMATIC-READING-PATHS.md",
+      "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ROADMAP-HISTORY-2026-11-07.md",
+      "docs/planning/ROADMAP-INDEX.json (documentation handoff only)"
+    ],
+    "source_line_references": 4192,
+    "candidate_link_check": "4,192/4,192 path/line/guide references resolve in the worktree and against the pinned hosted base.",
+    "selected_current_source_target_count": 0,
+    "unrelated_non_documentation_changes_present_but_excluded": 48,
+    "selected_non_documentation_paths": 0,
+    "current_only_test_source_paths_kept_as_plain_text_evidence": [
+      "cpp/tests/fom_handle_allocator_catch2.cpp",
+      "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+      "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+      "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+      "cpp/tests/tls_socket_catch2.cpp"
+    ],
+    "selected_requirements_lab_paths": 0,
+    "selected_2010_paths": 0,
+    "github_markdown_api": {
+      "markdown_pages_checked": 34,
+      "guide_pages_checked": 32,
+      "mermaid_fences": 490,
+      "mermaid_containers": 490,
+      "headings": 930,
+      "rendered_links": 7381,
+      "failures_or_mismatches": 0
+    },
+    "external_publish_status": "Candidate branch is absent remotely. Wait for explicit publication authorization; actual GitHub page rendering remains open.",
+    "next": "After explicit publication authorization, push only the candidate branch to its own remote branch, then inspect all 32 GitHub pages and Mermaid hydration. The local branch tracks origin/feature/initial-work, so use an explicit destination ref."
+  },
+  "previous_migration_snapshot": {
+    "snapshot_date": "2026-11-07 before docs-only citation cleanup",
+    "source_line_references": 4324,
+    "worktree_resolved": 4324,
+    "hosted_unresolved_references": 131,
+    "hosted_unresolved_targets": 43,
+    "head_unresolved_references": 127,
+    "head_unresolved_targets": 40,
+    "note": "Detailed migration reviews and prior target dispositions are retained in previous_failure_target_details."
+  },
+  "previous_candidate_assembly": {
+    "status": "assembled locally; not committed or published",
+    "target_base_ref": "origin/feature/initial-work",
+    "target_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "guide_count": 32,
+    "source_line_references": 4324,
+    "hosted_unresolved_target_count": 43,
+    "hosted_unresolved_reference_count": 131,
+    "required_current_target_status": {
+      "modified": 20,
+      "untracked": 21,
+      "present_at_local_HEAD_but_different_from_hosted": 2
+    },
+    "worktree_changed_or_untracked_paths": 1142,
+    "requirements_lab_paths_in_worktree_excluded": 157,
+    "scope_boundary": "Do not assemble from the full worktree. Include only the 32 2025 guides, their current documentation handoff/artifacts, and the 43 source/test/catalog target versions needed for hosted link closure. Exclude Requirements Lab changes and all 2010-stream material.",
+    "next": "Build and validate the exact candidate closure, preserving unrelated staged and unstaged paths; then inspect the published GitHub file pages and diagrams.",
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_worktree": "C:/Users/peanu/GIT/sheepfling/umbra-hla2025-docs-candidate",
+    "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "candidate_file_count": 80,
+    "included_guide_count": 32,
+    "included_hosted_target_count": 43,
+    "included_hosted_target_references": 131,
+    "candidate_link_check": "4,324/4,324 path/line/guide references resolved in the assembled candidate worktree",
+    "documentation_assets": [
+      "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+      "docs/design/HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json",
+      "docs/design/HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json",
+      "docs/planning/ROADMAP-INDEX.json (documentation handoff only)",
+      "quality_gates/bin/check_hla_2025_documentation_links.py"
+    ],
+    "owner": "active IEEE 1516.1-2025 documentation goal in this Codex thread",
+    "reason": "The primary shared worktree contains unrelated changes; isolate the exact hosted link closure and preserve all other edits.",
+    "external_publish_status": "pending explicit authorization for this separate candidate; live GitHub page rendering is not yet available"
+  },
+  "previous_failure_target_details": [
+    {
+      "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 70656,
+        "head": 70750,
+        "worktree": 105975
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retargeted both current-worktree catalog citations to the mapped scenario records; the old in-range anchors landed in unrelated scenarios. The scenario IDs exist on HEAD/hosted, but the current clause mappings do not.",
+        "evidence_note": "The current additional-module-Join scenario begins at line 81825 and its requirement_mappings begin at line 81858, mapping selected evidence to §§4.1.4, 4.1.4.1, and 4.11. HEAD/hosted contain the same scenario ID near line 56598 but have no standard_sections or requirement_mappings for it. The current closest-ancestor scenario begins at line 98433 and its requirement_mappings begin at line 98475: ordinary receive-order and parameter projection map to §5.10, while closest-ancestor selection maps to §6.1.9. HEAD/hosted only map that scenario to §6.1.9. The previous current anchors 81203 and 97719 landed in unrelated catalog records; both guides now link directly to the intended current mapping fields."
+      },
+      "references": [
+        {
+          "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+          "destination_line": 81858,
+          "guide": "HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1169,
+            1203
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+          "destination_line": 98475,
+          "guide": "HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1375,
+            2629
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 629,
+        "head": 629,
+        "worktree": 733
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Compared the current recipient planner with the committed implementation. The current regional-request path uses attribute-aware overlap, retains a candidate attribute after the first matching request/update region pair, and inserts it once. Keep the current-source link for this implementation-specific filter and preserve the distinction from normative HLA behavior.",
+        "evidence_note": "The current candidate replaces generic regionsOverlap with objectAttributeRegionsOverlap for each request/update-region pair, breaks after the first match, and inserts the handle into a set. The helper resolves dimensions from the attribute declaring class and its ancestors, then fills absent available dimensions with default ranges; dimensions from a more-derived class are not added as defaults for an inherited attribute. The public process test covers one matching pair and one Provide callback under HLA_EVOKED and HLA_IMMEDIATE. The private process fixture covers one later disjoint request and observes recipientCount == 0 with no provider event. Neither fixture covers the inheritance edge or multiple matching pairs with a single-callback assertion. CMake includes this source in the 2025 umbra_rti list at L468; the separate umbra_rti_2010 target begins at L515 and omits it. No test was run during this documentation review."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
+          "destination_line": 695,
+          "guide": "HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
+          "guide_lines": [
+            724,
+            738
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 1118,
+        "head": 1120,
+        "worktree": 1249
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "The committed planner validates the regional request against class-wide dimensions; the current planner resolves dimension context per requested attribute before validating its regions and entering provider planning. Keep the current-source link for this implementation-specific preflight and retain the separate portable TCK evidence for inherited-attribute request admission.",
+        "evidence_note": "Compared current planAttributeValueUpdateClassRequest with HEAD/hosted. Membership, catalog, class, attribute, owner-grouping, and whole-request preflight ordering are unchanged; the current candidate resolves availableObjectClassAttributeDimensions separately for each attribute in requestRegionsByAttribute before validating region existence, ownership, commit state, and dimension context. The public Catch2 selector uses directly declared Soda.Flavor and checks typed InvalidRegionContext through the configured-process service. The portable regional-object-attribute-dimension-inheritance TCK separately calls requestAttributeValueUpdateWithRegions with a Y-only region for inherited BaseValue and expects InvalidRegionContext; the scenario/contract pair's 4/4 two-callback-model result is recorded in the DDM guide. This establishes the inherited public request boundary but not multi-pair callback deduplication or process/embedded parity. The source is compiled in 2025 umbra_rti and absent from the separate 2010 source list. No test was run during this documentation review."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
+          "destination_line": 1159,
+          "guide": "HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
+          "guide_lines": [
+            1253
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
+          "destination_line": 1159,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            535
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_registry_regions.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 895,
+        "head": 895,
+        "worktree": 1061
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Kept both attribute-scoped overlap helpers at current-source lines 882 and 929 because they have no committed equivalent. Line 882 is in range at HEAD but points to unrelated code there; line 929 is beyond the committed file.",
+        "evidence_note": "In the worktree, objectAttributeRegionsOverlap at L882 and objectAttributeRegionOverlapsDefault at L929 both obtain availableObjectClassAttributeDimensions for the target attribute, then realize one or both regions before overlap evaluation. These functions and the attribute-dimensions helper are absent from HEAD and hosted source (895 lines). The guide citations are correct for the current source and intentionally remain current-only; the checker cannot detect the L882 semantic mismatch at HEAD because that line number is in range."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/federation_registry_regions.cpp",
+          "destination_line": 929,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            536
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_client.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 982,
+        "head": 982,
+        "worktree": 1429
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain the current-only stream-reader failure handoff; the trigger is new even though the generic failure-dispatch helper is shared.",
+        "evidence_note": "Current line 1025 runs after the stream reader stores the failure and marks itself stopped. If transport failed and the client is not closing, it preserves an already queued detailed failure or supplies the generic unrecovered-transport message, then calls dispatchTransportFailures. In HEAD the stream reader at lines 713-720 only stores the failure and wakes response/callback waiters; it does not trigger failure dispatch. The dispatchTransportFailures helper itself exists in both snapshots (current 1206, HEAD 759), but that does not provide the new terminal stream-failure trigger. Keep the citation current-only; the separate retained-client dispatch and callback links remain pinned to unchanged hosted code."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_client.cpp",
+          "destination_line": 1025,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1315,
+            1910
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 653,
+        "head": 674,
+        "worktree": 711
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Corrected close misanchors; retargeted generic bridge-close and queue-clear claims to hosted code; retained current-only recovery and detailed teardown claims.",
+        "evidence_note": "Current L661 is inside interrupt(), where responseMutex_ is synchronized before notifying response waiters; it is not close(). Current close() starts at L672 and calls interrupt(), joins stream-reader, heartbeat, and callback-dispatch workers, clears client queues, and closes the bridge. Hosted close() at L599 closes shutdownConnection_, joins stream and callback workers, clears queues, and closes the bridge (queue clear L638; bridge close L647). Keep the ConnectionLost close and detailed current teardown links on current L672 because active/recovery-attempt socket handling and the heartbeat join are absent from hosted code."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp",
+          "destination_line": 672,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1318,
+            1910
+          ],
+          "unresolved_on": [
+            "hosted"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp",
+          "destination_line": 672,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            483
+          ],
+          "unresolved_on": [
+            "hosted"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service_forced_resignation.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 63
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-test-control-dependency",
+        "evidence_note": "The lifecycle guide uses this test-only force-resignation path to distinguish a federate-resigned event over a usable session from terminal connectionLost. The file and symbol are absent from HEAD; retain the private-control qualification."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_forced_resignation.cpp",
+          "destination_line": 15,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1720
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_forced_resignation.cpp",
+          "destination_line": 42,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            2115
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 236,
+        "head": 236,
+        "worktree": 544
+      },
+      "hosted_unresolved_references": 15,
+      "head_unresolved_references": 15,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retargeted the stable per-connection worker and service dispatch-loop citations to immutable hosted lines 167 and 182. Kept inactive-session, resume, RTI_TIMEOUT_PURGE, terminal-resume, and expanded shutdown-cleanup behavior on current source because the hosted implementation predates them. Checked in-range semantic traps: current line 42 is TLS credential configuration while hosted line 42 is constructor delegation; current line 170 is host shutdown while hosted line 170 is worker creation. These are current-only behaviors, not safe line-number matches.",
+        "evidence_note": "Current host is 544 lines; HEAD and pinned hosted source are 236 lines. Worker exit retains an inactive session until RTI_TIMEOUT_PURGE; purge and terminal-resume cleanup call Detach only after connectionLost succeeds, while host shutdown detaches captured sessions even after recording a loss failure. The 1,368-line current host test file remains independently pending review (115 lines at HEAD/hosted); the joined-session purge case verifies successful membership removal, but no focused host case injects notification-projection failure."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 357,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            490
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 357,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1882,
+            2209
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 357,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            750
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 363,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1521,
+            1539
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 392,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            769
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 411,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            490
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 411,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1883
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 411,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            751
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 431,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1522
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 443,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1370
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 443,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            774
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 443,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1523
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 477,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            770
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 491,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            491
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+          "destination_line": 491,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1891
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service_runtime.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 243
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-runtime-dependency",
+        "evidence_note": "The guide cites runProcessFederationService as the configured-process coordinator entry point. This source file is absent from HEAD and no same symbol was found in the committed process implementation."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_runtime.cpp",
+          "destination_line": 131,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1956
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service_runtime.hpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 41
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-runtime-dependency",
+        "evidence_note": "The guide cites the runtime entry-point declaration and registry-lifetime note. This header is absent from HEAD; keep it with the cited runtime source if that profile explanation ships."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_runtime.hpp",
+          "destination_line": 26,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1961
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service_tso_delivery.cpp",
+      "worktree_status": "clean",
+      "lines": {
+        "hosted": 400,
+        "head": 444,
+        "worktree": 444
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retargeted the unchanged TSO event-send and post-send retraction-route claims to hosted lines; retained the new interaction callback-region-copy lease as current-only.",
+        "evidence_note": "Current lines 425-439 are identical to hosted lines 381-395 for the TSO event send and retraction-route insertion; DDM event-send now points to hosted L381 and the TSO Retraction route insertion to hosted L393. Current L410 stores the message-id keyed ProcessTsoCallbackRegionDesignatorCopyLease in pendingTsoInteractionCallbackRegionDesignatorCopies, a new regional callback-lifetime behavior absent from hosted code, so keep it current-only. Normal ACK cleanup erases attribute and interaction lease entries; receiver Resign and Retract have separately documented cleanup paths."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_federation_service_tso_delivery.cpp",
+          "destination_line": 410,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2729
+          ],
+          "unresolved_on": [
+            "hosted"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_transport.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 434,
+        "head": 434,
+        "worktree": 895
+      },
+      "hosted_unresolved_references": 3,
+      "head_unresolved_references": 3,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain current-source TLS/WebSocket close branches and listener handshake links; retargeted the unchanged failure-handler call to committed code.",
+        "evidence_note": "Current ProcessTransportConnection::fail closes websocketSocket_ or tlsSocket_ before native socket close at L558, then invokes failureHandler at current L566. The callback invocation itself matches hosted L293 and is now linked there. HEAD contains only native-socket close handling, with no TLS/WebSocket wrapper fields. TLS listener credential validation and accept/handshake at current L651 and L709 remain current-only."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_transport.cpp",
+          "destination_line": 558,
+          "guide": "HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            765
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport.cpp",
+          "destination_line": 651,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            474
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport.cpp",
+          "destination_line": 709,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            475
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_transport_message_history.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 377
+      },
+      "hosted_unresolved_references": 4,
+      "head_unresolved_references": 4,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-recovery-dependency",
+        "evidence_note": "Reviewed the host-retained bounded history path and its guide claims. The implementation retains HLA service-message payloads under the configured byte cap; control frames are not retained, so sequence numbers can have gaps without indicating missing service-message history. Oversized or evicted entries can leave a required replay suffix unavailable. The source is current-only and process-profile behavior."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_transport_message_history.cpp",
+          "destination_line": 13,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1542
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport_message_history.cpp",
+          "destination_line": 32,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1549
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport_message_history.cpp",
+          "destination_line": 38,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1550
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport_message_history.cpp",
+          "destination_line": 126,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1551
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_transport_session.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 101,
+        "head": 101,
+        "worktree": 456
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retargeted the ordinary session-receive result to immutable hosted line 41, which preserves the receiveFrame-failure return behavior. Replaced the semantically wrong current line 261 resume citation (it accepts the resume frame sequence) with current-source links to assessResumeRequest at line 274 and replayOutgoingAfter at line 356. The resume validation and suffix replay are absent from the 101-line HEAD/hosted implementation and remain current-only references.",
+        "evidence_note": "The worktree file is 456 lines versus 101 at HEAD and the pinned hosted revision. The host-side resume status checks session identity and retained outgoing history; replay transmits each available service message after the peer receive point. The existing tests separately cover a successful resume handshake, an insufficient-history rejection, an in-flight Join response, and pushed-event replay. The successful host replacement-socket case does not force a nonempty suffix. No tests were run during this citation audit."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_transport_session.cpp",
+          "destination_line": 274,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1540
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/federation/process_transport_session.cpp",
+          "destination_line": 356,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1541
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/handles/fom_handle_allocator.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 183
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain the current-only 2025 allocator source; the documented identity catalog and collision-checked random allocation are absent from HEAD and hosted.",
+        "evidence_note": "The current 2025 guide cites the 183-line untracked allocator source and its bounded CSPRNG loop. CMakeLists.txt:427 adds it to the 2025 umbra_rti target; the separate C++14 umbra_rti_2010 target at CMakeLists.txt:515-526 does not list it. The 2025 Catch2 executable adds fom_handle_allocator_catch2.cpp (cmake/catch2_executable_targets.cmake:182-186). The internal tests cover identity reuse through allocator copies, reserved transportation values, and Create/additional-FOM Join entropy failure, and carry no normative mapping. They do not test zero samples, cross-identity collisions, or the 256-rejection limit. No C++ test was run during this review; the guide accurately keeps those paths source-derived."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/handles/fom_handle_allocator.cpp",
+          "destination_line": 142,
+          "guide": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            544
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/platform/tls_socket.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 458
+      },
+      "hosted_unresolved_references": 4,
+      "head_unresolved_references": 4,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-source-test-dependency-to-ship",
+        "evidence_note": "Reviewed the implementation and its source wiring. Client and server contexts are constrained to TLS 1.3. The default server-certificate mode verifies the peer through the system or configured trust store and checks the requested host; encryption-only disables certificate verification but retains TLS and SNI. Handshake deadlines and setup failures close the socket, and no plaintext fallback exists. The code is part of the 2025 umbra_rti target; TLS is private process-transport behavior, not an HLA requirement."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/platform/tls_socket.cpp",
+          "destination_line": 49,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            471
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/platform/tls_socket.cpp",
+          "destination_line": 249,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            468
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/platform/tls_socket.cpp",
+          "destination_line": 278,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            469
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/platform/tls_socket.cpp",
+          "destination_line": 280,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            470
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/platform/tls_socket.hpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 66
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-source-test-dependency-to-ship",
+        "evidence_note": "Reviewed the internal API: server-certificate validation is the default; encryption-only is an explicit mode; the client configuration carries the trust store and peer name; the server configuration carries its certificate chain and private key. TlsSocket owns the connected native socket and documents no plaintext fallback. The 2010 library has a separate source list and no TLS socket dependency."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/platform/tls_socket.hpp",
+          "destination_line": 28,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            476
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/runtime/authorizer_factory_provider.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 151
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "current-only-2025-authorization-provider-loader",
+        "evidence_note": "Reviewed the provider loader: a non-empty UMBRA_AUTHORIZER_PROVIDER_LIBRARY must be absolute; the library must load and export umbra_authorizer_factory_v1; returned factories must match the requested name. The environment/library result is cached on first lookup and the library is retained for the provider instance lifetime. CMake includes this source in 2025 umbra_rti and umbra_authorizer; the separate 2010 target excludes it. No focused provider-loader test was found. The file is untracked in the current worktree."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/runtime/authorizer_factory_provider.cpp",
+          "destination_line": 82,
+          "guide": "HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            249
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/runtime/rti_initialization_data.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 222,
+        "head": 222,
+        "worktree": 394
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Reviewed RID service selection and factory fallback; the current-only provider branch is explicitly identified.",
+        "evidence_note": "The 394-line current worktree extends the 222-line HEAD/hosted implementation. The pinned baseline links at L154, L183, L206, and L217 support profile selection, lookup, password-file loading, and reference-authorizer construction. Current-only anchors L302 and L339 cover the authorizer factory path and provider-library selection/fallback; the provider branch is absent from HEAD. The shared profile parser also reads [rti.<name>] timeout sections alongside [authorization.<name>] under the same configurationName. It converts positive decimal seconds with up to three fractional digits, rejects duplicates and malformed values, and the timeout loader validates the effective purge/heartbeat relationship. Internal-only/no-normative-mapping Catch2 cases at L650 and L695 cover defaults, profile conversion, host-option propagation, and invalid timeout entries. CMake includes this source in the 2025 umbra_rti target; the 2010 target is separate. No C++ tests were run during this review."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/runtime/rti_initialization_data.cpp",
+          "destination_line": 302,
+          "guide": "HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            164
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/src/internal/runtime/rti_initialization_data.cpp",
+          "destination_line": 339,
+          "guide": "HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            248
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_subscriptions.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 320
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "embedded-2025-MOM-control-source-dependency",
+        "evidence_note": "Reviewed the full six-family embedded MOM subscription handler. It validates the joined sender, resolves the standard service-class family, decodes and validates the parameters, and invokes the corresponding subscription method on that sender; an omitted object-attribute list selects whole-class unsubscribe in this implementation. The source is listed in cmake/umbra_rti_ambassador_service_sources.cmake and that file is included only inside the embedded-management source gate for the 2025 umbra_rti target. The separate umbra_rti_2010 target does not use this source list. No focused successful command-dispatch test was found; the guide states that evidence gap."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_subscriptions.cpp",
+          "destination_line": 22,
+          "guide": "HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1177
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/fom_handle_allocator_catch2.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 244
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain both current-only test links; the 2025 internal Catch2 cases have no committed equivalent.",
+        "evidence_note": "The L67 test injects deterministic values, proves an identity reuses its mapping through allocator copies, and skips reserved values before assigning the next value. The separate L93 case explicitly verifies predefined transportation reservations. The L106 test injects entropy failure during Create and after one new Join handle allocation; it checks no federation/membership is published, the prior catalog and six handle-directory results remain unchanged, and a later Join succeeds. All cases are tagged 2025 internal-only with no normative mapping. The tests do not inspect the shared allocator map after failed Join, so that private-cache detail remains source-derived. No tests were run during this documentation audit."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/fom_handle_allocator_catch2.cpp",
+          "destination_line": 67,
+          "guide": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            552
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/fom_handle_allocator_catch2.cpp",
+          "destination_line": 106,
+          "guide": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            557
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 115,
+        "head": 115,
+        "worktree": 1368
+      },
+      "hosted_unresolved_references": 12,
+      "head_unresolved_references": 12,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Reviewed seven distinct cited anchors across the 2025 guides. Corrected the Connection guide stale L108 helper link to L185. Separated L614 private host-option purge evidence from L680 RID-timeout evidence; neither asserts exact timing. Current-worktree-only source lines remain unpublishable until the modified test file is included in the reviewed candidate.",
+        "evidence_note": "The test source is 1,368 lines in the worktree and 115 lines at HEAD and the pinned hosted revision. L185 covers two connected but unjoined public clients, absent-execution throws without an asserted exception type, and orderly disconnect/stop; L393 covers isolated-ingress loss with a shared service and surviving/late clients; L520 verifies same-session resume and a follow-up request but does not force nonempty replay; L614 injects 40/160 ms host options and observes joined-member removal; L680 loads 40 ms/1 s RID values, observes retention after 120 ms and resume, then eventual purge within a 3-second window without asserting exact boundaries; L1261 covers insufficient history; L1333 covers shutdown during a stalled New Session. The 2025 Catch2 target explicitly includes this source. No test was run in this documentation audit; projection-failure injection remains uncovered."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 185,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            814,
+            1899,
+            2209
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 185,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            519
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 393,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1479
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 393,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            604,
+            815
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 393,
+          "guide": "HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+          "guide_lines": [
+            1468
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 520,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1828
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 614,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1894,
+            2209
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 614,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1833
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 680,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1896,
+            2209
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 680,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1837
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 1261,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1843
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+          "destination_line": 1333,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1900
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 410
+      },
+      "hosted_unresolved_references": 5,
+      "head_unresolved_references": 5,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-source-test-dependency-to-ship",
+        "evidence_note": "Reviewed the five documented public Connect scenarios: successful configured TLS 1.3 connection, untrusted peer rejection with ambassador reuse, trusted-certificate hostname mismatch with reuse, explicit encryption-only mode and invalid setting rejection, and default TLS port. These are Umbra configured-process observations. The guide points to a previously recorded three-repeat run; no test was rerun in this documentation review."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+          "destination_line": 66,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            214,
+            510
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+          "destination_line": 138,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            215,
+            511
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+          "destination_line": 208,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            218,
+            512
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+          "destination_line": 277,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            221,
+            513
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
+          "destination_line": 354,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            225,
+            514
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_federation_mom_fom_module_data_report_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 110,
+        "head": 110,
+        "worktree": 189
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Pinned unchanged member-scoped request/report evidence to the hosted snapshot. Retained current-only links for the worktree additions that enable ConveyRegionDesignatorSets and assert the HLAfederate report-region designator; the baseline test has no equivalent region assertions.",
+        "evidence_note": "Current source lines 122 and 147 are the switch and report assertions. The current test checks one sent region, no inspection failure, HLAfederate dimension, and bounds from normalizedSubject to normalizedSubject + 1. HEAD/hosted instead assert sentRegionsSupplied is false and do not cover this added observation. No normative rule is inferred; this documentation review did not run the test."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_fom_module_data_report_catch2.cpp",
+          "destination_line": 122,
+          "guide": "HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+          "guide_lines": [
+            2065
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_fom_module_data_report_catch2.cpp",
+          "destination_line": 147,
+          "guide": "HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+          "guide_lines": [
+            2065
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 531
+      },
+      "hosted_unresolved_references": 7,
+      "head_unresolved_references": 7,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "embedded-2025-MOM-parameter-validation-test-dependency",
+        "evidence_note": "The Exception Reporting guide cites the parameter-required Table 7 S-leaf list, missing-parameter reports, parameter-error assertions, and valid parameterless request controls. The list and test file are absent from HEAD; no exact committed equivalent for the 54-leaf probe was established. Its documented exception-subtype and coverage limits remain explicit."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 11,
+          "guide": "HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+          "guide_lines": [
+            483
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 79,
+          "guide": "HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+          "guide_lines": [
+            486,
+            686
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 79,
+          "guide": "HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+          "guide_lines": [
+            2002
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 127,
+          "guide": "HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1230
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 182,
+          "guide": "HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+          "guide_lines": [
+            487
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 191,
+          "guide": "HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+          "guide_lines": [
+            495
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
+          "destination_line": 217,
+          "guide": "HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+          "guide_lines": [
+            496
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 593
+      },
+      "hosted_unresolved_references": 5,
+      "head_unresolved_references": 5,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-test-dependency",
+        "evidence_note": "The four cited tests cover resumed synchronization callback, bounded terminal recovery failure, Join response replay without duplicate handler execution, and ordered pushed-frame replay across repeated loss. These exact test cases and tags are absent from HEAD; historical focused CTest evidence is explicitly scoped and is not a conformance claim."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+          "destination_line": 83,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1791
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+          "destination_line": 154,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1796
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+          "destination_line": 208,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1800
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+          "destination_line": 309,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1333
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
+          "destination_line": 309,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1805
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp",
+      "worktree_status": "clean",
+      "lines": {
+        "hosted": null,
+        "head": 594,
+        "worktree": 594
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain the local HEAD citation for the process-specific regional Push mixed-fanout scenario; do not substitute the hosted embedded-only regional case or nonregional process-retraction cases.",
+        "evidence_note": "The 594-line worktree file is identical to HEAD; its cited TEST_CASE begins at line 576 and covers HLA_EVOKED/HLA_IMMEDIATE. The nonconstrained recipient receives the timestamp-5 regional interaction in receive order, then receives the matching retraction; the constrained recipient has no callback and remains suppressed after its grant. The file is absent from the hosted snapshot. Hosted evidence includes an embedded regional mixed-fanout case and nonregional process retraction cases, but neither establishes this exact process Push regional combination. Keep the current local #L576 link and the guide's separate embedded/process boundaries. No test was run."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/ieee1516_2025_process_pushed_regional_tso_ro_retraction_catch2.cpp",
+          "destination_line": 576,
+          "guide": "HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1115
+          ],
+          "unresolved_on": [
+            "hosted"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 309,
+        "head": 309,
+        "worktree": 461
+      },
+      "hosted_unresolved_references": 3,
+      "head_unresolved_references": 3,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Preserved the worktree-only HLA_IMMEDIATE companion and distinct-target NULL-response case; hosted and HEAD contain only the repeated-reflection/class-grouping HLA_EVOKED baseline.",
+        "evidence_note": "The hosted repeated-reflection/class-grouping case is pinned at line 161. The worktree adds an HLA_IMMEDIATE companion: current line 310 observes the report before sendInteraction returns, while the shared HLA_EVOKED path remains queued until callback draining; both paths assert one Server and one Soda instance at line 342. The separate HLA_EVOKED NULL-response case at line 388 targets a distinct subject with no reflection information and asserts one report with an empty object-count encoding. The source remains in a dedicated 2025 embedded Catch2 target. These are current test-source assertions, not normative evidence; this documentation review did not run the test."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp",
+          "destination_line": 310,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            453
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp",
+          "destination_line": 342,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            454
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp",
+          "destination_line": 388,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            459,
+            845,
+            940
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 262,
+        "head": 262,
+        "worktree": 366
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Pinned the unchanged hosted HLA_EVOKED class-grouping and sender-target evidence; retained the current-only HLA_IMMEDIATE companion and distinct-target NULL-response case.",
+        "evidence_note": "The hosted/HEAD HLA_EVOKED class-grouping case is at title line 139 and sends senderFederate as the HLAfederate target at line 225. The current worktree adds an HLA_IMMEDIATE case at line 277; the shared assertion branch at line 218 checks that the report is observed before sendInteraction returns, and lines 250-251 assert one Server and one Soda count. A separate HLA_EVOKED no-update NULL-response case at line 335 targets a distinct subject and accepts either a zero-byte value or an encoded empty object-count array. The dedicated embedded target is a 2025 Catch2 target. Current-only assertions do not resolve the MIM wording ambiguity or establish transport-specific outcomes. This documentation review did not run the test."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp",
+          "destination_line": 218,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            270
+          ],
+          "unresolved_on": []
+        },
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp",
+          "destination_line": 250,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            271
+          ],
+          "unresolved_on": []
+        },
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp",
+          "destination_line": 277,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            272,
+            938
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp",
+          "destination_line": 335,
+          "guide": "HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+          "guide_lines": [
+            279,
+            845,
+            938
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/process_federation_service_client_probe.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 200
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-test-harness-dependency",
+        "evidence_note": "The lifecycle guide cites the independent process probe HLA_EVOKED loop for local connectionLost observation. This probe is absent from HEAD and supports the bounded configured-process test only."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/process_federation_service_client_probe.cpp",
+          "destination_line": 84,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1965
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/process_federation_service_probe.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 3547,
+        "head": 3547,
+        "worktree": 4437
+      },
+      "hosted_unresolved_references": 4,
+      "head_unresolved_references": 4,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Retain current-worktree links for the controlled process fixture branches; guides distinguish fixture behavior from production-host paths and HLA guarantees.",
+        "evidence_note": "The worktree has 4,437 lines while HEAD/hosted have 3,547. Lifecycle citations at current lines 3667 and 3682 cover the controlled Federate-Lost report and loss-projection cleanup branches. Process Endpoint links were retargeted from stale anchors 3209/3222 to 4107 (runReceiver callback-bridge attachment) and 4119 (official callback projection assertions); the receiver uses the private ProcessFederationClient seam. These four current-only source anchors are beyond the 3,547-line HEAD/hosted file. The guides distinguish fixture behavior from production-host and HLA semantics. No C++ tests were run."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/process_federation_service_probe.cpp",
+          "destination_line": 3667,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1904,
+            2209
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/process_federation_service_probe.cpp",
+          "destination_line": 3682,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1905
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/process_federation_service_probe.cpp",
+          "destination_line": 4107,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1748
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/process_federation_service_probe.cpp",
+          "destination_line": 4119,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1749
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/process_federation_service_process_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 83,
+        "head": 83,
+        "worktree": 480
+      },
+      "hosted_unresolved_references": 3,
+      "head_unresolved_references": 3,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Pin the unchanged private multi-process service test to hosted line 39; retain local links to the worktree-only public production-coordinator and coordinator-stop tests at lines 315 and 415.",
+        "evidence_note": "The current file is 480 lines; HEAD/hosted are 83. The three-process test at current line 268 has the same title and server/sender/receiver launch plus result-marker checks as the hosted test at line 39, so the Process Endpoint guide now uses that pinned hosted link. The public-API production-coordinator scenario at line 315 and the coordinator-stop/ConnectionLost scenario at line 415 were added in the worktree and have no equivalent in the 83-line HEAD/hosted file. Retain their current links in Lifecycle and Callback/Service Ordering guides. Their claims remain explicitly scenario-bounded; no tests were run."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/process_federation_service_process_catch2.cpp",
+          "destination_line": 315,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            606,
+            818
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/process_federation_service_process_catch2.cpp",
+          "destination_line": 415,
+          "guide": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+          "guide_lines": [
+            1326
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/process_federation_service_process_catch2.cpp",
+          "destination_line": 415,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1954
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/tls_socket_catch2.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 276
+      },
+      "hosted_unresolved_references": 3,
+      "head_unresolved_references": 3,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-source-test-dependency-to-ship",
+        "evidence_note": "Reviewed both internal tests: direct peer-verified TLS 1.3 ping/pong and process-transport heartbeat frames over TLS. Their tags explicitly state no normative mapping. The focused private Catch2 target links OpenSSL and is enabled with embedded federation management; no test was run during this review."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/tls_socket_catch2.cpp",
+          "destination_line": 33,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            515
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/tls_socket_catch2.cpp",
+          "destination_line": 34,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            228
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/tls_socket_catch2.cpp",
+          "destination_line": 149,
+          "guide": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            230,
+            516
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 107,
+        "head": 107,
+        "worktree": 145
+      },
+      "hosted_unresolved_references": 0,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Pinned the unchanged FDD dimension-value evidence to the hosted source snapshot; the guide does not rely on the worktree-only class-hierarchy additions in this fixture.",
+        "evidence_note": "The guide cites the multi-attribute FOM's [0..100) ranges for TckDimensionX and TckDimensionY. The values are identical in hosted/HEAD at lines 93 and 104 and in the worktree at lines 131 and 142. Replaced the drifting local #L131 link with pinned GitHub links to both hosted values. The fixture's added attribute-dimension class hierarchy is worktree-only, but is not needed for this range-value claim."
+      },
+      "references": []
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-default-range-tck.xml",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 147
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "source-test-fixture-dependency-to-ship",
+        "evidence_note": "The DDM guide cites this fixture at destination L125 for the restricted Y default range [0,5). The file is absent from HEAD and is selected by the current TCK runner/package adapter for the regional-interaction-partial-default-range scenario."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-default-range-tck.xml",
+          "destination_line": 125,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2137
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 107
+      },
+      "hosted_unresolved_references": 4,
+      "head_unresolved_references": 4,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "source-test-fixture-dependency-to-ship",
+        "evidence_note": "The guide cites excluded-dimension associations and values at destination L25, L26, L74, and L85. The file is absent from HEAD and supplies the FDD input for the regional-object-attribute-dimension-inheritance scenario."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml",
+          "destination_line": 25,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            275
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml",
+          "destination_line": 26,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            276
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml",
+          "destination_line": 74,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            277
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml",
+          "destination_line": 85,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            278
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 700,
+        "head": 700,
+        "worktree": 2894
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "The hosted portable test remains valid evidence for the four-parameter report, identity/name, decodable timestamp, and eventual local connectionLost. The current process test adds exact cutoff equality, TSO-before-grant ordering, post-loss membership checks, and survivor-only synchronization completion; retain current-source links for those additions.",
+        "evidence_note": "Compared current tck_connection_lifecycle.cpp::scenarioFederateLostMomReportPortable with the hosted portable_tck.cpp implementation at the pinned snapshot. Only the hosted source and run record at README#L6799 are cited for the baseline and its two-callback-model result. The same historical run block at current README#L6841 does not establish execution of the newer current-source assertions. The current-only process scenario also completes a survivor-only synchronization point with an empty failed-to-sync set. Corrected the MOM guide's former #L5619 link, which targeted an unrelated ownership test."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+          "destination_line": 2389,
+          "guide": "HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+          "guide_lines": [
+            1701
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+          "destination_line": 2389,
+          "guide": "HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+          "guide_lines": [
+            1412,
+            1474
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_handle_encoding_mim_types.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 301
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "2025-TCK-handle-parameter-evidence-dependency",
+        "evidence_note": "The Name and Handle guide cites a cross-federate handle-valued parameter round trip: preserve bytes, reconstruct using receiver-local typed handles, and reject the wrong decoder. The source and scenario ID are absent from HEAD; committed handle encode/decode scenarios are related but do not establish this exact parameter-transfer result."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_handle_encoding_mim_types.cpp",
+          "destination_line": 164,
+          "guide": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            424
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 1175,
+        "head": 1175,
+        "worktree": 1645
+      },
+      "hosted_unresolved_references": 0,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "The per-federate discovered-class and discovered-class stability scenarios are present unchanged in the hosted source. Pin the scenario and assertion links to the reviewed hosted snapshot; both worktree links had drifted to unrelated code after source reorganization.",
+        "evidence_note": "Compared both complete function bodies. scenarioPerFederateDiscoveredClass is 125 lines at current lines 1254–1378 and hosted lines 784–908; scenarioDiscoveredClassStabilityAfterSpecificSubscription is 107 lines at current lines 1380–1486 and hosted lines 910–1016. The bodies are identical. Corrected the stale current #L784 and #L910 links and moved the current #L1347 assertion links to the matching hosted scenario at #L784 and assertion at #L883."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp",
+          "destination_line": 784,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            298
+          ],
+          "unresolved_on": []
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp",
+          "destination_line": 883,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            301,
+            957
+          ],
+          "unresolved_on": []
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp",
+          "destination_line": 910,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            449
+          ],
+          "unresolved_on": []
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 2450,
+        "head": 2648,
+        "worktree": 3290
+      },
+      "hosted_unresolved_references": 0,
+      "head_unresolved_references": 0,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "The passive regional interaction transition scenario is present unchanged in the hosted source. Pin the source links to the reviewed hosted snapshot; the separate installed-package run record remains historical adapter evidence and does not imply independent-provider validation.",
+        "evidence_note": "Compared the complete scenarioPassiveRegionalInteractionTransition function: 249 lines in both hosted and worktree source, identical. The current function starts at #L3034; the hosted equivalent starts at #L2194. The guide also states that the recorded installed-package run came from a separate worktree and supports only the named Push/Pull and callback-model case, not the separate three-role object-discovery behavior."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+          "destination_line": 2194,
+          "guide": "HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+          "guide_lines": [
+            1448,
+            2627
+          ],
+          "unresolved_on": []
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_regional_interaction_partial_default_range.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 166
+      },
+      "hosted_unresolved_references": 4,
+      "head_unresolved_references": 4,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "source-test-fixture-dependency-to-ship",
+        "evidence_note": "The guide cites the partial-region sender set and delivery/suppression assertions at L48, L60, L136, and L138. The scenario source is absent from HEAD; its exact scenario ID was not found by git grep in HEAD."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_interaction_partial_default_range.cpp",
+          "destination_line": 48,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2160
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_interaction_partial_default_range.cpp",
+          "destination_line": 60,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2161
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_interaction_partial_default_range.cpp",
+          "destination_line": 136,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2162
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_interaction_partial_default_range.cpp",
+          "destination_line": 138,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            2163
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 920
+      },
+      "hosted_unresolved_references": 14,
+      "head_unresolved_references": 14,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "source-test-fixture-dependency-to-ship",
+        "evidence_note": "The guide cites excluded-dimension, default-region, and partial-source-region observations, plus separate update-call and per-attribute reflection assertions across 14 source lines. The scenario source is absent from HEAD; its exact scenario IDs were not found by git grep in HEAD. Keep the source and fixture together; do not substitute a merely similar regional-routing test."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 767,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            281
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 817,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            282
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 878,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            285
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 892,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            286
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 584,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            334
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 403,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            365
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 542,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            366
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 645,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            368
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 731,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            371
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 30,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            559
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 199,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            583
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 282,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            584
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 326,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            585
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_regional_object_attribute_dimension_inheritance.cpp",
+          "destination_line": 346,
+          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+          "guide_lines": [
+            586
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 176,
+        "head": 176,
+        "worktree": 272
+      },
+      "hosted_unresolved_references": 3,
+      "head_unresolved_references": 3,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "Keep the current-worktree references for the second discovered instance and the isolated-update/no-caller-reflection checks. The hosted scenario covers an initial instance and mixed-update filtering but not these added assertions.",
+        "evidence_note": "Compared the hosted 176-line scenario with the current 272-line implementation. The current helper applies the remaining-attribute projection to both discovered instances and checks that a later update to only the removed attribute reaches the unaffected subscriber while leaving the invoking subscriber unchanged. Preserve the current source links at #L191, #L241, and #L247; do not redirect them to the shorter hosted function."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp",
+          "destination_line": 191,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            951
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp",
+          "destination_line": 241,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            951
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp",
+          "destination_line": 247,
+          "guide": "HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+          "guide_lines": [
+            951
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 1116,
+        "head": 1116,
+        "worktree": 2791
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "The dedicated FOM handle uniqueness scenario is absent from hosted TCK source. Retain its current-worktree source links; generic handle lookup or normalization cases establish different properties.",
+        "evidence_note": "The hosted snapshot contains no scenarioFomHandleUniqueness function or dedicated fom-handle-uniqueness identifier in the C++ TCK package. The current worktree provides the dedicated scenario at tck_support_services_scenarios.cpp#L2697 with its matching FOM fixture. The Name and Handle guide cites this current-only evidence and distinguishes its finite, execution-wide claim."
+      },
+      "references": [
+        {
+          "path": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
+          "destination_line": 2697,
+          "guide": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+          "guide_lines": [
+            447,
+            801
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/src/internal/federation/process_transport_message_history.hpp",
+      "worktree_status": "untracked",
+      "lines": {
+        "hosted": null,
+        "head": null,
+        "worktree": 122
+      },
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "umbra-process-profile-recovery-dependency",
+        "evidence_note": "The process endpoint guide links the declaration of the process-private bounded message-history component. It is absent from committed HEAD; this supports only the configured-process recovery implementation."
+      },
+      "references": [
+        {
+          "path": "cpp/src/internal/federation/process_transport_message_history.hpp",
+          "destination_line": 23,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1546
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cpp/tests/transport_protocol_catch2.cpp",
+      "worktree_status": "modified",
+      "lines": {
+        "hosted": 194,
+        "head": 194,
+        "worktree": 520
+      },
+      "hosted_unresolved_references": 2,
+      "head_unresolved_references": 2,
+      "migration_review": {
+        "status": "reviewed",
+        "disposition": "retain-current-internal-test-evidence",
+        "evidence_note": "The focused internal tests exercise byte-cap eviction and acknowledgement retirement at the cited case, and sequence wraparound at the second citation. These are private transport protocol regressions, not public HLA reconnect or conformance evidence; no normative mapping is claimed."
+      },
+      "references": [
+        {
+          "path": "cpp/tests/transport_protocol_catch2.cpp",
+          "destination_line": 234,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1553
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "cpp/tests/transport_protocol_catch2.cpp",
+          "destination_line": 392,
+          "guide": "HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+          "guide_lines": [
+            1555
+          ],
+          "unresolved_on": [
+            "hosted",
+            "HEAD"
+          ]
+        }
+      ]
+    }
+  ]
+}

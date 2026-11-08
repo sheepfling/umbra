@@ -65,6 +65,53 @@ Two declarations participate on different sides:
   and its directed subscription is paired with an interaction class. Do not
   collapse the receiver-known class into the producer's registered class.
 
+### Embedded publication validates, then adds, the producer's pairs
+
+The pinned API identifies `publishObjectClassDirectedInteractions` as §5.6
+and lists the defined object- and interaction-class handle exceptions
+([2025 API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L495)).
+After the embedded adapter's connection, service-state, and membership checks,
+the registry validates the object-class handle and every interaction-class
+handle, then checks that each pair is directed for that object class or an
+object-class ancestor. Only after this validation does it update the
+publisher's declaration. A non-empty call adds pairs to the existing
+object-class declaration; an empty set returns successfully without adding
+pairs. The implementation builds the revised declaration before swapping it
+into the registry. See the [embedded service](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp#L230),
+[registry transition](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L311),
+and [FOM pair walk](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L15).
+
+```mermaid
+flowchart TD
+  CALL["Admitted §5.6 call<br/>publishObjectClassDirectedInteractions(C, Iset)"] --> CLASS{"C defined?"}
+  CLASS -->|No| REJECT["Reject call<br/>publication state stays unchanged"]
+  CLASS -->|Yes| HANDLES{"Every interaction handle defined?"}
+  HANDLES -->|No| REJECT
+  HANDLES -->|Yes| PAIRS{"Every (C, I) pair directed for C<br/>or an object-class ancestor?"}
+  PAIRS -->|No| REJECT
+  PAIRS -->|Yes| EMPTY{"Is Iset empty?"}
+  EMPTY -->|Yes| NOOP["Return successfully<br/>stored pairs unchanged"]
+  EMPTY -->|No| MERGE["Merge Iset into this publisher's<br/>existing pair set for C"]
+  MERGE --> COMMIT["Commit the revised declaration"]
+```
+
+This chart describes the embedded registry path, not a normative promise of
+transactional behavior or process-profile parity. The existing embedded
+[known-target scenario](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L224)
+publishes a valid pair and exercises a successful send; after withdrawal, it
+checks that the queued callback is fenced and the send is rejected until a
+fresh publication. A newer portable C++ TCK
+[publication-gate scenario](../../packages/hla-rti-cpp-tck/src/tck_declaration_management_scenarios.cpp#L616)
+directly exercises the public service outcomes: sending before publication
+raises `InteractionClassNotPublished`; publishing an empty set leaves that
+rejection in place; publishing the pair allows delivery with its interaction,
+target, producer, parameters, and tag; empty-set unpublication preserves that
+delivery; and selected-set and whole-class unpublication reject later sends.
+The recorded primary scenario passes under both callback models (2/2 focused
+CTests) and maps to §§5.1, 5.6, 5.6.4, and 5.7. The chart's source-level
+validation order and map-copy/swap remain implementation details; the test
+does not exercise an invalid multi-pair request or assert failure atomicity.
+
 The current embedded receive-order source therefore has two independent class
 axes. It checks directed-pair validity and producer publication from the
 target's registered class. For each receiver, it starts object-class selector
@@ -102,17 +149,24 @@ flowchart TD
   Selector -->|"yes"| Projection["Plan the matched received class<br/>and its parameter projection"]
 ```
 
-The focused embedded receipt case distinguishes these contexts: the producer
-registers a child target, the receiver discovers it at the base class, and the
-receiver has both a base-object/base-interaction universal subscription and a
-deeper child-object/child-interaction subscription. Sending the child
-interaction produces one callback using the base interaction class. The latest
-retained CTest log records this case passing with 35 assertions
-([case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L88),
-[selected callback-class assertion](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L191)).
-This is evidence for that embedded receive-order fixture only. It does not establish
-the normative inheritance rule, object-ancestor fallback, parameter
-projection, TSO routing, process-endpoint behavior, or 2010 behavior.
+The focused embedded receipt fixture separates both class axes. The producer
+registers a child target and sends the child interaction with a base parameter
+and a child-only parameter. The receiver knows the target at the base object
+class, has a universal subscription for the base interaction there, and also
+has a deeper child-object/child-interaction subscription. Because the target is
+known only at the base class, the deeper object-class subscription does not
+apply. The receive-order case selects the base interaction class and delivers
+only its base parameter; the recorded focused CTest result has 35 assertions
+([case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L292),
+[class and parameter assertions](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L240)).
+A second embedded case repeats the projection for a timestamped send at time 5
+and checks the base class, base parameter, and timestamp
+([case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L306),
+[assertions](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L264)).
+These are bounded examples of interaction-superclass selection and parameter
+projection. They do not establish the normative inheritance rule, fallback
+through object-class ancestors above the receiver-known class, general TSO
+routing, or configured-process ancestor behavior.
 
 ```mermaid
 flowchart LR
@@ -384,7 +438,17 @@ and [process endpoint guide's in-transit case](HLA-2025-PROCESS-ENDPOINT-REQUEST
 carry the wider grant and acknowledgement flows; this guide does not claim
 embedded/process parity.
 
-### Process TSO delivery retains the message but rechecks its directed route
+### Process projection timing depends on the recipient lane
+
+The same timestamped directed send can split its recipients between a
+receive-order event and queued TSO copies. The selected interaction class and
+parameter view become fixed at different points in those paths:
+
+| 2025 path | When the received class and parameter view are selected | Delivery boundary |
+| --- | --- | --- |
+| Embedded receive-order | The callback task rechecks the current recipient predicate and computes the current projection immediately before user code. | The embedded callback task invokes `receiveDirectedInteraction`; this is not process event transport. |
+| Configured-process receive-order event, including a non-time-constrained recipient of a timestamped send | The send handler uses the shared plan; a route-only candidate is resolved before event creation. It copies the selected class and parameter handles into the event. | The configured event follows Push or Pull transport. Later callback dispatch uses that event snapshot without another registry projection. |
+| Configured-process time-constrained TSO copy | The queued message preserves the sent class and parameter handles plus the exact accepted recipient. At the recipient's delivery boundary, the dispatcher rechecks that message/recipient and computes the current received class and parameter projection. | The service sends the projected event frame; the client callback gate controls application entry and acknowledges completion. |
 
 This process-only source map follows the time-constrained-recipient branch of a
 timestamped directed send. At acceptance, the service records the original
@@ -393,7 +457,9 @@ identity, and planned recipients. When a recipient's TSO copy becomes
 deliverable, the dispatcher resolves that recipient again and uses the current
 received interaction class and parameter projection to build the event. The
 recipient identity and accepted message survive; the earlier projection is
-not treated as an unconditional promise of callback delivery.
+not treated as an unconditional promise of callback delivery. The source path
+re-evaluates only recipients already associated with the accepted message; it
+does not use a later subscription to add a new recipient to that message.
 
 For a producer that is still a federation member, the delivery-time predicate
 uses current directed publication as well as the current target and receiver
@@ -476,7 +542,9 @@ flowchart TD
   Gate -->|Not yet| Hold[Keep callback pending;<br/>delivery remains in transit]
   Hold --> Gate
   Gate -->|Yes| Callback[Invoke receiveDirectedInteraction<br/>sent / received TIMESTAMP]
-  Callback --> Ack[Normal callback completion acknowledges delivery]
+  Callback --> Result{Callback returns normally?}
+  Result -->|Yes| Ack[Normal completion acknowledges this recipient]
+  Result -->|No, callback throws| NoAck[Skip ACK;<br/>this recipient remains inTransit]
 ```
 
 The figure intentionally draws only the constrained recipient's TSO branch;
@@ -488,8 +556,21 @@ the client removes a matching buffered interaction event ([client](../../cpp/src
 and the callback bridge admits the public retraction callback only after the
 original callback has started ([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1509)).
 The focused process callback-gating test does not exercise this retraction
-branch. The figure also omits a throwing callback, whose missing-ack/in-transit
-consequence is mapped in the [process endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion).
+branch. When the timestamped `receiveDirectedInteraction` callback throws,
+the bridge has already marked it started, but skips the post-callback ACK; the
+recipient's coordinator entry stays `inTransit`. A later legal Retract can
+therefore still take the started-callback branch and queue `requestRetraction`,
+but that callback does not replace the missing ACK. The detailed
+[process in-transit guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion)
+covers the active call boundary and recipient cleanup. The callback model and
+dispatch route change which receiving-side call observes the exception: the
+active request/pump, the next request after background dispatch, or a later
+Evoke. They do not change the ACK boundary; see Callback Ordering's
+[process callback-exception map](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-endpoint-callback-exception-attribution).
+The sender response and recipient event use separate sessions, so this
+receiver-side exception is not returned on the sender's service call. This
+exception result is source-derived; no focused process TSO test throws from
+the directed callback or verifies the missing-ACK path.
 The focused process callback-gating case demonstrates a directed TSO callback
 before its matching grant after the disabled-callback gate opens. It does not
 change publication or target state, nor retract the queued constrained copy.
@@ -504,18 +585,18 @@ directed TSO recipient has been queued.
 
 | Scenario | Evidence and bounded observation |
 | --- | --- |
-| Receiver-known target class and interaction superclass | [Embedded inherited-receipt case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L88): producer registers and publishes the child object/interaction pair; receiver knows the target at the base object class, subscribes to the base interaction there, and also subscribes to the child pair at the deeper object class. The passing 35-assertion case observes one callback with the base interaction class. Empty parameters; no process, TSO, 2010, object-ancestor-fallback, or normative-rule coverage. |
+| Receiver-known target class, interaction superclass, and parameter projection | The embedded [receive-order case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L292) sends a child interaction with base and child-only parameters to a receiver that knows the target at the base object class. The callback uses the base interaction class and contains only its base parameter ([assertions](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L240)). The companion [timestamped case](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L306) checks the same class/parameter projection at time 5 ([assertions](../../cpp/tests/directed_interaction_inherited_receipt_catch2.cpp#L264)). These cases do not cover object-class ancestor fallback above the known class, configured-process ancestor selection/projection, or the full normative inheritance rule. |
 | Universal versus by-ownership selector | [Embedded selector-kind case](../../cpp/tests/directed_interaction_subscription_kind_catch2.cpp#L112): the target owner and universal subscriber receive; a known non-owner using the default selector does not. It also checks the empty-class-set selector behavior. |
 | Receive-order DSE route-only candidate | [Embedded development-profile case](../../cpp/tests/delay_subscription_evaluation_directed_interaction_catch2.cpp#L95): a selector added after send admits a retained route-only candidate only when DSE is enabled; unsubscribe before the next callback suppresses it. Both `HLA_IMMEDIATE` and `HLA_EVOKED` are exercised. |
-| Known target, sender excluded, declaration routing | [Embedded known-target case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L121): validates callback routing, target/payload context, subscription and publication withdrawal fencing, republish for fresh work, and stale work after target departure. |
-| Unpublish overload shape and service reporting | [Embedded service-report case](../../cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp#L68): distinguishes a supplied set, an explicit empty set, and the whole-class overload in the service-report arguments; the registry's mutation semantics are source-observed above. |
-| Parameter set is checked | [Directed parameter contract case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L318): rejects unavailable parameters and forwards exactly the supplied values. |
+| Known target, sender excluded, declaration routing | [Embedded known-target case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L155): validates callback routing, target/payload context, subscription and publication withdrawal fencing, republish for fresh work, and stale work after target departure. The portable C++ TCK [publication-gate case](../../packages/hla-rti-cpp-tck/src/tck_declaration_management_scenarios.cpp#L616) directly maps send-before-publish rejection, valid-pair delivery, empty-set publication no-op, and selected/whole-class withdrawal outcomes to §§5.1, 5.6, 5.6.4, and 5.7. It covers one FOM pair, not invalid multi-pair failure atomicity. |
+| Unpublish overload shape and service reporting | [Embedded service-report case](../../cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp#L68): distinguishes a supplied set, an explicit empty set, and the whole-class overload in the service-report arguments. The portable C++ TCK [publication-gate case](../../packages/hla-rti-cpp-tck/src/tck_declaration_management_scenarios.cpp#L616) directly observes that empty-set unpublication preserves send delivery while selected-set and whole-class unpublication reject later sends. |
+| Parameter set is checked | [Directed parameter contract case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L429): rejects unavailable parameters and forwards exactly the supplied values. |
 | Timestamped eligibility can be deferred | [Timestamped Delay Subscription Evaluation case](../../cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp#L129): covers delayed selector evaluation for a TSO directed send. |
-| TSO queue and retraction | [Timestamped directed-interaction retraction case](../../cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp#L150): covers queue-before-grant behavior and retraction in the embedded profile. |
+| TSO queue and retraction | [Timestamped directed-interaction retraction case](../../cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp#L179): covers queue-before-grant behavior and retraction in the embedded profile. |
 | Mixed constrained/non-constrained recipients share retraction state | [Embedded mixed-fanout case](../../cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp#L3): the non-constrained recipient receives the directed interaction with sent `TIMESTAMP` / received `RECEIVE`; retract then notifies that delivered recipient and suppresses the constrained recipient's queued copy before its grant, without Request Retraction to the latter. Existing source/test evidence only; not rerun for this documentation change. |
 | Accepted directed TSO work after producer resignation | [Embedded multi-recipient resignation case](../../cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp#L172): a queued send survives producer resignation for FQR, TARA, and NMRA recipients; each recipient's directed callback is observed in its advance flow with the original producer handle. This is a selected embedded development-profile scenario, not a universal resignation rule. |
 | Directed TSO work after producer Connection Lost | [Embedded at-cutoff case](../../cpp/tests/connection_loss_directed_tso_catch2.cpp#L158) observes a time-6 directed callback before the receiver's time-6 grant after the producer's embedded transport fails; [late-request/automatic-delete case](../../cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp#L168) observes the marked directed callback before grant and delays independent object-removal cleanup until a later receive-order request. The [selector-change case](../../cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp#L197) changes the receiver from universal to by-ownership after source loss, and the [unsubscribe case](../../cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp#L354) removes the selector; both suppress the pending directed callback. These all explicitly exercise the embedded transport, not the process endpoint. The process route is source-mapped above; no focused process test combining queued directed TSO with producer resignation or Connection Lost was found in this survey. |
-| Process TSO callback gate and grant order | [2025 process-endpoint callback-gating case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L459): in `HLA_EVOKED`, a timestamped directed event at time 5 remains uncalled while callbacks are disabled; after enabling them, the test observes interaction callback then grant and checks `TIMESTAMP` / `TIMESTAMP` plus a valid retraction handle. This does not establish embedded behavior or all process callback modes. Not rerun for this documentation change. |
+| Process TSO callback gate and grant order | [2025 process-endpoint callback-gating case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L1522): in `HLA_EVOKED`, a timestamped directed event at time 5 remains uncalled while callbacks are disabled; after enabling them, the test observes interaction callback then grant and checks `TIMESTAMP` / `TIMESTAMP` plus a valid retraction handle. It uses the exact interaction class and an empty parameter map, so it demonstrates successful callback timing, not ancestor selection, non-empty parameter projection, or exception/ACK behavior. This does not establish embedded behavior or all process callback modes. Not rerun for this documentation change. |
 | Process directed TSO retraction timing limit | [Process directed-send callback case](../../cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp#L1073) checks timestamped Retract before callback and Request Retraction after callback under both callback models, but the receiver observes `receivedOrder=RECEIVE`; it is not a time-constrained queued-TSO case. The TSO-specific process gate above does not retract or mutate declarations. |
 | Target departure after directed TSO acceptance | [Embedded target-departure case](../../cpp/tests/ieee1516_2025_timestamped_directed_target_departure_catch2.cpp#L4): a time-six object removal is delivered before the queued time-seven directed interaction; the later target recheck suppresses the directed callback. This does not establish process behavior. |
 | Timed save/restore retains a later directed TSO message | [Embedded HLA_EVOKED save/restore case](../../cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp#L165); [worked trace in the save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-a-timed-save-retains-later-directed-tso-work): at save time 6, timestamp-8 directed work remains pending, is delivered after restore and FQR, then the original handle can generate Request Retraction. Actual/optimistic grant fields are separately documented in the time-management guide. This is embedded development-profile evidence only. |
@@ -550,7 +631,7 @@ Timestamped delivery has additional per-recipient TSO gates and is not
 represented by this receive-order comparison.
 
 ```mermaid
-flowchart LR
+flowchart TD
   Send[sendDirectedInteraction: target + sent interaction]
   Plan[Shared registry recipient planner<br/>target-class ancestry, target knowledge,<br/>declaration pair, selector, parameter projection]
   Send --> Plan
@@ -595,33 +676,30 @@ post-acceptance mutation behavior.
 - [Shared registry directed declaration and selector rules](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L15)
 - [Embedded directed unpublish state transition](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L363)
 - [Shared registry receive-order recipient predicate](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L140)
-- [Shared registry receive-order send planning](../../cpp/src/internal/federation/federation_registry.cpp#L1769)
+- [Shared registry receive-order send planning](../../cpp/src/internal/federation/federation_registry.cpp#L2011)
 - [Shared registry DSE route-only candidate retention](../../cpp/src/internal/federation/federation_registry.cpp#L1864)
 - [Embedded send service paths](../../cpp/src/internal/runtime/umbra_rti_ambassador_directed_interaction_services.cpp#L44)
 - [Embedded timestamped directed fanout and constrained-recipient queue selection](../../cpp/src/internal/runtime/umbra_rti_ambassador_directed_interaction_services.cpp#L646)
-- [Embedded directed TSO enqueue and per-recipient retraction ledger](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L904)
+- [Embedded directed TSO enqueue and per-recipient retraction ledger](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L927)
 - [Embedded TSO callback-boundary recipient recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L625)
 - [Embedded callback-time recipient recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L122)
 - [Embedded unpublish service overloads](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp#L455)
-- [Process directed-send call into the shared registry planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L657)
-- [Process TSO directed message and recipient enqueue](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L716)
-- [Process TSO directed delivery-time recipient recheck](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L39)
+- [Process directed-send call into the shared registry planner](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L701)
+- [Process TSO directed message construction](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L754) and [registry enqueue](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L816)
+- [Process receive-order directed event construction from the selected class and parameter projection](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L857)
+- [Process TSO recipient recheck](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L88), [projected event construction](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L146), and [event-frame send](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L160)
 - [Shared directed recipient predicate for target, publication, and current selector](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L140)
-- [Timestamped directed recipient resolver and source-departure exception](../../cpp/src/internal/federation/federation_registry.cpp#L1926)
+- [Timestamped directed recipient resolver and source-departure exception](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry.cpp#L2031)
 - [Voluntary-resign and connection-loss TSO ledger markers](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L994)
 - [Stored departure markers and recipient-state meaning](../../cpp/src/internal/federation/federation_registry.hpp#L2232)
-- [Connection-loss cutoff capture](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L29)
-- [Post-loss grant boundary for marked TSO work](../../cpp/src/internal/federation/federation_registry.cpp#L1195)
+- [Connection-loss cutoff capture](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L30)
+- [Post-loss grant boundary for marked TSO work](../../cpp/src/internal/federation/federation_registry.cpp#L1182)
 - [Process Resign entry into the shared resignation transition](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136)
-- [Process Connection Lost entry into shared registry cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L164)
+- [Process Connection Lost entry into shared registry cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L176)
 - [Process Retract path for pending TSO fanout](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L128)
 - [Shared per-recipient TSO retraction ledger](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115)
-- [Process receive-order directed event construction](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L819)
+- [Process receive-order event Push/Pull selection](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L904) and [pushed-frame dispatch](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L931)
 - [Process directed unpublish declaration handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L91)
-- [Process receive-order directed event push/queue](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L866)
-- [Process timestamped directed fanout and TSO enqueue](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L768)
-- [Process directed TSO recipient recheck and event-frame dispatch](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L82)
-- [Process per-recipient event construction and push dispatch](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L856)
 - [Process pull receive dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L70)
 - [Process callback bridge for directed interactions](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L184)
 - [Process multi-recipient public test](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L457)

@@ -82,6 +82,91 @@ scope-change, or relevance callbacks. The declaration mutation and any later
 callback are separate boundaries: callbacks are queued after the registry
 transaction, and the details of callback delivery belong to the linked
 [callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+In the embedded rate path, a declaration-generation change also selects a new
+per-subscription admission-history key; the
+[update-rate guide](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md#subscription-mutations-can-start-a-new-rate-history-epoch)
+traces which mutation paths advance it. When DSE retains an update candidate,
+its delivery-time projection uses the current declaration state and generation;
+see the [DSE boundary explanation](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#a-retained-candidate-uses-the-current-subscription-generation-at-delivery).
+
+### A selected unsubscribe changes later values on existing instances
+
+The 2025 public C++ TCK exercises one subscriber removing `Value` while keeping
+`Name`. Both attributes had already been reflected for two discovered objects.
+After the call, updates containing both attributes reflect only `Name` to that
+subscriber; an independent subscriber still receives both. A `Value`-only
+update produces no reflection for the subscriber that removed it, while the
+other subscriber still receives the value.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor P as Publisher
+  participant RTI
+  actor S as Subscriber A
+  actor R as Subscriber B
+
+  S->>RTI: Subscribe class {Name, Value}
+  R->>RTI: Subscribe same class {Name, Value}
+  P->>RTI: Register objects O1 and O2
+  RTI-->>S: Discover O1 and O2
+  RTI-->>R: Discover O1 and O2
+  loop Initial update to each object
+    P->>RTI: Update {Name, Value}
+    RTI-->>S: Reflect {Name, Value}
+    RTI-->>R: Reflect {Name, Value}
+  end
+  S->>RTI: Unsubscribe class subset {Value}
+  loop Later update to O1 and O2
+    P->>RTI: Update {Name, Value}
+    RTI-->>S: Reflect {Name} only
+    RTI-->>R: Reflect {Name, Value}
+  end
+  P->>RTI: Update {Value} to O1
+  RTI-->>R: Reflect {Value}
+  Note over S,RTI: After S is pumped, no reflection is recorded for this update
+```
+
+This is a public value-delivery observation, not a direct query of internal
+scope state. The case does not assert an `attributesOutOfScope` advisory or
+describe the effect on an instance registered after the unsubscribe. Its
+recorded installed-package run passed under `HLA_EVOKED` and `HLA_IMMEDIATE`;
+that is Umbra adapter evidence, not independent-provider conformance. The
+existing TCK mapping ([scenario catalog](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L20580))
+points to IEEE 1516.1-2025 §5.9, p. 98, lines 11, 17, and 32; the licensed
+clause text was not independently reviewed here.
+
+### Whole-class and selected-subset unsubscribe have different observed effects
+
+These are separate public TCK fixtures, not two branches run against one shared
+federation. Both begin with an active subscription to `Name` and `Value`. The
+selected-subset case preserves `Name` delivery for the caller and leaves the
+peer's full subscription intact. The whole-class case observes no later
+reflection for an already-known object and no discovery callback for an object
+registered after the call. Neither outcome can be inferred by passing an empty
+set to the selected-subset service; that input remains a separate unresolved
+profile seam below.
+
+```mermaid
+flowchart TD
+  Start["Separate TCK fixture with active {Name, Value} subscription"] --> Service{"Which public unsubscribe service is called?"}
+  Service -->|"unsubscribeObjectClassAttributes({Value})"| Subset["Selected-subset case"]
+  Subset --> KeepName["Two existing objects: caller receives Name only after mixed updates"]
+  KeepName --> Peer["Peer keeps Name and Value; Value-only update still reaches peer"]
+  KeepName --> FutureSubset["Behavior for a later object is not tested"]
+  Service -->|"unsubscribeObjectClass(class)"| Whole["Whole-class case"]
+  Whole --> OldObject["Existing object: later update produces no reflection"]
+  Whole --> NewObject["Object registered afterward: no discovery is observed"]
+  Service -->|"Subset service with an empty set"| Empty["Not covered by either case; meaning remains unresolved"]
+```
+
+The whole-class case first verifies both attributes arrive, then calls
+`unsubscribeObjectClass`, registers another object, and checks that no discovery
+was recorded for it. A later update to the original object produces no
+reflection. Its recorded installed-package result also passed under
+`HLA_EVOKED` and `HLA_IMMEDIATE`; these are Umbra adapter observations, not
+independent-provider conformance. Neither the whole-class nor subset case
+asserts an `attributesOutOfScope` advisory.
 
 ### Empty-set subset unsubscribe is an unresolved profile seam
 
@@ -183,7 +268,7 @@ relevance, while its own class and applicable region match still have to pass.
 For discovery, the implementation keeps the active-relevance result as one
 boolean while scanning non-producer declarations across the registered class
 hierarchy and discoverable instance attributes, then performs the receiver's
-own declaration lookup separately ([active scan](../../cpp/src/internal/federation/federation_registry.cpp#L873),
+own declaration lookup separately ([active scan](../../cpp/src/internal/federation/federation_registry.cpp#L915),
 [receiver selection](../../cpp/src/internal/federation/federation_registry.cpp#L1037)).
 The gate retains no attribute or class identity, so the second scan does not
 pair the active-establisher entry with the passive receiver's entry. For
@@ -197,6 +282,29 @@ reflection when no active B declaration exists. This source-derived example
 is not an HLA rule or a result asserted by the cited passive-only test; that
 test has one publisher and one subscriber
 ([test setup](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120)).
+Keep the discovery establisher separate from the later value-relevance
+witness. If a distinct member Z has active B and its class and region match the
+update, that declaration can establish relevance for a later B update; the
+planner then checks Y's own passive B declaration and region separately. X's
+active A does not establish B's update. The per-attribute scan and receiver
+gate are separate
+([active relevance](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L153),
+[receiver gate](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L326)).
+This P/X/Y/Z sequence remains source-derived; no focused test asserts it.
+The two discovery passes also walk class ancestry independently. The active
+scan can establish relevance at one class depth, while the receiver scan can
+select a different closest class through its own declaration; the active
+member's class does not choose the receiver's reported class. The public C++
+TCK's [per-federate class-view scenario](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp#L784)
+asserts base and derived subscribers receive their respective class views for
+one registered derived object and that each `getKnownObjectClassHandle`
+matches ([assertions](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp#L883)).
+Both subscriptions are active in that scenario, so it does not test a passive
+receiver whose active establisher matches at another class depth. That mixed
+cross-member, cross-depth result remains source-derived and untested.
+The receiver-local `Attributes In/Out Of Scope` planner is a separate active-only
+check with its own callback boundary; see the
+[Attribute Scope guide](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md#scope-is-a-receiver-local-predicate).
 
 The 2025 process service also holds this registry type. Its subscription
 handler delegates the declaration change and existing-object discovery plan
@@ -213,6 +321,14 @@ It does not register an ordinary object or introduce a separate active
 establisher. It therefore covers process request/declaration routing, not the
 cross-member discovery branch described above. No focused process test
 establishes a separate active member making a passive receiver discoverable.
+Candidate eligibility is not the discovery commit. Embedded source rechecks it
+when the callback task begins; configured-process source rechecks it while
+staging the discovery event, before making that event available to the client.
+The [object-flow discovery notes](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#reading-the-object-diagram-correctly)
+compare those profile-specific boundaries. Neither profile has a focused test
+for this three-role cross-attribute outcome.
+For a side-by-side 2025 comparison, see the Object/Interaction guide's
+[service-specific passive relevance gates](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#why-passive-declarations-use-service-specific-relevance-gates).
 
 ```mermaid
 flowchart TD
@@ -234,9 +350,15 @@ flowchart TD
   end
 ```
 
-The source points are the [discovery active-relevance scan](../../cpp/src/internal/federation/federation_registry.cpp#L873),
+In the distinct three-role example, the publisher, active establisher X, and
+passive-only receiver Y are separate joined federates. X's active match opens
+the discovery path; Y's own class, attribute, and region match is a separate
+receiver gate. On a later update to B, active relevance is checked again for
+B itself: X's active match for A does not by itself make a later update to B relevant.
+
+The source points are the [discovery active-relevance scan](../../cpp/src/internal/federation/federation_registry.cpp#L915),
 [receiver selection](../../cpp/src/internal/federation/federation_registry.cpp#L1037),
-and the [attribute-update recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L76).
+and the [attribute-update recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L153).
 The [focused passive-subscription test](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120)
 does establish passive-only suppression and the same subscriber's later
 passive-to-active transition, but it does not test a separate active member
@@ -299,8 +421,46 @@ The table is an implementation reading aid, not a complete normative rule.
 | --- | --- | --- |
 | Class-level declaration relevance | An active match at a published class or applicable ancestor can change the publisher-facing class relevance signal. This decision does not require a particular object instance or regional overlap. | The [relevance guide](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md#class-level-declaration-relevance) separates this signal from per-instance relevance and delivery; it does not prove that a value will be delivered. |
 | Discovery and receiver-known class | After a joined non-producer's active subscription establishes relevance for a discoverable instance attribute under the applicable region predicate, the embedded resolver walks from the object's registered class toward its parents for each receiver. The closest qualifying receiver declaration selects the class the receiver learns; a parent-known object does not expose child-only attributes. A passive receiver can qualify at this recipient stage, but cannot establish the active gate itself. | The [resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830) and [focused child-object/base-subscription case](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L297) support this embedded path. That case uses an active receiver; the separate-active-establisher/passive-receiver combination is not covered. The [object-flow ancestry map](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#class-ancestry-has-different-jobs-in-different-paths) gives the wider context. |
-| Later value projection | The embedded planner starts with this receiver's saved known class, then applies attribute visibility, subscription/relevance, and any regional overlap to the update. An eligible passive receiver still depends on active relevance being established elsewhere. | See the [recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L49) and the [process parent/child overlap case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457): it observes one callback for overlapping active declarations on the same inherited attribute. It does not cover passive or regional cross-class delivery, nor establish process/embedded parity. |
+| Later value projection | The embedded planner starts with this receiver's saved known class, then applies attribute visibility, subscription/relevance, and any regional overlap to the update. An eligible passive receiver still depends on active relevance being established elsewhere. | See the [recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L121) and the [process parent/child overlap case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457): it observes one callback for overlapping active declarations on the same inherited attribute. It does not cover passive or regional cross-class delivery, nor establish process/embedded parity. |
 | Regional declaration lookup | Regional pairs are stored under the exact class/attribute key, while the embedded discovery path walks the registered class and its parents and checks entries along that walk. A parent-keyed regional declaration can therefore be considered for a child object in this source path; the declaration is not copied into the child entry. | The [DDM ancestry guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#object-class-ancestry-regional-discovery-and-value-projection) marks this cross-class result source-only: reviewed regional tests register and subscribe at the same class. No process or 2010 result is established. |
+
+### A later specific subscription does not promote the discovered class
+
+Once this receiver has discovered an object at a base class, adding a
+subscription at a more-specific class does not replace that discovery or the
+receiver's `getKnownObjectClassHandle` result. The C++ TCK catalog maps this
+behavior to IEEE 1516.1-2025 §5.1.3 ([scenario mapping](../../compliance/catalogs/cpp-tck-scenario-catalog.json)).
+
+```mermaid
+sequenceDiagram
+    participant P as Publisher
+    participant R as RTI
+    participant S as Subscriber
+
+    P->>R: Publish Derived attributes
+    S->>R: Subscribe to Base attributes
+    P->>R: Register object as Derived
+    R-->>S: discoverObjectInstance(object, Base)
+    Note over S: Known class for this object = Base
+    S->>R: Add subscription to Derived attributes
+    Note over P,S: No second discovery. Subscriber remains Base and publisher remains Derived.
+```
+
+The [TCK scenario](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp#L910)
+asserts that discovery remains exactly once, the subscriber's discovery and
+known-class lookup remain at the base class, and the publisher's lookup remains
+at the derived class. The two ambassadors' handles are not compared with one
+another; the scenario correlates them through the common object name. The
+embedded [discovery planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L105)
+skips already-known receivers, and the [discovery-state commit](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_state.cpp#L35)
+also rejects a receiver that already has a known class.
+
+This is class-view stability and duplicate-discovery behavior. It does not
+resolve whether adding a subscription alone reflects a stored value; see the
+[late-subscription boundary](#a-subscription-can-be-late-relative-to-two-different-events).
+The catalog marks the scenario adapter-required. This review inspected its
+source but did not execute it, so it establishes no configured-process runtime
+result or embedded/process parity claim.
 
 A subscription change may consequently lead to different callbacks depending
 on whether this receiver knew the object already: discovery and embedded
@@ -344,11 +504,50 @@ again. Keep the resulting observations separate:
 The important boundary is not just whether the object was registered before
 the subscription. Ask whether this receiver already knows the object:
 
+The following map compares the 2025 Umbra source and focused-test paths. It is
+not a normative resolution of IEEE 1516.1-2025 §5.8; the already-known-object
+value effect remains open below.
+
+```mermaid
+flowchart TD
+  SUB["Later attribute subscription"] --> KNOWS{"Receiver already knows<br/>the object?"}
+  KNOWS -->|"No"| SELECT{"Selected for discovery<br/>in this evaluation?"}
+  SELECT -->|"No"| NONE["No discovery-triggered<br/>snapshot in this path"]
+  SELECT -->|"Yes"| DISC["New discovery path"]
+  DISC --> VALUES["Discovery path plans selected<br/>current values"]
+  VALUES --> TESTS["Focused test sources assert<br/>selected stored values"]
+  KNOWS -->|"Yes"| EXISTING["No new discovery"]
+  EXISTING --> MUTATION["Inspected mutation plans<br/>scope/advisory work, not<br/>ordinary value recipients"]
+  MUTATION --> SNAPSHOT["No ordinary current-value<br/>planner on this path"]
+  SNAPSHOT --> OPEN["Value-only outcome untested;<br/>§5.8 remains open"]
+  EXISTING --> LATER["Publisher sends a later update"]
+  LATER --> NORMAL["Ordinary update path checks<br/>current owner and subscription"]
+  NORMAL --> GENERIC["Generic update is tested;<br/>combined Join case is not"]
+```
+
+The embedded source enters `discoverObjectInstance` before planning initial
+reflections after that callback returns. The configured-process service accepts
+the discovery and stages a separate initial-value event. Focused test sources
+assert selected stored values under both callback models; the polling transcript
+is case-specific, and this documentation pass did not run the tests. The chart
+does not promise one callback order for every profile or callback model.
+
 | Receiver state | Current-value boundary in the bounded 2025 evidence |
 | --- | --- |
-| Existing object, not yet known to this receiver; subscription makes it discoverable. | Embedded and configured-process paths both have focused test sources that observe discovery plus a reflection of selected stored values. The process case subscribes after registration/update, selects only `Name`, and asserts its stored bytes under both callback-model sections ([test case](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652), [assertions](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L952)). The process source change is present in the current worktree but was not built or tested in this documentation pass. Neither test independently verifies the licensed §5.8 rule or a universal callback-order guarantee. |
-| Receiver already knows the object and adds another attribute. | The discovery planner skips known instances and ordinary initial-value planning is discovery-scoped ([planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L105)). The process initial-reflection planner is reached from the discovery enqueue path, not from a value-only subscription mutation ([process enqueue](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90)). A public process test adds `PayRate` after discovery and observes the provider-facing relevance advisory, but has no subscriber reflection callback or value update ([late subscription](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L819), [owner advisory](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L830)). Whether adding an attribute to an already-known object alone reflects its current value remains untested and normatively unresolved here. |
-| Federate separately invokes Request Attribute Value Update. | This is a distinct provider solicitation: any value requires a later provider update. RTI-owned joined-federate MOM requests have a separate direct-reflection exception; see the [neighboring-path comparison](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md#keep-these-neighboring-paths-distinct). |
+| Existing object, not yet known to this receiver; subscription makes it discoverable. | Embedded and configured-process paths both have focused test sources that observe discovery plus a reflection of selected stored values. The process case subscribes after registration/update, selects only `Name`, and asserts its stored bytes under both callback-model sections ([test case](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652), [assertions](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L952)). The cited source and test were inspected only; this documentation pass did not build or run the test, so it makes no passing-result claim. Neither test independently verifies the licensed §5.8 rule or a universal callback-order guarantee. |
+| Receiver already knows the object and adds another attribute. | The discovery planner skips known instances and ordinary initial-value planning is discovery-scoped ([planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L105)). The process initial-reflection planner is reached from the discovery enqueue path, not from a value-only subscription mutation ([process enqueue](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90)). A public process test adds `PayRate` after discovery and observes the provider-facing relevance advisory, but has no subscriber reflection callback or value update ([late subscription](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L819), [owner advisory](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L830)). Whether that subscription alone reflects a value already held remains untested and normatively unresolved. A later update is a separate path: the ordinary update planner checks current ownership, class visibility, and subscription ([recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L121)); a public process test observes ordinary update reflection under both callback-model sections, but does not combine it with Join-added attributes or prior-known receiver state ([test](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L817), [assertions](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L821)). |
+| Federate separately invokes Request Attribute Value Update. | This is a distinct provider solicitation: any value requires a later provider update. RTI-owned joined-federate MOM requests have a separate direct-reflection exception; see the [Federation MOM request path](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#explicit-mom-requests-return-current-values-through-a-separate-path) and the [neighboring-path comparison](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md#keep-these-neighboring-paths-distinct). |
+
+For the explicit request lifecycle and its limits, see the [2025 Attribute
+Value Update Request guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md).
+
+The second row is specifically a subscription-declaration change. An
+additional-module Join changes the shared model catalog while admitting a
+member; do not use the `PayRate` advisory case as evidence for that Join path,
+or use added-class lookup as evidence of a value-only reflection. The separate
+[FOM catalog-replacement review](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#catalog-replacement-does-not-itself-discover-ordinary-application-objects)
+and [object-discovery boundary](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#object-path-declarations-registration-and-discovery)
+track the model-change path and its evidence limits.
 
 The source trace for the already-known row is more specific than the test
 result. Subscription mutation returns scope-change and relevance-advisory
@@ -357,17 +556,31 @@ Replanning discovery skips an instance already present in the receiver's
 known-object map ([planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L105)).
 The embedded ordinary initial-value planner is called from the post-discovery
 callback path, after `Discover Object Instance` has entered application code
-([callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L375)).
+([callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L400)).
 The process subscription handler also replans discovery. The current process
 enqueue path plans ordinary initial values only for a newly accepted discovery;
 the known-object filter suppresses that path when a receiver merely adds an
 attribute ([handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176),
 [discovery planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90)).
+If the new owner sends a separate Update Attribute Values after the receiver
+has subscribed, that update is evaluated through the normal recipient path,
+which looks up the receiver's known class and checks declarations for the sent
+attribute ([embedded recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L121),
+[public process reflection case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L817)).
+This supports the source-level distinction between a later update and a
+current-value snapshot caused by subscription. The focused reflection test
+subscribes before registration and does not exercise the Join-added/prior-known
+combination. No combined callback outcome or normative §5.8 conclusion follows.
 Thus no ordinary snapshot path is visible for an already-known object in the
 inspected Umbra source. The focused `PayRate` advisory test observes the owner
 notification, not a value-only reflection. This is not a normative conclusion:
-the licensed §5.8 text remains unreviewed, and the already-known-object case is
-not isolated by a current-value test.
+the checked workspace contains pinned 2025 API headers but no full standard
+text. IEEE's [official 1516.1-2025 listing](https://standards.ieee.org/ieee/1516.1/6688/)
+offers purchase or subscription access; its [Standards Reading Room](https://standards.ieee.org/access-standards/)
+offers free read access to selected standards, but public pages do not confirm
+whether 1516.1-2025 is included. The §5.8 text remains
+unreviewed, and no focused test isolates a value-only reflection for an
+already-known object.
 
 The nearest embedded additive/mode test
 ([case](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L355))
@@ -440,29 +653,22 @@ establish a normative relative order between the callbacks.
 
 ```mermaid
 flowchart TD
-  CHANGE["Subscription or regional-interest change"] --> REEVAL["Re-evaluate each matching registered instance"]
+  accTitle: 2025 subscription-change effects by receiver knowledge
+  accDescr: A subscription change re-evaluates matching objects. A receiver that did not know an existing object may get discovery and initial eligible values. For a known object, scope advice is separate from the unresolved current-value effect of adding an attribute; provider relevance advice goes to a different federate.
+  CHANGE["Subscription or regional-interest change"] --> REEVAL["Re-evaluate matching registered instances"]
   REEVAL --> KNOWN{"Already known to this receiver?"}
-  KNOWN -->|"No; now discoverable"| DISCOVER["Invoke Discover Object Instance callback; known-object state is committed"]
-  DISCOVER --> REENTRY{"Application changes current RTI state during Discover callback?"}
-  REENTRY -->|"Unsubscribe, resign, or change region"| MUTATE["Apply reentrant change before snapshot planning"]
-  REENTRY -->|"No relevant mutation"| CURRENT["After callback returns, recheck live membership and recipient eligibility"]
-  MUTATE -->|"Callback returns"| CURRENT
-  CURRENT -->|"Eligible stored values remain"| INITIAL["Reflect stored values still eligible under current state"]
-  CURRENT -->|"Member left or no values remain eligible"| NOINITIAL["No stale initial reflection from this plan"]
-  DISCOVER -.-> AUTOGATE{"Separate embedded Auto Provide path: enabled and qualifying owner attributes?"}
-  AUTOGATE -->|"Yes"| AUTOPROVIDE["Provide Attribute Value Update solicits owner; a later Update carries any values"]
-  AUTOGATE -->|"No"| NOAUTOPROVIDE["No provider solicitation"]
-  KNOWN -->|"Yes"| SCOPE["Re-evaluate this receiver's attribute scope"]
-  SCOPE --> DELTA["Compute the receiver's per-attribute scope delta"]
-  DELTA --> SCOPEGATE{"Scope changed and receiver's scope-advisory switch enabled?"}
-  SCOPEGATE -->|"Yes"| SCOPECALLBACK["Attribute Scope Advisory to receiver"]
-  SCOPEGATE -->|"No"| NOSCOPE["No scope advisory from this transition"]
-  DELTA --> NEWATTRIBUTE{"Did the declaration add a subscribed attribute to this known object?"}
-  NEWATTRIBUTE -->|"Yes"| VALUEGAP["Open: whether a current-value callback follows is not established"]
-  NEWATTRIBUTE -->|"No"| NOVALUEQUESTION["No known-object/new-attribute value question"]
-  CHANGE -.-> OWNERGATE{"Separate provider-side transition: did relevance change and is its switch enabled?"}
-  OWNERGATE -->|"Yes"| OWNER["Turn Updates On/Off to attribute provider; no value is carried"]
-  OWNERGATE -->|"No"| NOOWNER["No owner advisory"]
+  KNOWN -->|"No; now discoverable"| DISCOVER["Discover Object Instance<br/>establish receiver-known state"]
+  DISCOVER --> INITIAL["Initial reflection of currently eligible stored values<br/>profile path shown below"]
+  KNOWN -->|"Yes"| SCOPE["Recompute scope for known object"]
+  SCOPE --> SCOPEQ{"Scope changed and receiver switch enabled?"}
+  SCOPEQ -->|"Yes"| SCOPECALL["Attribute Scope Advisory<br/>to receiver"]
+  SCOPEQ -->|"No"| NOSCOPE["No scope advisory"]
+  SCOPE --> ADD{"Did subscription add an attribute?"}
+  ADD -->|"Yes"| OPEN["Open: current-value-only effect<br/>not established by source, tests, or licensed text"]
+  ADD -->|"No"| NOADD["No added-attribute question"]
+  CHANGE -.-> OWNERQ{"Separate provider transition: did relevance change<br/>and is its switch enabled?"}
+  OWNERQ -->|"Yes"| OWNER["Turn Updates On/Off to attribute provider<br/>carries no value"]
+  OWNERQ -->|"No"| NOOWNER["No provider advisory"]
 ```
 
 The embedded callback commits receiver-known state before calling
@@ -473,7 +679,7 @@ planner rechecks current membership/object state and passes currently stored
 attribute handles through the receive-order recipient selector, so this is a
 source-derived stale-work fence—not a tested callback-order or process-parity
 claim. See the [callback boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L323),
-[planning checkpoint](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L376),
+[planning checkpoint](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L400),
 [initial-value planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L153),
 and [recipient selector](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L15).
 The cited [embedded stored-value case](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L198)
@@ -559,10 +765,16 @@ the server pairs Evoked with polling and Immediate with pushed events; the
 polling section receives discovery and initial reflection as separate
 receive-order responses ([fixture option](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L726),
 [poll receives](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L812)).
+The polling harness requests discovery first and initial reflection second
+([ordered requests](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L817)).
+That is a case-specific `HLA_EVOKED` transcript. The `HLA_IMMEDIATE` branch
+uses pushed events and checks final callback counts and values without keeping
+a callback-order log; the chart's process ordering label also reflects source
+staging, not a general callback guarantee.
 The test source is not a passing result: this documentation review did not run
-it, and the process discovery implementation is currently modified in the
-worktree. The licensed §5.8 text also remains unavailable here, so this is a
-source/test-shape description, not a normative or conformance conclusion.
+it. The cited source and test describe implementation and test shape, not a
+passing configured-process result. The licensed §5.8 text also remains
+unavailable here, so this is not a normative or conformance conclusion.
 
 Polling appends a discovery event and then each nonempty ordinary initial-
 value event to the receiving session's separate queues. Push stages discovery
@@ -582,62 +794,42 @@ current source does not re-enter the discovery-scoped initial planner for a
 known object when only its subscription changes; whether a value-only callback
 is required remains untested here. The licensed §5.8 text is not included in
 the API-header import; the [official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/)
-directs readers to purchase/subscription access. Push sends and pull queues
+offers purchase/subscription access, while the [Standards Reading Room](https://standards.ieee.org/access-standards/)
+offers free read access to selected standards. The public pages do not identify
+whether 1516.1-2025 is included. Push sends and pull queues
 also use different session mechanisms, so handler enqueue order is not a
 global callback order.
 
 For a reader, first ask whether the receiver already knows the object. Becoming
 aware of an existing object and adding an attribute to an already-known object
-are different transitions. The following is only a source/profile comparison.
-The embedded implementation cites §5.8 in a source comment, but this diagram
-does not independently verify that licensed text or establish what the process
-profile is required to do.
+are different transitions. The following chart compares only the newly-known
+ordinary-object path; the prior chart keeps the known-object/value-only question
+open. The embedded implementation cites §5.8 in a source comment, but this
+diagram does not independently verify that licensed text or establish what the
+process profile is required to do.
 
 ```mermaid
 flowchart TD
-  SUB["Receiver subscribes after object registration"]
-  KNOWS{"Does this receiver already know<br/>the object?"}
-  SUB --> KNOWS
-
-  subgraph NEW["Object exists but is not yet known to this receiver"]
-    ELIGIBLE["Updated subscription makes a matching object discoverable"]
-    subgraph EMBEDDED["2025 embedded development-profile source"]
-      EPLAN["Registry plans discovery"]
-      EDISC["Callback bridge invokes Discover Object Instance"]
-      EVALUES["After the callback returns, registry plans current eligible values"]
-      ETEST["Focused test observes discovery and the selected stored value"]
-      EPLAN --> EDISC --> EVALUES --> ETEST
-    end
-    subgraph PROCESS["2025 process-profile source"]
-      PPLAN["Subscription handler plans discoveries"]
-      PDISC["Enqueue path commits known-object state and creates a discovery event"]
-      PKIND{"RTI-owned MOM instance?"}
-      PMOM["MOM: selected values from the joined-federate snapshot"]
-      POBJECT["Ordinary: plan currently eligible subscribed stored values"]
-      PORDER["Stage discovery before separate initial-value event"]
-      PREFLECT["Process callback bridge maps values to Reflect Attribute Values"]
-      PPLAN --> PDISC --> PKIND
-      PKIND -->|"Yes"| PMOM --> PORDER
-      PKIND -->|"No: ordinary object"| POBJECT --> PORDER
-      PORDER --> PREFLECT
-    end
-    ELIGIBLE --> EPLAN
-    ELIGIBLE --> PPLAN
+  accTitle: 2025 profile paths for late subscription to an existing object
+  accDescr: When a subscription makes an existing but unknown ordinary object visible, the embedded and process paths plan discovery and eligible current values differently. The process route treats RTI-owned MOM snapshots separately. The known-object value-only question is in the companion chart and remains unresolved.
+  START["Existing object is not known to receiver"] --> ELIGIBLE["Updated subscription makes object discoverable"]
+  ELIGIBLE --> EPLAN["Embedded registry plans discovery"]
+  subgraph EMBEDDED["2025 embedded source"]
+    direction TB
+    EDISC["Invoke Discover Object Instance"] --> EVALUES["After callback returns, plan currently eligible stored values"]
   end
-
-  subgraph KNOWN["Receiver already knows object; subscribes to another attribute"]
-    CHANGE["Subscription declaration changes"]
-    EFFECTS["Plan receiver scope changes and provider relevance advisories"]
-    REPLAN["Replan discovery for eligible instances"]
-    SKIP["Known-object state suppresses another discovery"]
-    VALUEOPEN["No new discovery; current-value-only effect remains open"]
-    ADVTEST["Public process test observes provider advisory,<br/>not a value-only callback for the known object"]
-    CHANGE --> EFFECTS
-    CHANGE --> REPLAN --> SKIP --> VALUEOPEN
-    EFFECTS --> ADVTEST
+  EPLAN --> EDISC
+  ELIGIBLE --> PPLAN["Process subscription handler plans discovery"]
+  subgraph PROCESS["2025 process source"]
+    direction TB
+    PCOMMIT["Commit known-object state; create discovery event"] --> PKIND{"RTI-owned MOM instance?"}
+    PKIND -->|"No: ordinary"| POBJECT["Plan currently eligible ordinary values"]
+    PKIND -->|"Yes"| PMOM["Select values from joined-federate snapshot"]
+    POBJECT --> PSTAGE["Stage discovery before separate value event"]
+    PMOM --> PSTAGE
+    PSTAGE --> PBRIDGE["Bridge maps value event to Reflect Attribute Values"]
   end
-  KNOWS -->|"No"| ELIGIBLE
-  KNOWS -->|"Yes"| CHANGE
+  PPLAN --> PCOMMIT
 ```
 
 The process lane separates registry planning from application callback
@@ -667,7 +859,7 @@ conformance finding or a profile-parity conclusion.
 The embedded-to-process comparison is not a global callback-order claim: the
 process push and pull paths use different session mechanisms. Sources and
 bounded test evidence: [embedded discovery callback](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L325),
-[embedded current-value planning](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L375),
+[embedded current-value planning](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L400),
 [initial-reflection planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L154),
 [regional stored-value observation](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L668),
 [process subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176),
@@ -742,27 +934,33 @@ call a no-op ([test-author interpretation](../../cpp/tests/passive_object_attrib
 that comment records the test author's reading, not an independent verification
 of the normative clause. The local checkout does not contain the full licensed standard;
 the [official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/)
-indicates access via subscription. Keep the conformance question open until an
+offers purchase or subscription access, while the [Standards Reading Room](https://standards.ieee.org/access-standards/)
+offers free read access to selected standards. Its public pages do not confirm
+whether 1516.1-2025 is included. Keep the conformance question open until an
 authorized copy of the precise regional-subscription rule is reviewed. See the
-[update-rate admission guide](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md)
-for the separate rate gate.
+[update-rate admission guide](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md#subscription-mutations-can-start-a-new-rate-history-epoch)
+for the separate rate gate and the
+[DSE guide](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#a-retained-candidate-uses-the-current-subscription-generation-at-delivery)
+for how retained candidates are reprojected at delivery.
 
 ## Evidence map
 
 | Boundary | Source or focused test | What it supports |
 | --- | --- | --- |
 | 2025 public ordinary subscribe/unsubscribe | [RTIambassador.h:535](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L535), [RTIambassador.h:563](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L563) | Selected attribute set, active flag, update-rate designator, and separate unsubscribe service |
+| Selective unsubscribe across existing instances | [Public subset API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L563), [portable C++ TCK scenario](../../packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp#L9), [unsubscribe call](../../packages/hla-rti-cpp-tck/src/tck_selective_attribute_unsubscription.cpp#L164), remaining-attribute projection[^worktree-source], peer Value reflection[^worktree-source], no caller reflection[^worktree-source] | Two discovered instances initially deliver both attributes to two federates. After one removes `Value`, it receives only `Name` on later mixed updates; `Value`-only updates are absent there and still reach the other subscriber. The recorded installed-package case passed under both callback models. No scope-advisory assertion, future-instance case, or independent-provider result is claimed |
+| Whole-class unsubscribe outcome | [Public whole-class API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L550), [portable C++ TCK scenario](../../packages/hla-rti-cpp-tck/src/tck_whole_class_attribute_unsubscription.cpp#L9), [whole-class call](../../packages/hla-rti-cpp-tck/src/tck_whole_class_attribute_unsubscription.cpp#L82), [later-object discovery check](../../packages/hla-rti-cpp-tck/src/tck_whole_class_attribute_unsubscription.cpp#L93), [existing-object update check](../../packages/hla-rti-cpp-tck/src/tck_whole_class_attribute_unsubscription.cpp#L88), [TCK mapping](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L20651) | After the positive delivery control, the whole-class case observes no discovery for a later registration and no reflection for an update to the prior object. The recorded installed-package case passed under both callback models. It does not establish the meaning of an empty subset or independent-provider conformance |
 | 2025 public regional subscribe/unsubscribe | [RTIambassador.h:1559](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1559), [RTIambassador.h:1578](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1578) | Attribute/region pairs and the distinct regional unsubscribe form |
 | Embedded ordinary declaration update | [Ambassador entry point:19](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp#L19), [registry per-attribute upsert:261](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L261), [selected attribute writes:359](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L359) | Validation, per-attribute mode/rate replacement, and scope recalculation |
 | Empty-set subset unsubscribe source seam | [Whole-class API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L550), [subset API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L563), [embedded registry erase](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L302), [process client forwarding](../../cpp/src/internal/federation/process_federation_client_declaration_services.cpp#L461), [process expansion](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L200) | Current-source difference only: embedded removes no selected ordinary entries; process expands to ordinary entries and leaves regional entries separate. No valid-state public test or API comment establishes the intended empty-set meaning |
 | Embedded regional mutation | [Ambassador entry point:463](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp#L463), [registry regional update:422](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L422), [regional pair removal:582](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L582) | Separate regional map, region validation, per-pair changes, and regional removal |
-| Passive versus active delivery/discovery | [Discovery active-relevance scan](../../cpp/src/internal/federation/federation_registry.cpp#L873), [receiver selection](../../cpp/src/internal/federation/federation_registry.cpp#L1037), [attribute-update recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L76), [passive object subscription test](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120) | Source permits a matching passive receiver after non-producer active relevance; in discovery, the active establisher and passive receiver need not match on the same attribute in this source path. The focused embedded test covers passive-only suppression and passive-to-active transition, not a separate active establisher plus passive receiver |
+| Passive versus active delivery/discovery | [Discovery active-relevance scan](../../cpp/src/internal/federation/federation_registry.cpp#L915), [receiver class selection](../../cpp/src/internal/federation/federation_registry.cpp#L1022), [attribute-update recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L153), [passive object subscription test](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120), [per-federate class-view TCK assertions](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/tck_object_registration_discovery_scenarios.cpp#L883) | Source permits a matching passive receiver after non-producer active relevance; discovery's active establisher and receiver need not match the same attribute or class depth, and the receiver scan selects its own closest matching class. The TCK class-view case asserts base/derived recipient views with active declarations; it does not test the mixed passive cross-depth result. The focused embedded passive test covers passive-only suppression and passive-to-active transition, not a separate active establisher plus passive receiver |
 | Process-service selection and event boundary | [Process service registry reference](../../cpp/src/internal/federation/process_federation_service.hpp#L681), [subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176), [registration handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L502), [receive-order update planner call](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L44), [process endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md) | Process handlers call the same registry selection methods, then use process-session event delivery; the cited process test exercises active, timestamped traffic, not the passive three-role branch |
 | Receive-order process reflection with overlapping classes | [Shared recipient/passel planner call](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L44), [push event emission](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L304), [private result](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L325), [public process test](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457) | One untimestamped update is observed once despite parent-plus-child active declarations, under both callback-model sections. The fixture pairs HLA_IMMEDIATE with push and HLA_EVOKED with polling; it does not establish passive three-role, DSE, regional, or embedded/process parity |
 | Late discovery, initial values, and separate observer effects | [Embedded callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L266), [initial reflection planner](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L154), [regional discovery/reflection test](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L198), [owner advisory test](../../cpp/tests/attribute_relevance_advisory_catch2.cpp#L335), [Auto Provide neighboring-path comparison](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md#keep-these-neighboring-paths-distinct) | Embedded 2025 source/test evidence separates discovery, direct initial current-value reflection, provider-facing relevance advice, and the distinct provider solicitation; it is not normative verification or process parity |
-| Process late-subscription evidence boundary | [Process subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176), [ordinary/MOM discovery enqueue](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11), [ordinary initial-value planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90), [discovery callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L622), [attribute-value callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362), [public ordinary late-subscription test source](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652), [selected-value assertions](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L952), [public post-discovery `PayRate` advisory](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L819), [joined-federate MOM initial-value case](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L359), [private process advisory test](../../cpp/tests/process_federation_service_attribute_relevance_advisory_catch2.cpp#L78) | Current source plans selected ordinary initial values for a newly accepted discovery, and the public test source asserts selected stored-value reflection under both callback-model sections; the implementation is modified in the worktree and the test was not run in this docs pass. The `PayRate` test for an already-known object still checks only provider advisory, so value-only behavior after adding an attribute remains unresolved. The MOM test covers its separate snapshot path. Licensed §5.8 remains unreviewed; no conformance or broad profile-parity finding is claimed |
+| Process late-subscription evidence boundary | [Process subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176), [ordinary/MOM discovery enqueue](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11), [ordinary initial-value planner](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90), [discovery callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L622), [attribute-value callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362), [public ordinary late-subscription test source](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652), [selected-value assertions](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L952), [public post-discovery `PayRate` advisory](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L819), [joined-federate MOM initial-value case](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L359), [private process advisory test](../../cpp/tests/process_federation_service_attribute_relevance_advisory_catch2.cpp#L78) | Current source plans selected ordinary initial values for a newly accepted discovery, and the public test source asserts selected stored-value reflection under both callback-model sections; the source and test are clean in the current worktree but were not built or run in this docs pass. The `PayRate` test for an already-known object still checks only provider advisory, so value-only behavior after adding an attribute remains unresolved. The MOM test covers its separate snapshot path. Licensed §5.8 remains unreviewed; no conformance or broad profile-parity finding is claimed |
 | Additive per-attribute mode changes | [Additive subscription test:355](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L355) | Adding B preserves A; per-attribute active/passive replacement changes projection without discarding other entries |
-| Empty regional set and rate-generation caveat | [Focused regional assertions:244](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L244), [test-author §9.8.4 comment:253](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L253), [per-federate generation:2335](../../cpp/src/internal/federation/federation_registry.hpp#L2335), [generation update:524](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L524), [generation in admission key:96](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L96), [first-use gate:19](../../cpp/src/internal/time/update_rate_gate.cpp#L19), [generation-key unit case:40](../../cpp/tests/ieee1516_2025_update_rate_gate_unit_catch2.cpp#L40) | Test source attributes the empty-region expectation to §9.8.4; this is not an independent normative check. The unit case verifies fresh history for a changed generation key; no public integration test isolates the empty-region call's effect |
+| Empty regional set and rate-generation caveat | [Focused regional assertions:244](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L244), [test-author §9.8.4 comment:253](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L253), [per-federate generation:2406](../../cpp/src/internal/federation/federation_registry.hpp#L2406), [generation update:524](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L524), [generation in admission key:96](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L97), [first-use gate:19](../../cpp/src/internal/time/update_rate_gate.cpp#L19), [generation-key unit case:40](../../cpp/tests/ieee1516_2025_update_rate_gate_unit_catch2.cpp#L40), [regional unsubscribe/resubscribe rate case:319](../../cpp/tests/regional_best_effort_attribute_rate_catch2.cpp#L319) | Test source attributes the empty-region expectation to §9.8.4; this is not an independent normative check. The regional rate case directly observes fresh admission after regional unsubscribe/resubscribe, while the unit case verifies a changed generation key. No public integration test isolates the empty-region call's effect or combines DSE with rate-history admission |
 
 The ordinary and regional declaration diagrams and their focused tests are
 2025 source/test evidence. The late-subscription model distinguishes the
@@ -774,3 +972,5 @@ pass did not execute it; the already-known-object/value-only case and normative
 conformance finding, or 2010 behavior. For service-report projection, see [service invocation
 reporting](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md); for class-level
 declaration callbacks, see [relevance advisories](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md).
+
+[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.

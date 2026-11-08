@@ -39,6 +39,16 @@ and [interaction callback overloads](../../third_party/ieee1516.1-2025/include/R
 make this API boundary concrete. The callback timing examples below remain
 profile-specific; see the separate [callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
 
+An authorization decision is another local service-admission result, not an
+observer-side MOM report. The 2025
+[`Authorizer`](../../third_party/ieee1516.1-2025/include/RTI/auth/Authorizer.h#L24)
+returns an
+[`AuthorizationResult`](../../third_party/ieee1516.1-2025/include/RTI/auth/AuthorizationResult.h#L15),
+which Umbra maps before the covered operation continues. That mapping does not
+itself establish an `HLAreportException`; the report route still depends on a
+covered public-service catch site invoking its reporting hook. See the
+[2025 authorization scope and result map](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md#three-authorization-scopes).
+
 ## The three report paths relevant to exception reporting
 
 The word “exception report” is often used loosely. First identify what failed
@@ -209,8 +219,9 @@ sequenceDiagram
    its Exception Reporting switch be on. The default tested state is off.
 3. **Switch-on does not mean broadcast.** The reporting interaction itself
    must be subscribed to, and its `HLAfederate`-scoped endpoint/region and
-   parameter projection determine eligible recipients. A matching parent
-   subscription may receive only inherited parameters.
+   parameter projection determine eligible recipients. Parent-class parameter
+   projection is source-derived; the focused `HLAreportException` tests
+   subscribe to the leaf class, as detailed below.
 4. **The process endpoint treats the server as authority.** The binding sends
    the exception data to the process service; the service re-reads its own
    registry instead of trusting a cached client switch. Prepared report events
@@ -234,9 +245,9 @@ describes delivery policy, not a universal catch or translation rule: the
 active call stack and the particular RTI wrapper determine which exception
 reaches the application.
 
-The `noexcept` [`emitExceptionReport` hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
+The `noexcept` [`emitExceptionReport` hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L225)
 also contains an application exception only when that exception unwinds back
-through this report attempt. In the embedded path, [`queueExceptionReport`](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L30)
+through this report attempt. In the embedded path, [`queueExceptionReport`](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L31)
 submits recipient routes one at a time, and the [immediate dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122)
 can invoke a task before submission returns. If an enabled `HLA_IMMEDIATE`
 `receiveInteraction` runs inline on the submitting thread and throws, the hook's
@@ -250,7 +261,7 @@ another immediate drainer, delivered by a different process client's
 request/pump, or run later by `HLA_EVOKED` is not unwinding through this hook's
 call stack. Its exception follows the ordinary callback dispatch boundary in
 the [callback guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#which-public-call-is-active-when-the-callback-throws).
-Umbra's [receive-order helper](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1097)
+Umbra's [receive-order helper](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1180)
 applies the separate recipient time-state gate described in the
 [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md); that deferral does
 not make this report timestamped.
@@ -258,23 +269,74 @@ For the process profile, keep the report request/response and the recipient's
 event/callback exchange distinct; only a callback exception that propagates
 back through this same hook call is caught here.
 
+The configured-process exception-report request makes this distinction
+especially important. [`reportServiceException`](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L591)
+sets callback draining off and best-effort reporting on. The client request
+releases its request-depth lease before waiting for the report response
+([request path](../../cpp/src/internal/federation/process_federation_client.cpp#L848));
+it only drains pushed callbacks when that flag is enabled
+([dispatch gate](../../cpp/src/internal/federation/process_federation_client.cpp#L917)).
+A pushed event is buffered by the stream reader and handled by the independent
+[callback dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722).
+The process service sends an eligible pushed event before returning the report
+response in its [exception-report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L94).
+If the reporter is also an eligible recipient and its `HLA_IMMEDIATE` callback
+throws, that loop saves the exception in the client's pending-callback slot;
+it does not unwind through `emitExceptionReport`.
+
+The next process request rethrows that pending exception before sending
+([pending-exception rethrow](../../cpp/src/internal/federation/process_federation_client.cpp#L817)).
+In the [`Get Object Class Handle` wrapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98),
+that next request can be the catch-body's failed-service-report request. Its
+[adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L273)
+translates `ProcessFederationClientError`, but does not catch a saved
+federate-callback exception, so the latter can escape the catch body and
+replace the original service exception. This cross-route outcome is
+source-derived and timing-dependent: the pending exception must be stored
+before that follow-up request begins. The focused
+[process exception-report test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L461)
+uses a non-throwing receiver and does not cover this interleaving. For the
+independent dispatch routes and their pending slot, see the callback guide's
+[process callback-exception attribution](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-endpoint-callback-exception-attribution)
+and [wrapper follow-up](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#one-public-wrapper-process-getinteractionclasshandle).
+
 ```mermaid
 sequenceDiagram
-    participant Service as Failing service
-    participant Hook as noexcept hook
-    participant Recipient as Report observer
+    participant App as Failing service
+    participant Hook as Exception hook
+    participant Client as Process client
+    participant RTI as Process RTI service
+    participant Observer as Report observer
 
-    Service->>Hook: Report original exception E0
-    alt E1 unwinds through inline report
-        Hook->>Recipient: Dispatch receiveInteraction inline
-        Recipient--xHook: Throw callback exception E1
-        Note over Hook: Hook consumes E1, embedded fan-out stops
-    else E1 is deferred or on another stack
-        Note over Hook,Recipient: The hook cannot catch E1 on another stack
+    App->>Hook: Report original exception E0
+    alt Embedded callback unwinds through hook
+        Hook->>Observer: Invoke callback inline
+        Observer--xHook: Throw E1
+        Note over Hook: Suppress E1 and stop embedded fan-out
+    else Configured-process report request
+        Hook->>Client: reportServiceException with callback drain off
+        Client->>RTI: report_service_exception
+        opt Same-client HLA_IMMEDIATE push throws before response
+            RTI-->>Client: Push report event
+            Note over Client,Observer: Independent dispatch loop handles the event
+            Client->>Observer: Invoke receiveInteraction
+            Observer--xClient: Throw E1
+            Client->>Client: Save E1 as pending
+        end
+        RTI-->>Client: Report response
+        Client-->>Hook: Return without draining callbacks
+        Note over Hook,Client: E1 did not unwind through the hook
+    else Deferred, other client, or HLA_EVOKED
+        Note over Hook,Observer: E1 follows the recipient's callback boundary
     end
-    Hook-->>Service: Return to service catch
-    Service->>Service: Continue catch-body work
-    Service-->>Service: Rethrow E0 if catch work succeeds
+    Hook-->>App: Return to service catch
+    App->>App: Continue catch-body work
+    opt E1 is pending before wrapper's next request
+        App->>Client: Submit failed service-report request
+        Client--xApp: Rethrow E1 before sending
+        Note over App: E1 can replace E0
+    end
+    App-->>App: Rethrow E0 if catch-body work succeeds
 ```
 
 This is source-derived boundary behavior, not a normative callback rule. The
@@ -332,7 +394,7 @@ sequenceDiagram
 ```
 
 This is source-derived combined behavior, not a tested two-switch scenario.
-The focused [exception-report test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L460)
+The focused [exception-report test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L461)
 explicitly enables Exception Reporting but does not configure Service
 Reporting. The focused [failed-GetObjectClassHandle service-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L189)
 explicitly enables Service Reporting but does not configure Exception
@@ -341,11 +403,14 @@ arrival, or the public exception outcome when the second reporting request
 fails.
 
 The source does establish the catch-body order: the [public service catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98)
-calls the [exception-report hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
-before the [failed-service-report helper](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L252).
-The [process client](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L429)
-and [server report handlers](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L89)
-keep these as separate requests. The exception hook is `noexcept` and swallows
+calls the [exception-report hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L225)
+before the [failed-service-report helper](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L253).
+The process client sends these as separate requests through its
+[exception-report method](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L494)
+and [failed-invocation method](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L512);
+the server has corresponding [exception-report](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L94)
+and [failed-invocation handlers](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L176).
+The exception hook is `noexcept` and swallows
 its own failures; afterward, the service-report helper converts a failed
 process report request into `RTIinternalError`. Because that conversion
 happens before the catch body's final `throw`, this later failure can replace
@@ -358,10 +423,34 @@ process-path boundary to the embedded writer path or to 2010.
 The implementation encodes the inherited `HLAfederate` reference together
 with the leaf parameters `HLAservice` and `HLAexception`. The callback is an
 RTI-originated receive-order interaction using reliable transportation, an
-empty user tag, an invalid/default producer handle, and no sent-region set in
-the focused cases. Do not mistake the private “reported member” routing value
-for the callback producer: the member being described is carried by
-`HLAfederate`.
+empty user tag, and an invalid/default producer handle in the focused process
+cases. Do not mistake the private “reported member” routing value for the
+callback producer: the member being described is carried by `HLAfederate`.
+
+Parameter projection follows the recipient's promoted interaction class. The
+[recipient planner](../../cpp/src/internal/federation/federation_registry.cpp#L1811)
+selects the closest eligible subscribed class and retains only parameters
+resolvable through that class. A parent `HLAreport` subscription can therefore
+receive inherited `HLAfederate` while omitting leaf `HLAservice` and
+`HLAexception`. This is source-derived for `HLAreportException`: the focused
+[service-exception test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L552)
+and [concurrency test](../../cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp#L608)
+subscribe to the leaf class and assert its three parameters; no focused
+parent-only `HLAreportException` projection case was found. The separate
+`HLAreportMOMexception` parent-projection test is not direct evidence for this
+interaction.
+
+Sent-region metadata also depends on the observer's convey-region switch. The
+[service-exception test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L563)
+enables `setConveyRegionDesignatorSetsSwitch` and asserts one sent-region
+handle at [callback observation](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L607).
+The [concurrency case](../../cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp#L694)
+does not enable that switch and asserts no sent-region set. The
+[embedded callback builder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L95)
+and [process event planner](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L151)
+include region data only when the recipient projection requests it. The focused
+tests establish both outcomes for their fixtures, not every region or
+subscription configuration.
 
 ## Route B: a MOM interaction is rejected
 
@@ -382,13 +471,44 @@ flowchart TD
     N[Exception Reporting switch] -. does not gate .-> H
 ```
 
-The current focused cases use `HLAsetSwitches` and show two distinct
-rejection classes:
+The focused embedded cases use `HLAsetSwitches` to show two broad rejection
+classes, including an important timestamped-send edge:
 
 | Rejection | Example in the focused cases | `HLAparameterError` in the report |
 | --- | --- | --- |
 | Malformed request | No required parameter, unknown parameter, or malformed parameter value. | `true` |
-| Well-formed request rejected by a service precondition | Attempt to enable Service Reporting while the relevant report interaction is subscribed. | `false` |
+| Well-formed request rejected by a service precondition | Attempt to enable Service Reporting while the relevant report interaction is subscribed; a timestamped send of Subscribe-only `HLAsetSwitches` fails `InteractionClassNotPublished` even though its timestamp is valid. | `false` |
+
+A focused 2025 public-test source expands the malformed-request case across its
+54-entry `parameterRequiredTable7SLeaves` list[^worktree-source].
+It publishes each leaf, sends an empty parameter map, expects rejection, then
+checks for one `HLAreportMOMexception` per service with
+`HLAparameterError=true` (case and report checks[^worktree-source],
+parameter-error assertion[^worktree-source]).
+The test catches the API failure generically, so it does not establish a
+particular RTI exception subtype. This documentation pass inspected the test
+source but did not run it.
+
+The same source uses two parameterless federation request leaves as controls:
+`HLArequestMIMdata` and `HLArequestSynchronizationPoints` are sent with empty
+parameter maps and are expected to produce their respective reports
+(MIM-data request[^worktree-source],
+synchronization-points request[^worktree-source]).
+These controls do not cover successful argument shapes for the 54 parameter-
+required leaves, every Table 7 service, or configured-process behavior.
+
+The timestamped example is still a `HLAreportMOMexception` path. The embedded
+[test body](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L158-L193)
+enables time regulation, sends at valid integer64 time 1, and asserts the
+publication exception, `HLAparameterError=false`, and a report callback after
+the observer evokes callbacks. The
+[timestamped Send Interaction path](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L201)
+captures the MOM class before timestamp validation and report planning; the
+existing interaction planner then rejects the unpublished class before the
+TSO message is queued, and the catch still attempts the MOM report. Thus the
+application send's timestamp does not turn the report into TSO. This is one
+embedded source/test observation, not a normative timing or process-parity
+claim; this documentation review did not rerun the test.
 
 `HLAparameterError` describes the rejection category; it does not say whether
 the API caller receives an exception. In these cases the caller receives the
@@ -429,15 +549,24 @@ invocation writer; its independent Service Reporting switch and sink can
 therefore make a third report attempt (`HLAreportServiceInvocation` or a file
 record). No cited test observes all three routes for one failed call.
 
-The configured-process `HLAsetSwitches` path differs. The server plans and
-enqueues an eligible `HLAreportMOMexception` before returning the rejected
-service response. The public process `Send Interaction` branch translates
-that rejection to `RTIinternalError` and exits before reaching the later
-embedded catch or the failed service-invocation writer. The focused process
-test asserts the caller error and MOM report, but does not exercise the general
-Exception Reporting route. This is a source-path distinction, not a normative
-rule or a claim of profile parity; event enqueue order is not callback-arrival
-order.
+The configured-process pushed receive-order route exposes two separate
+timelines. In the focused case's push-enabled server, the server plans the
+eligible `HLAreportMOMexception`, pushes its event, and then returns the
+rejected service response. While completing the synchronous request, the
+process client dispatches the buffered pushed event before it returns that
+response to `sendInteraction`. The public adapter then maps the rejected
+status to `RTIinternalError`; this error path exits before the success-only
+service-invocation writer and does not enter the embedded exception hooks.
+
+What the receiving application observes depends on its callback model. In the
+focused `HLA_EVOKED` case, the request-side dispatch queues the report for the
+callback service; `sendInteraction` throws first, and the test observes the
+report only when it subsequently calls `evokeCallback`. The inspected
+`HLA_IMMEDIATE` path invokes during request-side dispatch, before the service
+call surfaces its rejected status, but the cited focused test does not assert
+that schedule. These are configured-process implementation observations, not
+a normative rule or a claim of profile parity. Server event-send order and
+application callback time are distinct points in the path.
 
 ```mermaid
 flowchart TD
@@ -454,25 +583,35 @@ flowchart TD
   J --> K{Service Reporting enabled?}
   K -->|Yes| L[Selected file or HLAreportServiceInvocation sink may be attempted]
   K -->|No| M[No invocation report; exception routes remain independent]
-  D -->|Configured process| Q[Server plans MOM report for eligible recipients]
-  Q --> R[Server returns rejected response]
-  R --> S[Client translates it to RTIinternalError]
-  S --> T[Reviewed process branch exits before embedded hooks and failure writer]
+  D -->|Configured process, push enabled| Q[Server plans eligible MOM report and pushes event]
+  Q --> R[Server returns rejected service response]
+  R --> S[Client dispatches buffered event before returning response]
+  S --> T{Callback model}
+  T -->|HLA_EVOKED| U[Report waits for a later Evoke callback service]
+  T -->|HLA_IMMEDIATE| V[Report callback runs during request-side dispatch]
+  S --> W[Rejected status maps to RTIinternalError]
+  W --> X[Process path exits before embedded hooks and failure writer]
 ```
 
-The [embedded malformed/rejected-MOM test](../../cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L4)
-and [configured-process malformed `HLAsetSwitches` test](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L460)
-exercise the MOM-report path, not a combined two-report case. The latter
-does not subscribe to or assert `HLAreportException`; the separate process [payload test](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
+The [embedded malformed/rejected-MOM test](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L5)
+and [configured-process malformed `HLAsetSwitches` test](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L459)
+exercise the MOM-report path, not a combined two-report case. The latter uses
+`HLA_EVOKED`, enables pushed receive-order events, asserts `RTIinternalError`,
+then calls `evokeCallback` and checks the single `HLAreportMOMexception`.
+Source links show the [server event-before-response path](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L342),
+[client request-side event dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L808),
+[non-OK response mapping](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L13),
+and [public adapter boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L124).
+The test does not subscribe to or assert `HLAreportException`; the separate
+process [payload test](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
 explicitly checks Exception Reporting off while observing the MOM report. The
-embedded wrapper's [catch order](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2395)
-attempts both hooks; the process [early client branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L57)
-and [server rejection/report path](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L263)
-show the different boundary. Neither profile's cited tests assert both
-exception-report interactions for one failed call, and no cited test asserts
-all three report routes together. Do not infer `HLAreportServiceInvocation`
-from either exception-report path: the embedded ordinary-send catch proceeds
-to a separate failed-invocation writer, while the reviewed configured-process
+embedded wrapper's [catch order](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2395)
+attempts both hooks; the process early branch and server path show a different
+boundary. Neither profile's cited tests assert both exception-report
+interactions for one failed call, and no cited test asserts all three report
+routes together. Do not infer `HLAreportServiceInvocation` from either
+exception-report path: the embedded ordinary-send catch proceeds to a separate
+failed-invocation writer, while the reviewed configured-process
 ordinary-send branch exits before that writer. See the
 [service-invocation guide's failed-send boundary](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#failed-invocation-reporting-is-wrapper-specific).
 
@@ -526,21 +665,26 @@ interleaving or callback scheduler has identical behavior.
 
 ### `HLAreportException`
 
-- [2025 ambassador report hook and callback encoder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
-- [Embedded report planning, switch check, recipients, and callback-time recheck](../../cpp/src/internal/federation/federation_registry.cpp#L1661)
-- [Process endpoint authoritative switch/recipient planning](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L107)
-- [Process callback-time recheck handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L398)
-- [Process client exception-report recheck](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L502)
-- [Public process exception report, switch changes, subscription changes, callback timing, and preserved original exception](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L460)
+- [2025 ambassador report hook and callback encoder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L225)
+- [Embedded report planning and switch check](../../cpp/src/internal/federation/federation_registry.cpp#L1894)
+- [Embedded recipient projection and callback-time recheck](../../cpp/src/internal/federation/federation_registry.cpp#L1898)
+- [Process endpoint authoritative report handler and recipient planning](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L94)
+- [Process callback-time recheck handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L416)
+- [Process client exception-report recheck](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_federation_management.cpp#L565)
+- [Public process exception report, switch changes, subscription changes, callback timing, and preserved original exception](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L461)
 - [Concurrent report recheck and public request ownership](../../cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp#L460)
 - [Exception Reporting switch through public and MOM controls](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_reporting_switch_catch2.cpp#L459)
 
 ### `HLAreportMOMexception`
 
-- [Embedded registry route and recipient selection](../../cpp/src/internal/federation/federation_registry_mom_exception_reporting.cpp#L19)
-- [Process Send Interaction validation and rejected-request reporting](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L183)
+- [Embedded MOM report planning](../../cpp/src/internal/federation/federation_registry_mom_exception_reporting.cpp#L29)
+- [Embedded MOM report recipient projection](../../cpp/src/internal/federation/federation_registry_mom_exception_reporting.cpp#L125)
+- [Process Send Interaction MOM report emitter and rejection handling](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L342)
+- [Timestamped Send Interaction captures MOM identity before validation, plans publication, and reports the failure](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L201)
 - [Separate report payload types and switch-gating distinction](../../cpp/src/internal/federation/federation_registry_mom_report_types.hpp#L80)
-- [Embedded malformed/rejected MOM interactions, including parameter-error classification](../../cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L4)
+- [Embedded malformed/rejected MOM interactions, including parameter-error classification](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L5)
+- Table 7 S-leaf missing-argument sweep and parameterless request controls[^worktree-source]
+- [Embedded timestamped `HLAsetSwitches` publication rejection and MOM report](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L168-L193)
 - [Process malformed `HLAsetSwitches` report](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L459)
 - [Process inherited `HLAfederate`, four-parameter payload, Exception Reporting explicitly false, parent projection, both callback models and event transports](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
 
@@ -565,3 +709,5 @@ and fence checks alone do not verify diagram layout. Continue the collection
 with the next distinct high-value behavior area in
 [the flow-guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md), without crossing the
 2010/2025 boundary.
+
+[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.

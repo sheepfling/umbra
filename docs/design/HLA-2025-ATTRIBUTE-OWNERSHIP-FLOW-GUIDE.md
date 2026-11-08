@@ -81,6 +81,11 @@ through callbacks such as `attributeOwnershipAcquisitionNotification` and
 [`attributeOwnershipAcquisition` and `attributeOwnershipAcquisitionIfAvailable` signatures](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1042)
 and the corresponding [`FederateAmbassador` callbacks](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L432)
 ([Unavailable](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L440)).
+For the distinct logical-time and TSO eligibility gates, see the Time
+Management guide's [temporal-eligibility and callback-observation flow](HLA-2025-TIME-MANAGEMENT-GUIDE.md#temporal-eligibility-and-callback-observation-are-separate-gates).
+Its TSO-before-grant sequence does not establish where these ownership
+notifications fall relative to a grant; no focused cross-service case is
+documented.
 
 ### Compare the call, per-attribute outcome, and observed ownership
 
@@ -110,7 +115,7 @@ must always wait until a public call has returned.
 Do not read the sequence diagrams as a universal promise that every callback
 begins after the API call that caused the protocol transition has returned.
 Callback delivery follows the selected model; see the
-[callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hla_immediate-callback-work-can-be-on-the-service-stack).
+[callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hlaimmediate-callback-work-can-be-on-the-service-stack).
 For example, the focused If-Available case checks that the service has returned
 while an attribute is still unowned, then checks ownership after its
 acquisition-notification callback begins
@@ -120,7 +125,7 @@ The process-boundary negotiated-divestiture case uses `HLA_IMMEDIATE`, but its
 requester's acquisition notification is dispatched during a subsequent
 `getObjectClassHandle` response, before that lookup returns—not inside the
 owner's earlier `confirmDivestiture` call
-([test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L2268)).
+([test](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L544)).
 These are two bounded timing observations, not a global callback-order rule.
 
 ### Four ownership paths: who initiates, and what reports the outcome?
@@ -275,7 +280,8 @@ and recipient callback model are separate boundaries.
 | HLA service | Umbra process route | Focused process evidence and limits |
 | --- | --- | --- |
 | Acquisition If Available | Explicit request and registry plan; private status/count is separate from pushed events or the pull result slot. See the [detailed process path](#process-endpoint-private-result-and-callback-event-are-separate). | Configured-process `HLA_EVOKED`/pull and `HLA_IMMEDIATE`/push cases cover competing requests for one unowned attribute and a mixed request with one available and one still-owned attribute. They assert per-attribute acquisition/unavailable outcomes without requiring a universal winner or callback order: [competing requests](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1818), [mixed attributes](../../cpp/tests/attribute_ownership_query_catch2.cpp#L2144). |
-| Confirm Divestiture | Explicit request and registry plan; private status/count is separate from queued recipient notifications. See [negotiated divestiture and confirmation](#negotiated-divestiture-adds-a-confirmation-stage). | The focused process-boundary case observes selected callbacks and tags under `HLA_IMMEDIATE`, not update-region behavior or an ownership-query timing guarantee. |
+| Confirm Divestiture | Explicit request and registry plan; private status/count is separate from queued recipient notifications. See [negotiated divestiture and confirmation](#negotiated-divestiture-adds-a-confirmation-stage). | The focused `HLA_IMMEDIATE` process case queries ownership before confirmation and after the requester's acquisition notification ([before](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L518), [after](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L555)). Current source commits the per-attribute owner before notification enqueue; the selected test observes ownership before confirmation and after notification, but not concurrent cross-session response/callback order or update-region behavior. |
+| Cancel Negotiated Divestiture | Explicit owner request and registry plan; removes the offer and may queue work for a still-pending regular acquisition. See [owner cancellation](#owner-cancellation-removes-the-negotiated-offer-and-resumes-ordinary-release-work). | The configured-process `HLA_EVOKED` case cancels before the owner callback gate, verifies the owner retains both attributes, and later observes one ordinary release callback for the pending requester ([cancel](../../cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp#L367), [callback](../../cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp#L384)). It does not cover owner cancellation after callback delivery. Embedded cases cover both sides of that gate. |
 | Unconditional Divestiture | Explicit request and registry plan; private acceptance is separate from acquisition work and assumption offers. See the [process route below](#process-endpoint-unconditional-divestiture-and-recipient-work-are-separate). | Focused process cases cover selected successful outcomes: owner-to-unowned query after divestiture, a later explicit acquisition/notification, and ownership-assumption offers under HLA_EVOKED and HLA_IMMEDIATE. They do not cover a regular request already pending at divestiture or the post-commit enqueue/send failure path. The portable C++ TCK's general scenario is not recorded as a process run. |
 | Acquisition cancellation | Explicit request; its private acceptance result is distinct from the later confirmation event. See [process cancellation](#process-endpoint-cancellation-result-and-confirmation-are-separate). | Configured-process `HLA_EVOKED`/pull covers confirmation after ordinary cancellation; `HLA_IMMEDIATE`/push covers an idle requester and a buffered owner-release callback. No focused process test combines cancellation with a divestiture-generated acquisition notification or Release Denied after owner-callback entry; deletion/Resign outcomes also remain gaps. |
 | Divestiture If Wanted | No process operation, client method, or server handler was found; the public method directly uses the embedded registry, as described above. | The pinned API declares the service, but the selected transfer/region tests exercise only the embedded route. |
@@ -300,11 +306,11 @@ without merging the two state changes.
 #### Catalog inheritance and instance authority are different layers
 
 The catalog answers whether an object-class definition exposes the attribute.
-Its [effective-attribute lookup](../../cpp/src/internal/fom/fom_catalog.hpp#L229)
+Its [effective-attribute lookup](../../cpp/src/internal/fom/fom_catalog.hpp#L242)
 walks the class's parent chain and combines declared attributes. A focused
 composer test builds the pinned 2025 standard MIM with the Restaurant FOM and
 checks that every object class in that composed catalog resolves
-`HLAprivilegeToDeleteObject` ([test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L788)).
+`HLAprivilegeToDeleteObject` ([test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L789)).
 A separate catalog test checks that `HLAmanager.HLAfederate` retains the
 inherited row's `HLAtoken`, `valueRequired=false`, `DivestAcquire`, `Static`, and
 `PublishSubscribe` metadata, distinct from the class's directly declared MOM
@@ -315,12 +321,12 @@ an ownership transfer, or a federate's right to delete.
 ```mermaid
 flowchart TB
   subgraph schema["Composed FOM class schema"]
-    direction LR
+    direction TB
     MIM["2025 MIM declares the privilege at HLAobjectRoot"] --> PARENTS["Effective lookup walks the class parent chain"]
     PARENTS --> AVAILABLE["Tested MIM plus Restaurant catalog exposes it on each composed class"]
   end
   subgraph runtime["One object instance: selected embedded path"]
-    direction LR
+    direction TB
     OBJECT["A particular registered object"] --> OWNER["Its current delete-privilege owner"]
     OWNER --> CHECK["Delete gate checks that instance's owner"]
   end
@@ -365,10 +371,29 @@ sequenceDiagram
         A->>R: deleteObjectInstance
         R-->>A: DeletePrivilegeNotHeld
         B->>R: deleteObjectInstance (tag from B)
+        R->>R: Reserve removals for other known members A and C
+        R->>R: B becomes unknown
         R-->>C: removeObjectInstance (producer A)
+        Note over A,C: A is source-planned. The focused test asserts only C callback
     end
     Note over A,C: This is the selected embedded HLA_EVOKED test path only
 ```
+
+The recipient set and the callback's producer field answer different
+questions. After B's accepted deletion, the registry reserves removals for
+other joined, known members with callback routes ([recipient planning](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L82)),
+then removes B from the known-object map
+([B's transition](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L116)).
+A and C remain candidates until their own receiver gates recheck membership,
+reservation, and known state; a successful gate clears that receiver's known
+entry ([receiver commit gate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L50))
+and snapshots the original registrant A
+([snapshot construction](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L106)).
+The transfer test asserts C's callback carries producer A and B's tag, but
+does not drain or assert A's planned callback or query B's known-object state.
+The general [per-receiver removal flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#object-removal-delete-callback-and-per-receiver-cleanup)
+shows the separate membership and knowledge gates. This is bounded 2025
+source/test evidence, not a universal callback-recipient rule.
 
 The current worktree contains the
 [embedded transfer-and-delete test](../../cpp/tests/object_instance_deletion_catch2.cpp#L234),
@@ -405,8 +430,8 @@ separate:
 | Process boundary | `producingFederateId` source and meaning |
 | --- | --- |
 | Receive-order removal event | The event gets the producer from the removal snapshot either while enqueueing pushed callbacks or when the receiver polls a pull-mode event ([push path](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L60), [pull path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L149)). |
-| TSO deletion message | `deletionRequest.federateId`, the federate making the deletion request ([message construction](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L107)). |
-| Removal snapshot | The object instance's stored registration producer ([receive-order snapshot](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L106), [TSO snapshot](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L808)); registration records that producer when the object is created ([registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L333)). |
+| TSO deletion message | `deletionRequest.federateId`, the federate making the deletion request ([message construction](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L111)). |
+| Removal snapshot | The object instance's stored registration producer ([receive-order snapshot](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L106), [TSO snapshot](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L808)); registration records that producer when the object is created ([registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L339)). |
 | Public callback | The process removal event carries the snapshot identity into callback delivery, and the bridge converts it to the public `FederateHandle` ([receive-order event](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L92), [TSO event](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L250), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L651)). |
 
 Thus current process source maps the original registrant into both receive-order
@@ -432,22 +457,18 @@ test has exercised a transferred delete privilege.
 
 ```mermaid
 sequenceDiagram
-    participant A as A: original registrant
-    participant B as B: current delete-privilege owner
-    participant S as Configured-process service
+    participant A as Original registrant A
+    participant B as Current delete owner B
+    participant S as Process service
     participant R as Shared registry
-    participant C as Receiving federate
-    participant Bridge as Callback bridge
-    Note over A,B: Assume HLAprivilegeToDeleteObject has moved from A to B. Process transfer-and-delete is not tested
     B->>S: deleteObjectInstance(timestamp, tag)
-    S->>S: TSO message records requester ID B
-    S->>R: Enqueue timestamped deletion for eligible recipients
-    Note over S,C: Later, when C reaches its delivery boundary
-    S->>R: Commit C's TSO removal
-    R-->>S: Removal snapshot returns original registrant ID A
-    S->>Bridge: Process event carries producer ID A
-    Bridge-->>C: removeObjectInstance(handle, tag, producer A)
-    Note over S,C: Focused process tests use the same federate for registration and deletion. A != B remains source-only
+    S->>S: TSO message stores requester ID B
+    S->>R: Enqueue timestamped deletion
+    Note over S,R: Later, when a receiver reaches its delivery boundary
+    S->>R: Commit that receiver's TSO removal
+    R-->>S: Removal snapshot supplies original registrant ID A
+    S->>S: Build removal event with producer ID A
+    Note over A,R: Callback bridge maps A to public producingFederate. Process tests use one member for registration and deletion. A != B remains untested
 ```
 
 The final public identity follows the snapshot path, not the TSO message's
@@ -467,7 +488,7 @@ compares its owner entry on that specific instance with the requester
 The timestamped path first uses the TSO deletion planner; it performs the same
 instance-owner comparison and derives the effective order before the process
 service continues to queue work
-([TSO planner](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L627)).
+([TSO planner](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L628)).
 This is a source trace of the configured-process implementation, not a
 normative rule or an observed post-transfer process result.
 
@@ -476,7 +497,7 @@ deleting through the configured endpoint; the timestamped process cases cover
 timestamped removal/delivery paths. Neither case transfers
 `HLAprivilegeToDeleteObject` and then checks the former owner's rejection or
 the new owner's success ([receive-order case](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L457),
-[timestamped case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1221)).
+[timestamped case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1222)).
 The inspected process cases contain no `DeletePrivilegeNotHeld` assertion.
 Therefore the embedded transfer test remains the only focused runtime evidence
 here for deletion after privilege transfer; configured-process transfer parity
@@ -502,7 +523,7 @@ decision path, shown separately below. This selected embedded model is not a
 complete normative state machine for every ownership service or profile.
 
 ```mermaid
-flowchart LR
+flowchart TD
   Start["Regular acquisition accepted"] --> Pending["Acquisition pending"]
   Pending -->|Notification begins| Own["Requester owns attribute<br/>in the tested callback path"]
   Pending -->|Unavailable begins| Unavailable["No transfer; current owner retains"]
@@ -626,11 +647,11 @@ state; a queued event is not itself a transfer. These are Umbra ordering
 points, not an HLA callback-order or race-priority rule. See the
 [pending-work planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L261),
 [cancellation reservation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15),
-[notification begin gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+[notification begin gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L210),
 [process cancellation handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L396),
 [push notification begin point](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L87),
-[pull notification begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L400),
-and [pull cancellation begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432).
+[pull notification begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L417),
+and [pull cancellation begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L449).
 
 ```mermaid
 flowchart TD
@@ -710,15 +731,15 @@ and [§7.16 callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmba
 2025 process [ambassador](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L1598),
 [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L376),
 [registry reservation/delivery](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15),
-[pull callback gate](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432),
+[pull callback gate](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L449),
 and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L546).
 Lifecycle sources: [explicit Resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L160),
 [departed-member event cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L25),
-[joined-session queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L28),
+[joined-session queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
 [registry cancellation recheck](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L136),
 [registry ineligible-state branch](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L194),
 [accepted-deletion state](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L117),
-and [receive-loop empty-event skip](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L496).
+and [receive-loop empty-event skip](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L513).
 Adjacent tests: [embedded deletion case](../../cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp#L199)
 and [standalone pending-acquisition Resign case](../../cpp/tests/resign_action_cancel_pending_acquisition_catch2.cpp#L96);
 focused [process case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1136).
@@ -767,7 +788,7 @@ Push-path evidence: [server commit-before-send](../../cpp/src/internal/federatio
 [unsolicited frame send](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L449),
 [client frame buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L427),
 [request dispatch before return](../../cpp/src/internal/federation/process_federation_client.cpp#L504),
-[callback-queue handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L265),
+[callback-queue handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274),
 [callback bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1390),
 [immediate/evoked dispatcher behavior](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
 and [process Resign branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L785).
@@ -777,6 +798,82 @@ The focused public process cancellation evidence includes the
 and [buffered-release push case](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L434).
 The buffered-release case checks suppression before owner callback entry, not
 the after-entry Release Denied race. No 2010 behavior is inferred.
+
+### Resign directive 3 removes only the departing acquirer's pending transfer
+
+The pinned 2025 API exposes `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` as a
+`ResignAction` and lists `OwnershipAcquisitionPending` for
+`resignFederationExecution` ([action enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L34),
+[service declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L250)).
+Those declarations do not describe the transition below; it is current Umbra
+behavior backed by focused cases.
+
+For directive 3, the registry removes the departing federate's regular and
+If-Available acquisition requests, cancellation reservations, and negotiated
+divestiture candidates where that federate is the prospective acquirer. It
+clears the assumption-search state for each removed negotiated candidate. The
+current owner keeps the attribute. Requests belonging to other members are
+retained by the member-scoped cleanup, but the focused cases do not exercise a
+second active requester.
+
+Both the [embedded test](../../cpp/tests/ieee1516_2025_embedded_resign_action_cancel_negotiated_pending_catch2.cpp#L4)
+and [standalone test](../../cpp/tests/resign_action_cancel_negotiated_pending_catch2.cpp#L114)
+cover one regular acquisition followed by negotiated divestiture before the
+owner callback is entered. Directive 3 then causes the owner's callback drain
+to observe neither the queued release request nor the divestiture confirmation;
+the owner still owns the attribute. These cases establish neither a competing
+requester's outcome nor configured-process parity.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Requester as Departing acquirer
+  participant RTI as 2025 RTI
+  actor Owner as Current owner
+
+  Requester->>RTI: attributeOwnershipAcquisition(x, tag)
+  Note over RTI,Owner: Regular release request is queued for the owner
+  Owner->>RTI: negotiatedAttributeOwnershipDivestiture(x, tag)
+  Note over RTI,Owner: Negotiated confirmation replaces the queued release event
+  Note over Owner: Owner still owns x and no callback has entered user code
+  Requester->>RTI: resignFederationExecution(CANCEL_PENDING_OWNERSHIP_ACQUISITIONS)
+  RTI->>RTI: Remove Requester's acquisition and negotiated-candidate state
+  RTI->>RTI: Clear assumption-search state for the removed candidate
+  RTI-->>Requester: Resign completes
+  Owner->>RTI: Evoke queued owner callbacks
+  Note over Owner,RTI: Callback drain observes no release request or confirmation
+  Note over Owner: Current owner retains x
+```
+
+The cleanup is implemented in the [registry Resign transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L464).
+The focused cases check the empty owner callback reports and retained ownership
+after Resign ([embedded assertions](../../cpp/tests/ieee1516_2025_embedded_resign_action_cancel_negotiated_pending_catch2.cpp#L62),
+[standalone assertions](../../cpp/tests/resign_action_cancel_negotiated_pending_catch2.cpp#L174)).
+The member-scoped preservation of other requesters is source-derived and has no
+focused multi-requester resignation test.
+
+### Combined Resign directive 5 adds separate delete and divest passes
+
+`CANCEL_THEN_DELETE_THEN_DIVEST` enables acquisition cancellation, eligible
+object deletion, and attribute divestiture as ordered registry work. The
+member-scoped cancellation pass removes a departing prospective acquirer's
+negotiated candidate first. The delete pass then accepts eligible object
+removals; the later divestiture pass skips those deleted instances and starts
+ownership-assumption work for attributes the departing member still owns on
+retained instances. These are separate object and attribute effects in the
+current implementation.
+
+The lifecycle guide diagrams the six-action selection and pending-work guard
+([action flow](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#L1009))
+and traces the [directive 5 phase sequence](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#directive-5-cancels-acquisitions-before-deleting-and-divesting-retained-objects).
+This guide adds the ownership-side ordering from the [cancellation pass](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L464),
+[delete pass](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L568),
+and [retained-object divestiture pass](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L639).
+The focused [combined-action test](../../cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp#L36)
+checks that a regular acquisition blocks unconditional divestiture and that
+directive 5 succeeds. It does not combine directive 5 with a pending negotiated
+candidate or assert the resulting ownership callbacks. The negotiated-candidate
+callback effects under this combined action remain source-derived.
 
 ### Regular acquisition with an owner response
 
@@ -861,6 +958,69 @@ shows a mixed attribute set resolving into both Notification and Unavailable
 callbacks. It also exercises repeated pending requests and the publication
 guard against withdrawing a declaration needed by pending work.
 
+#### Ownership notification enables a later update; it does not deliver one
+
+This embedded 2025 source path connects two separate service calls. The
+acquisition notification reports an ownership result ([2025 callback
+signature](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L432));
+it does not deliver an attribute value. A value reaches a receiver only after
+a later owner update and that receiver's own eligibility checks.
+
+```mermaid
+flowchart TD
+  REQUEST["If Available request accepted"] --> PENDING["Willing to Acquire<br/>ownership unchanged"]
+  PENDING --> RESULT{"Per-attribute result at callback boundary"}
+  RESULT -->|Secured| COMMIT["Commit requester as instance owner"]
+  COMMIT --> NOTIFY["Acquisition notification"]
+  RESULT -->|Unavailable| UNAVAILABLE["Unavailable callback<br/>requester does not own this attribute"]
+  NOTIFY --> LATER["Later, separate Update Attribute Values call"]
+  LATER --> VALIDATE{"Object known; attributes defined;<br/>sender owns every submitted attribute?"}
+  VALIDATE -->|No| REJECT["Reject the service"]
+  VALIDATE -->|Yes| PROJECT["Project separately for each receiver"]
+  PROJECT --> DELIVERY{"Values survive the receiver's known-class,<br/>subscription/relevance, region, and<br/>callback-time delivery gates?"}
+  DELIVERY -->|No| SKIP["No reflection to that receiver"]
+  DELIVERY -->|Yes| REFLECT["Reflect Attribute Values path"]
+```
+
+The acquisition notification and a later update sent by the new owner are
+**not one tested scenario**. At the embedded If-Available callback boundary,
+the registry commits the secured owner entries immediately before returning the notification work
+([owner-map commit](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L599));
+the focused test observes ownership after callback dispatch
+([assertions](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp#L180)).
+That boundary also clears the former owner's update-region association,
+promotes a still-pending association made by the requester, and refreshes
+default transportation/order metadata ([metadata transition](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L604)).
+The focused If-Available case does not configure a deferred region or send a
+later update.
+
+On a later call, the receive-order planner checks that the producer knows the
+object, each submitted attribute is defined for its registered class, and the
+producer owns every submitted attribute ([update validation](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L93)).
+For an accepted update, receiver projection uses each receiver's known object
+and class plus its subscription/relevance and applicable region
+([recipient projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L16)).
+The separate [embedded update flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#embedded-receive-order-update-projection-passels-and-callback-boundary)
+details passels and the callback-time recheck. Its focused
+[passel-lifecycle test](../../cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp#L6)
+starts with registration-time publisher ownership and separately exercises
+`AttributeNotOwned` rejection and receiver reflection; it does not first
+acquire the reflected attribute through If Available. Treat the chart as a
+source-linked connection across separate evidence, not as end-to-end test
+coverage or process/2010 parity.
+
+Keep that later-new-owner update separate from a value already accepted from
+the former owner. A focused embedded case accepts timestamped value work while
+A owns the attribute, then has A divest and B acquire through If Available;
+B later reflects the queued value with A still named as its producer. That
+[ownership/TSO timeline](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#ownership-changes-and-an-accepted-tso-update-are-separate-timelines)
+is one integrated `HLA_EVOKED` case
+([test](../../cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp#L191)),
+but B requests acquisition only after A has divested. It does not cover a
+regular acquisition waiting while A remains owner; that distinct path is shown
+in [Regular acquisition with an owner response](#regular-acquisition-with-an-owner-response).
+Keep the regular-acquisition wait and queued-TSO paths separate.
+
 ### Process endpoint: private result and callback event are separate
 
 The 2025 process endpoint adds an Umbra transport boundary around this HLA
@@ -890,7 +1050,7 @@ the private recipient count is not an ownership result. At the server boundary,
 push mode resolves the request before sending its event frame, while pull mode
 queues its request ID and resolves it during a later `receive_interaction`
 ([handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L211),
-[poll path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L468)).
+[poll path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L536)).
 The [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L452)
 converts the disjoint result sets to the corresponding public callbacks. These
 are implementation scheduling details; callback model and event transport are
@@ -1022,17 +1182,17 @@ then invokes the [client's release claim](../../cpp/src/internal/federation/proc
 which reaches the service [claim handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L488)
 and the registry [owner callback-entry gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L396)
 immediately before public callback invocation. Pull performs that registry gate
-at the owner's [receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L417).
+at the owner's [receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L434).
 The [cancellation plan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15)
 records its reservation without removing the pending request; the [denial planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L493)
 marks the pending attribute unavailable and consumes a reservation it finds.
 Cancellation confirmation begins in the [push cancellation handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L439)
-or at the [pull receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432).
+or at the [pull receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L449).
 Unavailable delivery rechecks and consumes pending state in [push](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L458)
-or [pull](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L371).
+or [pull](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L397).
 When both queues are present in pull mode, the receive handler checks the
 Unavailable queue before the acquisition/cancellation queue
-([queue order](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L367));
+([queue order](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L384));
 the next completed poll can therefore be explained from this route, but it is
 not a normative priority rule.
 
@@ -1048,7 +1208,7 @@ callback entry. A separate [embedded 2025 race case](../../cpp/tests/ownership_a
 holds the owner inside the release callback until requester cancellation has
 completed, then calls Release Denied; it observes no cancellation-confirmation
 callback, one Unavailable callback with the denial tag, and the original owner
-still owning the attribute ([assertions](../../cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp#L282)).
+still owning the attribute ([assertions](../../cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp#L283)).
 That is evidence for this arranged embedded schedule, not configured-process
 behavior. No focused process test covers Release Denied after owner callback
 entry or determines the process race outcome. Do not infer normative priority,
@@ -1057,7 +1217,7 @@ callback timing, or embedded/process parity.
 Evidence locators: pinned [§7.12 service](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1066)
 and [§7.10 callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L438);
 process [owner handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L314),
-[pull unavailable-event recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L371),
+[pull unavailable-event recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L397),
 and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L603);
 registry [unavailable recipient revalidation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L220)
 and [denial planning](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L492).
@@ -1084,18 +1244,29 @@ sequenceDiagram
 
   B->>RTI: Request acquisition (attribute, acquisition tag)
   A->>RTI: Propose negotiated divestiture (divestiture tag)
+   Note over RTI,A: Owner retains the attribute while confirmation is pending
   RTI-->>A: Ask owner to confirm (divestiture tag)
   par Independent assumption search
     RTI-->>C: Offer attributes for assumption (divestiture tag)
   and Owner confirmation
     A->>RTI: Confirm transfer (confirmation tag)
+     Note over RTI,B: Commit confirmed attribute owners before queueing callbacks
     RTI-->>B: Notify requester of acquisition (confirmation tag)
   end
 ```
 
 The targeted
 [Confirm Divestiture with a pushed assumption candidate](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp)
-test demonstrates the separate callback paths and tag ownership. It is a
+test demonstrates the separate callback paths and tag values. The owner still
+owns the attribute while confirmation is pending; the candidate's assumption
+offer can be observed during that interval. The registry retains the negotiated
+tag in both the pending confirmation state
+([owner path](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L93))
+and the assumption-search path
+([candidate path](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L114)).
+The focused test observes those bytes on the owner's confirmation and
+candidate's assumption callbacks, while the requester's acquisition
+notification carries the distinct confirmation-tag bytes. This is a
 process-boundary test, not evidence that every deployed transport or profile
 supports the same end-to-end scope.
 
@@ -1109,55 +1280,264 @@ return `void` and declare synchronous typed exceptions
 Internally, the process service returns a correlated status/count to finish each
 request, while ownership callback work is queued separately
 ([acquisition](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L156),
-[negotiated divestiture and confirmation](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L545)).
+[negotiated divestiture](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L581),
+and [confirmation](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L646)).
 That private result is not a public ownership value or a substitute for the
-per-attribute callback. In the linked `HLA_IMMEDIATE` test, the requester's
-acquisition notification is dispatched during its next ordinary lookup, before
-that lookup returns—not during the owner's earlier confirmation call. The
-focused assertions verify the callback kind, target attribute, and confirmation
-tag; they do not add process-path `isAttributeOwnedByFederate` evidence. Keep
-ownership-query timing claims scoped to the selected cases in
-[Query Attribute Ownership](#query-attribute-ownership-reports-a-snapshot-it-does-not-transfer).
+per-attribute callback. In the linked `HLA_IMMEDIATE` test, the requester
+observes its acquisition notification during its next ordinary lookup, before
+that lookup returns. The test queries ownership before confirmation
+([assertions](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L518))
+and after the notification ([assertions](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L555)).
+The current process source gives a more precise implementation order:
+`planConfirmDivestiture` validates the still-active acquirer, changes the
+per-attribute owner entry, and reserves the notification before returning;
+the service then enqueues that notification and returns its private result
+([registry commit](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L454),
+[process enqueue and response](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L683)).
+Thus this source path commits ownership before the callback can be queued. The
+test does not observe the interval between confirmation and notification, and
+the owner and requester use separate process sessions, so its sequential calls
+do not establish whether their response and callback can overlap or which is
+observed first in a concurrent schedule. Keep source order, test observation,
+and normative timing claims separate. Ownership-query evidence remains scoped
+to the selected cases in [Query Attribute Ownership](#query-attribute-ownership-reports-a-snapshot-it-does-not-transfer).
 
-#### A requester can cancel after the owner receives confirmation
+#### Divestiture If Wanted can terminate a pending negotiated path
 
-The successful process-boundary path above is not the only way a negotiated
-divestiture can end. A separate focused embedded 2025 case delivers
-`requestDivestitureConfirmation`, then accepts the requester's
-`cancelAttributeOwnershipAcquisition` before the owner calls
-`confirmDivestiture`. The pinned service declaration lists
-`NoAcquisitionPending` for that confirmation call (§7.6). In the selected test,
-the owner still owns the attribute, the requester does not, and the owner can
-clear the negotiated divestiture; the requester later observes its cancellation
-confirmation when its callbacks are drained. This is one embedded service
-ordering, not process-profile parity or a general callback-timing rule.
+Negotiated divestiture and Divestiture If Wanted are distinct owner services
+with different outcome channels. In the embedded 2025 registry, if the owner
+has an outstanding negotiated confirmation for an attribute that is also
+wanted by a pending acquirer, a subsequent Divestiture If Wanted can select
+that acquirer and transfer the attribute immediately. The service fills its
+`divestedAttributes` output set, commits the new owner, consumes that
+attribute from the selected acquisition request, and erases the pending
+negotiated-divestiture entry. It queues the acquirer's
+`attributeOwnershipAcquisitionNotification` with the Divestiture If Wanted
+call's tag. Thus the callback tag is not the original acquisition tag, nor a
+later Confirm Divestiture tag.
+
+After this transfer, the former owner no longer owns the attribute and the
+negotiated entry has been removed. The current Confirm Divestiture source
+validates ownership before looking up the pending negotiated confirmation,
+so a later confirmation attempt cannot complete that old negotiated path.
+This is implementation-derived behavior, not a claim that the standard
+prescribes precedence between these services.
+
+```mermaid
+flowchart TD
+  A[Requester has pending regular acquisition] --> B[Owner starts negotiated divestiture]
+  B --> C[Confirmation is pending;<br/>owner still owns the attribute]
+  C --> D[Owner calls Divestiture If Wanted]
+  D --> E[Commit requester as owner;<br/>consume pending acquisition]
+  E --> F[Erase pending negotiated-divestiture entry]
+  E --> G[Fill divestedAttributes on the If-Wanted service path]
+  E --> H[Prepare acquisition notification<br/>with the If-Wanted tag]
+  G --> I[Service result channel]
+  H --> J[Callback-model delivery channel]
+  F --> K{Former owner later confirms?}
+  K -->|Yes| L[Current owner check fails;<br/>old negotiation cannot transfer again]
+  K -->|No| M[Negotiated path remains terminated]
+  N[No total order between service result<br/>and callback is claimed] -.Separate channels.-> I
+  N -.-> J
+```
+
+This cross-service ordering is source-derived and has no focused combined
+test. The separate [negotiated confirmation case](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L351)
+tests a successful confirmation transfer and its confirmation tag; the
+[Divestiture If Wanted case](../../cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp#L252)
+tests immediate transfer to regular and If-Available requesters and its
+Divestiture If Wanted tag. Neither arranges a pending negotiated confirmation
+before the If-Wanted call. The shared [If-Wanted commit path](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L270)
+clears the negotiated entry and acquisition request; the [Confirm Divestiture
+preflight](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L233)
+checks current ownership first. The process endpoint does not implement
+Divestiture If Wanted ([route boundary](#2025-process-endpoint-boundary)), so
+this is not embedded/process parity evidence.
+
+#### One Confirm Divestiture set can fan out across active requesters
+
+The 2025 `confirmDivestiture` service accepts an attribute set ([pinned §7.6
+signature](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1024)).
+An owner can receive separate `requestDivestitureConfirmation` callbacks for
+attributes whose active acquisitions belong to different members, then confirm
+those attributes together in one call. The registry validates each pending
+acquisition, reserves acquisition notifications by receiving federate, removes
+confirmed attributes from their specific regular or If-Available requests, and
+commits ownership per attribute
+([recipient grouping and request grouping](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L305),
+[notification reservations](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L375),
+[request cleanup](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L413),
+[per-attribute commit](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L454)).
 
 ```mermaid
 sequenceDiagram
   autonumber
+  participant O as Owner
+  participant RTI as 2025 RTI
+  participant R as Regular requester
+  participant W as If-Available requester
+
+  R->>RTI: Request attribute x
+  W->>RTI: Request attribute y
+  O->>RTI: Negotiate divestiture of {x, y}
+  RTI-->>O: requestDivestitureConfirmation({x})
+  RTI-->>O: requestDivestitureConfirmation({y})
+  O->>RTI: confirmDivestiture({x, y})
+  alt Every supplied attribute still has an active acquisition
+    RTI->>RTI: Reserve one notification for each receiving member
+    RTI->>RTI: Clean up each regular or If-Available request
+    RTI->>RTI: Commit owner(x) = R and owner(y) = W
+    par Notify R
+      RTI-->>R: Acquisition notification({x}, confirmation tag)
+    and Notify W
+      RTI-->>W: Acquisition notification({y}, confirmation tag)
+    end
+  else At least one supplied attribute has no active acquisition
+    RTI-->>O: Throws NoAcquisitionPending
+    RTI->>RTI: Keep owners and reset stale offer for another search
+  end
+```
+
+The [mixed-recipient public case](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_mixed_fanout_restore_catch2.cpp#L218)
+confirms a combined set whose attributes were requested by different members,
+one through regular acquisition and one through If Available. It checks each
+new owner immediately and, after Restore, observes one acquisition notification
+per requester containing only that member's attribute
+([post-Restore callback assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_mixed_fanout_restore_catch2.cpp#L406)).
+The [same-requester mixed-request case](../../cpp/tests/ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp#L397)
+uses separate regular and If-Available requests for two attributes, then
+observes one notification containing their union
+([callback assertion](../../cpp/tests/ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp#L420)).
+Both are embedded Save/Restore cases; they do not establish configured-process
+multi-recipient parity or an order between members' callbacks. The process
+handler passes the registry's per-recipient plan to its notification enqueue
+path ([handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L665),
+[enqueue](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L683),
+[per-recipient session queue](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L317)).
+
+The failure branch is narrower evidence. If any supplied offer no longer has
+an active acquisition, the registry returns `NoAcquisitionPending` before
+request cleanup or ownership mutation; it resets the stale offer for another
+owner search while leaving still-active offers pending
+([source branch](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L354)).
+The focused [NoAcquisitionPending test](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L527)
+covers a single canceled acquisition, not a supplied set mixing active and
+inactive candidates. Treat that mixed failure branch as source-derived.
+
+#### Requester cancellation before or after the owner callback gate has different outcomes
+
+Two focused embedded 2025 tests exercise cancellation on opposite sides of the
+owner's `requestDivestitureConfirmation` delivery gate. If cancellation is
+accepted before that gate, the queued confirmation is suppressed. If the owner
+callback has already been delivered, the owner can no longer confirm the
+transfer: `confirmDivestiture` reports `NoAcquisitionPending`. In both selected
+schedules, the owner retains ownership and the requester later observes its
+cancellation confirmation. These are embedded-profile examples, not process
+parity or a general callback-order rule.
+
+```mermaid
+sequenceDiagram
   actor B as Requesting federate
   participant RTI as 2025 embedded RTI
   actor A as Current owner
 
-  B->>RTI: attributeOwnershipAcquisition(attribute, acquisition tag)
-  A->>RTI: negotiatedAttributeOwnershipDivestiture(attribute, divestiture tag)
-  RTI-->>A: requestDivestitureConfirmation(attribute, divestiture tag)
-  B->>RTI: cancelAttributeOwnershipAcquisition(attribute)
-  Note over B,RTI: Cancellation confirmation has not yet been observed by the requester
-  A->>RTI: confirmDivestiture(attribute, confirmation tag)
-  RTI-->>A: Throws NoAcquisitionPending
-  Note over A: Ownership remains with the current owner
-  A->>RTI: cancelNegotiatedAttributeOwnershipDivestiture(attribute)
-  B->>RTI: Evoke pending requester callbacks later
-  RTI-->>B: confirmAttributeOwnershipAcquisitionCancellation(attribute)
+  B->>RTI: Request acquisition
+  A->>RTI: Begin negotiated divestiture
+  alt Cancellation reaches the registry before the owner's callback gate
+    B->>RTI: Cancel acquisition
+    A->>RTI: Evoke callbacks
+    Note over A,RTI: Gate suppresses requestDivestitureConfirmation
+    B->>RTI: Evoke callbacks
+    RTI-->>B: Cancellation confirmation
+    A->>RTI: Clear negotiated divestiture
+    Note over RTI,A: Owner retains ownership
+  else Owner callback gate succeeds before cancellation
+    RTI-->>A: requestDivestitureConfirmation + divestiture tag
+    B->>RTI: Cancel acquisition
+    A->>RTI: Confirm Divestiture
+    RTI-->>A: Throws NoAcquisitionPending
+    A->>RTI: Clear negotiated divestiture
+    B->>RTI: Evoke callbacks later
+    RTI-->>B: Cancellation confirmation
+    Note over RTI,A: Owner retains ownership
+  end
 ```
 
-The [pinned Confirm Divestiture signature](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1013)
-declares the exception. The [focused embedded case](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L527)
-checks cancellation after the confirmation callback, the typed exception, both
-ownership queries, and cleanup; the [registry transition](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L354)
-retains ownership when it finds no active acquirer. Keep these claims scoped to
-the API surface and selected embedded source/test evidence.
+The [pre-delivery cancellation case](../../cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp#L121)
+asserts that draining the owner's callbacks produces no confirmation callback,
+then checks the requester cancellation confirmation and retained owner state.
+The [post-delivery cancellation case](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L527)
+checks the typed exception, ownership queries, and cleanup. The dispatch path
+rechecks the pending request at the [callback gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L218);
+the [registry transition](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L147)
+can suppress stale work before public callback invocation. The
+[pinned Confirm Divestiture signature](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1013)
+declares `NoAcquisitionPending`. Keep the described schedules scoped to the
+selected embedded source/test evidence.
+
+### Owner cancellation removes the negotiated offer and resumes ordinary release work
+
+The owner's `cancelNegotiatedAttributeOwnershipDivestiture` is different from
+the requester's `cancelAttributeOwnershipAcquisition`. Owner cancellation
+removes the pending negotiated offer and clears its assumption-search state;
+it does not transfer the attribute. If an ordinary acquisition is still
+pending, the registry replans it as the regular owner-release path. A queued
+`requestDivestitureConfirmation` that has not crossed its callback gate is
+suppressed, and the regular `attributeOwnershipReleaseRequest` is queued once.
+If the owner has already received the confirmation callback, it can still
+cancel the negotiation; a later `confirmDivestiture` then fails with
+`AttributeDivestitureWasNotRequested`. The requester can separately cancel
+its still-pending acquisition and receive the cancellation confirmation.
+
+```mermaid
+sequenceDiagram
+  actor B as Regular requester
+  participant RTI as 2025 embedded RTI
+  actor A as Current owner
+
+  B->>RTI: Request attribute acquisition
+  A->>RTI: Start negotiated divestiture
+  alt Owner cancels before confirmation callback gate
+    A->>RTI: cancelNegotiatedAttributeOwnershipDivestiture
+    Note over A,RTI: Clear offer, leave A as owner
+    RTI-->>A: Suppress stale requestDivestitureConfirmation
+    RTI-->>A: Queue one ordinary release callback if B remains pending
+  else Owner confirmation callback already delivered
+    RTI-->>A: requestDivestitureConfirmation
+    A->>RTI: cancelNegotiatedAttributeOwnershipDivestiture
+    Note over A,RTI: Clear offer, leave A as owner
+    RTI-->>A: Queue ordinary attributeOwnershipReleaseRequest
+    A->>RTI: confirmDivestiture
+    RTI-->>A: AttributeDivestitureWasNotRequested
+  end
+  opt Requester cancels later
+    B->>RTI: cancelAttributeOwnershipAcquisition
+    RTI-->>B: Acquisition cancellation confirmation
+  end
+```
+
+The embedded 2025 test covers owner cancellation on both sides of the owner
+callback gate. Before the gate, the confirmation callback is suppressed and
+the ordinary release request remains queued once
+([test](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L452)).
+After the gate, the delivered confirmation cannot be used to transfer; owner
+cancellation returns the still-pending regular request to the release path,
+and ownership remains with the owner
+([test](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L479)).
+The registry clears the negotiated state and assumption search, then replans
+pending acquisition work
+([registry cancellation](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L621));
+the callback gate revalidates pending confirmation state
+([dispatch gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L218)).
+The configured-process `HLA_EVOKED` test also exercises owner cancellation
+before the callback gate: the owner retains both attributes, then receives
+one ordinary release callback for the still-pending requester
+([cancel](../../cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp#L367),
+[callback assertion](../../cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp#L384)).
+It does not cover cancellation after `requestDivestitureConfirmation` was
+delivered. The process handler plans cancellation and queues its returned
+follow-up work ([service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L545));
+the after-gate callback outcome remains demonstrated by the embedded test.
 
 ### Unconditional divestiture and assumption offers
 
@@ -1172,16 +1552,16 @@ notification.
 ```mermaid
 flowchart TD
   A[Owner calls unconditional divestiture] --> B[Owner no longer owns those attributes in the tested profile]
-  B --> C{Pending requester or eligible assumption candidate?}
-  C -->|Regular acquisition pending| D[Re-evaluate regular acquisition work]
-  C -->|If Available pending| E[Recheck availability when result callback begins]
-  C -->|Eligible and published candidate| F[Queue ownership-assumption offer]
-  D --> G[Acquisition notification or unavailable outcome]
-  E --> G
-  F --> H[Candidate receives ownership-assumption callback]
-  H --> I{Candidate later requests acquisition?}
-  I -->|Yes and still eligible| J[Acquisition notification commits ownership]
-  I -->|No| K[Offer alone changes no ownership]
+  B --> C{Does this federate have pending acquisition or cancellation work for this attribute?}
+  C -->|Yes| D[Resolve through that request's own acquisition or cancellation path]
+  D --> E[No separate assumption offer for this federate and attribute]
+  C -->|No| F{Does this federate know the object and publish the attribute?}
+  F -->|Yes| G[Queue ownership-assumption offer]
+  F -->|No| H[No offer now; an unowned search record may continue]
+  G --> I[Candidate receives ownership-assumption callback]
+  I --> J{Candidate later requests acquisition?}
+  J -->|Yes and still eligible| K[Acquisition notification commits ownership]
+  J -->|No| L[Offer alone changes no ownership]
 ```
 
 The focused
@@ -1196,6 +1576,13 @@ dispatch gets no stale offer, and that an assumption recipient remains a
 non-owner until it separately requests acquisition. The search can continue
 after stale work is suppressed; a candidate that republishes can become
 eligible for a fresh offer.
+
+That stale-unpublish result is embedded-profile evidence. For a restored offer,
+the configured-process service checks eligibility while projecting or selecting
+the event, then the client bridge queues or invokes the public callback without
+a second registry check. The cited process Restore tests do not change
+eligibility after that service check and before callback entry; see the
+[profile-specific Restore boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#eligibility-is-rechecked-at-different-profile-boundaries).
 
 #### A transferred attribute starts a fresh assumption-search interval
 
@@ -1291,7 +1678,7 @@ and
 The 2025 embedded divestiture test queues regular and If-Available requests
 before divestiture and observes each request's own acquisition notification;
 it explicitly checks that the If-Available requester receives no assumption
-callback ([case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L173)).
+callback ([case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L174)).
 
 The test does not assert absence of an assumption callback for the regular
 requester. The configured-process cases cited below do not start with either
@@ -1300,7 +1687,7 @@ endpoint.
 
 Process evidence: the [public adapter branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L831)
 calls the [client operation](../../cpp/src/internal/federation/process_federation_client_ownership.cpp#L99);
-the [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L662)
+the [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L665)
 calls the [registry plan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L16)
 and then the [recipient queue helpers](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12).
 The [process callback bridge's acquisition-notification branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L533)
@@ -1336,8 +1723,8 @@ callback bridge projects `attributeOwnershipAcquisitionNotification`; this is
 a source-path distinction, not a measured public timing guarantee. See the
 [pending-work planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L261),
 [push projection](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L87),
-[pull receive boundary](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L400),
-[registry notification boundary](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+[pull receive boundary](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L417),
+[registry notification boundary](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L210),
 and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L533).
 The [companion process acquisition test](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1164)
 requests acquisition only after querying the attribute as unowned, and the
@@ -1359,6 +1746,170 @@ the [service handler](../../cpp/src/internal/federation/process_federation_servi
 [acquisition-work helper](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12),
 [assumption-recipient helper](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L164),
 and [public adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L864).
+
+#### Candidate fan-out and callback-return continuation are separate
+
+The registry's initial assumption plan selects every member who is currently
+eligible for an attribute in the active assumption search. Unconditional
+divestiture makes the attribute unowned before its offers; negotiated
+divestiture may retain the prior owner until confirmation. Unconditional
+divestiture builds its candidate set in one pass, while negotiated divestiture
+applies the per-member planner to each current member. Selected recipients are
+reserved in the search ledger before the service or callback dispatcher
+receives the work. This is a current-candidate fan-out, not a serialized
+candidate order or fairness policy.
+
+After that initial plan, the profiles handle later eligibility differently.
+Embedded callback tasks recheck when each callback begins. On stale paths that
+reach the registry's reservation cleanup, it releases that candidate; after a
+live callback returns or throws, the dispatcher replans currently eligible,
+unreserved candidates. The candidate whose callback already ran stays
+reserved for this search interval. The next planner pass reapplies current
+ownership and negotiated-offer rules: an acquired attribute no longer gets an
+assumption offer, while a still-pending negotiated offer can retain its
+candidate search.
+
+The configured-process service projects all recipients returned by the
+initiating plan. Push delivery checks eligibility before sending, callback-
+gated push checks when deferred events are flushed, and polling checks while
+selecting an event for `receive_interaction`. A stale event is suppressed or
+skipped while processing that already-planned recipient set. The public
+`requestAttributeOwnershipAssumption` callback returns only to the process
+client; the inspected protocol has no callback-return message that asks the
+service to plan a follow-up recipient. Thus the source shows no process
+continuation triggered simply by a candidate declining to acquire. This does
+not establish a normative sequential-search rule.
+
+```mermaid
+flowchart TB
+  Start["Registry creates an assumption plan"] --> Profile{"Profile"}
+
+  subgraph Embedded["Embedded callback dispatcher"]
+    E0["Initial plan reserves all currently eligible recipients"] --> E1["Each task rechecks eligibility at callback entry"]
+    E1 --> E2{"Offer still eligible?"}
+    E2 -->|No| E3["Release reservation on stale paths that clear it"]
+    E2 -->|Yes| E4["Invoke requestAttributeOwnershipAssumption"]
+    E3 --> E5
+    E4 --> E6["Callback returns or throws"]
+    E6 --> E5
+    E5["Replan with current owner, offer, and reservation rules"]
+    E5 --> E7["Queue any newly selected offers"]
+    E7 --> E1
+  end
+
+  subgraph Process["Configured-process service and client"]
+    P0["Initial plan returns all currently eligible recipient events"] --> P1{"Event mode"}
+    P1 -->|Push, callbacks enabled| P2["Recheck before sending the frame"]
+    P1 -->|Push, callbacks disabled| P3["Defer, then recheck when events flush"]
+    P1 -->|Polling| P4["Queue; recheck when receive selects an event"]
+    P2 --> P5{"Delivery gate passes?"}
+    P3 --> P5
+    P4 --> P5
+    P5 -->|No| P6["Drop this stale event; continue through events already planned"]
+    P5 -->|Yes| P7["Client bridge invokes the public callback"]
+    P7 --> P8["Callback returns locally; no callback result reaches the service"]
+    P8 --> P9["No callback-return continuation call is shown"]
+  end
+
+  Profile --> E0
+  Profile --> P0
+```
+
+The [embedded continuation case](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp#L59)
+places a second candidate behind an acquisition-cancellation callback. No
+declaration event follows; the first candidate's callback return triggers the
+replan, and the second candidate receives the saved divestiture tag
+([assertions](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp#L146)).
+The [configured-process unconsumed pushed case](../../cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp#L62)
+observes one `HLA_EVOKED` offer whose callback does not acquire the attribute
+([delivery assertions](../../cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp#L299));
+it has one eligible assumption candidate and does not test a follow-up. The
+[process Confirm Divestiture case](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L521)
+also observes one candidate's offer while the owner retains ownership pending
+confirmation. Neither process case establishes multi-candidate continuation
+after a decline or stale-event suppression. These are implementation and test
+boundaries; an assumption callback alone transfers no ownership.
+
+The continuation call sites differ. Embedded dispatch replans after callback
+entry outcomes ([stale path and continuation](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L526),
+[return path](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L566)).
+The configured-process service plans recipients in the divestiture handlers
+([negotiated](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L601),
+[unconditional](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L722)),
+then processes them through push/deferred/poll delivery
+([recipient projection](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L164),
+[poll recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L513));
+the callback bridge directly invokes the application callback
+([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L558)).
+No focused process test covers multiple initially eligible candidates where
+one declines or becomes stale.
+
+#### Later eligibility triggers have different hooks
+
+This is separate from initial fan-out and callback-return continuation. The
+following source review asks what happens when membership, publication,
+discovery, or acquisition cancellation changes who could receive an assumption
+offer after the first plan.
+
+In the embedded path, Join invokes the registry planner for the newly joined
+member after membership commits ([Join hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L755)).
+Accepted object-class publication invokes the same per-member planner for the
+publisher ([publication hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp#L98)).
+For object discovery, the planner runs for the receiver only after the standard
+Discover callback has entered user code, preserving discovery-before-assumption
+ordering for immediate callbacks ([discovery hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L481)).
+
+The inspected configured-process handlers have different explicit work
+boundaries. Join commits membership through the registry and continues its
+report-file transaction; no assumption-planner or assumption-recipient enqueue
+call appears in that handler ([Join commit](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L648)).
+Publication updates the declaration and responds ([publication handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L163)).
+Subscription and registration plan and enqueue object-discovery events
+([subscription](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L226),
+[registration](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L502));
+the inspected code does not follow those discovery plans with an assumption
+search. Acquisition cancellation plans a cancellation-confirmation event
+([cancellation handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L396)).
+When that event is pushed or selected by polling, the service consumes the
+cancellation and may enqueue follow-up **acquisition** work
+([push path](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L439),
+[poll path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L460)).
+Those followups are pending acquisition work, not a fresh assumption search;
+the callback bridge invokes the cancellation-confirmation callback locally
+([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L534)).
+Separately, assumption recipient work is enqueued when divestiture handlers
+return candidates, Restore returns assumption work, or connection-loss handling
+returns resignation assumptions ([divestiture](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L632),
+[Restore](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L404),
+[ConnectionLost](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L66)).
+
+```mermaid
+flowchart TB
+  A["Candidate eligibility changes after an initial plan"] --> B{"Profile"}
+  B -->|Embedded| C{"Trigger"}
+  C -->|Join| CJ["Replan for the joined member"]
+  C -->|Publication| CP["Replan for the publisher"]
+  C -->|Discovery callback entered| CD["Replan for the receiver after discovery"]
+
+  B -->|Configured process| D{"Service transition"}
+  D -->|Join or publication| DN["No assumption-search call in inspected handler"]
+  D -->|Subscription or registration| DD["Plan and enqueue discovery events"]
+  D -->|Acquisition cancellation| DC["Confirm cancellation; plan pending acquisition work, not assumption search"]
+  D -->|Divestiture, Restore, or ConnectionLost| DW["Enqueue assumption work returned by that transition"]
+```
+
+This chart records inspected implementation callsites, not a normative
+requirement or a fairness rule. The focused process assumption cases cover
+initial divestiture offers and Restore work, but I found no focused case that
+asserts a fresh offer after a later Join, publication, discovery, or acquisition
+cancellation. The [process Confirm Divestiture case](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp#L446)
+establishes its candidate's subscription and publication before divestiture;
+the [process unconsumed-offer case](../../cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp#L290)
+does the same before registration and divestiture. A [process Restore case](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L487)
+asserts restored assumption work. The [embedded search-epoch
+case](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp#L104)
+does cover a later publication starting a fresh embedded search epoch, but it
+does not stand in for the process path or cover each embedded trigger.
 
 #### Failure phase and possible residual effects
 
@@ -1383,37 +1934,54 @@ failure or an HLA rollback rule:
   earlier offers sent or queued. An assumption offer is not an ownership
   transfer.
 
-In either profile, a helper failure becomes `RTIinternalError` at the public
-adapter, but the source shows no rollback of the plan or earlier side effects.
-The cited process tests cover selected successful calls; they do not exercise
-these failure checkpoints.
+The process service projects acquisition work first and assumption offers
+second. Their delivery and failure boundaries differ, so the two traces below
+keep those phases visible. In either phase, a helper failure becomes
+`RTIinternalError` at the public adapter, but the source shows no rollback of
+the plan or earlier side effects. The cited process tests cover selected
+successful calls; they do not exercise these failure checkpoints.
 
 ```mermaid
 flowchart TD
-  Plan["Registry plan has committed owner removal,<br/>pending-work replanning, and assumption-search state"] --> Work{"Acquisition work returned?"}
-  Work -->|None| Assumptions{"Assumption recipients returned?"}
+  Plan["Registry plan is committed"] --> Work{"Acquisition work returned?"}
+  Work -->|None| Next["Continue to assumption-offer projection"]
   Work -->|Some| Mode{"Configured-process event mode"}
   Mode -->|Push| Prepare["Run begin gates and collect event frames"]
   Prepare -->|Prepared| SendBatch["Send collected frames sequentially"]
-  Prepare -->|Helper returns false| Error["Private internal error; public adapter reports RTIinternalError"]
-  SendBatch -->|All sends succeed| Assumptions
+  Prepare -->|Helper returns false| Error["Public adapter reports RTIinternalError"]
+  SendBatch -->|All sends succeed| Next
   SendBatch -->|Send fails| Error
   Mode -->|Pull| QueueWork["Queue events one at a time;<br/>begin gates wait for receive polling"]
-  QueueWork -->|Queued| Assumptions
+  QueueWork -->|Queued| Next
   QueueWork -->|Helper returns false| Error
+  Error --> Residual["Plan and earlier effects are not rolled back"]
+```
+
+In push mode, preparation can run earlier begin gates before a later gate
+fails; a send failure can occur after a prefix of frames was delivered. In pull
+mode, a later insertion failure can leave an earlier queued prefix, whose
+begin gates wait for receive polling. The same committed registry plan remains
+in place on these source-derived failure paths.
+
+```mermaid
+flowchart TD
+  Start["Acquisition-work projection succeeded"] --> Assumptions{"Assumption recipients returned?"}
   Assumptions -->|None| Success["Private BooleanResult true"]
-  Assumptions -->|Some| AssumptionMode{"Mode and callback-enabled state?"}
-  AssumptionMode -->|Push, enabled| PushOffers["Resolve and send eligible offers per recipient"]
-  AssumptionMode -->|Push, disabled| DeferredOffers["Defer offer events in the process queue"]
-  AssumptionMode -->|Pull| PullOffers["Queue offer events for later polling"]
+  Assumptions -->|Some| Mode{"Configured-process delivery mode"}
+  Mode -->|Push, callbacks enabled| PushOffers["Resolve and send eligible offers per recipient"]
+  Mode -->|Push, callbacks disabled| DeferredOffers["Defer offer events in the process queue"]
+  Mode -->|Pull| PullOffers["Queue offer events for later polling"]
   PushOffers -->|All processed| Success
-  PushOffers -->|Helper returns false| Error
   DeferredOffers -->|Queued| Success
-  DeferredOffers -->|Helper returns false| Error
   PullOffers -->|Queued| Success
+  PushOffers -->|Helper returns false| Error["Public adapter reports RTIinternalError"]
+  DeferredOffers -->|Helper returns false| Error
   PullOffers -->|Helper returns false| Error
   Success --> Return["Public void call returns normally"]
-  Error -.-> Residual["No rollback shown:<br/>plan and earlier effects may remain"]
+  Error --> Residual["Plan and earlier offers sent or queued are not rolled back"]
+  PushOffers -.-> Note["An assumption offer does not transfer ownership"]
+  DeferredOffers -.-> Note
+  PullOffers -.-> Note
 ```
 
 The [acquisition-work helper's push preparation/send phases](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L83)
@@ -1426,9 +1994,9 @@ and [scenario catalog entry](../../packages/hla-rti-cpp-tck/README.md#L1256),
 but no process-specific TCK execution is recorded. The focused
 [standalone Catch2 behavior case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L4)
 is embedded. The process probe's occurrence of the operation is inside a
-connection-loss cleanup fixture ([fixture](../../cpp/tests/process_federation_service_probe.cpp#L678))
+connection-loss cleanup fixture ([fixture](../../cpp/tests/process_federation_service_probe.cpp#L2839))
 and is not evidence for the ordinary success or failure paths. Keep the
-process diagram source-derived with these selected test boundaries; do not
+process diagrams source-derived with these selected test boundaries; do not
 infer process-wide behavior or conformance from them.
 
 ### Divestiture If Wanted has an output-set result and later notifications
@@ -1471,6 +2039,169 @@ regular and If-Available recipients, tag selection, and stale release-callback
 suppression. The pinned [service declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1093)
 defines the output-set interface; the acquisition notification is declared in
 the [FederateAmbassador API](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L432).
+The effect of this transfer on the new owner's later send settings is a
+separate implementation question. The [2025 Order and Transportation guide](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md#attribute-ownership-can-reseed-sender-settings-umbra-source-observation)
+compares the order and transportation state paths and marks the unqueried
+Divestiture If Wanted transportation result as source-derived.
+
+#### A partial If-Wanted transfer consumes only those members of a regular request
+
+For a regular acquisition request whose desired set is `{A, B}`, if the owner
+calls Divestiture If Wanted for `A` alone and `A` is selected for that
+requester, the embedded registry transfers `A`, returns only `A` in
+`divestedAttributes`, and removes `A` from the request's desired and queued
+notification sets. `B` stays in the same pending regular request, remains
+owned by the current owner, and can be handled by a later ownership response.
+The registry also removes `A` from any queued owner-release reservation for
+the former owner. If a previously queued release callback has not entered
+user code yet, its delivery gate rechecks each scheduled attribute: it drops
+stale `A` while preserving still-pending, still-owned `B` in the callback
+subset. This callback-gate branch is implementation-derived.
+
+```mermaid
+flowchart TD
+  R[Regular acquisition pending for attributes A and B] --> Q[Owner release work may be queued for A and B]
+  Q --> D[Owner calls Divestiture If Wanted for A]
+  D --> SEL{A has an eligible pending acquirer?}
+  SEL -->|No| NONE[No transfer for A;<br/>request remains pending]
+  SEL -->|Yes| MOVE[Transfer A to requester]
+  MOVE --> OUT[Return A in divestedAttributes]
+  MOVE --> CONSUME[Remove A from request desired set<br/>and queued notification state]
+  CONSUME --> REMAIN{Any desired attributes remain?}
+  REMAIN -->|Yes| KEEP[Keep same request pending for B;<br/>owner retains B]
+  REMAIN -->|No| END[Remove completed request]
+  Q -.If old callback has not entered.-> GATE[Recheck scheduled attributes at delivery]
+  MOVE --> STALE[Clear old owner's release reservation for A]
+  STALE --> GATE
+  GATE --> DROP[Suppress stale A]
+  GATE --> KEEP_B[Deliver eligible subset such as B]
+  MOVE --> CALLBACK[Queue acquisition notification for A<br/>with the If-Wanted tag]
+```
+
+The per-attribute mutation is in the [If-Wanted commit loop](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L300);
+the callback-time subset is formed by [regular release delivery revalidation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L590).
+The focused [partial-result case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L2230)
+does not make one request for `{A, B}`: it requests `A`, supplies `{A, B}` to
+Divestiture If Wanted, then separately requests `B`. It proves that an
+unrequested attribute is not transferred by that call and that a later new
+request can acquire it; it does not prove that `B` remains in the same
+multi-attribute request after transferring `A`. The mixed-acquirer test
+([request ordering](../../cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp#L222),
+[later release callback](../../cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp#L232))
+covers multiple requesters for one attribute, not one requester with a
+partially transferred multi-attribute request. No focused test combines that
+partial transfer with a queued `{A, B}` release callback. Keep the regular
+acquisition example separate from If-Available request semantics and do not
+claim the combined sequence as test-established.
+
+#### If Available resolves its remaining set at the already-queued callback
+
+The 2025 embedded Acquisition If Available path has a different request
+lifetime. Acceptance stores its willing-to-acquire set and queues one result
+callback. If Divestiture If Wanted transfers `A` before that callback enters,
+the transfer removes `A` from the If-Available request's desired set and
+queues the separate acquisition-notification callback for `A` with the
+If-Wanted tag. When the original If-Available result callback later reaches
+its registry gate, it evaluates the remaining requested attributes and then
+consumes the whole If-Available request. If `B` is still owned by the former
+owner at that gate, it is returned as unavailable using the original
+If-Available request tag. Thus the partial state is not a continuing
+If-Available request for `B`, as it is for a regular acquisition; it is a
+pending one-shot result callback that resolves the remainder.
+
+```mermaid
+flowchart TD
+  R[If-Available request accepted for A and B] --> QUEUE[Queue one result callback<br/>with the If-Available tag]
+  QUEUE --> W[Before callback entry, owner transfers A<br/>through Divestiture If Wanted]
+  W --> MUTATE[Remove A from If-Available desired set]
+  W --> NOTIFY[Queue separate acquisition notification for A<br/>with the If-Wanted tag]
+  MUTATE --> GATE[Original result callback reaches registry gate]
+  GATE --> CHECK[Evaluate remaining request set at delivery]
+  CHECK --> BOWN{Is B still owned by another federate?}
+  BOWN -->|Yes| UNAVAILABLE[Report B unavailable<br/>with original If-Available tag]
+  BOWN -->|No| SECURED[Resolve current remaining state<br/>under If-Available rules]
+  UNAVAILABLE --> CONSUME[Consume the one-shot If-Available request]
+  SECURED --> CONSUME
+  NOTIFY --> N[Transfer notification for A remains a separate callback]
+```
+
+The If-Wanted planner removes only the transferred attribute from the
+selected If-Available request ([member cleanup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L334)).
+The queued result later classifies the request's then-current remaining
+attributes and clears the request ([one-shot result gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L507));
+the runtime queues that gate when the If-Available service is accepted
+([callback work creation](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L1282),
+[result projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L81)).
+The focused [If-Wanted pending test](../../cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp#L276)
+shows the single-attribute case: the already-queued If-Available callback
+produces no result after its only attribute transfers, then the direct
+If-Wanted notification is observed ([callback assertions](../../cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp#L315)).
+No focused test uses a multi-attribute If-Available request, transfers only
+one attribute before its callback gate, and observes an unavailable result
+for the remainder. The A/B mixed outcome above is source-derived; callback
+observation order outside that selected single-attribute `HLA_EVOKED` case is
+not claimed.
+
+#### Divestiture If Wanted wins cancellation only for the transferred attributes
+
+An accepted regular-acquisition cancellation reserves its requested attributes
+until the cancellation-confirmation callback reaches its registry gate. If an
+owner-side release callback is already executing, cancellation can be accepted
+while that owner callback is in user code. If the owner then transfers one of
+those attributes through Divestiture If Wanted, the transfer consumes the
+cancellation reservation for that attribute and commits ownership to the
+requester. The previously queued cancellation-confirmation work for that
+attribute becomes stale; its acquisition notification with the If-Wanted tag
+is the terminal reply for the transferred attribute.
+
+For a multi-attribute cancellation `{A, B}` where only `A` transfers, the
+source removes only `A` from the cancellation reservation. The queued
+cancellation-confirmation gate can still confirm cancellation for `B` and
+remove `B` from the regular acquisition request. The callbacks therefore
+resolve per attribute: acquisition notification for transferred `A`,
+cancellation confirmation for remaining `B` (assuming no intervening
+terminal response such as Release Denied). The ordering between those callback
+observations is not established by the multi-attribute tests because none was
+found.
+
+```mermaid
+flowchart TD
+  R[Regular acquisition pending for A and B] --> C[Requester cancels A and B]
+  C --> RESERVE[Store cancellation reservation<br/>and queue confirmation work]
+  R --> RELEASE[Owner release callback for A and B enters user code]
+  RESERVE --> W[Owner calls Divestiture If Wanted for A]
+  RELEASE --> W
+  W --> TRANSFER[Commit A to requester]
+  TRANSFER --> REMOVE[Remove A from cancellation reservation]
+  REMOVE --> NOTIFY[Queue acquisition notification for A<br/>with If-Wanted tag]
+  REMOVE --> REST{Cancellation reservation<br/>still has B?}
+  REST -->|No| STALE[Queued cancellation work is stale;<br/>no cancellation confirmation for A]
+  REST -->|Yes| GATE[Queued cancellation gate confirms B<br/>if no other terminal response wins]
+  STALE --> AOUT[Acquisition notification is A's terminal reply]
+  GATE --> BOUT[Cancellation confirmation is B's terminal reply]
+```
+
+The cancellation service stores the accepted set in a live reservation
+([reservation creation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L16));
+Divestiture If Wanted consumes each transferred attribute from matching
+reservations ([per-attribute consumption](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L254)).
+At delivery, the cancellation gate reads the current remaining set and removes
+only those attributes from the pending regular request
+([cancellation callback gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L137)).
+The focused [transfer/cancellation race](../../cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp#L168)
+forces the owner release callback to enter before cancellation, then transfers
+the sole requested attribute through Divestiture If Wanted. It observes no
+cancellation-confirmation callback and exactly one acquisition notification
+with the If-Wanted tag. No focused test covers cancellation of `{A, B}` with
+only `A` transferred, so the split terminal outcomes above remain
+source-derived; no callback total-order guarantee is claimed. A similarly
+named [multi-attribute partial-cancellation test](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L139)
+is a different route: it cancels `A` before the owner's negotiated-divestiture
+confirmation callback, then confirms transfer of `B`
+([cancellation](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L231),
+[confirmation](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L255)).
+It does not exercise Divestiture If Wanted consuming one member of a live
+`{A, B}` cancellation reservation.
 
 ## Query Attribute Ownership reports a snapshot; it does not transfer
 
@@ -1577,6 +2308,10 @@ separate receiver-removal reservation is still checked at its own gate; if the
 receiver remains a member that knows the object, Umbra commits that receiver
 to unknown before `removeObjectInstance`. These are separate callback gates,
 not a promise of global ordering among ownership and removal callbacks.
+This accepted per-instance Delete is separate from whole-member Resign; see the
+Lifecycle guide's [ResignAction map](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#resignaction-names-requested-cleanup-they-are-not-the-leave-transition)
+and [role-sensitive pending-acquisition preflight](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#the-pending-acquisition-preflight-is-role-sensitive)
+for the member-scoped transition.
 
 Clearing pending ownership ledgers at receive-order delete acceptance does not
 by itself establish when the object's update-region references are released.
@@ -1644,8 +2379,8 @@ the [regular release-request gate](../../cpp/src/internal/runtime/umbra_rti_amba
 and the [receiver-removal gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1331)
 establish separate source paths. Focused `HLA_EVOKED` tests demonstrate
 [query-result suppression](../../cpp/tests/attribute_ownership_query_catch2.cpp#L359),
-[regular owner-release suppression](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp#L201),
-[If-Available suppression](../../cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp#L353),
+[regular owner-release suppression](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp#L200),
+[If-Available suppression](../../cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp#L354),
 and [cancellation-confirmation suppression](../../cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp#L359),
 each with a receive-order removal callback. They are separate scenarios and do
 not establish all-ledger callback ordering or process-endpoint parity.
@@ -1706,6 +2441,10 @@ not establish all-ledger callback ordering or process-endpoint parity.
   [If Available](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp),
   [unconditional divestiture and assumption search](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp),
   [negotiated divestiture cancellation and NoAcquisitionPending](../../cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp#L204),
+  [embedded Resign directive 3 with pending negotiated divestiture](../../cpp/tests/ieee1516_2025_embedded_resign_action_cancel_negotiated_pending_catch2.cpp#L4),
+  [standalone Resign directive 3 with pending negotiated divestiture](../../cpp/tests/resign_action_cancel_negotiated_pending_catch2.cpp#L114),
+  [mixed-recipient Confirm Divestiture fan-out](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_mixed_fanout_restore_catch2.cpp#L218),
+  [same-requester mixed regular/If-Available confirmation](../../cpp/tests/ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp#L397),
   [multiple acquirers after release denial](../../cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp),
   [process-boundary confirmation with an assumption candidate](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp),
   [embedded query grouping and deletion invalidation](../../cpp/tests/ieee1516_2025_embedded_query_attribute_ownership_catch2.cpp),
@@ -1719,7 +2458,7 @@ to four canonical IEEE 1516.1-2025 sections (7.7.3, 7.8, 7.11, and 7.12) by the
 current test-plan query. Those mappings are traceability aids, not conformance
 evidence.
 
-## Deliberate limits and next step
+## Deliberate limits and open normative question
 
 This guide does not attempt to encode every ownership exception, arbitration
 rule, callback control, automatic resignation action, MOM report, persistence
@@ -1734,22 +2473,36 @@ and per-attribute authority, receiver interest and eligibility, per-attribute
 projection and rate admission, and callback observation. The cross-cutting
 object-attribute map supplies the overview, while focused guides preserve the
 separate state machines and embedded/process evidence. No synthesis diagram
-was warranted. The direct-requester entitlement question for Request Attribute
-Value Update remains an explicit normative gap in its dedicated guide; this
-cross-read does not resolve it.
+was warranted. The direct-requester entitlement question for [Request
+Attribute Value Update](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md)
+remains an explicit normative gap: the selected tests keep requesters
+subscribed, and the local API header provides a signature and exception list
+rather than the §6.21 prose. Keep the outcome open until an authorized copy of
+the clause is available. The active documentation handoff is tracked in the
+[2025 documentation roadmap](HLA-2025-DOCUMENTATION-ROADMAP.md).
 
-The negotiated-divestiture cancellation sequence is source/test-reviewed but
-has no fresh Mermaid parser, local render, visual inspection, or GitHub verdict.
-The configured Scoop sources had no `mmdc` manifest, so no package was
-installed. Keep this validation gap visible; do not treat manual syntax review
-as a renderer result.
+The mixed active/stale Confirm Divestiture branch above is also source-derived.
+The pinned §7.6 API header lists `NoAcquisitionPending`
+([signature and exception list](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1011)),
+but does not state how that exception applies when one attribute in a supplied
+set has no active acquisition and another does; the full IEEE 1516.1-2025 text
+is not vendored here. Focused tests cover a single canceled acquisition and
+mixed sets whose acquisitions are all active, not the active-plus-stale case.
+Keep the source behavior separate from the normative rule until §7.6 has been
+cross-read against an accessible copy of the standard.
 
-Next documentation handoff: resolve the open 2025 Request Attribute Value
-Update entitlement question: does making an explicit value request itself
-make an otherwise ineligible requester a receiver of the provider's later
-update? The current guide and selected tests keep solicitation separate from
-ordinary update receiver eligibility, but neither establishes the normative
-§6.21 rule. Use an authorized copy of the clause; if unavailable, leave the
-portable outcome open and continue another bounded HLA-first review. Preserve
-2010/2025 and embedded/process boundaries; do not build, rerun tests, start CI,
-or edit the Requirements Lab during documentation work.
+The Resign directive 3 sequence above is likewise limited to the pinned API
+declarations, Umbra's registry transition, and the two focused cases. The API
+header declares the action and lists the Resign exceptions, but does not specify
+which queued ownership events directive 3 cancels. Its exact normative scope
+under §4.12 remains open until that clause is cross-read against an accessible
+copy of IEEE 1516.1-2025; preservation of another member's request is currently
+source-derived.
+
+The negotiated-divestiture cancellation sequence was rendered with Mermaid CLI
+12.0.0 and passed local screenshot review (2026-11-03). Its actors, numbered
+service/callback steps, and outcome notes are readable without clipping. This
+selected local review does not establish GitHub-renderer behavior. The new
+Resign directive 3 sequence was also rendered with Mermaid CLI 12.0.0 and
+screenshot-reviewed; it is legible and unclipped, with GitHub rendering still
+unverified.

@@ -72,9 +72,14 @@ normative claim. Do not conflate that open question with Delay Subscription
 Evaluation: the latter changes when ordinary receiver eligibility is evaluated,
 not whether an earlier RAVU creates a special receiver right. The vendored
 [`RTIambassador.h`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L876)
-contains the §6.21 signature and exception list, not the clause prose; the
-[official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/) indicates
-that access to the standard is by purchase or subscription. For receiver
+contains the §6.21 signature and exception list, not the clause prose. Its
+object-instance and object-class overloads do not list a subscription exception;
+that omission alone does not establish a provider duty to answer or a
+requester's right to observe the later update. The
+[official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/) offers
+purchase or subscription access; IEEE also advertises free account-based read
+access to selected standards through its [Standards Reading Room](https://standards.ieee.org/access-standards/),
+but public pages do not confirm whether 1516.1-2025 is included. For receiver
 selection, see the
 [object and interaction information guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
 and [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md).
@@ -129,6 +134,79 @@ and [attribute-update delivery boundary](HLA-2025-TIME-MANAGEMENT-GUIDE.md#times
 These focused embedded tests do not establish configured-process parity or a
 normative interpretation of §6.21.
 
+### The solicitation, receive-order gate, and TSO frontier are separate
+
+Keep three questions apart when a provider answers a regional request:
+
+1. **Who is solicited?** The request's attribute/region pairs qualify provider
+   work. They do not become the source region of a later Update.
+2. **Which receivers qualify?** The provider's later Update is a new service.
+   Its actual attributes and source-region realization are checked against
+   each receiver's subscription.
+3. **When can an eligible callback be observed?** Receive order and timestamp
+   order have different timing gates. In the bounded embedded model, enabling
+   asynchronous delivery or entering a pending time advance can open a
+   constrained receiver's receive-order gate. A timestamped update remains
+   subject to logical-time eligibility; asynchronous delivery does not release
+   TSO work. The callback model then determines whether application code sees
+   admitted work immediately or through an Evoke service.
+
+```mermaid
+flowchart TD
+  Request["Requester sends regional RAVU<br/>attributes, request regions, request tag"] --> Provider{"Does an eligible provider receive<br/>Provide Attribute Value Update?"}
+  Provider -->|No| Stop["No provider update is implied"]
+  Provider -->|Yes| Choice{"Does provider later send values?"}
+  Choice -->|No| Stop
+  Choice -->|Yes| Update["Provider makes a separate Update call<br/>with its values, source scope, and update tag"]
+  Update --> DDM{"Does the actual update qualify<br/>for this receiver under DDM?"}
+  DDM -->|No| NoReflect["No reflection through this regional path"]
+  DDM -->|Yes| Order{"Update delivery order?"}
+  Order -->|RECEIVE| ReceiveGate["Embedded receive-order gate:<br/>async delivery or pending advance may open it"]
+  Order -->|TIMESTAMP| TsoGate["TSO gate:<br/>logical-time eligibility; async delivery does not release it"]
+  ReceiveGate --> Admitted["Update callback is admitted"]
+  TsoGate --> Admitted
+  Admitted --> Model{"Callback model?"}
+  Model -->|HLA_IMMEDIATE| Immediate["Application callback may run inline"]
+  Model -->|HLA_EVOKED| Evoked["Application observes it during Evoke"]
+```
+
+The gates in the chart do not make one universal process pipeline. The
+focused embedded regional RAVU response test covers the timestamped path and
+reflection-before-grant under `HLA_EVOKED`. The configured-process regional
+request test covers provider selection and a later receive-order update under
+both callback models, but does not enable Time Constrained or exercise
+asynchronous delivery. In the inspected process bridge, Provide events enter
+the callback dispatcher through a separate path from the receive-order
+interaction gate; that interaction gate does not establish timing behavior for
+Provide callbacks or process attribute reflections. The process async-delivery
+tests exercise receive-order interactions, not RAVU. Keep those process paths
+unverified rather than inferring profile parity.
+
+The regional process test configures Push with `HLA_IMMEDIATE` and Pull with
+`HLA_EVOKED`; it observes a deferred reflection claim in the Push case and
+separate discovery and reflection polls in the Pull case. This is fixture
+configuration, not a callback-model-to-transport rule. The Process Endpoint
+guide's [receive-order object-attribute update map](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#process-mapping-receive-order-object-attribute-update)
+traces the complete receiver paths, including direct full-event Push,
+readiness-marker claim/recheck, and Pull-time recheck.
+
+For the embedded receive-order and TSO gates, see the Time Management guide's
+[receive-order/asynchronous-delivery explanation](HLA-2025-TIME-MANAGEMENT-GUIDE.md#receive-order-and-asynchronous-delivery)
+and [timestamped attribute-update delivery boundary](HLA-2025-TIME-MANAGEMENT-GUIDE.md#timestamped-attribute-updates-time-eligibility-and-receiver-projection).
+For the source-bounded process distinction, see its
+[receive-order interaction gate](HLA-2025-TIME-MANAGEMENT-GUIDE.md#configured-process-receive-order-interaction-gate)
+and [process AttributeUpdate order split](HLA-2025-TIME-MANAGEMENT-GUIDE.md#process-endpoint-the-same-order-split-crosses-a-different-boundary),
+which traces receiver reflections separately from provider `provideAttributeValueUpdate`
+callbacks.
+The source/test boundary is visible in the [process Provide callback
+submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1808),
+[process interaction gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1166),
+[regional process RAVU case](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L933),
+[timestamped regional RAVU case](../../cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp#L128),
+and [process asynchronous-delivery interaction case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75).
+No focused case combines regional RAVU with a time-constrained provider and
+asynchronous-delivery changes.
+
 ## 2. 2025 implementation example: plan and recheck provider work
 
 The 2025 API has object-instance, object-class, and regional object-class
@@ -169,6 +247,8 @@ flowchart TD
   Persist --> Projection{"Does registration still find<br/>the full planned owner projection?"}
   Projection -->|Yes| Stored["Persist request for this original<br/>provider/object group"]
   Projection -->|No| RegistrationFailure["Raise RTIinternalError<br/>before service-report record or callback queueing"]
+  RegistrationFailure --> PossiblePartial["If an earlier group was stored,<br/>this path shows no rollback"]
+  PossiblePartial --> NoCallback["The failed invocation has not<br/>queued any provider callbacks"]
   Stored --> Next
   Done --> Report["Record selected successful-service report<br/>(if enabled)"]
   Report --> Dispatch["Queue and dispatch provider callbacks"]
@@ -195,7 +275,49 @@ Earlier groups in that loop may already have been persisted individually, and
 this path has no rollback for them if a later registration fails. Treat that
 as a source-visible potential partial-persistence failure, not an HLA outcome
 or a tested runtime scenario. No focused test exercises an ownership change
-during this pre-enqueue interval.
+during this pre-enqueue interval. Because callback queueing starts only after
+all registrations succeed, the failed invocation leaves any earlier records
+pending without provider work queued.
+
+#### Conditional Save/Restore continuation for an earlier provider group
+
+```mermaid
+flowchart TD
+  Pending["Earlier group remains pending<br/>after the later-group failure"] --> Save["A later state image is requested"]
+  Save --> Admission{"Does image admission accept<br/>the route-free class-request ledger?"}
+  Admission -->|No| NotAdmitted["This image path does not<br/>restart the class request"]
+  Admission -->|Yes| Capture["Capture the pending<br/>provider/object record"]
+  Capture --> Restore{"Do member, object/class,<br/>attribute, and owner checks pass?"}
+  Restore -->|No| Rejected["Restore validation fails"]
+  Restore -->|Yes| Rebuild["Reconstruct provider work<br/>from the saved request"]
+  Rebuild --> Callback["Queue provider callback<br/>after Federation Restored"]
+```
+
+The embedded state-image path serializes
+these records, but restartability has an additional admission gate. The
+class-request ledger is admitted only when the saved object has nonempty
+attribute values, its pending-operation count matches its class-request record
+count, no other disallowed callback ledgers or update-region associations are
+present, and the class-request records have valid ordered identities
+([restartability predicate](../../cpp/src/internal/federation/federation_registry_state_image_validation.cpp#L78),
+[state-image admission](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1136)).
+If admitted, restore validates live requester/provider membership, the saved
+object and requested class relationship, the requested attributes, and that
+each attribute still has the saved provider as owner; it then reconstructs
+the pending request record
+([restore validation](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L418)).
+Restore-control collection rebinds provider callback work to a live callback
+route ([work reconstruction](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1719)),
+and the ambassador queues that work after `federationRestored`
+([post-restore queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1337)).
+Thus an earlier record left by a failed multi-group call reaches this
+restore-time callback path only if both image admission and restore validation
+succeed. This is conditional source behavior. The public test covers one
+successful object/provider group restored through both callback models, not a
+failed later group followed by Save/Restore
+([focused case](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6)).
+No focused test exercises the full failure → save → restore chain; this is not
+a demonstrated failure-recovery guarantee or an HLA rule.
 
 ### What changes with each scope in the embedded profile
 
@@ -217,8 +339,8 @@ during this pre-enqueue interval.
   publishes one attribute from one provider on two object instances, then
   requests that attribute at class scope. It observes two one-attribute
   callbacks to the same provider, one for each object
-  ([fixture](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L355),
-  [callback assertions](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L408)).
+  ([publisher fixture](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L462),
+  [two-object callback assertions](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L526)).
   That is per-object callback fan-out, not evidence that one object's requested
   attributes are split across multiple providers. The process test makes no
   public subscription call before the request, but it does not test an
@@ -227,18 +349,34 @@ during this pre-enqueue interval.
   process/embedded parity or present these implementation details as general
   HLA requirements.
 
-  A concrete source-derived illustration makes that group key easier to see:
-  requester `R` asks for class `C` attributes `{A, B}`. Assume in-scope object
-  `O` is currently owned on `A` by provider `P` and on `B` by provider `Q`,
-  while `R` owns neither. The class planner forms
-  `(O, P, {A})` and `(O, Q, {B})`; the process service routes each group's
-  subset to its provider ([shared owner grouping](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1052),
-  [process group dispatch](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L243)).
-  This is one object's attributes split across providers. The focused process
-  test instead covers one provider across two objects
-  ([test](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400));
-  it does not establish this same-object case. Treat the illustration as
-  current source behavior, not a normative callback-count or ordering rule.
+  A regional class request applies that grouping after whole-request region
+  preflight. For a source-derived example, requester `R` asks for class `C`
+  attributes `{A, B}`. Assume in-scope object `O` is currently owned on `A` by
+  provider `P` and on `B` by provider `Q`, while `R` owns neither; also assume
+  each attribute's request-region pair passes preflight and its provider's
+  current source-region eligibility check. The planner forms `(O, P, {A})` and
+  `(O, Q, {B})`; the process service handles each eligible object/provider
+  group separately ([regional owner grouping](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1069),
+  [regional process dispatch](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375)).
+  This is one object's attributes split across providers in the inspected
+  source. The focused regional tests cover one provider/object/attribute in
+  each profile ([embedded response](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_provider_response_catch2.cpp#L174),
+  [configured-process request](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L933));
+  the nonregional process class test covers one provider across two objects
+  ([process class callback assertions](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L526)).
+  No focused test establishes same-object multi-provider fan-out in either
+  profile. Treat the illustration as current source behavior, not a normative
+  callback-count or ordering rule.
+
+  For each configured-process group, the service keeps only that group's
+  attribute-to-request-region pairs when registering the pending provider
+  work, then constructs the event from the projected attribute subset and the
+  original request tag. The request-region handles are not fields in the
+  provider event. The focused public regional case verifies one provider's
+  one-attribute subset and original request tag; it does not establish that
+  multiple provider events each receive their own subset and the same tag.
+  See [per-group region persistence and event construction](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395)
+  and the [provider event fields](../../cpp/src/internal/federation/process_federation_service_protocol.hpp#L1389).
 - **Regional object class:** validate the supplied attribute/region pairs and
   region ownership/commit state before planning any route. The request and
   provider source regions must satisfy the current regional eligibility test.
@@ -272,7 +410,7 @@ In the current embedded 2025 implementation, the provider's later
 not consume the earlier RAVU request as a receiver declaration. The request
 planner selects provider work from the known object/class, requested
 attributes, and current owners, while update delivery uses receiver declaration
-and relevance state ([request planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L278),
+and relevance state ([request planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L393),
 [ordinary recipient projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L231)).
 This is a bounded source observation, not a complete normative rule for every
 requester/receiver combination.
@@ -304,6 +442,10 @@ only that ordinary delivery-time eligibility can change, not that an explicit
 request creates direct response entitlement. Verify the full §6.21 text before
 making that normative claim.
 
+For the adjacent discovery-time initial-value and already-known-object
+subscription cases, see the [2025 Subscription State guide's late-subscription
+map](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#a-subscription-can-be-late-relative-to-two-different-events).
+
 ### Regional request scope is not response DDM
 
 A regional request and a later value update make different regional
@@ -331,6 +473,11 @@ operation alone does not add its caller to the later update's recipient set,
 and its request region does not become the later update's source realization.
 These are bounded implementation observations, not a complete normative rule
 for every overload or a claim that every profile exposes identical outcomes.
+The Provide-event checkpoint is separate from receiver-side
+`attributesInScope`/`attributesOutOfScope` advisories: the process RAVU path
+projects provider work before push or pull staging and shows no later region
+check at the Provide callback. For the different advisory queue checkpoints,
+see the [Attribute Scope process-path map](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md#process-event-transport-has-two-stale-work-checkpoints).
 
 ```mermaid
 flowchart TB
@@ -398,32 +545,59 @@ the public adapter converts handle values and checks membership before sending
 the request; a malformed handle is rejected locally. Then the registry checks
 each supplied pair against federation state before recipient expansion. Each
 pair must name a requested attribute and a requester-owned region with
-committed, complete bounds whose dimensions are available to the requested
-class. A rejected planner result crosses the process response as a typed
-status, which the public adapter maps to the corresponding 2025 API exception.
+committed, complete bounds. In the current source, dimension validity is
+resolved per requested attribute: the registry's
+[attribute-context helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L703)
+walks the requested class's inheritance chain to the class that declares that
+attribute, then checks the region against dimensions available there. This is
+source-derived behavior, not a settled IEEE interpretation. A separate focused
+2025 DDM test now builds and fails at regional subscription while using the
+same attribute-context helper; see the [DDM source/test comparison](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#inherited-dimensions-in-a-child-class-regional-path).
+That test does not exercise RAVU admission. The focused rejection case below
+uses `Flavor` directly declared on `Soda`, so it does not distinguish
+declaring-class scope from requested-class scope. A rejected planner result
+crosses the process response as a typed status, which the public adapter maps
+to the corresponding 2025 API exception.
 
-The focused process selector test exercises four server-side outcomes: a
-region handle value with no registry entry and a requester-owned uncommitted
-region both produce `InvalidRegion`; another federate's region produces
-`RegionNotCreatedByThisFederate`; and a committed region whose dimension is
-outside the requested class context produces `InvalidRegionContext`. It asserts
-both public exceptions and the typed planner statuses returned by the server.
+The focused [process selector test source](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L459)
+asserts four server-side outcomes: a region handle value with no registry
+entry and a requester-owned uncommitted region both produce `InvalidRegion`;
+another federate's region produces `RegionNotCreatedByThisFederate`; and a
+committed region whose dimension is outside the `Soda` class's context for its
+directly declared `Flavor` attribute produces `InvalidRegionContext`. The
+assertions pair each public exception with the typed planner status returned
+by the server. Because `Flavor` is declared on `Soda`, this Catch2 selector
+does not test an inherited attribute when a more-derived class adds
+dimensions. A separate portable 2025 TCK scenario does test this public
+request boundary: it expects `InvalidRegionContext` when a Y-only Region is
+used for a regional request on inherited `BaseValue`. The scenario and its
+contract twin passed in both callback models; the [DDM guide records its source
+and run evidence](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#passing-portable-tck-case-inherited-attributes-keep-their-fdd-dimensions).
+That case does not assert multi-pair overlap deduplication or process/embedded
+parity.
 
 The implementation performs a whole-request preflight before provider
 expansion. The registry stops at the first invalid attribute/region pair and
 returns a typed status; the configured-process handler returns that rejection
 before entering its provider loop. Therefore, this request path creates no
 provider event to queue or push when regional preflight fails ([registry
-preflight](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L999),
+preflight](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L992),
 [typed rejection branch](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L363),
 [provider loop](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375)).
-The focused tests submit invalid pairs in separate calls; they neither combine
-an invalid pair with otherwise-eligible work nor assert this no-event
-consequence. The invalid-selector fixture creates the relevant region states
-but does not publish the class or register an object, so it does not establish
-an otherwise-eligible provider route whose suppression could be observed.
-Keep that consequence source-derived, not a normative atomicity or
-exception-precedence claim.
+The embedded [regional filtering test](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp#L83)
+does provide bounded no-callback evidence for separate invalid one-pair
+requests: it creates a region-associated object and a default-region object,
+submits foreign, wrong-context, and uncommitted-region requests, then drains
+the provider callback queue after an empty-region no-op and requires no
+callback. It later verifies that a valid disjoint-region request reaches the
+default-region object. This does not test a single request vector containing
+both an invalid pair and another otherwise-eligible pair, and it does not
+inspect pending-ledger state or retry the same request after repairing its
+region. The configured-process invalid-selector test checks typed exceptions
+and planner statuses but creates no object/provider route, so it does not
+independently establish the no-event consequence. Keep mixed-pair suppression,
+ledger state, and retry behavior source-derived, not normative atomicity or
+exception-precedence claims.
 
 For accepted input, the planner expands live instances, partitions requested
 attributes by current provider, and filters each attribute against that
@@ -437,55 +611,67 @@ not normative exception-order or embedded-parity claims.
 
 ```mermaid
 sequenceDiagram
-  accTitle: Configured-process regional class request
-  accDescr: The 2025 adapter validates handle values, the process registry checks region state, and typed failures map to public exceptions. Valid requests are filtered by request and source regions before push or pull delivery. The event carries the projected attribute subset but not region handles; behavior after a region change before the provider callback is untested.
+  accTitle: Configured-process regional request validation and planning
+  accDescr: The 2025 adapter validates handle values, the process registry checks region state, and typed failures map to public exceptions. Valid requests are filtered by request and source regions, grouped by current provider, rechecked, and queued or suppressed before event delivery.
   autonumber
-  actor Q as Requester application
-  participant A as 2025 public RTI adapter
-  participant S as Configured 2025 process service
+  actor Q as Caller
+  participant A as Public API
+  participant S as Process service
   participant R as Federation registry
-  actor P as Provider for this group
 
-  Q->>A: Call regional class request with attributes, regions, and tag
-  A->>A: Validate handle values and joined membership
+  Q->>A: Regional request (attributes, regions, tag)
+  A->>A: Check handles and membership
   alt Local handle or membership preflight fails
-    A-->>Q: Throw local API exception, no process request sent
+    A-->>Q: Throw local exception, no request sent
   else Local preflight passes
-    A->>S: Send normalized class, attributes, region map, and tag
-    S->>R: Validate class, attributes, and supplied region pairs
+    A->>S: Send normalized request
+    S->>R: Validate class, attributes, region pairs
     alt Registry rejects a region pair or class context
-      R-->>S: Return typed planner status before recipient expansion
-      S-->>A: Rejected response carrying planner status
-      A->>A: Map planner status to public exception
-      A-->>Q: Throw InvalidRegion, RegionNotCreatedByThisFederate, or InvalidRegionContext
+      R-->>S: Return typed planner status
+      S-->>A: Return rejected status
+      A->>A: Map status to API exception
+      A-->>Q: Throw mapped region exception
     else Registry preflight succeeds
-      Note over S,R: Each supplied pair names a requested attribute and a requester-owned, committed region with complete bounds in the class's available dimensions.
-      R->>R: Expand live objects and group each object's attributes by current owner
-      R->>R: Filter each attribute by request/source-region eligibility
-      R-->>S: Eligible object/provider groups, each with its attribute subset
+      Note over S,R: Check each request region against the requested attribute's declaration-class dimensions.
+      R->>R: Expand objects, group attributes by current owner
+      R->>R: Filter groups by request/source regions
+      R-->>S: Eligible groups with attribute subsets
       loop Each object/provider group
-        S->>R: Register group's attributes and matching region pairs
-        R->>R: Recheck current owner and region projection
+        S->>R: Register attributes and matching region pairs
+        R->>R: Recheck owner and region projection
         alt Still eligible
-          R-->>S: Current object and eligible attribute subset
-          S->>S: Queue pull event or buffer pushed event
+          R-->>S: Return object and eligible subset
+          S->>S: Queue pull or buffer push event
         else No current candidate
-          R-->>S: Suppress this provider/object event
+          R-->>S: Suppress provider/object event
         end
-      end
-      alt One or more provider events are routed
-        alt Push event path configured
-          S-->>P: Send Provide event frame(s)
-        else Pull event path configured
-          P->>S: receive_interaction
-          S-->>P: Return next queued Provide event
-        end
-        P->>P: Callback bridge invokes Provide for each delivered event
-        Note over S,P: Event carries provider, object, attributes and tag. No later ownership or region check is shown. The change before callback is untested.
-      else No eligible provider group
-        Note over S,P: No Provide callback is produced.
       end
     end
+  end
+```
+
+After planning, each eligible provider event follows one of two delivery routes:
+
+```mermaid
+sequenceDiagram
+  accTitle: Configured-process provider-event delivery
+  accDescr: Eligible provider events use pushed frames or pull requests. The callback bridge invokes Provide with the projected event. The inspected path shows no later ownership or region check before callback, and a state change in that interval is untested.
+  autonumber
+  participant S as Configured 2025 process service
+  actor P as Provider for this group
+
+  alt One or more provider events are routed
+    alt Push event path configured
+      S-->>P: Send Provide event frame(s)
+    else Pull event path configured
+      P->>S: receive_interaction
+      S-->>P: Return next queued Provide event
+    end
+    P->>P: Callback bridge invokes Provide for each event
+    Note over S,P: Event carries provider, object, attributes, and tag.
+    Note over S,P: No later owner/region check.<br/>Change before callback is untested.
+  else No eligible provider group
+    Note over S,P: No Provide callback is produced.
   end
 ```
 
@@ -535,14 +721,21 @@ group, and omit C from remote-provider work. Each surviving group is then
 registered and projected separately. This is an explanatory example of the
 2025 Umbra source path—not a normative one-callback-per-provider rule or a
 tested process outcome ([owner partition](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1047),
-[per-attribute regional filter](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L579),
+per-attribute regional filter[^worktree-source],
 [per-group process registration](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395)).
 
 The filter compares the request-region and update-region sets pairwise, but
 keeps an attribute when any pair overlaps: it stops at the first match and
-inserts that attribute once into the candidate's set. The process handler then
-creates an event from the projected group, rather than one event per matching
-region pair ([first-overlap filter and single insertion](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L594),
+inserts that attribute once into the candidate's set. The current source uses
+the [attribute-aware overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L882)
+for the comparison. Its default-realization dimension set comes from the class
+where the attribute is declared and its ancestors. It adds default ranges for
+those available dimensions when an explicit region omits them; a dimension
+declared only by a more-derived class is not added as a default for an inherited
+attribute. This is source-derived behavior of the current Umbra registry. The
+focused request fixtures below do not exercise this inheritance edge. The
+process handler creates an event from the projected group, rather than one
+event per matching region pair (first-overlap filter and single insertion[^worktree-source],
 [per-group event construction](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L432)).
 This is source-derived duplicate suppression. The focused regional process
 case uses one request region and one update-region association for its
@@ -591,6 +784,17 @@ client/protocol failures to `RTIinternalError`. This does not establish which
 callbacks a runtime delivers after a fault, an all-or-nothing HLA rule, or a
 callback-order guarantee.
 
+The registry record for a group is consumed by `begin...` before delivery is
+queued or staged. Therefore, on a later registration failure, an earlier
+group's record is not left pending for automatic replay; a not-yet-registered
+group has no record from this call. Pull queue entries already appended remain
+available to provider polling. In Push mode, an error during group preparation
+returns before the local staged batch is sent, so those earlier staged frames
+are discarded with the handler call. A caller retry is a new request, not a
+resume token: it may enqueue duplicate Pull work, and after a later Push send
+failure it may repeat a prefix that the provider already received. No focused
+failure/retry test establishes these outcomes at runtime.
+
 ##### Per-group preparation and registration
 
 ```mermaid
@@ -633,10 +837,10 @@ multi-provider split. A separate nonregional class case covers two objects for
 one provider; it does not test one object's attributes split across
 providers. No focused test injects a later group-registration or Push send
 failure.
-See the [per-group service loop](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375),
+See the [regional per-group service loop](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375),
 [regional request registration](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L407),
-[registry request record](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L834),
-[begin/recheck gate](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L923),
+[registry regional-request record](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L986),
+[begin/recheck gate](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1075),
 [Pull queue insertion](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L447),
 [Push send loop](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L459),
 [error translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L704),
@@ -670,7 +874,7 @@ These are source and single-fault test observations, not normative exception
 precedence. No combined-fault test establishes what wins when, for example, a
 bad handle is supplied while disconnected or during save/restore. The wider
 process trace finds no dispatch-wide availability gate: the
-[service host](../../cpp/src/internal/federation/process_federation_service_host.cpp#L157)
+  [service-host dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_service_host.cpp#L182)
 obtains a handler and loops through
 [transport dispatch](../../cpp/src/internal/federation/process_transport_session.cpp#L75),
 which validates request framing and invokes that handler;
@@ -682,7 +886,7 @@ The configured-process
 validates handle values before connection/membership, and the
 [regional request handler](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L335)
 checks session/member identity before calling the
-[shared registry planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L970).
+[shared registry planner](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L992).
 That planner validates membership, catalog, class, attributes, and regions, but
 does not inspect save/restore state. The explicit process-side
 [`serviceOperationStatus` use](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L454)
@@ -692,7 +896,7 @@ process regional-request cases do not exercise those states, so this remains a
 source observation—not a claim about the runtime outcome.
 See the [2025 API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1659),
 [regional adapter branches](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L633),
-[embedded interlock gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L105),
+[embedded interlock gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L93),
 [embedded regional checks](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp#L91),
 [embedded save/restore cases](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L223),
 and [configured-process selector cases](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L698).
@@ -717,6 +921,12 @@ The process [joined-federate report-file case](../../cpp/tests/ieee1516_2025_con
 requests the current report-file path and checks the resulting reflection.
 This establishes only that selected `HLAfederate` request path; it does not
 establish general provider-request parity across profiles.
+
+An explicit current-value request and an automatic Conditional reflection are
+separate producer paths. For the 2025 `HLAsetSwitches` profile comparison,
+including which member attributes the embedded and configured-process paths
+enqueue automatically, see [switch storage, MOM projection, and Conditional
+reflection](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#switch-storage-current-mom-projection-and-conditional-reflection-are-separate).
 
 ### Configured-process instance requests branch on object ownership
 
@@ -761,13 +971,13 @@ the callback bridge reconstructs the public handles and invokes
 `provideAttributeValueUpdate` ([event creation](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L159),
 [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L370)).
 The later provider response is a separate update service and carries its own
-tag ([process update handler](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L13)).
+tag ([process update handler](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L16)).
 
 The configured-process handler checks the joined-federate MOM ledger before
 falling through to the ordinary object planner
 ([handler](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L13),
 [direct MOM event and request tag](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L40),
-[ordinary owner planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L278)).
+[ordinary owner planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L393)).
 The callback bridge turns ordinary request events into `provideAttributeValueUpdate`
 and later value events into `reflectAttributeValues`
 ([Provide delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L370),
@@ -795,8 +1005,8 @@ the test uses the analogous evoke/lookup step before checking reflection
 [later update and reflection checkpoints](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L926)).
 That proves observation by those later test checkpoints under both configured
 models, not an AVU-specific before-return cutoff or cross-federate callback
-order. Keep the generic [HLA_EVOKED application drain](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hla_evoked-the-application-owns-the-drain-point)
-and [HLA_IMMEDIATE service-stack boundary](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hla_immediate-callback-work-can-be-on-the-service-stack)
+order. Keep the generic [HLA_EVOKED application drain](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hlaevoked-the-application-owns-the-drain-point)
+and [HLA_IMMEDIATE service-stack boundary](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hlaimmediate-callback-work-can-be-on-the-service-stack)
 separate from this selected process-test evidence.
 
 #### Configured-process remote failure mapping varies by overload
@@ -887,9 +1097,11 @@ The restore tests deliberately probe different cut points:
 
 - A still-pending class request is restored with its request tag and provider
   routing is rebound; the provider callback follows `federationRestored`, and
-  later callback pumping does not duplicate it. The case keeps the original
-  provider and does not establish owner-change replay, retargeting, or
-  process-endpoint behavior.
+  later callback pumping does not duplicate it. The public focused case has
+  one object/provider group, so it does not exercise a later-group failure or
+  a partially persisted multi-group request. It keeps the original provider
+  and does not establish owner-change replay, retargeting, or process-endpoint
+  behavior.
 - A separate embedded public-API fresh-registry case saves a pending regional
   class request, including its attribute-to-region map and tag, then restores
   it from the filesystem-backed state image. Under both `HLA_EVOKED` and
@@ -979,7 +1191,7 @@ flowchart TB
 The configured-process handler registers each planned provider group and then
 consumes that record to produce a projection before it queues or pushes the
 notification ([request path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395),
-[record consumption](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L922)).
+[record consumption](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L870)).
 The registry image can retain request metadata that is pending at capture
 ([capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L993)); that fact alone does not capture the separate
 session queue or prove a restored request will regenerate a provider event.
@@ -999,20 +1211,20 @@ notifications; an event already returned to the client is no longer subject to
 that server-side selection. In push mode, RAVU and Restore are separate event
 frames. The client buffers received events in arrival order, drains its pending
 event deque FIFO, and submits each to the callback dispatcher, whose task queue
-is also FIFO. Under [`HLA_EVOKED`](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hla_evoked-the-application-owns-the-drain-point),
+is also FIFO. Under [`HLA_EVOKED`](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hlaevoked-the-application-owns-the-drain-point),
 submitted tasks wait for an application evoke; enabled
-[`HLA_IMMEDIATE`](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hla_immediate-callback-work-can-be-on-the-service-stack)
+[`HLA_IMMEDIATE`](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#hlaimmediate-callback-work-can-be-on-the-service-stack)
 dispatch drains them as they are submitted. These are process queue mechanics,
 not a normative callback-order rule, and they do not show
 whether a pre-save RAVU callback is replayed or delivered exactly once. The
 focused pushed `HLA_EVOKED` Save/Restore case covers discovery and ownership-
 assumption work, not RAVU.
 
-Source pointers: [pull receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L95),
+Source pointers: [pull receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240),
 [Restore event routing](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481),
 [RAVU event routing](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375),
 [client event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L385),
-[client FIFO dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L261),
+[client FIFO dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274),
 [callback dispatcher FIFO](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
 and the analogous [pushed `HLA_EVOKED` Save/Restore test](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62).
 
@@ -1026,27 +1238,28 @@ clause-by-clause review of IEEE 1516.1-2025.
 | --- | --- | --- |
 | Object-instance, class, and regional public API | [RTIambassador.h:876](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L876), [RTIambassador.h:891](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L891), [RTIambassador.h:1672](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1672) | The three request scopes and their API argument shapes; the documented `ObjectInstanceNotKnown` exception belongs to the instance overload, while the class overload lists class/attribute errors |
 | Provider callback | [FederateAmbassador.h:350](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L350) | The callback receives an object, attribute set, and tag |
-| Explicit request versus later reflection eligibility | [Embedded provider planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L278), [ordinary receiver projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L231), [DSE route-only planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L211), [delivery-time recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1571), [embedded public subscription setup](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L143), [process fixture's direct registry subscription](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L698), [process request call](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L903), [separate receive-order DSE case](../../cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_attribute_update_catch2.cpp#L73) | The inspected update plan has no prior RAVU record as a receiver input; ordinary declaration/relevance state controls the reflection projection. With DSE enabled, a route-only candidate can instead be re-evaluated at delivery, independently of the request. The RAVU cases have a subscription context and do not isolate an unsubscribed requester through response; the DSE test has no RAVU. This source/test distinction does not settle §6.21 direct response entitlement. |
-| Requester also acts as receiver in one selected example | [Embedded requester's subscription](../../cpp/tests/attribute_value_update_response_catch2.cpp#L180), [request](../../cpp/tests/attribute_value_update_response_catch2.cpp#L215), and [later reflection](../../cpp/tests/attribute_value_update_response_catch2.cpp#L238) | In this embedded `HLA_EVOKED` case the requester has its own subscription, invokes the request, and later observes the provider's separate response update. This demonstrates role overlap in that scenario, not direct response entitlement for an unsubscribed or otherwise ineligible requester. |
+| Embedded object and class requests carry the caller's tag to the provider | [Object-instance request tag assertion](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L168), [object-class request tag assertion](../../cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp#L188) | Both focused cases assert that the request tag reaches `provideAttributeValueUpdate`. The class case expands across two registered subclass objects for one provider. This explicit service path is distinct from discovery-triggered [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md), whose automatic callback currently has an empty tag in the embedded profile; neither test establishes process Auto Provide. |
+| Explicit request versus later reflection eligibility | [Embedded provider planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L393), [ordinary receiver projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L231), [DSE route-only planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L211), [delivery-time recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1571), [embedded public subscription setup](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L143), [process fixture's direct registry subscription](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L698), [process request call](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L903), [separate receive-order DSE case](../../cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_attribute_update_catch2.cpp#L73) | The inspected update plan has no prior RAVU record as a receiver input; ordinary declaration/relevance state controls the reflection projection. With DSE enabled, a route-only candidate can instead be re-evaluated at delivery, independently of the request. The RAVU cases have a subscription context and do not isolate an unsubscribed requester through response; the DSE test has no RAVU. This source/test distinction does not settle §6.21 direct response entitlement. |
+| Requester also acts as receiver in one selected example | [Embedded requester's subscription](../../cpp/tests/attribute_value_update_response_catch2.cpp#L180), [request](../../cpp/tests/attribute_value_update_response_catch2.cpp#L216), and [later reflection](../../cpp/tests/attribute_value_update_response_catch2.cpp#L238) | In this embedded `HLA_EVOKED` case the requester has its own subscription, invokes the request, and later observes the provider's separate response update. This demonstrates role overlap in that scenario, not direct response entitlement for an unsubscribed or otherwise ineligible requester. |
 | Callback delivery model | [2025 CallbackModel enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L22), [Evoke services](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2265) | Public callback-model vocabulary; see the linked callback guide for model semantics and their implementation boundary |
 | Embedded request overloads | [Ambassador request implementation:23](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L23), [class overload:331](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L331), [regional overload:633](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L633) | Separate object, class, regional, and RTI-owned MOM handling paths |
 | RTI-owned joined-federate MOM request | [Embedded ambassador branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L139), [process service branch](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L40), [configured-process report-path request](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L437) | The selected MOM object request returns RTI-held values through a direct reflection path rather than a provider solicitation in both inspected profiles. The process case checks the requested report-file value; this is not general request-service parity. |
-| 2025 registry owner partition and fan-out | [Object planner:278](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L278), [class planner:970](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L970), [class owner grouping:1047](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1047), [class candidate:531](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L531), [process class planner call:230](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L230), [process per-group dispatch:243](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L243), [embedded class-request baseline:176](../../cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp#L176), [process class-request test:400](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400) | The process service calls the same class planner used by the embedded path. It consumes each planned object/provider group separately: resolves that provider's session, registers that group's attributes, then queues or pushes an event for that provider. The instance planner requires requester-known object state; class expansion does not consult that per-instance map or requester subscription when forming provider groups. The focused process class test has no public subscription call but does discover its target objects first. Neither class test isolates an undiscovered target; no focused test splits one object's requested attributes across multiple remote providers. The process fan-out is source-derived, not demonstrated by the tests or a portable requirement; do not infer full profile parity. |
-| Embedded class pre-enqueue and callback revalidation | [Final plan lock scope:501](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L501), [final class plan:552](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L552), [per-group persistence:587](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L587), [registration owner check:718](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L718), [full-set equality:763](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L763), [Confirm Divestiture transaction lock:634](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L634), [callback-entry identity match:817](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L817), [current-owner projection:531](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L531), [runtime delivery gate:1763](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1763) | The shared federation-management lock covers final planning but is released before separately locked per-group registrations; an ownership transaction can interleave in that gap. Each registration rechecks the full owner projection, while the path does not show rollback of earlier persisted groups if a later registration fails. At callback entry, pending identity is consumed/matched and a reduced current-owner subset may still be delivered to the original provider, while an empty subset is suppressed. No focused test covers either ownership-change boundary. |
-| Ownership-change coverage for class-request rechecks | [Embedded pending-class restore setup:274](../../cpp/tests/federation_registry_catch2.cpp#L274), [restored callback entry:352](../../cpp/tests/federation_registry_catch2.cpp#L352), [process instance request:628](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L628), [pending acquisition:632](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L632), [later request and owner assertion:648](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L648) | The embedded restore test resumes one pending class request with the same provider and owner. A separate process instance-request case blocks an already-entered Provide callback while acquisition is requested then cancelled; it confirms the original owner remains, but does not test a completed transfer or embedded class revalidation. No focused test covers ownership change during pre-enqueue persistence or after class-request persistence but before callback entry. |
+| 2025 registry owner partition and fan-out | [Object owner grouping:433](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L433), [class planner:992](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L992), [regional class owner grouping:1200](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1069), [embedded regional adapter:633](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L633), [class candidate:531](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L531), [nonregional process planner call:230](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L230), [regional process planner call:357](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L357), [nonregional group dispatch:243](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L243), [regional group dispatch:375](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375), [embedded class-request baseline:176](../../cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp#L176), [process class-request assertions:526](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L526) | The shared registry planner groups each object's requested attributes by current owner; regional planning first validates the full supplied request-region map and filters groups by current source-region eligibility. The configured-process service consumes each planned object/provider group separately, resolving that provider's session and then registering, queueing, or pushing the group's attributes. The instance planner requires requester-known object state; class expansion does not consult that per-instance map or requester subscription when forming provider groups. The focused process class test has no public subscription call but discovers its target objects first. No focused test isolates an undiscovered target or splits one object's requested attributes across multiple providers. Fan-out remains source-derived, not a portable requirement; do not infer full profile parity. |
+| Embedded class pre-enqueue and callback revalidation | [Final plan lock scope:501](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L501), [final class plan:552](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L552), [per-group persistence:587](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L587), [registration owner check:718](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L870), [full-set equality:763](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L763), [Confirm Divestiture transaction lock:634](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L634), [callback-entry identity match:817](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L817), [current-owner projection:531](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L531), [runtime delivery gate:1763](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1763) | The shared federation-management lock covers final planning but is released before separately locked per-group registrations; an ownership transaction can interleave in that gap. Each registration rechecks the full owner projection, while the path does not show rollback of earlier persisted groups if a later registration fails. At callback entry, pending identity is consumed/matched and a reduced current-owner subset may still be delivered to the original provider, while an empty subset is suppressed. No focused test covers either ownership-change boundary. |
+| Ownership-change coverage for class-request rechecks | [Embedded pending-class restore setup:274](../../cpp/tests/federation_registry_catch2.cpp#L274), [restored callback entry:352](../../cpp/tests/federation_registry_catch2.cpp#L353), [process instance request:628](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L628), [pending acquisition:632](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L632), [later request and owner assertion:648](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L648) | The embedded restore test resumes one pending class request with the same provider and owner. A separate process instance-request case blocks an already-entered Provide callback while acquisition is requested then cancelled; it confirms the original owner remains, but does not test a completed transfer or embedded class revalidation. No focused test covers ownership change during pre-enqueue persistence or after class-request persistence but before callback entry. |
 | Ordinary object-request baseline | [Focused request test:157](../../cpp/tests/attribute_value_update_request_baseline_catch2.cpp#L157) | Confirms ordinary provider callback behavior and the requester-owned exclusion; it does not cover ownership transfer between planning and callback dispatch |
 | Process class expansion observation | [Process class request test:50](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L50) | A focused process test observes class request callbacks for registered subclass instances; not full process parity |
-| Configured-process regional class request | [Class region validation and planning:999](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L999), [provider/source-region filter:579](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L579), [per-group persistence and projection:395](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395), [pull dequeue:208](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L208), [callback bridge:1471](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1471), [public matching-region process request:933](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L933), [private disjoint-selector service test:78](../../cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp#L78), [zero-recipient and empty-poll assertions:413](../../cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp#L413), [later regional subscription:945](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L945), [response update:957](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L957), [invalid-selector process case:459](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L459) | Source validates every supplied region pair before recipient expansion and rejects a bad pair before provider routing. Public process evidence covers one matching object/provider/attribute under both callback models plus a separate invalid-selector case that checks four public exception mappings. A private process-service test changes the requester region from matching `[0,2]` to disjoint `[3,4]`, repeats the one-provider request, then asserts zero recipients and an empty provider poll. This is private service/protocol evidence, not a public RTIambassador result; it does not cover one object's attributes split across multiple providers or a region mutation after projection. The focused cases do not combine an invalid pair with other otherwise-eligible work. The matching public case installs the regional subscription after the Provide callback, then checks the provider's later update separately. Source rechecks before push/queue, but the pull dequeue and callback bridge show no later registry-region recheck; stale-event outcomes remain untested. |
-| Configured-process regional request exception mapping | [2025 API exception declaration:1659](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1659), [public adapter preflight:633](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L633), [registry validation:999](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L999), [service rejection with typed status:335](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L335), [typed status codec:1660](../../cpp/src/internal/federation/process_federation_service_codecs.cpp#L1660), [client typed-response decode:181](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L181), [public exception translation:486](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp#L486), [public process cases:698](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L698), [typed statuses observed:755](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L755) | A valid-valued but unregistered region and an owned but uncommitted region both map to InvalidRegion; a region owned by another federate maps to RegionNotCreatedByThisFederate; a committed region outside the object's class dimension context maps to InvalidRegionContext. The focused process test checks each public exception and its typed planner status. It does not establish every API exception, local malformed-handle behavior, or a no-callback guarantee for mixed eligible and invalid work. |
+| Configured-process regional class request | [Regional class planner:992](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L992), [whole-request regional preflight:1151](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1023), [provider/source-region filter:683](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L585), [per-group persistence and projection:395](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395), [registry record consumption and recheck:1075](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1075), [pull dequeue:240](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240), [Provide callback bridge:383](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L383), [public matching-region process request:933](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L933), [private disjoint-selector service test:78](../../cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp#L78), [zero-recipient and empty-poll assertions:413](../../cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp#L413), [later regional subscription:945](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L945), [response update:957](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L957), [invalid-selector process case:459](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L459), [embedded invalid-pair filtering case:90](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp#L90) | Source validates every supplied region pair before recipient expansion and rejects a bad pair before provider routing. Public process evidence covers one matching object/provider/attribute under both callback models plus a separate invalid-selector case that checks four public exception mappings; that invalid-selector fixture has no published class or registered object, so it cannot observe suppressed provider work. Embedded filtering evidence submits foreign, wrong-context, and uncommitted single-pair requests with provider-owned objects already present, then verifies the provider callback queue remains empty after an empty-region no-op; it does not combine valid and invalid pairs in one request. A private process-service test changes the requester region from matching `[0,2]` to disjoint `[3,4]`, repeats the one-provider request, then asserts zero recipients and an empty provider poll. This is private service/protocol evidence, not a public RTIambassador result; it does not cover one object's attributes split across multiple providers or a region mutation after projection. No focused case inspects pending-ledger state or retries the same request after correcting its region. The matching public case installs the regional subscription after the Provide callback, then checks the provider's later update separately. Source rechecks before push/queue, but the pull dequeue and callback bridge show no later registry-region recheck; stale-event outcomes remain untested. |
+| Configured-process regional request exception mapping | [2025 API exception declaration:1659](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1659), [public adapter preflight:633](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L633), registry validation:1159[^worktree-source], [service rejection with typed status:363](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L363), [typed status codec:1660](../../cpp/src/internal/federation/process_federation_service_codecs.cpp#L1660), [client typed-response decode:181](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L181), [public exception translation:486](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp#L486), [public process cases:698](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L698), [typed statuses observed:756](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp#L756) | A valid-valued but unregistered region and an owned but uncommitted region both map to InvalidRegion; a region owned by another federate maps to RegionNotCreatedByThisFederate; a committed region outside the requested attribute's declaration-class dimension context maps to InvalidRegionContext. The focused process test checks each public exception and its typed planner status. Its Flavor attribute is declared directly on Soda, so the test does not exercise the inherited-attribute context rule in the active source change. The portable TCK scenario and contract also cover inherited BaseValue regional-request rejection in both callback models (4/4; see the DDM guide’s [source and run evidence](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#passing-portable-tck-case-inherited-attributes-keep-their-fdd-dimensions)). This establishes the public request-context boundary; it does not establish process/embedded parity or recipient-overlap behavior. The focused process selector does not establish every API exception, local malformed-handle behavior, or a no-callback guarantee for mixed eligible and invalid work. |
 | Regional filter and stale queued work | [Regional filtering test:178](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp#L178) | Selected overlap, validation, committed-region mutation, and stale callback cases |
 | Ownership revalidation on provider response | [2025 API exception list:718](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L718), [shared current-state planner:93](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L93), [owner check:147](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L147), [embedded exception translation:409](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp#L409), [embedded ownership-loss test:246](../../cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp#L246) | Every supplied attribute is checked against current ownership at the Update call. Embedded loss maps to `AttributeNotOwned`; the focused unpublish case proves the general rejection, not a Provide/transfer/response sequence. |
 | Configured-process ownership-rejection mapping | [Process handler:45](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L45), [client status check:108](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L108), [public adapter:114](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L114) | The inspected route returns a generic rejection, which the public adapter maps to `RTIinternalError`. This is a source-only possible exception-mapping gap; no focused test covers the rejection. |
 | Current response regions and focused test boundary | [Current update-region association:167](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L167), [embedded response test:100](../../cpp/tests/ieee1516_2025_regional_request_attribute_value_update_provider_response_catch2.cpp#L100), [process response test:957](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L957) | The later update uses current provider update-region state; the original request region is not carried forward. Both focused response tests retain ownership; neither covers a completed transfer between Provide and response. |
 | Provider chooses timestamped response | [Timestamped class response test:6](../../cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp#L6), [regional response test:6](../../cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp#L6) | A request callback can lead to a distinct TSO update, grant-ordered reflection, and response-tag propagation |
-| Pending request restored | [Class pending-request restore test:6](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6) | Request metadata/tag restoration, callback ordering after restore, and no duplicate callback with the original provider; no owner-change replay or process-endpoint behavior is established |
+| Pending class record capture, route-free admission, and restore | [State-image capture:1050](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1050), [route-free class-request predicate:78](../../cpp/src/internal/federation/federation_registry_state_image_validation.cpp#L78), [image admission:1136](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1136), [identity/class/owner validation:418](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L418), [provider-work reconstruction:1719](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1719), [callback queue after restore:1337](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1337), [focused one-group restore test:6](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6) | Source serializes pending class-request records, but image restartability requires a route-free ledger; restore then checks member/object/class/attribute identity and unchanged current ownership before rebuilding provider work. The public test confirms one successful object/provider group through both callback models; no test covers a failed later group followed by Save/Restore. The combined chain remains conditional source evidence, not a demonstrated failure-recovery outcome. |
 | Embedded public regional class request restored | [Public fresh-registry restore test:7](../../cpp/tests/ieee1516_2025_public_regional_class_pending_attribute_value_update_restore_catch2.cpp#L7) | Restores the request's attribute-to-region map and tag, then observes one provider callback after `federationRestored` under `HLA_EVOKED` and `HLA_IMMEDIATE`. The fresh registry is created within one test process; this is not configured-process or RTI-host-restart evidence. |
 | Regional class request restored and requalified | [Internal regional-request state-image test:3](../../cpp/tests/ieee1516_2025_federation_registry_pending_regional_object_class_attribute_value_update_catch2.cpp#L3) | Restores class/attribute/region request metadata and tag, consumes the eligible provider route once, suppresses it after committed region bounds become disjoint, and retires provider work on provider departure. The requester-departure path is not isolated because provider departure occurs first; this internal registry test is not public callback or process-endpoint evidence. |
-| Configured-process regional class request across Save/Restore | [Per-provider registration and event creation:395](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395), [registry record consumption before projection:922](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L922), [generic pending-record capture:989](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L989), [RAVU session queue:162](../../cpp/src/internal/federation/process_federation_service.hpp#L162), [RAVU pull dequeue:208](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L208), [Save snapshot scope:45](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L45), [Restore cleanup:411](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L411) | The process route consumes each per-provider registry request record before creating a queued event or push frame. Generic capture of still-pending registry records does not show that provider notifications are snapshotted or replayed. The inspected Save/Restore code omits the pull RAVU event queue from the saved image and does not explicitly clear, recreate, or resend RAVU notifications at restore completion. This is source-only; no focused configured-process callback-count or replay test exists. Do not infer replay, exactly-once delivery, or host-restart recovery. |
+| Configured-process regional class request across Save/Restore | [Per-provider registration and event creation:395](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395), [registry record consumption before projection:1075](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1075), [regional pending-record capture:1067](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1067), [RAVU session queue:250](../../cpp/src/internal/federation/process_federation_service.hpp#L250), [RAVU pull dequeue:240](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240), [Save queue snapshot boundary:51](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L51), [Restore cleanup:411](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L411) | The process route consumes each per-provider registry request record before creating a queued event or push frame. Capture of still-pending regional registry records does not show that provider notifications are snapshotted or replayed. The inspected Save/Restore code snapshots ordinary pull interaction and attribute-update queues, omits the separate RAVU request-event queue, and does not explicitly clear, recreate, or resend RAVU notifications at restore completion. This is source-only; no focused configured-process callback-count or replay test exists. Do not infer replay, exactly-once delivery, or host-restart recovery. |
 | Delivered RO response not replayed | [No-replay restore test:6](../../cpp/tests/ieee1516_2025_public_regional_provider_response_no_replay_restore_catch2.cpp#L6) | A delivered receive-order response is not re-reflected after fresh-registry restore |
 | Queued regional TSO response restored | [Retraction restore test:7](../../cpp/tests/ieee1516_2025_public_regional_provider_response_retraction_restore_catch2.cpp#L7) | Queued payload, sent-region snapshot, recipient grant ordering, and retraction terminalization |
 
@@ -1056,6 +1269,9 @@ clause-by-clause review of IEEE 1516.1-2025.
 - [Object and interaction information flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
 - [Attribute update-rate admission](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md)
 - [DDM and regions](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md)
+- [Process endpoint request and callback path](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md)
 - [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md)
 - [Time management](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
 - [Federation save/restore](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md)
+
+[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.

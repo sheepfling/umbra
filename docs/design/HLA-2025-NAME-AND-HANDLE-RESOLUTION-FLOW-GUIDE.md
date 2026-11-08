@@ -60,14 +60,16 @@ process-endpoint integration test covers object/interaction class
 name-to-handle and handle-to-name lookups plus unknown reverse handles. This
 does not establish parity for every lookup family.
 
-### Tested example: additional-module Join and later model lookups
+### Existing members can look up symbols added by Join
 
 The pinned [2025 Join API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L212)
 accepts additional FOM modules, and model-name lookup is scoped to the joined
-execution. The sequence below is narrower: it records one embedded 2025 test
-observation, not a universal rule for every RTI or the separate process
-profile. It connects the model-composition boundary to the existing member's
-later lookup view.
+execution. The sequence below records the object-class lookup path from one
+embedded 2025 test; the table after it summarizes other symbol categories with
+their own focused tests. These are implementation/test observations, not a
+universal rule for every RTI or the separate process profile. Together they
+connect the model-composition boundary to an existing member's later lookup
+view.
 
 ```mermaid
 sequenceDiagram
@@ -95,6 +97,34 @@ composition guide](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md)
 shows the embedded prepare/commit path and its failure boundary. No discovery
 callback or instance visibility follows from this model-lookup observation.
 
+The selected embedded tests cover five public lookup families across an
+additional-module Join:
+
+| Symbol family | Existing symbol retained | New symbol resolved after Join | Focused test |
+| --- | --- | --- | --- |
+| Object class | `Employee` keeps its handle. | The added object class resolves to a handle and back to its name. | [Object-class lookup](../../cpp/tests/object_class_lookup_catch2.cpp#L99) |
+| Attribute | `Employee::Name` keeps its handle. | The extension's `Identifier` attribute resolves through its defining class and child class, and reverses to its name. | [Attribute lookup](../../cpp/tests/attribute_lookup_catch2.cpp#L116) |
+| Interaction class | `ServerAction.TakeOrder` keeps its handle. | The added interaction class resolves to a handle and back to its name. | [Interaction-class lookup](../../cpp/tests/interaction_class_lookup_catch2.cpp#L103) |
+| Parameter | `MainCourseServed::TemperatureOK` keeps its handle. | The extension's `Identifier` parameter resolves through its defining interaction and child, and reverses to its name. | [Parameter lookup](../../cpp/tests/parameter_lookup_catch2.cpp#L119) |
+| Transportation type | The existing custom type keeps its handle for both the existing and new member. | A newly added type that sorts before the existing type gets a distinct handle and resolves in both members. | [Transportation handle stability](../../cpp/tests/custom_transportation_handle_stability_catch2.cpp#L44) |
+
+These cases establish equality of previously issued typed handles within the
+tested execution and resolution of the selected added symbols. They do not
+establish numeric handle values or equality across executions. The transportation
+case deliberately adds a type that sorts before an existing type, so the
+existing handle remains stable despite catalog order. The registry also
+reconciles dimension handles when it commits a replacement definition
+([directory preparation and commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L328)),
+but this review found no matching focused public test that adds a dimension and
+resolves it after Join; that category is source evidence only. The
+configured-process additional-FOM test verifies an added object-class lookup, not parity
+for the embedded attribute, interaction-class, parameter, or transportation
+cases, nor dimension lookup
+([process case](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L443)).
+The FOM guide's [Join transaction and rollback boundary](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#join-with-additional-fom-modules-replace-definition-and-add-member-together)
+covers post-commit setup failures separately; these lookup tests do not inject
+those failures.
+
 ## 2. Federate name and handle lookup have distinct lifetime paths
 
 The 2025 API exposes `getFederateHandle(name)` and
@@ -105,6 +135,35 @@ after a federate resigns, its handle still resolves to its name while its name
 no longer resolves to an active handle. This is an implementation/test
 observation for that process scenario, not a claim that every profile or
 conforming RTI must retain the same post-resignation mapping.
+
+A same-name rejoin is a new membership in the current Umbra registry: successful
+Join allocates the next federate identity value, while the prior handle-to-name
+entry remains in the execution's lifetime index. The implementation therefore
+assigns a different handle value to the rejoining membership, even though both
+handles can resolve to the same federate name. The focused [process identity
+test](../../cpp/tests/ieee1516_2025_connection_federate_identity_lookup_catch2.cpp#L601)
+checks lookup after Resign; the separate [process MOM
+test](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L333)
+observes same-name rejoin and object-removal/discovery order, but neither directly
+compares the old and new handles. Treat this as a source-derived Umbra behavior,
+not a portable or normative rejoin guarantee ([Join allocation](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L347),
+[identity retention](../../cpp/src/internal/federation/federation_registry.hpp#L2628),
+[rejoin commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L612)).
+
+That retained identity mapping belongs to the same execution before Destroy.
+Destroy erases the execution-owned map; a later Create with the same name starts
+with a new map. Do not treat handle values as globally unique across that
+boundary: the [fresh-registry restore case](../../cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp#L77)
+asserts that the first handle from the new registry equals the earlier execution's
+first handle *before* Restore. It does not call `getFederateName` with a stale
+handle in a newly created execution, so lookup behavior across that boundary is
+not established. Only the separate Restore operation reloads the saved
+federate-name index ([Destroy](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L158),
+[restore installation](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L913));
+see the [execution recreation flow](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#same-name-recreation-is-fresh-restore-must-be-explicit).
+Federate and object-instance handles take different paths in one tested
+embedded Restore: live federate identities change while saved object handles
+remain usable. See [the identity comparison](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#federate-identity-and-object-instance-identity-rehydrate-differently).
 
 ```mermaid
 flowchart TD
@@ -200,6 +259,79 @@ that receivers can resolve; the separate [name-reservation guide](HLA-2025-OBJEC
 traces the owner's reservation through named registration and consumption,
 then contrasts that owner path with a peer's later discovery-based knowledge
 in its [two-view synthesis](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#owner-reservation-and-peer-visibility-advance-separately).
+For when a registered spelling becomes reusable, use the reservation guide's
+[global-purge discussion](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#4-reservation-ownership-and-lifetime),
+which separates retraction expiry, producer time, and global object/name purge.
+Its focused CTest run used a runtime older than the current registry sources;
+the current-source execution result remains open.
+
+The configured-process endpoint checks that each lookup request's federation
+and federate identity match the active session and registry membership, then
+uses the same member-keyed registry queries as the embedded adapter. The
+process lookup test registers and looks up from one member and checks unknown
+inputs under both callback models; it does not query a peer before or after
+discovery. The query scope is shared, while the known-view commit point differs
+by profile. See the [embedded lookup adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lookup.cpp#L72),
+[process lookup service](../../cpp/src/internal/federation/process_federation_service_handle_lookup.cpp#L213),
+[shared member-keyed registry query](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_state.cpp#L153),
+[process reverse lookup](../../cpp/src/internal/federation/process_federation_service_handle_lookup.cpp#L245),
+[embedded discovery test](../../cpp/tests/object_instance_registration_discovery_catch2.cpp#L181),
+and [configured-process lookup test](../../cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp#L459).
+
+### Configured-process discovery commits known state before callback delivery
+
+For a configured process, discovery planning first matches the receiving
+federate to its live session. The service then calls
+`beginObjectInstanceDiscovery`, which records that receiver's known-object
+projection, before it queues or sends the discovery event. The client buffers
+or submits that event to the callback bridge afterward. During a deferred
+callback window, a separate lookup request can therefore query the already
+committed member view. This is source-derived ordering; no process test asserts
+the public lookup result before `discoverObjectInstance` is invoked. The
+embedded path commits the known-object state inside the queued callback route,
+immediately before invoking the callback, and its focused test covers lookup
+before and after Evoke. Keep those profile observations separate. The
+Save/Restore guide's [configured-process ordering chart](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#configured-process-lookup-state-precedes-deferred-restore-and-discovery-callbacks)
+shows the discovery and Restore callback windows together. Sources:
+[process discovery commit](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L54),
+[event queue/send](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L183),
+[client event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L741),
+[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1912),
+[embedded callback-time commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L274).
+
+### Restore rebinds object identity but lookups remain member-local
+
+The embedded fresh-registry Restore path reinstalls the saved object handle and
+name, rebinds its saved member references, and restores the saved known-member
+projection. In the focused one-object case that projection contains the
+publisher: after `federationRestored`, both publisher lookup directions and
+`getKnownObjectClassHandle` succeed. The receiver's later discovery callback
+reports the same saved object identity with the publisher's current federate
+handle; after that callback is drained, the receiver's forward lookup, reverse
+lookup, and known-class query succeed as well. The test does not query the
+receiver between `federationRestored` and the later subscription/discovery, so
+it leaves that interval open. See the Save/Restore guide's [identity rebind
+trace](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#federate-identity-and-object-instance-identity-rehydrate-differently)
+and [configured-process ordering chart](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#configured-process-lookup-state-precedes-deferred-restore-and-discovery-callbacks).
+The process sources place restored state before the deferred
+`federationRestored` callback, but no public lookup result is asserted in that
+gap. The embedded test's fresh registry is within one OS process; neither test
+establishes name reuse or 2010 behavior.
+
+**Normative timing boundary.** The pinned API headers label
+[`getObjectInstanceHandle` (§10.7)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1739),
+[`getObjectInstanceName` (§10.8)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1749),
+[`discoverObjectInstance` (§6.9)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L229),
+and [`federationRestored` (§4.32)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L155).
+Those API declarations identify exceptions and callback signatures, but do not
+specify when either lookup must begin succeeding relative to discovery or
+Restore callbacks. The pinned tree is the official C++ API header import
+([README](../../third_party/ieee1516.1-2025/README.md)); IEEE's
+[1516.1-2025 product page](https://standards.ieee.org/ieee/1516.1/6688/)
+lists purchase and subscription access to the standard. This guide therefore
+records the ordering above as Umbra source behavior and leaves the normative
+cross-service timing rule unresolved until the full authorized clauses can be
+reviewed.
 
 The 2025 [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md) gives a
 useful counterexample to conflating identities: its membership list carries
@@ -219,20 +351,229 @@ internal conversion helpers preserve the category at the boundary while using
 a private numeric value in the embedded registry. That representation is an
 implementation detail, not a cross-execution identity contract.
 
-```mermaid
-flowchart LR
-    A["AttributeHandle"] --> B["encode()"]
-    B --> C["VariableLengthData payload"]
-    C --> D["RTIambassador<br/>decodeAttributeHandle(...)"]
-    D --> E["AttributeHandle"]
-    A --> F["hash()"]
-    F --> G["May collide<br/>not portable identity"]
-```
-
-Match the decoder to the handle category. The encoding on the public handle is
+Select the decoder for the handle category. The 2025 handle encoding carries a
+category discriminator, and the selected RTIambassador decoder validates it
+before constructing the requested C++ type. The encoding on a public handle is
 separate from DataElement serialization, FOM XML materialization, and RTI
 transport framing; none of those boundaries should be inferred from the
-handle's private numeric representation.
+handle's private numeric representation. See the [Data Element encoding
+guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#pick-the-representation-boundary-before-reasoning-about-bytes)
+for value-codec byte-order rules.
+
+```mermaid
+flowchart TB
+    A["AttributeHandle"] --> B["encode()"]
+    B --> C["VariableLengthData bytes"]
+    C --> D["RTIambassador.decodeAttributeHandle(...)"]
+    D --> E{"Connected?"}
+    E -->|No| F["NotConnected"]
+    E -->|Yes| G{"Joined to an execution?"}
+    G -->|No| H["FederateNotExecutionMember"]
+    G -->|Yes| I{"Shape and handle kind valid?"}
+    I -->|No| J["CouldNotDecode"]
+    I -->|Yes| K["AttributeHandle result"]
+    A --> L["hash()"]
+    L --> M["May collide<br/>not portable identity"]
+```
+
+### Current Umbra 2025 byte layout (implementation evidence only)
+
+The public API exposes handle `encode()` and typed RTIambassador decoder
+services. It does not make Umbra's private numeric identity layout part of the
+handle class declaration. In Umbra's current 2025 implementation, the separate
+handle classes share an `HLAvariableArray` wrapper containing nine `HLAbyte`
+elements: a stable handle-kind discriminator and the eight-octet identity. For
+an embedded `ObjectClassHandle` identity of `0x0102030405060708`, the focused
+byte-vector test observes:
+
+```text
+00 00 00 09 | 02 | 01 02 03 04 05 06 07 08
+└─ count ───┘  │    └─ eight identity octets ─┘
+  uint32 BE    kind      uint64 BE
+```
+
+| Bytes | Meaning in this Umbra 2025 implementation |
+| --- | --- |
+| `00 00 00 09` | `HLAinteger32BE` element count: nine `HLAbyte` values follow. |
+| `02` | Stable Umbra discriminator for `ObjectClassHandle`. |
+| `01 02 03 04 05 06 07 08` | Eight-octet identity, big endian in this implementation. |
+
+The typed decoder accepts exactly thirteen octets and requires both the count
+and handle-kind discriminator to match; malformed shape, count, or kind
+produces `CouldNotDecode`. The buffer overload requires a non-null destination
+with at least thirteen writable bytes. The explicit kind-code assignments are
+intended to be shared by Umbra's future language bindings; cross-API
+reconstitution has not yet been tested. These are source-observed Umbra 2025
+rules, not a promise that another RTI or edition uses these exact identity
+bytes. Keep them opaque and call the matching typed decoder. This is handle
+encoding, not serialization of an object-instance name or its string value;
+object-instance visibility remains a separate
+[federate-local lookup boundary](#4-object-instance-lookup-is-federate-local-knowledge).
+
+The pinned [2025 handle declaration](../../third_party/ieee1516.1-2025/include/RTI/Handle.h#L16)
+provides the distinct classes and encoding operations. Umbra's [2025 typed
+handle codec](../../cpp/src/internal/handles/handle_variable_array_encoding.hpp)
+spells out the HLAvariableArray count, stable type code, and identity. The
+[2025 handle definition](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
+uses it for the typed classes, while the [2010 handle codec](../../cpp/src/internal/handles/handle_variable_array_encoding_2010.hpp)
+retains its independent legacy wire format. The exact `ObjectClassHandle` vector, output
+buffer checks, and round trip are in its [focused test](../../cpp/tests/object_class_handle_catch2.cpp#L43);
+the [public RTIambassador decode case](../../cpp/tests/ieee1516_2025_federation_management_catch2.cpp#L141)
+round-trips eight handle categories after Join and checks connection and
+membership preconditions. The current worktree's promoted cross-federate
+handle-parameter TCK checks byte preservation, typed reconstitution, and
+rejection by a different handle decoder. Its source,
+`packages/hla-rti-cpp-tck/src/tck_handle_encoding_mim_types.cpp`, is not part
+of the documentation-only candidate. A separate [MessageRetractionHandle vector and wrong-count
+case](../../cpp/tests/message_retraction_handle_catch2.cpp#L19) checks another
+typed handle and a malformed element count.
+
+### FOM handle uniqueness and bounded repeatability
+
+The portable 2025 C++ TCK checks encoded FOM handles separately from DDM
+normalization results. In one execution, the owner and a second federate
+resolve the same 15 representative names spanning object classes, attributes,
+interaction classes, parameters, dimensions, and transportation types. The
+case requires matching names to have equal encodings across the two federates
+and all 15 encodings to be pairwise distinct. `Receive` and `TimeStamp` are
+also checked as distinct `OrderType` enum values; they are not handle encodings.
+
+After saving 11 user-defined FDD-name encodings, the test destroys that
+execution, creates another with the same current RTI and FDD path, and compares
+the same 11 names. The recorded EVOKED and IMMEDIATE runs pass. This is bounded
+evidence for these names and this setup; it does not establish every FOM,
+cross-process RTI restart persistence, independent-provider behavior, or
+unpredictability. The scenario catalog maps the finite execution-wide
+uniqueness witness to IEEE 1516.1-2025 §10.1.1, and same-FDD cross-execution
+repeatability to §12.2. In the current worktree, the scenario source is
+`packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp`, the fixture
+is `packages/hla-rti-cpp-tck/fom/fom-handle-uniqueness-tck.xml`, and the
+catalog entry is `cpp-tck.fom-handle-uniqueness`. These current-only source,
+fixture, and catalog changes are not part of the documentation-only candidate.
+
+```mermaid
+sequenceDiagram
+  accTitle: Bounded 2025 FOM handle uniqueness and repeatability check
+  accDescr: The test compares 15 representative handle encodings between two federates in one execution, then compares 11 user-defined FDD-name encodings in a second execution using the same RTI and FDD path.
+  participant T as Portable C++ TCK
+  participant OA as Owner session A
+  participant MA as Member session A
+  participant RTI as Current RTI instance
+  participant OB as Owner session B
+  participant MB as Member session B
+
+  T->>OA: Set up execution A with the dedicated FDD
+  T->>MA: Join execution A
+  OA->>RTI: Resolve and encode 15 representative FOM names
+  RTI-->>OA: 15 handle encodings
+  MA->>RTI: Resolve and encode the same 15 names
+  RTI-->>MA: 15 handle encodings
+  T->>T: Compare same-name bytes across federates
+  T->>T: Require all 15 byte strings to be pairwise distinct
+  Note over T: OrderType values are checked separately and are not handles
+  T->>OA: Save encodings for 11 user-defined FDD names
+  T->>OA: Resign and destroy execution A
+  T->>OB: Set up execution B with the same FDD path
+  T->>MB: Join execution B
+  OB->>RTI: Resolve and encode the same 11 names
+  RTI-->>OB: 11 handle encodings
+  T->>T: Compare against execution A snapshot
+```
+
+### Current Umbra registry allocation for FOM-derived handles
+
+The portable TCK sequence above describes public encoded-handle observations.
+The current Umbra registry has a separate implementation detail behind those
+values: one `FomHandleAllocator` state is shared by copies and by the FOM
+handle directories for object classes, attributes, interaction classes,
+parameters, dimensions, and transportation types. Each name is identified by
+its category, containing name where applicable, and symbol name. A known key
+reuses its assigned value; a new key requests a candidate from the operating
+system random source. Zero and the two predefined transportation values are
+reserved, and already-allocated candidates are retried up to 256 times. There
+is no counter fallback: source failure or exhaustion fails reconciliation.
+
+```mermaid
+flowchart TD
+  Key["Identity key:<br/>category, containing name, symbol name"] --> Known{"Already mapped?"}
+  Known -->|Yes| Reuse["Reuse assigned value"]
+  Known -->|No| Sample["Request OS random candidate"]
+  Sample --> Returned{"Candidate returned?"}
+  Returned -->|No| Fail["Fail FOM reconciliation"]
+  Returned -->|Yes| Valid{"Nonzero, unreserved,<br/>and unused?"}
+  Valid -->|Yes| Record["Reserve value;<br/>store identity mapping"]
+  Valid -->|No| Retry{"Attempts remain?<br/>Maximum 256"}
+  Retry -->|Yes| Sample
+  Retry -->|No| Fail
+  Reuse --> Done["Directory reconciliation continues"]
+  Record --> Done
+```
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Caller as Create or Join caller
+  participant Registry as Federation registry
+  participant Directories as FOM handle directories
+  participant Allocator as Shared registry allocator
+  participant State as Published federation state
+
+  Caller->>Registry: Create or Join with composed FOM
+  Registry->>Directories: Reconcile six handle categories
+  loop Each FOM-derived identity
+    Directories->>Allocator: Reuse mapping or allocate a value
+    Allocator-->>Directories: Existing or new 64-bit value
+  end
+  alt Allocation fails
+    Directories-->>Registry: Reconciliation fails
+    Registry-->>Caller: Reject without publishing partial federation state
+  else Reconciliation succeeds
+    Directories-->>Registry: Prepared directory snapshots
+    alt Create
+      Registry->>State: Publish new federation and directories
+    else Additional-FOM Join
+      Registry->>State: Validate membership commit
+      alt Commit succeeds
+        Registry->>State: Publish replacement FOM and directories with new member
+      else Commit rejected after allocation
+        Registry-->>Caller: Existing catalog, directories, and membership remain
+        Note over Allocator: A new mapping may remain in shared private state by source inference
+      end
+    end
+  end
+```
+
+The current worktree's allocator identity lookup and candidate loop are in
+`cpp/src/internal/handles/fom_handle_allocator.cpp`; [Create reconciliation](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L76)
+and [additional-FOM Join preparation and commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L291)
+are in the existing registry source.
+The public 2025 API exposes typed handle classes and encode/decode surfaces;
+this allocation policy is Umbra source behavior, not an API-visible numeric
+format or a claim about another provider or an operating-system process
+restart.
+
+The current worktree's internal test source,
+`cpp/tests/fom_handle_allocator_catch2.cpp`, uses an injected provider to check
+allocator-copy reuse and reserved values. Its failure sections check that
+Create publishes no federation after entropy failure, and that an additional-FOM
+Join failure preserves the existing catalog and six existing handle-directory
+results before a successful retry. The source is not part of the
+documentation-only candidate. These tests are tagged internal-only with no
+normative mapping; this documentation review did not run them.
+
+The cited fixture checks the two predefined reserved values, allocation reuse,
+and an injected entropy-source failure. It does not inject a zero candidate,
+a sampled candidate that collides with another identity's allocated value, or
+256 consecutive rejected candidates. Those rejection and retry-limit paths are
+source-derived here, not independently demonstrated by the focused test.
+
+One boundary is visible only in source: allocator copies share their private
+map, so a new key successfully allocated before a later Join reconciliation
+failure can remain cached even though the federation's published catalog and
+directory snapshots stay unchanged. The failure test checks those published
+snapshots, not the allocator's private map. This detail does not change the
+public TCK's bounded 15-name uniqueness and 11-name repeatability evidence
+above, and it must not be presented as a portable HLA rule.
 
 ### Normalization support services produce coordinates, not handles
 
@@ -307,6 +648,79 @@ cross-execution equality or prove a portable coordinate algorithm.
 | Order | Name → `OrderType` enum | Enum → name | This is an enum lookup, not a handle lookup; invalid values use order-specific exceptions. |
 | Object instance | [`getObjectInstanceHandle(name)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1739): known name → `ObjectInstanceHandle` | [`getObjectInstanceName(handle)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1749): known handle → name | Both directions are scoped to the federate's known instances; unknown-to-this-federate uses `ObjectInstanceNotKnown`. |
 
+### Lookup behavior at local-forget and receive-order-delete boundaries
+
+Both name-to-handle and handle-to-name lookup follow the caller's known-object
+entry, so the execution-wide name index can outlive a member's ability to
+resolve that name.
+
+- **Successful `localDeleteObjectInstance`:** the caller becomes unknown, so
+  both lookup directions report `ObjectInstanceNotKnown`. The object, its
+  federation-wide name entry, and other members' known entries remain; a later
+  eligible discovery can restore the caller's lookups. The [local-forget
+  flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#local-delete-forgets-one-federates-view-it-does-not-delete-the-instance)
+  documents that instance transition.
+- **Accepted receive-order `deleteObjectInstance`:** the deleting member loses
+  both lookup directions before the call returns. Each routed receiver remains
+  able to resolve the instance until its own removal callback begins; the
+  callback gate clears that receiver's known entry before invoking
+  `removeObjectInstance`. The execution-wide object and name entry can remain
+  until remaining known-object, pending-discovery, pending-removal, and
+  timestamped deletion/removal state permits purge. See the
+  [disappearance comparison](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#diagnose-disappearance-by-asking-which-state-changed).
+
+These lookup results follow the current embedded 2025 registry and ambassador
+paths: both conversion methods query the member-keyed catalog, local forget
+erases the caller's known-object and pending-discovery entries without clearing
+other members' knowledge, and accepted deletion/removal clear entries at
+separate gates. See [forward lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lookup.cpp#L16),
+[reverse lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lookup.cpp#L105),
+[local-forget commit](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L137),
+[receive-order deletion](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L10),
+[per-receiver removal gate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L50),
+and the [object/name purge predicate](../../cpp/src/internal/federation/federation_registry.cpp#L1155).
+The focused [local-forget case](../../cpp/tests/local_delete_object_instance_catch2.cpp#L110)
+and [receive-order deletion case](../../cpp/tests/object_instance_deletion_catch2.cpp#L129)
+assert `getKnownObjectClassHandle` at the relevant boundaries, not both
+name/handle conversion methods. The configured-process [local-delete case](../../cpp/tests/ieee1516_2025_connection_local_delete_catch2.cpp#L457)
+observes a successful call after discovery but does not query either direction
+afterward. Treat the name/handle outcomes above as source-derived and keep
+process callback-timing parity unverified.
+
+### Timestamped deletion splits producer and receiver lookup boundaries
+
+In the focused embedded 2025 trace, a pending timestamped Delete leaves the
+receiver's `getObjectInstanceHandle(name)` usable. A legal Retract before the
+receiver's removal gate leaves it usable as well. On a later Delete, the
+receiver becomes unknown when its removal crosses the registry gate, while the
+producer's `getObjectInstanceName(handle)` still succeeds until the producer
+advances through the deletion time; after that advance, the producer is unknown
+too. The [TSO deletion/retraction flow](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#service-specific-effects-deletion-is-special)
+shows the pre-gate cancellation and post-gate reconstitution paths, and the
+[time-management lifecycle guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#timestamped-message-lifecycle-and-callback-order)
+explains the grant and callback boundary.
+
+The [focused embedded case](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L80)
+checks receiver forward lookup after the pending Delete and its pre-gate
+Retract, then checks receiver lookup failure while producer reverse lookup still
+works and after the producer reaches its own time boundary. It does not check
+every lookup direction for both participants, process-endpoint lookup parity,
+or when the deleted name becomes reusable. A member's
+`ObjectInstanceNotKnown` result is not proof that the federation-wide spelling
+is free: the producer's local time boundary clears its known entry, and the
+retraction cleanup can retain the pending deletion marker until that boundary;
+the global purge predicate also waits for known-object, pending-discovery,
+pending-removal, and timestamped-deletion state to clear. Name reservation
+checks the execution-wide object/name map, so it can remain unavailable after
+one member's lookup has begun to fail. This cleanup chain is source-derived;
+the focused deletion/retraction case does not attempt to reserve the name at
+each boundary. See the [producer time-boundary cleanup](../../cpp/src/internal/federation/federation_registry.cpp#L1280),
+[TSO payload reclamation](../../cpp/src/internal/federation/federation_registry.cpp#L1372),
+[global purge predicate](../../cpp/src/internal/federation/federation_registry.cpp#L1155),
+and [name reservation lookup](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L25).
+The separate [name-reservation guide](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#4-reservation-ownership-and-lifetime)
+explains the federation-wide reservation pool.
+
 ## What Umbra currently demonstrates
 
 - Embedded FOM lookup returns stable object-class and interaction-class
@@ -351,6 +765,10 @@ Normative/API references:
 
 Umbra implementation paths:
 
+- [Shared 2025 HLAvariableArray handle codec](../../cpp/src/internal/encoding/handle_variable_array.hpp#L15)
+- [Shared typed 2025 handle implementation](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
+- [Public handle-decoder service preconditions](../../cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp#L16)
+
 - [Object-class name/handle lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L17)
 - [Attribute name/handle lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_lookup.cpp#L19)
 - [Interaction-class and parameter lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp#L16)
@@ -369,6 +787,9 @@ Umbra implementation paths:
 Focused test sources (these links identify test evidence; this documentation
 change does not claim to have run the tests):
 
+- [ObjectClassHandle exact encoded bytes and malformed-buffer tests](../../cpp/tests/object_class_handle_catch2.cpp#L43)
+- [Public RTIambassador handle-decoder round trips and membership gates](../../cpp/tests/ieee1516_2025_federation_management_catch2.cpp#L141)
+- [MessageRetractionHandle exact bytes and wrong-count rejection](../../cpp/tests/message_retraction_handle_catch2.cpp#L19)
 - [Object-class lookup and compatible FOM extension](../../cpp/tests/object_class_lookup_catch2.cpp#L51)
 - [Inherited attribute lookup and reverse-pair errors](../../cpp/tests/attribute_lookup_catch2.cpp#L51)
 - [Interaction-class lookup and compatible FOM extension](../../cpp/tests/interaction_class_lookup_catch2.cpp#L51)
@@ -380,6 +801,7 @@ change does not claim to have run the tests):
 - [Configured process-endpoint object/interaction class name-handle round trips](../../cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp#L459)
 - [Transportation lookup](../../cpp/tests/transportation_type_lookup_catch2.cpp#L50) and [order enum lookup](../../cpp/tests/order_type_lookup_catch2.cpp#L49)
 - [Public handle encoding round-trip and malformed-data tests](../../cpp/tests/object_class_handle_catch2.cpp#L43)
+- Current-worktree-only evidence: the portable C++ TCK FOM-handle uniqueness scenario and its dedicated fixture. Their source files and catalog changes are not in this documentation-only candidate.
 - [Embedded 2025 normalized DDM-coordinate behavior](../../cpp/tests/handle_normalization_catch2.cpp#L144): point-range
   validity and same-category agreement across ambassadors, without a cross-category uniqueness assertion
 - [Configured-process 2025 handle-normalization path](../../cpp/tests/ieee1516_2025_connection_handle_normalization_catch2.cpp#L459)
@@ -391,22 +813,27 @@ change does not claim to have run the tests):
   cases. The configured process-endpoint object-instance lookup test checks an
   owner's forward/reverse round trip and the unknown-name/unknown-handle
   exceptions under both callback models; it does not test peer knowledge before
-  or after discovery. Thus it does not establish full process/embedded parity
-  for federate-local object-instance visibility, nor parity for attributes,
+  or after discovery. Both source paths use the member-keyed registry lookup
+  described above, but the selected tests do not establish process callback/
+  discovery timing parity. They also do not establish parity for attributes,
   parameters, dimensions, or transportation. The post-resignation identity
   asymmetry is one focused process-test observation, not a general profile
   guarantee.
-- This guide does not claim that a numeric handle or its hash is meaningful
-  across executions, process restarts, or implementations. Use the public
-  typed handle APIs and matching encode/decode operations.
+- The portable TCK finds repeatability for 11 user-defined FDD-derived names
+  across two executions on the same current RTI and FDD path. This does not
+  make numeric identity or its hash generally portable across other FDDs,
+  RTI restarts, or implementations. Use public typed handle APIs and matching
+  encode/decode operations.
 - It does not model all publication, subscription, DDM, name-reservation,
   object-removal, or save/restore transitions; follow the linked topic guides.
 - No 2010 behavior is inferred. Keep the reference-RTI profile in its separate
   guide and compare editions only with separate evidence.
 
-All seven Mermaid diagrams were rendered and visually reviewed in the local
-VS Code Markdown Preview on 2026-10-11. The parallel class-lookup and
-normalization views remain readable at preview width, and the taller lookup
-flows remain readable while scrolling. This is local-render evidence only;
-GitHub rendering remains pending after publication. Track that remaining check
-in the [behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).
+All ten diagrams have local render coverage. The original seven were visually
+reviewed in the VS Code Markdown Preview on 2026-10-11. The revised typed-handle
+round-trip chart was rendered with Mermaid CLI 12.0.0 and screenshot-reviewed on
+2026-11-03. The FOM-handle uniqueness sequence and the new allocator-value and
+Create/Join diagrams were rendered with Mermaid CLI 12.0.0 and screenshot-
+reviewed on 2026-11-06; both new allocator charts are readable and unclipped.
+GitHub rendering remains pending after publication. Track that check in the
+[behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).
