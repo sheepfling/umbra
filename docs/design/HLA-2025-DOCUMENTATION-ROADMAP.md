@@ -89,8 +89,17 @@ completion gates, not every follow-up.
    link bounded process evidence with its limits.
    Local cross-guide reviews are complete for the ownership cancellation,
    mixed callback-family, Join/MOM, DDM/time, and subscription/process seams.
-   **Remaining:** On the candidate branch, confirm cited anchors and preserve
-   embedded/process and callback-model boundaries. Do not infer 2010 parity.
+   The candidate source review of the Joined-Federate MOM guide's explicit
+   Resign versus forced ConnectionLost path is also complete: normal Resign
+   preflights observer routes, while forced loss may skip an unavailable route.
+   Cleanup erases a snapshot with no pending removals, but callback entry for
+   other planned removals can leave a skipped observer known without a queued
+   removal. Existing public tests assert successful explicit Resign; the
+   bounded connection-loss test review found no forced-loss HLAfederate object
+   removal assertion. The guide labels this behavior implementation-derived
+   and untested. **Remaining:** Confirm cited anchors for the three named seams
+   on the candidate branch, preserve embedded/process and callback-model
+   boundaries, and do not infer 2010 parity.
 
 The third item is a focused follow-up, not an additional completion gate; its
 known evidence limits are already documented and do not invalidate the 32/32
@@ -4248,8 +4257,8 @@ path was changed for this documentation pass.
 The authenticated GitHub Markdown API was rerun for all 34 pages after the
 citation cleanup. All 32 guide pages plus the thematic reading paths and
 roadmap returned non-empty GFM; all 490 Mermaid fences emitted containers,
-with zero API failures or count mismatches. The output contained 929 headings
-and 7,382 rendered links. The large behavior index remained excluded because
+with zero API failures or count mismatches. The output contained 930 headings
+and 7,381 rendered links. The large behavior index remained excluded because
 the API rejects inputs over 400 KB. This verifies GFM parsing and container
 registration, not visible Mermaid hydration on a published file page.
 
@@ -4265,3 +4274,26 @@ Mermaid diagrams. This local branch currently tracks origin/feature/initial-work
 so use an explicit destination ref when publishing. Update the render audit and
 roadmap with the published revision and per-page results. The goal remains
 active until this final page-level review passes.
+
+**2025 Joined-Federate MOM source/test review, increment 279 — 2026-11-07.**
+The guide's explicit Resign and forced ConnectionLost paths were checked against
+the registry transition, route preflight, snapshot cleanup, callback-time
+removal entry, configured-process dispatch, and focused tests. The source
+confirms that ordinary Resign rejects an unavailable known-observer route
+before mutation, while forced loss may skip that observer. With no planned
+removal the snapshot is erased; if another observer has a planned removal,
+callback entry can leave the skipped observer in the known set without a
+pending removal. The bounded source trace found no retry. Embedded and
+configured-process public MOM tests cover successful explicit Resign; the
+reviewed 2025 connection-loss MOM tests do not assert removal of the public
+HLAfederate object. The guide already states these limits accurately, so no
+behavior text needed correction. The authenticated GFM audit's final totals
+are 34 pages, 490 Mermaid containers, 930 headings, and 7,381 links. No C++,
+test, 2010, or Requirements Lab paths were changed; all 48 unrelated
+non-documentation worktree changes remain untouched. Progress remains 90%.
+
+**Next handoff:** Review the candidate's partial ownership transfer and
+cancellation guide against its 2025 source and focused-test evidence. Keep
+implementation-only branches distinct from portable HLA rules. After explicit
+publication authorization, inspect all 32 GitHub file pages and Mermaid
+hydration; that remains the final completion gate.
