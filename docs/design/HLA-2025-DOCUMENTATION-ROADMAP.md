@@ -97,9 +97,14 @@ completion gates, not every follow-up.
    removal. Existing public tests assert successful explicit Resign; the
    bounded connection-loss test review found no forced-loss HLAfederate object
    removal assertion. The guide labels this behavior implementation-derived
-   and untested. **Remaining:** Confirm cited anchors for the three named seams
-   on the candidate branch, preserve embedded/process and callback-model
-   boundaries, and do not infer 2010 parity.
+   and untested. Candidate review of partial If-Wanted transfer versus
+   cancellation also confirms that the transferred attribute leaves the live
+   cancellation reservation while the callback gate resolves any remaining
+   attributes. The focused transfer race covers one attribute; the multi-
+   attribute split remains source-derived, with no callback order asserted.
+   **Remaining:** Confirm cited anchors for the configured-process mixed
+   callback-family and Join/MOM seams; preserve embedded/process and callback-
+   model boundaries, and do not infer 2010 parity.
 
 The third item is a focused follow-up, not an additional completion gate; its
 known evidence limits are already documented and do not invalidate the 32/32
@@ -4292,8 +4297,27 @@ are 34 pages, 490 Mermaid containers, 930 headings, and 7,381 links. No C++,
 test, 2010, or Requirements Lab paths were changed; all 48 unrelated
 non-documentation worktree changes remain untouched. Progress remains 90%.
 
-**Next handoff:** Review the candidate's partial ownership transfer and
-cancellation guide against its 2025 source and focused-test evidence. Keep
-implementation-only branches distinct from portable HLA rules. After explicit
-publication authorization, inspect all 32 GitHub file pages and Mermaid
-hydration; that remains the final completion gate.
+**Next handoff:** Review mixed callback families in the candidate's 2025
+Process Endpoint guide against the configured-process source and focused tests.
+Keep delivery routes and callback ordering distinct from the embedded path.
+After explicit publication authorization, inspect all 32 GitHub file pages and
+Mermaid hydration; that remains the final completion gate.
+
+**2025 partial ownership transfer/cancellation evidence review, increment 280 — 2026-11-07.**
+The candidate Attribute Ownership guide was traced across cancellation
+reservation creation, Divestiture If Wanted's per-attribute reservation
+consumption, the queued cancellation gate, and the focused callback tests. The
+single-attribute race confirms that a transfer after accepted cancellation
+suppresses cancellation confirmation and returns the acquisition notification
+with the If-Wanted tag. The separate negotiated-divestiture tests cover
+pre-delivery cancellation and a later NoAcquisitionPending result; they do not
+exercise the same If-Wanted route. No focused test covers transferring only A
+from a live `{A, B}` cancellation, so the remaining-B outcome stays explicitly
+source-derived and no callback order is claimed. The guide's route distinction
+and evidence limits are accurate; no behavior edit was needed. No 2010 or
+Requirements Lab paths were changed. Progress remains 90%.
+
+**Next handoff:** Review mixed callback families in the configured-process
+2025 Process Endpoint guide against its source and focused tests, then leave a
+specific next step. The final published-page rendering gate remains pending
+explicit publication authorization.
