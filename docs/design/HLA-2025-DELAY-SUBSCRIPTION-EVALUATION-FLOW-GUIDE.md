@@ -326,7 +326,7 @@ not at the receiving service boundary. This is source-only; no focused process
 DSE test demonstrates late-subscription admission or suppression for
 nonregional push. The callback bridge then calls `reflectAttributeValues`
 without another DSE projection check
-([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L361)).
+([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362)).
 Queued process TSO attribute delivery has its own recipient-dispatch recheck
 and also passes the sent-region handles and snapshots
 ([dispatcher](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L16)).
@@ -447,7 +447,7 @@ this narrow process test as proof of the remaining process routes.
   and
   [receive-boundary recheck with region context](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L52);
   both current recheck paths pass source-region handles/snapshots when present
-- [Process TSO attribute projection at recipient dispatch](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L16) and [attribute callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L361)
+- [Process TSO attribute projection at recipient dispatch](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L16) and [attribute callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362)
 - [Process ordinary TSO projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L107) and [directed TSO projection](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L83)
 - [Embedded receive-order callback projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L77)
 - [TSO interaction delivery projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L270) and [attribute reflection projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L361)

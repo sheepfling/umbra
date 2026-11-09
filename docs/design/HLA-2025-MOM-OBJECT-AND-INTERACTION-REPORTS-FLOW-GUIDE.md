@@ -499,7 +499,7 @@ standard-scope question worth keeping visible:
 Resign erases the old `FederateMembership` and its activity counters; a later
 Join inserts a new membership record under a new ID
 ([erase](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1103),
-[new record](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L531),
+[new record](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L515),
 [ID allocation](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L359)).
 The pinned MIM's “since the beginning” wording and the implementation's
 per-membership storage are both explicit; the reviewed materials do not settle

@@ -313,7 +313,7 @@ The source path spans the
 [process implicit-target calculation and service handler](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L37),
 [`FederateTimeState` request and grant](../../cpp/src/internal/time/federate_time_state.cpp#L568),
 the [pre-grant TSO and marked grant event](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L519),
-the [client event decoder](../../cpp/src/internal/federation/process_federation_client.cpp#L750),
+the [client event decoder](../../cpp/src/internal/federation/process_federation_client.cpp#L500),
 and the [Time Regulation Enabled callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2244).
 The HLA_EVOKED production-service case is
 [Process time-regulation enablement advances through queued TSO before Time Regulation Enabled](../../cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp#L608).
@@ -324,8 +324,10 @@ and test observations only.
 
 ## Advance lifecycle
 
-The following is the common shape of an accepted advance in the current 2025
-profile. The policy branch and callback name depend on the request mode.
+The following is the accepted-advance path in Umbra's embedded 2025 profile.
+The policy branch and callback name depend on the request mode. The
+configured-process service has a separate state-commit and callback-delivery
+boundary, described below.
 
 ```mermaid
 sequenceDiagram
@@ -362,9 +364,11 @@ Important consequences:
   logical time remains the previous granted value.
 - The request can remain pending while another regulator's state prevents a
   safe grant. A pending request is not a failed request.
-- In the ordinary grant path, eligible TSO callbacks precede the matching
-  Time Advance Grant callback. The current state changes immediately before
-  that grant callback begins.
+- In the ordinary embedded grant path, eligible TSO callbacks precede the
+  matching Time Advance Grant callback. The current state changes immediately
+  before that grant callback begins. The configured-process service commits its
+  time state before it sends the grant event; client callback dispatch is a
+  separate step.
 - FQR uses its own actual-grant calculation and invokes Flush Queue Grant, not
   Time Advance Grant.
 - The same logical ordering applies to HLA_IMMEDIATE and HLA_EVOKED callback
@@ -378,9 +382,9 @@ mode's delivery boundary. The delivery path selects eligible TSO callbacks
 and orders them before the matching grant callback. The callback model then
 determines when those callbacks enter application code. In HLA_EVOKED mode, an
 eligible message is not yet an observed callback: the application must evoke
-pending work. Until the matching grant callback begins, the accepted request
-remains pending and the public current logical time remains at its previous
-grant.
+pending work. In the embedded path, until the matching grant callback begins,
+the accepted request remains pending and the public current logical time
+remains at its previous grant.
 
 ```mermaid
 flowchart TD
@@ -402,9 +406,10 @@ acceptance, timestamped-event eligibility, callback invocation, and grant
 completion are distinct events. The specific route from eligible TSO work
 through callback-model handling to grant callback is the current embedded
 2025 path: its pending-task details and tested TSO-before-grant ordering below
-are profile evidence, not a universal scheduler or queue algorithm. No
-process-profile parity is inferred. The configured-process test shape is shown
-separately in the [regional process TSO callback-gate sequence](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#regional-process-tso-recipient-selection-callback-gate-and-evoke):
+are profile evidence, not a universal scheduler or queue algorithm. The
+configured-process service commit and pushed-callback path is described
+separately below. Its regional callback-gate test shape is shown in the
+[regional process TSO callback-gate sequence](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#regional-process-tso-recipient-selection-callback-gate-and-evoke):
 its pending-NMR case keeps callbacks enabled, while its NMRA and receiver-TAR
 cases disable them until re-enable and a later Evoke. This is fixture-specific
 evidence, not a cross-profile ordering rule.
@@ -419,6 +424,67 @@ of those ownership callbacks with `timeAdvanceGrant`; no cross-service callback
 order is claimed.
 For the fuller callback-task and per-ambassador dispatch model, see the
 separate [callback and service ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+
+### Configured-process grant: service commit and callback delivery are separate
+
+In the configured-process profile, the service sends eligible TSO payloads to
+the recipient before it commits the pending grant in `FederateTimeState`; it
+then sends the `time_advance_grant` event. The recipient client receives and
+queues pushed events independently of the service's remaining grant work; the
+callback model determines when application code runs. The service-side
+time-state commit and application callback are therefore separate observation
+points.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Service as Federation service
+  participant State as Recipient time state
+  participant Client as Recipient process client
+  participant Dispatcher as Callback dispatcher
+  actor App as Federate application
+
+  Service->>Client: Push eligible timestamped event
+  par Service completes the grant path
+    Service->>State: Commit grant(generation)
+    Service->>Client: Send time_advance_grant event
+  and Recipient processes the pushed event
+    Client->>Dispatcher: Queue pushed timestamped event
+    Dispatcher-->>App: Invoke when callback model permits
+    opt Callback queries logical time
+      App->>Client: Query Logical Time
+      Client->>Service: queryLogicalTime request
+      Service->>State: Read current logical time
+      State-->>Service: Current logical time
+      Service-->>Client: Query response
+      Client-->>App: Query result
+    end
+  end
+```
+
+This sequence shows the source-level ordering and a possible interleaving; it
+does not claim which value a `Query Logical Time` call from the timestamped
+callback will observe. The focused process ordering test asserts two TSO
+callbacks before one grant callback and checks that the grant is 5, but it does
+not query logical time from inside either TSO callback
+([ordering assertions](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp#L828)).
+The source trace is the service's pre-grant TSO dispatch
+([dispatch](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L513)),
+time-state commit
+([grant state update](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L611)),
+and grant-event send
+([grant event](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L627)).
+The pushed TSO remains in transit until the client acknowledges its callback
+boundary ([TSO send](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L160),
+[acknowledgment boundary](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L176)).
+Client receive and background dispatch are separate paths
+([client event handling](../../cpp/src/internal/federation/process_federation_client.cpp#L680),
+[background dispatcher](../../cpp/src/internal/federation/process_federation_client.cpp#L737)).
+`Query Logical Time` reads the service-held current time
+([public adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L925),
+[service handler](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L123)).
+These links describe current configured-process implementation behavior, not
+an additional normative HLA rule or embedded/process parity claim.
 
 ## How Umbra calculates the timing frontier
 
@@ -449,9 +515,13 @@ In this implementation:
   regulator-only GALT; the grant policy uses that distinction.
 - With no other regulator, GALT is undefined. An incoming TSO timestamp can
   still make LITS defined.
-- When GALT is defined, LITS is the earlier of GALT and the earliest future
-  incoming TSO timestamp. When GALT is undefined, LITS can still be the
-  earliest future incoming timestamp.
+- When GALT is defined, LITS is the earlier of GALT and the earliest
+  non-stale incoming TSO timestamp. When GALT is undefined, LITS can still be
+  the earliest non-stale incoming timestamp. A timestamp strictly below the
+  recipient's current time is stale and excluded; a timestamp equal to current
+  time remains a boundary while it is queued or in transit awaiting callback
+  acknowledgment. The focused [equal-current-time bounds case](../../cpp/tests/federation_time_bounds_catch2.cpp#L249)
+  asserts that the in-transit timestamp caps GALT and LITS until acknowledgment.
 - The coordinator retains delivered-phase entries in its snapshot until the
   recipient crosses a grant boundary, but the bounds calculator considers only
   queued and in-transit entries. A delivered timestamp therefore contributes
@@ -863,6 +933,8 @@ rule or process-parity claim
 The tests use `evokeCallback(0.0)` to observe queued callbacks; this is not a
 logical-time advance or a wall-clock wait. A positive Evoke timeout remains a
 host-side wait duration, separate from the simulation-time targets.
+For the complementary per-member queued/in-transit TSO gate, see the Save/Restore
+guide's [embedded timed Save admission flow](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#embedded-timed-save-admission-is-checked-per-constrained-member).
 
 #### FQR with HLA_EVOKED: transport-arrival boundary is profile policy
 
@@ -996,7 +1068,7 @@ and [oldest-task removal](https://github.com/sheepfling/umbra/blob/c9c5a9e410539
 The process anchors are [FQR grant dispatch](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L892),
 [Disable's server-side drain](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L688),
 the [adapter's post-success generation change](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L212),
-and the [client callback bridge's disable-generation check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1465).
+and the [client callback bridge's disable-generation check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1488).
 
 ```mermaid
 sequenceDiagram
@@ -1063,11 +1135,11 @@ reports its actual/optimistic pair under `HLA_EVOKED`. The [process Disable case
 uses a GALT barrier; the [probe](../../cpp/tests/process_federation_service_probe.cpp#L1348)
 asserts no callback during Disable and a receive-order callback after Evoke. The [process FQR frontier cases](../../cpp/tests/ieee1516_2025_connection_process_flush_queue_galt_frontier_catch2.cpp#L876)
 exercise FQG event delivery separately. None combines the three operations.
-The [client FIFO admission](../../cpp/src/internal/federation/process_federation_client.cpp#L702)
-and [later FIFO submission](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L302),
-[bridge generation snapshot](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1350),
-[generation comparison and conversion](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1465),
-[post-success generation update](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1515),
+The [client FIFO admission](../../cpp/src/internal/federation/process_federation_client.cpp#L467)
+and [later FIFO submission](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L308),
+[bridge generation snapshot](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1366),
+[generation comparison and conversion](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1488),
+[bridge disable-generation increment](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1229),
 and [timestamp-based callback selection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L207)
 explain the two process queue boundaries. These are current implementation observations, not normative callback-order rules.
 For the general process Evoke model, see [event admission versus callback draining](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-evoke-multiple-separates-event-admission-from-callback-draining).
@@ -1121,7 +1193,7 @@ change and grant re-evaluation
 [receive-order submission before grant submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L297))
 and the process coordinator's
 [TSO drain before TAR re-evaluation](../../cpp/src/internal/federation/process_federation_service_time_management.cpp#L688).
-The process client still has a distinct [event FIFO](../../cpp/src/internal/federation/process_federation_client.cpp#L702)
+The process client still has a distinct [event FIFO](../../cpp/src/internal/federation/process_federation_client.cpp#L467)
 before callback dispatch. Do not read the diagram as a normative callback-order
 rule or as proof that process callback entry matches the embedded FIFO.
 
@@ -1426,7 +1498,7 @@ The [public process test source](../../cpp/tests/ieee1516_2025_connection_proces
 asserts the in-transit GALT/LITS values and reflection-before-grant callback
 order ([callback assertions](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp#L884)).
 The bridge acknowledges after the application callback returns
-([callback boundary](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1448)).
+([post-callback acknowledgement](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1471)).
 The [process acknowledgement handler](../../cpp/src/internal/federation/process_federation_service.cpp#L172)
 moves the acknowledged record and requests grant reevaluation
 ([reevaluation](../../cpp/src/internal/federation/process_federation_service.cpp#L229));
@@ -1694,7 +1766,7 @@ identity. It uses the process event route described in the
 At TSO delivery, the [service emits an event carrying the queued message
 identity](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L77),
 and the [callback bridge maps timestamped events with and without a retraction
-identity to different order classifications](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L330).
+identity to different order classifications](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L333).
 The checked-in [public process TSO case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp#L460)
 observes a single TSO attribute reflection before its matching grant; it does
 not combine RECEIVE and TIMESTAMP attributes in one invocation. The mixed-order
@@ -1706,7 +1778,7 @@ the constrained-recipient set is used to hold eligible TIMESTAMP passels in
 the TSO queue; an eligible RECEIVE passel is still materialized as an ordinary
 process event and routed through push or poll. The client-side
 [`dispatchAttributeUpdate`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L36)
-forwards to [`ProcessFederationCallbackBridge::submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612),
+forwards to [`ProcessFederationCallbackBridge::submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1624),
 which submits directly to the callback dispatcher. By contrast, the shared
 [`submitReceiveOrderCallback`](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1180)
 path checks [`FederateTimeState::receiveOrderDeliveryAllowed`](../../cpp/src/internal/time/federate_time_state.cpp#L760)
@@ -1717,7 +1789,7 @@ events into that deferred queue, and the reviewed process path does not show
 Process receive-order interactions take a different callback route, and that
 route has its own asynchronous-delivery gate. The client forwards them through
 [`dispatchReceiveOrder`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L30)
-to [`ProcessFederationCallbackBridge::submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332).
+to [`ProcessFederationCallbackBridge::submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1346).
 At callback-session admission, the bridge checks its own constrained,
 asynchronous-delivery, and pending-advance state; a blocked receive-order
 interaction is retained in the bridge-local deferred queue. This is separate
@@ -1728,7 +1800,7 @@ its release transitions, and the focused evidence are shown in
 This interaction result does not extend to process attribute reflections.
 The client sends those through
 [`dispatchAttributeUpdate`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L36)
-to [`submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612),
+to [`submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1624),
 which submits to the callback session without consulting that receive-order
 gate. The ordinary public process reflection case
 ([byte-preserving reflection](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L821))
@@ -1741,8 +1813,8 @@ marker: it enters the dispatcher in FIFO order and materializes the authoritativ
 attribute passel when that callback task is admitted. This is deferred
 projection/order, not the receive-order temporal gate
 ([marker contract](../../cpp/src/internal/federation/process_federation_callback_bridge.hpp#L96),
-[client dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L320),
-[materialization path](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1745)).
+[client dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L314),
+[materialization path](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1769)).
 The [Process Endpoint receive-order update map](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#process-mapping-receive-order-object-attribute-update)
 shows how this Push marker differs from a full pushed event and the Pull
 `receive_interaction` recheck path.
@@ -1959,44 +2031,55 @@ stateDiagram-v2
 ```
 
 The gate condition and deferred queue are owned by
-[`AsynchronousReceiveOrderDeliveryState`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1166);
+[`AsynchronousReceiveOrderDeliveryState`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1180);
 the check occurs when the callback session admits the interaction
-([bridge admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1484)).
-Enabling asynchronous delivery extracts and resubmits eligible work
-([async-on bridge branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1501));
-setting advance-pending also releases eligible callbacks
-([pending-state bridge setter](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1526)).
-Disabling time-constrained state updates the same bridge state and releases any
-callbacks that became eligible
-([bridge state/release helper](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1287),
-[runtime disable path](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L212)).
+([bridge admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1496)).
+Enabling asynchronous delivery changes the gate state and resubmits eligible
+work ([state update](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1519),
+[async-on release branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1521)).
 The process time-advance adapter marks a request pending before sending it
-([advance adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L118)),
-grant delivery later clears that flag; the grant is not itself the gate-opening
-edge
-([grant bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2328)).
+([advance adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L118));
+that state change releases eligible callbacks when the flag becomes true
+([pending-state setter](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1542),
+[pending-on release branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1544)).
+Grant delivery later clears the flag, but is not itself the gate-opening edge
+([grant bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2343)).
+On a successful Disable Time Constrained response, the runtime updates the bridge
+state and resubmits callbacks that became eligible
+([runtime disable path](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L212),
+[bridge state update](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1303),
+[release call](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1304)).
 The process async service branches are in the
 [enable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L40)
 and [disable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L147).
-Disabling time-constrained state calls the bridge setter and drains callbacks
-that became eligible
-([disable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp#L212)).
 
-The two focused process tests establish the following bounded trace. With the
-receiver constrained and a TAR pending, the first receive-order interaction is
-observed while async delivery remains off and before the receiver's matching
-Time Advance Grant. Here, the process bridge's pending flag opens its callback
-admission gate; it does not mean the receiver has received a grant or reached
-the requested logical time. After the matching grant, the pending flag is
-cleared and the next interaction stays queued until async delivery is enabled.
-The tests then disable the switch, verify another interaction is held, and
-re-enable it to release that callback. The
-[`HLA_IMMEDIATE` test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75)
-checks callback counts after the relevant calls; the
-[`HLA_EVOKED` test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L76)
-evokes before checking the counts. Both sources are listed in the
+The two focused process tests establish a bounded trace without being rerun here.
+With the receiver constrained and a TAR pending, the first receive-order
+interaction is observed while async delivery remains off and before the
+receiver's matching Time Advance Grant. The pending flag opens the process
+bridge gate; it does not mean the receiver has received a grant or reached the
+requested logical time. After the matching grant, the next interaction remains
+held until async delivery is enabled. The immediate case records the first
+callback while TAR is pending, keeps the count unchanged after the grant and
+next send, then observes release after enabling async delivery; it repeats the
+hold/release check after disabling the switch
+([pending-TAR assertion](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L322),
+[post-grant hold](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L336),
+[release after enable](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L340),
+[repeat hold](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L349),
+[repeat release](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L353)).
+The evoked case explicitly calls Evoke and then checks the first callback count
+([Evoke](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L327),
+[first count](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L328));
+it checks the post-grant interaction remains held, then checks release after
+async enable and Evoke ([post-grant count](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L346),
+[released count](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L351)).
+The second switch-off/on cycle likewise checks the held count after Evoke and
+the released count after re-enabling and Evoking
+([second held count](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L361),
+[second released count](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L365)).
+Both sources are listed in the
 [2025 connection test target](../../cmake/ieee1516_2025_connection_test_sources.cmake#L39).
-This review inspected the checked-in assertions but did not rerun tests.
 
 The bridge header describes this switch as applying to receive-order callbacks
 while timestamped events remain grant-controlled
@@ -2095,7 +2178,9 @@ After applying the restored time state, the registry schedules those lists
 ([Restore scheduling](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1720)).
 In configured-process Join, Umbra registers a factory for time-advance grants
 but omits the role-enable factory
-([process Join](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L657));
+([grant-factory creation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L358),
+[factory passed in the replacement-definition branch](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L659),
+and [factory passed in the existing-definition branch](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L667));
 the embedded adapter supplies both
 ([embedded Join](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L505)).
 
@@ -2118,9 +2203,9 @@ constrained-enabled flag; the client decodes role flags into pending callback
 events and the bridge enters the public `timeRegulationEnabled` or
 `timeConstrainedEnabled` callback
 ([constrained event creation](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L115),
-[client queue](../../cpp/src/internal/federation/process_federation_client.cpp#L750),
+[regulation-enabled event branch](../../cpp/src/internal/federation/process_federation_client.cpp#L506) and [constrained-enabled event branch](../../cpp/src/internal/federation/process_federation_client.cpp#L509),
 [regulation callback entry](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2258),
-[constrained callback entry](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2286)).
+[constrained callback entry](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2298)).
 The Restore path above does not reach that event route for an eligible saved
 role. The three focused process Restore-status fixtures inspected define
 time-role callback counters but do not assert them
@@ -2200,7 +2285,8 @@ later scheduler passes skip a record with that flag
 The configured-process Join path does install a live grant closure that sends a
 `time_advance_grant` frame when invoked
 ([factory](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L358),
-[Join registration](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L657),
+[replacement-definition Join registration](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L659),
+[existing-definition Join registration](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L667),
 [event send](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L513)).
 But `handleFederateRestoreComplete` consumes notifications, ownership work,
 and saved receive-order payloads without invoking
@@ -2217,9 +2303,9 @@ eligible pending TAR.
 The downstream event route exists for grants that are sent: the client decodes
 `time_advance_grant` into a pending logical-time event, callback dispatch submits
 it to the bridge, and the bridge calls `FederateAmbassador::timeAdvanceGrant`
-([client decode](../../cpp/src/internal/federation/process_federation_client.cpp#L750),
-[callback dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L378),
-[public callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2342)).
+([client grant decode](../../cpp/src/internal/federation/process_federation_client.cpp#L500) and [logical-time event enqueue](../../cpp/src/internal/federation/process_federation_client.cpp#L516),
+[callback dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L369),
+[public callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2354)).
 The embedded adapter does submit the returned grant vector after Restore
 notifications
 ([submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1384)).
@@ -2449,7 +2535,7 @@ The current opt-in development slice has explicit limits:
   inputs on separate sessions. The inspected ordinary-interaction server path
   queues the message and reevaluates pending grants before replying, while the
   process client serializes each complete request/response exchange
-  ([client transaction](../../cpp/src/internal/federation/process_federation_client.cpp#L508),
+  ([client request exchange start](../../cpp/src/internal/federation/process_federation_client.cpp#L552),
   [server reevaluation](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L614)).
   That is implementation evidence that the same client's later TAR cannot
   overtake its completed send request; it is not a transport-wide watermark.
@@ -2505,14 +2591,14 @@ does not assert full coverage of that clause.
 | Regulator bounds, GALT, and LITS | 8.1.5, 8.18.1, 8.19.3 | [bounds contract](../../compliance/requirements-lab/time-bounds-requirements-contract.json), [queued-TSO bounds contract](../../compliance/requirements-lab/time-bounds-queued-tso-requirements-contract.json) | [bounds calculator](../../cpp/src/internal/time/federation_time_bounds.cpp); [bounds tests](../../cpp/tests/federation_time_bounds_catch2.cpp) |
 | TAR grant eligibility and limited scheduler | Clause 8 timing rules | [grant-policy contract](../../compliance/requirements-lab/time-grant-policy-requirements-contract.json), [scheduler contract](../../compliance/requirements-lab/time-grant-scheduler-requirements-contract.json) | [grant policy](../../cpp/src/internal/time/federation_time_grant_policy.cpp); [policy tests](../../cpp/tests/federation_time_grant_policy_catch2.cpp) |
 | Callback observation of eligible TSO work before a grant | See the service-specific time-advance and callback-model clauses; the flow above separates the concepts without asserting a new requirement. | [Embedded callback dispatch before grant](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L245); [process TSO payload dispatch before grant](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L376) | [Embedded HLA_EVOKED mixed TSO/TARA/NMRA setup](../../cpp/tests/timestamped_interaction_mixed_advance_catch2.cpp#L150), [no callback before Evoke](../../cpp/tests/timestamped_interaction_mixed_advance_catch2.cpp#L263), [interaction then grant after Evoke](../../cpp/tests/timestamped_interaction_mixed_advance_catch2.cpp#L301); [process HLA_EVOKED same-time FIFO interactions before one grant](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp#L456); [public process attribute reflection before its grant](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1115); and the [private process-service event-frame case](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L78). These are distinct profile/scenario observations; this documentation review did not rerun them. |
-| Timestamped attribute projection timing | Umbra 2025 profile comparison only; no normative projection-freeze rule is asserted. | [Embedded callback-time projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L351); [accepted source-region snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L503); [process event-time projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L77); [process callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L261) | [Embedded regional selector mutation](../../cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp#L159); [public process HLA_EVOKED reflection-before-grant case](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1115); [private process-service event-before-grant case](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L78). No focused process test mutating subscription state between acceptance and event creation was identified in the reviewed candidates. |
+| Timestamped attribute projection timing | Umbra 2025 profile comparison only; no normative projection-freeze rule is asserted. | [Embedded callback-time projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L351); [accepted source-region snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L503); [process event-time projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L77); [process callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L334) | [Embedded regional selector mutation](../../cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp#L159); [public process HLA_EVOKED reflection-before-grant case](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1115); [private process-service event-before-grant case](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L78). No focused process test mutating subscription state between acceptance and event creation was identified in the reviewed candidates. |
 | TARA | 8.9 | [TARA contract](../../compliance/requirements-lab/time-advance-request-available-requirements-contract.json) | [TARA tests](../../cpp/tests/available_time_advance_inclusive_galt_catch2.cpp) |
 | NMR | 8.10.2 | [NMR contract](../../compliance/requirements-lab/next-message-request-requirements-contract.json) | [NMR service](../../cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp); [NMR tests](../../cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp) |
 | NMRA | 8.11, 8.11.3 | [NMRA contract](../../compliance/requirements-lab/next-message-request-available-requirements-contract.json) | [advance service tests](../../cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp) |
 | FQR and FQG | 8.12, 8.12.3 | [FQR contract](../../compliance/requirements-lab/flush-queue-request-requirements-contract.json) | [public API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1290), [service adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L663), [grant dispatcher and final-time extraction](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L225), [grant policy/calculator](../../cpp/src/internal/time/federation_time_grant_policy.cpp), [optimistic-time test](../../cpp/tests/flush_queue_request_optimistic_time_catch2.cpp#L157), [future-input test](../../cpp/tests/flush_queue_future_input_catch2.cpp#L365) |
 | Modify Lookahead | 8.20.4 | [Modify Lookahead contract](../../compliance/requirements-lab/modify-lookahead-requirements-contract.json) | [state transition](../../cpp/src/internal/time/federate_time_state.cpp#L578), [grant-boundary commit](../../cpp/src/internal/time/federate_time_state.cpp#L367), [partial reduction and retry test](../../cpp/tests/federate_time_state_catch2.cpp#L369), [process grant integration](../../cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp#L458) |
 | Asynchronous delivery — embedded profile | 8.15.3, 8.16.5 | [asynchronous-delivery contract](../../compliance/requirements-lab/asynchronous-delivery-requirements-contract.json) | [pinned API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1302), [embedded temporal gate](../../cpp/src/internal/time/federate_time_state.cpp#L795), [receive-order callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1063), [enable/disable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L40), [ordinary-interaction test](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp#L5), and [regional-interaction test](../../cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp#L4) |
-| Asynchronous delivery — configured-process RECEIVE interaction profile | 8.15.3, 8.16.5 | [asynchronous-delivery contract](../../compliance/requirements-lab/asynchronous-delivery-requirements-contract.json) | [bridge-local gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1166), [process callback admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1484), [process enable/disable adapters](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L40), [pending advance adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L118), [HLA_IMMEDIATE test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75), and [HLA_EVOKED test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L76). These are bounded Umbra process-profile observations, not a normative timing interpretation or profile-parity claim. |
+| Asynchronous delivery — configured-process RECEIVE interaction profile | 8.15.3, 8.16.5 | [asynchronous-delivery contract](../../compliance/requirements-lab/asynchronous-delivery-requirements-contract.json) | [bridge-local gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1206), [process callback admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1496), [process enable/disable adapters](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L40), [pending advance adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L118), [HLA_IMMEDIATE test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75), and [HLA_EVOKED test](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L76). These are bounded Umbra process-profile observations, not a normative timing interpretation or profile-parity claim. |
 | TSO queue phases and order | Service-specific clauses; see each send/retraction contract | [queue contract](../../compliance/requirements-lab/tso-message-queue-requirements-contract.json) | [queue](../../cpp/src/internal/time/tso_message_queue.cpp); [coordinator](../../cpp/src/internal/time/federation_time_coordinator.cpp); grant dispatcher in umbra_rti_ambassador_time_advance_dispatch.cpp |
 
 ## How to extend or correct this guide

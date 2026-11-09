@@ -581,6 +581,9 @@ observe explicit Resign, not forced-loss removal of this public object. A
 bounded search of the 2025 connection-loss test sources found no assertion for
 `HLAfederate` object removal after `ConnectionLost`. Treat that path as
 source-derived, not tested profile parity or a normative callback-order rule.
+The [Lifecycle guide's three-observation summary](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#separate-observations-follow-forced-connectionlost)
+places this object-removal path beside the separate Federate-Lost report and
+local terminal callback.
 
 ### A throwing Remove callback does not roll back the callback-time transition
 
@@ -787,9 +790,9 @@ cascade, not a normative delivery guarantee or proof that the application did
 or did not process the first event. Independently, the receiver-side client
 reader reports transport failure; when dispatched, the local RTI transitions
 out of Joined and queues the federate's `connectionLost` callback
-([client reader](../../cpp/src/internal/federation/process_federation_client.cpp#L961),
-[outer service-boundary dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L646),
-[failure dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L751),
+([client stream-reader failure record](../../cpp/src/internal/federation/process_federation_client.cpp#L715),
+[request-catch failure dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L658),
+[failure-handler invocation](../../cpp/src/internal/federation/process_federation_client.cpp#L769),
 [local membership-loss handling](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L104)).
 That local callback path and the host worker's registry path are separate
 consequences, not a callback acknowledgment for the Push event.
@@ -848,10 +851,15 @@ from [the requester's later Resign](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#reques
 ## Separate 2025 process-endpoint evidence
 
 The configured process endpoint has its own Join and resignation path. Its
-Join handler establishes the federation-scoped MOM record, creates this
-membership's report-file and `HLAfederate` state, commits the session, and
-then plans discovery for eligible subscribers
-([process Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L257)).
+Join handler commits membership, establishes the federation-scoped MOM record,
+creates this membership's report file and `HLAfederate` state, installs the
+session, and then plans discovery for eligible subscribers
+([registry Join commit](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L650),
+[Federation MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L726),
+[report-file creation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L740),
+[member MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L766),
+[session installation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L792),
+[member discovery planning](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L830)).
 The shared registry resignation path distinguishes the execution-scoped
 `HLAfederation` record from the departing member's object: it retains the
 former while planning removal of the latter for receivers that knew it
@@ -931,7 +939,7 @@ completion branch invokes `federationSaved()` or `federationNotSaved(reason)`
 ([service result and enqueue](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L228),
 [per-recipient event and report](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L425),
 [queued receive](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L117),
-[client event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L702),
+[client event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L451),
 [callback bridge delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L881)).
 The inspected process notification queue and callback bridge do not enqueue a
 per-member `HLAfederateState` conditional attribute update. This differs from
@@ -1017,9 +1025,9 @@ sequenceDiagram
 The Push branch is source-traceable: the process client buffers a pushed
 attribute-update frame, and the callback bridge turns the RTI-owned event into
 `reflectAttributeValues` with an invalid producing-federate handle
-([client buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L725),
-[attribute callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L248),
-[RTI-owned producer mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L307)).
+([attribute-event enqueue](../../cpp/src/internal/federation/process_federation_client.cpp#L480),
+[attribute callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362),
+[RTI-owned producer mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L321)).
 In the queued mode, the server stores the event and exposes a separate
 `receive_attribute_update` operation. A client helper and ambassador pump are
 defined, but a bounded source search found no runtime call site for that pump;
@@ -1058,7 +1066,7 @@ still have a service-report-file lifetime, but it does **not** acquire this
 | Dynamic current value and `HLAfederateState` encoding | [Value derivation from member operation ledgers](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L609), [attribute-value request route](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L360) | [Embedded-only Save/Restore conditional state transitions](../../cpp/tests/joined_federate_mom_federate_state_save_restore_catch2.cpp#L138) |
 | Periodic cadence versus explicit request; statistic units | [Pinned 2025 MIM policy and statistic definitions](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L52), [`HLAsetTiming` interaction](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L928), [interaction decoding/validation](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_controls.cpp#L468), [per-target report-period state](../../cpp/src/internal/federation/federation_registry_control_state.cpp#L343), [counter derivation](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L833) | [Independent target intervals and zero disabling one target](../../cpp/tests/ieee1516_2025_federation_mom_hla_set_timing_multi_target_catch2.cpp#L5), [direct requests and paired invocation/distinct-object counts](../../cpp/tests/joined_federate_mom_updated_object_count_periodic_catch2.cpp#L109) |
 | Pending removal and snapshot retention | [Resignation removal ledger](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1038) | [Public object removal after resign](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp#L296) |
-| Separate process-endpoint Join, removal order, and report-file lifetime | [Process Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L257), [shared resignation ledger](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1038) | [Removal before rejoined-object discovery](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L37), [new report-file path on rejoin](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L53) |
+| Separate process-endpoint Join, removal order, and report-file lifetime | [Process Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L289), [joined-member MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L766), [shared resignation ledger](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1038) | [Removal before rejoined-object discovery](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L37), [new report-file path on rejoin](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L53) |
 | Edition guard against synthesizing the 2025 MOM object from a 2010 model | [Join's 2010 compatibility guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L606) | The 2010 compatibility flow is intentionally outside this guide; the source guard is not evidence of 2010 API/MOM conformance. |
 
 The embedded tests cover selected scenarios, not every MIM attribute or

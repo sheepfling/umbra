@@ -116,19 +116,28 @@ the representative interlock case joins both participants before requesting
 Save ([setup](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34)).
 A Join attempted after Save or Restore is active is a different question: the
 API names `SaveInProgress` and `RestoreInProgress`, but the inspected paths and
-focused tests do not establish its admission or effects. Later, when Restore
-is requested, the embedded durable-image path compares the already-joined
-roster with the saved member types and counts, then applies its supported
-identity mapping ([durable-image match](#embedded-durable-image-identity-matching)).
-That Restore-time validation is not evidence for the active-Join rule or its
+focused tests do not establish its admission or effects. At Restore admission,
+the embedded registry snapshots current member IDs into
+`RestoreOperation::statuses`, initially marked `FEDERATE_RESTORING`
+([status snapshot](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1126)).
+The Join transaction inserts membership through a separate map operation
+([membership insertion](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L515));
+the inspected Join path does not update an already-active Restore status map.
+If Join is admitted after the snapshot, the reviewed source does not show the
+new ID added to that operation ledger. This is conditional source evidence; it
+does not establish Join admission, ordering, or public result. Later, Restore's
+embedded durable-image path compares the already-joined roster with the saved
+member types and counts, then applies its supported identity mapping
+([durable-image match](#embedded-durable-image-identity-matching)). That
+Restore-time validation is not evidence for the active-Join rule or its
 normative participant selection.
 
 | Evidence layer | What is established | What remains open |
 | --- | --- | --- |
-| Pinned 2025 API | Both Join overloads list `SaveInProgress` and `RestoreInProgress` ([unnamed](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L212), [named](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L234)). | The annotations do not supply the exact preconditions, ordering, or membership effects. |
+| Pinned 2025 API | Both Join overloads list `SaveInProgress` and `RestoreInProgress` ([unnamed RestoreInProgress entry](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L205), [named RestoreInProgress entry](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L227)). | The annotations do not supply the exact preconditions, ordering, or membership effects. |
 | Embedded Umbra path | The inspected adapter prepares and validates Join state before calling the registry membership operation ([adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364), [registry](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L237)). No explicit active-save/restore predicate is visible in those inspected sections. | That bounded source observation is not proof of behavior for every interleaving or an HLA rule. |
 | Process Umbra path | The process service serializes concurrent Join preparation/commit, checks the session, prepares an optional additional-FOM definition, and then calls the registry membership operation ([`handleJoin` and its Join-only lock](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L302), [registry call](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L650), [membership transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238)). No explicit save/restore-phase predicate is visible in those inspected paths. | The Join lock does not establish arbitration with save/restore. No focused case attempts Join during an active protocol, so admission, ordering, and membership effects remain unresolved for this profile. |
-| Focused interlock case | The representative 2025 test joins both participants before requesting save, then checks a selected set of service interlocks during save and restore ([setup](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34), [save phase](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L68), [restore phase](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L248)). | It does not attempt Join during an active save or restore, so it does not resolve Join's exception timing or membership effects. |
+| Focused interlock case | The representative 2025 test joins both participants before requesting save, then checks a selected set of service interlocks during save and restore ([setup](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34), [save phase](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L68), [restore-phase assertions](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L252)). | It does not attempt Join during an active save or restore, so it does not resolve Join's exception timing or membership effects. |
 
 In the reviewed embedded path, Join proceeds through connection, membership,
 and model checks without an explicit save/restore-phase predicate. In the
@@ -190,6 +199,78 @@ is the later federation-level outcome. Likewise, `federationSaved` is distinct
 from normal return of `requestFederationSave`. These are separate API surfaces,
 not a promise that callback entry always follows method return; callback timing
 must be read under the selected callback model.
+
+### Callback delivery crosses two independent gates
+
+The event route and callback model answer different questions. The configured
+process service chooses whether it pushes receive-order events or leaves them
+for a client poll; the callback model then chooses whether the common
+dispatcher invokes a submitted callback inline or waits for an explicit Evoke.
+The embedded adapter skips the process transport gate and submits directly to
+the member's dispatcher. A pushed event can therefore still wait in an
+`HLA_EVOKED` queue.
+
+```mermaid
+flowchart TD
+  event["Federation coordination plans a callback event"]
+  adapter{"Adapter path?"}
+  event --> adapter
+  adapter -->|embedded| embedded["Submit to the member callback dispatcher"]
+  adapter -->|configured process| transport{"Push receive-order events?"}
+  transport -->|yes| push["Send event frame; client buffers it until the correlated response is handled"]
+  transport -->|no| poll["Keep event in the service queue; client drains it with receive_interaction"]
+  push --> dispatcher["Common member callback dispatcher"]
+  poll --> dispatcher
+  embedded --> dispatcher
+  dispatcher --> model{"Callback model?"}
+  model -->|HLA_IMMEDIATE| immediate["Invoke inline as the dispatcher drains the task"]
+  model -->|HLA_EVOKED| evoked["Keep queued until the application calls evokeCallback(s)"]
+  immediate --> observed["Application observes the callback"]
+  evoked --> observed
+```
+
+This sketch assumes callback delivery is enabled. `disableCallbacks` adds
+another queue gate, and `enableCallbacks` alone does not dispatch queued
+`HLA_EVOKED` work; see the [dispatcher mechanics guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#umbra-dispatcher-mechanics-submitted-is-not-invoked).
+
+The dispatcher implements the second gate: `HLA_IMMEDIATE` drains submitted
+work inline ([immediate branch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L136),
+[inline drain](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L151)), while
+`HLA_EVOKED` invokes queued work through `evokeCallback` or `evokeMultiple`
+([Evoke path](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156)). The
+process transport gate is `ProcessFederationServiceOptions::pushReceiveOrderEvents`:
+Save stages pushed frames or appends to its polling queue ([Push](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L450),
+[Poll](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L459));
+Restore does the same ([Push](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L519),
+[Poll](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L528)). A
+`receive_interaction` poll selects synchronization announcements, federation-
+synchronized events, Save, Restore, then interaction events ([queue selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L99));
+the client and RTI callback pump issue that poll during Evoke ([client request](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L219),
+[RTI pump](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L269)). This
+queue priority and transport choice are Umbra implementation details; they do
+not establish a normative callback-order rule across members.
+
+The API distinction also remains visible across both gates. Save admission has
+no success callback: initiation and the final federation result are later
+events. Restore has `requestFederationRestoreSucceeded` for successful request
+admission, followed by restore-begun, per-member initiation, and the final
+federation result. The callback model can change when those callbacks are
+observed, but it does not turn a normal `void` service return into a
+Save/Restore result.
+
+The focused tests cover these combinations at different depths:
+
+| Adapter event path | `HLA_IMMEDIATE` | `HLA_EVOKED` |
+| --- | --- | --- |
+| Embedded | Successful two-member Save and Restore under both models ([case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L639); [model runs](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L765)). | Same case. |
+| Configured process, polling (`pushReceiveOrderEvents = false`) | No focused public accepted-request-to-terminal Save/Restore test combining polling with `HLA_IMMEDIATE` found. | Save uses polling and leaves the terminal callback unobserved until Evoke ([polling setup](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L498), [before Evoke](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L583), [after Evoke](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L585)); single-member Restore uses polling and defers its success callback until Evoke ([polling setup](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L819), [before Evoke](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L918), [after Evoke](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L920)); the two-member Restore status/lifecycle case checks callbacks after Evoke ([polling setup](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1720), [member callback](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1992), [terminal callback](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2095)). |
+| Configured process, pushed events (`pushReceiveOrderEvents = true`) | Two-member Save checks both `federationSaved` counts after Complete ([case](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L62), [pushed option](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L121), [completion assertions](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L422)); the same two-member case checks both `federationRestored` counts after Restore Complete ([Restore calls](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L440), [callback assertions](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L446)). The separate one-member lifecycle also covers a prerequisite Save ([test](../../cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp#L561)). | A two-member pushed Save/Restore case uses `HLA_EVOKED` and later checks each member's Save-complete and Restore-complete callbacks after explicit Evokes ([case](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62), [pushed option](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L144), [candidate Save assertion](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L482), [candidate Restore assertion](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L488), [owner Save assertion](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L493), [owner Restore assertion](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L504)). |
+
+The pushed `HLA_EVOKED` case does not establish every callback-order
+combination. No focused public accepted-request-to-terminal test combining
+configured-process polling and `HLA_IMMEDIATE` was found; that is a coverage
+gap, not evidence that the profile is unsupported. This matrix records evidence
+bounds, not conformance.
 
 `abortFederationSave`, `abortFederationRestore`, and the status query/report
 services are related control paths. They do not replace the per-participant
@@ -319,10 +400,10 @@ then unlocks and submits the callback before returning the private result to the
 adapter. Consequently, `HLA_IMMEDIATE` may enter the callback before the query
 service returns; `HLA_EVOKED` queues the callback task for a later evoke. With
 polling delivery, the event remains in the recipient session queue for a later
-`receive_interaction` request. Push/poll and callback-model selection are
-separate controls, but the focused process status cases inspected here use
-`HLA_IMMEDIATE` with pushed events. The transport ordering below is
-source-derived, not an HLA callback-order rule.
+`receive_interaction` request. Push/poll and callback model remain separate.
+Focused status cases cover pushed events with `HLA_IMMEDIATE` and polling with
+`HLA_EVOKED`; the other two status-query combinations are untested. The transport ordering
+below is source-derived, not an HLA callback-order rule.
 
 ```mermaid
 sequenceDiagram
@@ -371,18 +452,32 @@ The process handlers for [Save status](../../cpp/src/internal/federation/process
 and [Restore status](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L590)
 ask the registry for a snapshot ([Save](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1127),
 [Restore](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1800)), then use the shared
-[Save](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L425)
-and [Restore](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L524)
+[Save](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L417)
+and [Restore](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481)
 event queues. The [public Save adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L864)
 and [Restore adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1579),
-the [response matcher](../../cpp/src/internal/federation/process_federation_client.cpp#L884),
-and the [Save](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L881)
-and [Restore](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L947)
-callback projections show the private-result boundary. Focused tests cover terminal Save snapshots
-after failure and active, waiting, and terminal Restore snapshots under
-`HLA_IMMEDIATE`; they do not establish a process Save-status sequence while a
-save is active, an HLA_EVOKED status-query case, or the full transport/callback
-matrix.
+the [response matcher](../../cpp/src/internal/federation/process_federation_client.cpp#L894),
+and the [Save](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L954)
+and [Restore](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1027)
+callback projections show the private-result boundary. Process Save-status query
+coverage includes polling with `HLA_EVOKED`: the one-member process case queries
+during the active Save and checks `FEDERATE_INSTRUCTED_TO_SAVE`, then
+`FEDERATE_SAVING` ([case](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L2592),
+[queries and assertions](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L2707)).
+A pushed `HLA_IMMEDIATE` case queries after a failed Save and checks
+`NO_SAVE_IN_PROGRESS` ([case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp#L459),
+[assertion](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp#L562));
+a separate two-member polling/`HLA_EVOKED` case checks both terminal idle
+statuses after failure ([case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp#L459),
+[queries and assertions](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp#L671)).
+No focused process case queries an active Save under `HLA_IMMEDIATE`, asserts
+a status snapshot after successful Save completion, or covers polling with
+`HLA_IMMEDIATE` / pushed delivery with `HLA_EVOKED`. These are test-coverage
+bounds, not claims that those profiles are unsupported. Process Restore-status queries
+cover pushed `HLA_IMMEDIATE` ([config](../../cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp#L482), [status](../../cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp#L578)) and polling
+`HLA_EVOKED` ([config](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1324), [query](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1437), [status](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1445)); the
+latter defers the public status callback until Evoke ([pending](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1438), [delivered](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1440)). Single-member idle/active/terminal
+vectors are asserted ([idle](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1620), [active](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1646), [terminal](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1661)); two-member active/waiting/terminal vectors are asserted ([active](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2031), [waiting](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2068), [terminal](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2113)). The other two process status-query transport/model combinations remain untested.
 
 ## Save flow: request, participant work, and the commit barrier
 
@@ -409,7 +504,7 @@ sequenceDiagram
   end
   Coord->>P1: initiateFederateSave(label[, time])
   Coord->>P2: initiateFederateSave(label[, time])
-  Note over P1,P2: Each application begins its own checkpoint work
+  Note over Coord,P2: P1/P2 arrow order is illustrative, not an API callback-order claim
   P1->>RTI: federateSaveBegun()
   P2->>RTI: federateSaveBegun()
   Note over P1,P2: Each application completes its local checkpoint
@@ -464,11 +559,11 @@ replacement for the standard's participant-status rules. In particular:
   time-constrained member requires a callback-capable boundary. Otherwise the
   accepted request is retained until the constrained members can receive
   initiation at the right time-advance boundary.
-- A timed request is validated against the federation's logical-time
-  representation and constrained-member state. The current coordinator checks
-  whether constrained members have reached the requested time and whether
-  queued or in-transit TSO messages at or before that time still block save
-  initiation. A later accepted request replaces the previous pending request.
+- A timed request must use the federation's logical-time representation and
+  name a time strictly later than each time-constrained member's current time.
+  Acceptance can leave initiation pending; a later accepted request replaces
+  the pending label and time. The embedded per-member admission checks are
+  traced below.
 - `federateSaveBegun` only changes that participant's coordinator status to
   saving. `federateSaveComplete` moves it to the waiting-for-federation barrier;
   it is the *last* participant's completion that makes the RTI encode and
@@ -476,9 +571,120 @@ replacement for the standard's participant-status rules. In particular:
 - The commit precedes `federationSaved`. If the store throws or the image
   cannot be materialized, the coordinator reports a failed federation save
   instead of claiming a restorable snapshot exists.
-- The participant failure callback, RTI abort, and a participant leaving
-  during save are different inputs to the failure path; use the reason value
-  carried by the final callback rather than inferring a single generic cause.
+- A participant failure callback, RTI abort, and a member leaving during Save
+  are different inputs to the failure path. The current membership-exit path
+  and its profile-specific delivery limits are traced below.
+
+### Embedded timed Save admission is checked per constrained member
+
+The high-level Save diagram compresses this embedded callback gate. When the
+federation has time-constrained members, each member's own callback-capable
+advance checkpoint is evaluated separately. If no member is time constrained,
+this gate does not apply and the timed request starts after the other admission
+checks. At each constrained member's checkpoint, that member's advance mode
+must qualify at the Save time, and it must have no queued or in-transit TSO
+timestamp at or before the Save time. Before the first `SaveOperation` is
+opened, every other constrained member must already have a qualifying advance
+queued for dispatch. Their own TSO blockers are checked when they reach their
+admission checkpoints. The remaining non-constrained members are instructed
+after the last constrained initiation is admitted.
+
+In the current embedded predicate, TAR and NMR can qualify when the requested
+time is greater than or equal to the Save time; TARA and NMRA require it to be
+strictly greater; FQR uses an actual grant strictly greater than the Save time.
+These are source observations, not a claim about the normative Save rule or
+configured-process parity. The full FQR actual/optimistic-time interaction is
+in the [Time Management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#fqr-actual-grant-and-optimistic-floor).
+
+```mermaid
+flowchart TD
+  A["Timed request accepted<br/>One pending label and time T"] --> B["Evaluate a constrained member at its own advance checkpoint"]
+  B --> C{"Does this member's mode qualify at T, with no queued/in-transit TSO at or before T?"}
+  C -->|No| A
+  C -->|Yes| D{"Is this the first constrained member admitted?"}
+  D -->|No| G["Instruct this constrained member"]
+  D -->|Yes| E{"Do all other constrained members have a qualifying advance queued for dispatch?"}
+  E -->|No| A
+  E -->|Yes| F["Open SaveOperation and instruct this member"]
+  F --> H{"Are other constrained initiations still pending?"}
+  G --> H
+  H -->|Yes| B
+  H -->|No| I["Instruct the remaining non-constrained members"]
+```
+
+The source path is in the [timed-request validation and replacement](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L485), [mode-specific advance predicate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L600), [queued/in-transit TSO check](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L630), [all-constrained scheduled-advance gate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L729), and [per-member and final-participant admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L783). The ordinary and FQR dispatch checkpoints are in [time advance](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L794) and [Flush Queue dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L884).
+
+The embedded `HLA_EVOKED` [in-transit TSO case](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L53) requests Save inside a timestamped-interaction callback. It asserts that initiation has not happened before that callback returns ([assertion](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L86)) and then checks the later per-recipient callback orders ([receiver](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L109), [regulating owner](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L113)). A separate [FQR boundary case](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L54) delivers a TSO at time 5 but leaves the Save pending at actual grant 5; actual grant 6 subsequently admits it ([later boundary](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L88)). These are selected embedded development-profile tests, not normative callback-order rules or proof of configured-process parity.
+
+### Member exit during an active Save
+
+The active `SaveOperation` keeps a status entry for each member. Depending on
+the initiation path, some entries can still be `NO_SAVE_IN_PROGRESS`; the
+completion-notification builder skips those entries because Initiate Federate
+Save was not invoked for them ([immediate operation setup](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L64),
+[time-gated setup](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L365),
+[completion filtering](../../cpp/src/internal/federation/federation_registry.cpp#L471)).
+Voluntary Resign and forced ConnectionLost both enter the shared `resignLocked`
+transition ([Resign](../../cpp/src/internal/federation/federation_registry.cpp#L344),
+[ConnectionLost](../../cpp/src/internal/federation/federation_registry.cpp#L424)).
+If a Save is active, the transition plans its failure notifications before
+clearing the operation and removing the departing member's callback route
+([shared transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L438)).
+The Save notification builder skips members that never received Initiate
+Federate Save, excludes the departing ID, and creates notifications only for
+remaining IDs with a callback route
+([recipient filters](../../cpp/src/internal/federation/federation_registry.cpp#L483)).
+
+The source currently passes `FEDERATE_RESIGNED_DURING_SAVE` for both voluntary
+Resign and forced ConnectionLost. The pinned 2025 API also lists
+`RTI_DETECTED_FAILURE_DURING_SAVE` ([SaveFailureReason values](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L63)),
+but the inspected membership-loss implementation does not select it. This is
+a description of the current source path, not a claim about which reason the
+standard requires for detected connection loss.
+
+```mermaid
+flowchart TD
+  A["Active SaveOperation<br/>per-member status ledger"] --> B{"Member leaves?"}
+  B -->|Resign| C["Common registry resignation transition"]
+  B -->|ConnectionLost| C
+  C --> D["Build federationNotSaved outcomes from the ledger"]
+  D --> E["Skip NO_SAVE_IN_PROGRESS<br/>Exclude departing ID<br/>Include only members with callback routes"]
+  E --> F["Current source reason for both paths:<br/>FEDERATE_RESIGNED_DURING_SAVE"]
+  F --> G["Clear active Save<br/>Remove departing membership and route"]
+  G --> H{"Adapter path"}
+  H -->|Embedded| I["Adapter submits returned failure notifications<br/>Public Resign case covers this<br/>ConnectionLost during Save is untested"]
+  H -->|Configured process| J["Resign and ConnectionLost pass the result<br/>to dispatchConnectionLossResult"]
+  J --> K["Dispatcher ignores Save/Restore notification vectors"]
+  J --> L{"Explicit Resign request?"}
+  L -->|yes, successful handler path| M["Correlated Resign OK may return<br/>Does not prove survivor failure callback"]
+  L -->|ConnectionLost| N["No application Resign response"]
+```
+
+The embedded Resign adapter submits the registry's Save notifications, and
+its public tests cover both an outstanding Save and a departure from an
+Initiate Federate Save callback ([outstanding Save](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L369),
+[active-callback guard assertion](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L55)).
+The embedded forced-membership-loss adapter captures the registry's Save and
+Restore vectors and submits both after the membership transition
+([result capture](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L240),
+[notification submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L415)).
+No focused test covers ConnectionLost during an active Save.
+
+In the configured-process profile, explicit Resign and ConnectionLost pass the
+registry result through `dispatchConnectionLossResult` ([Resign dispatch call](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L160),
+[ConnectionLost dispatch call](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L174),
+[dispatcher](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19)).
+The dispatcher does not enqueue `saveNotifications` or `restoreNotifications`;
+this is a source-level projection gap, not a tested public outcome. If the
+explicit Resign handler completes successfully, it still returns correlated
+`ok` ([response path](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L175)).
+That response acknowledges the Resign request path; it does not prove that
+surviving members received `federationNotSaved`. ConnectionLost has no
+application Resign response. No focused configured-process case exercises a
+member departure during active Save. The process Save-failure case instead
+reports `FEDERATE_REPORTED_FAILURE_DURING_SAVE` before its cleanup Resign
+([failure assertion](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_catch2.cpp#L566),
+[subsequent cleanup](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_catch2.cpp#L568)).
 
 ### Worked case: FQR optimistic time and timed Save initiation
 
@@ -547,16 +753,18 @@ guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#2-from-a-str
 ### Configured-process completion: participant success versus federation outcome
 
 `federateSaveComplete()` reports that this participant finished its application
-save; it does not promise that the federation image was committed. Only the
-last participant reaches the coordinator's image-commit and notification path
-([registry transition](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L959)).
-A successful commit queues `federationSaved`; an encoding or store failure
-queues `federationNotSaved(RTI_UNABLE_TO_SAVE)`. On the successful event-send
-path, the save-control response remains `applied` in either terminal outcome
-because the participant's completion was accepted
-([process handler](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L208)).
-This is an Umbra configured-process trace, not a new normative callback-order
-rule.
+save; it does not promise that the federation image was committed. Only after
+every participant reaches the waiting state does the coordinator encode and
+commit the image, then return planned terminal notifications
+([all-complete barrier](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L988),
+[image commit](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1025),
+[notification construction](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1037)). A
+successful commit plans `federationSaved`; an encoding or store failure plans
+`federationNotSaved(RTI_UNABLE_TO_SAVE)`. The service routes those notifications
+before its correlated response ([routing step](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L239),
+[accepted response](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L246));
+if routing fails, it returns an internal error instead ([error branch](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L244)). This
+is an Umbra configured-process trace, not a normative callback-order rule.
 
 The diagrams separate the federation's terminal outcome from when the
 application observes its callback. The first follows a participant completion
@@ -567,7 +775,9 @@ after the process client has matched that response and buffered the terminal
 event, then contrasts callback observation under `HLA_IMMEDIATE` and
 `HLA_EVOKED`. On the successful pushed-event path, the service enqueues the
 terminal notification before returning its correlated response
-([notification path](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L425)).
+([Push staging](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L450),
+[send loop](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L469),
+[correlated response](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L246)).
 
 #### Pushed notification failure after save-state resolution
 
@@ -576,22 +786,23 @@ covered by those success-path diagrams:
 
 - The registry resolves the federation save before the service routes its
   terminal notifications
-  ([registry transition](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L959)). If notification
+  ([image commit](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1025)). If notification
   encoding or a pushed send fails, the handler returns an internal-error response
-  ([service error branch](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L241)).
+  ([service error branch](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L244)).
 - Pushed terminal frames are sent one recipient at a time
-  ([send loop](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L508)); a later failure
+  ([send loop](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L465),
+  [send call](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L469)); a later failure
   can therefore occur after earlier frames were already sent. No rollback of the resolved save state or prior frames is
   visible.
 - If the requesting member's terminal frame is already buffered, the client drains pushed events before the public Save
   Complete adapter checks the decoded federation-control result
-  ([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L909),
+  ([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L919),
   [public status check](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L600)). A
   returning `HLA_IMMEDIATE` callback may run before the ambassador maps the service failure to `RTIinternalError`
   ([public error mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L617)); under
   `HLA_EVOKED`, the task may remain queued for a later Evoke
-  ([dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L164),
-  [evoked dispatch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L233)).
+  ([queued task insertion](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L135),
+  [evoked dispatch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156)).
 
 This is a composition of source paths, not a tested public outcome: no reviewed
 process test injects a partial notification-send failure. It does not establish
@@ -619,21 +830,24 @@ sequenceDiagram
     Registry->>Store: Encode and commit RTI state image
     alt Image commit succeeds
       Store-->>Registry: Image stored
-      Registry->>Service: Queue federationSaved
+      Registry-->>Service: Return planned federationSaved notification
     else Image encoding or store fails
       Store--xRegistry: Commit failure
-      Registry->>Service: Queue federationNotSaved(RTI_UNABLE_TO_SAVE)
+      Registry-->>Service: Return planned federationNotSaved(RTI_UNABLE_TO_SAVE) notification
     end
-    Service->>Client: Push terminal event frame
+    Service->>Client: Push terminal event frame (Push mode)
     Service-->>Client: Correlated applied response
   end
 ```
 
 The applied response for the last participant means its completion was
-accepted; it is not a claim that the federation image committed. The focused
-process endpoint tests distinguish that response from terminal callbacks in
-the tested paths, while the injected commit-failure test is registry-level,
-not a process endpoint test.
+accepted; it is not a claim that the federation image committed. The configured-
+process polling test confirms `federationSaved` is still absent after Complete
+and appears after explicit Evoke ([before](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L583),
+[after](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L585)). The injected
+commit-failure test is registry-level and asserts `RTI_UNABLE_TO_SAVE`
+([assertion](../../cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp#L36));
+it is not a process endpoint failure test.
 
 ##### Process callback observation and service-report boundary
 
@@ -676,11 +890,11 @@ sequenceDiagram
 
 The process client matches the correlated response and drains pushed events
 before its typed `federateSaveComplete` method returns
-([response validation](../../cpp/src/internal/federation/process_federation_client.cpp#L884),
-[pushed-event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L909),
-[Save callback projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L881)).
+([response validation](../../cpp/src/internal/federation/process_federation_client.cpp#L894),
+[pushed-event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L919),
+[Save callback projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L921)).
 Under `HLA_IMMEDIATE`, callback submission invokes the callback inline
-([dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L164)),
+([dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L136)),
 so the terminal callback precedes the wrapper's successful service-report
 append. If an RTI `Exception` escapes from that callback, the public call can
 throw after the coordinator has already committed the image or resolved the
@@ -700,7 +914,7 @@ The one-member configured-process `HLA_EVOKED` Save case uses polling, not
 pushed events ([server option](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L498));
 its completion assertions show `federationSaved` unobserved after
 `federateSaveComplete()` and delivered by an explicit Evoke
-([assertions](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L581)).
+([assertions](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L583)).
 A separate multi-member pushed-event `HLA_EVOKED` Save/Restore case enables
 push mode ([service option](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L144)),
 completes both members ([completion calls](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L435)),
@@ -719,8 +933,8 @@ process outcomes.
 Read the immediate-callback exception branch narrowly. The process client
 drains pushed events before returning from `federateSaveComplete`, and the
 callback dispatcher rethrows an exception from an inline callback
-([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L909),
-[dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L324)).
+([client drain](../../cpp/src/internal/federation/process_federation_client.cpp#L919),
+[dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L291)).
 The adapter translates its recognized protocol, callback-bridge, and client
 errors to `RTIinternalError` ([translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L617)),
 then its outer HLA-`Exception` handler attempts `HLAreportException`
@@ -813,12 +1027,12 @@ before producing notifications; its [untimed constrained-member check](../../cpp
 shows the pending alternative. The process handler's [registry call](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L184),
 [notification enqueue](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L196),
 and [applied response](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L201)
-show the server ordering, followed by the [pushed event send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L508).
-The [typed process-client request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L227)
-uses [correlated-response validation](../../cpp/src/internal/federation/process_federation_client.cpp#L884) and releases the
-[request exchange lock](../../cpp/src/internal/federation/process_federation_client.cpp#L905) before the
-[pushed-event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L909);
-the [bridge invokes the application callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L907).
+show the server ordering, followed by the [pushed event send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L469).
+The [typed process-client request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L239)
+uses [correlated-response validation](../../cpp/src/internal/federation/process_federation_client.cpp#L894) and releases the
+[request exchange lock](../../cpp/src/internal/federation/process_federation_client.cpp#L915) before the
+[pushed-event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L919);
+the [bridge invokes the application callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L912).
 The public adapter's [success-report append](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L170)
 comes after the process-client result, while its [outer exception handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L241)
 attempts `HLAreportException` and rethrows. The pinned callback signature lists
@@ -844,17 +1058,17 @@ sequenceDiagram
   actor App as Requesting federate application
   participant RTI as RTI service adapter
   participant Coord as Federation restore coordinator
-  participant P1 as Federate 1 callback/application
-  participant P2 as Federate 2 callback/application
+  participant P1 as Requesting member callback/application
+  participant P2 as Other member callback/application
 
   App->>RTI: requestFederationRestore(label)
   RTI->>Coord: resolve label and validate image / current participants
   alt Label, image, or participant set is unacceptable
-    Coord-->>App: requestFederationRestoreFailed(label)
+    Coord-->>P1: requestFederationRestoreFailed(label)
     Note over P1,P2: Rejected: no begun/initiate callbacks
   else Request accepted
     Note over Coord: Umbra's source choice is an implementation detail, separate from this public callback order
-    Coord-->>App: requestFederationRestoreSucceeded(label)
+    Coord-->>P1: requestFederationRestoreSucceeded(label)
     par Per-participant callback lane
       Coord-->>P1: federationRestoreBegun()
       Coord-->>P1: initiateFederateRestore(label, name, post-restore handle)
@@ -877,14 +1091,33 @@ sequenceDiagram
   end
 ```
 
-The two participant lanes show the per-federate callback progression. They do
-not claim a global wall-clock interleaving between different callback queues.
-In the current embedded registry, an accepted request queues the requester's
-success notification and then a begun/initiate notification pair for each
-joined member. The process-endpoint tests exercise the callback sequence under
-`HLA_IMMEDIATE`; callback-model and dispatch behavior beyond those scenarios
-must be checked separately. For the distinct implementation question of which
-RTI state source is applied after that protocol, see the
+The requester is also one of the members restoring its local state. The lanes
+show callbacks delivered to each member's `FederateAmbassador`; they do not
+claim a global wall-clock interleaving between different callback queues.
+The recipient map below describes current Umbra routing. Callback declarations
+in the pinned [2025 API](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L130)
+do not by themselves establish normative receiver scope.
+
+| Callback | Current Umbra recipient | Focused evidence |
+| --- | --- | --- |
+| `requestFederationRestoreFailed` / `requestFederationRestoreSucceeded` | The requesting federate only. The registry assigns the request outcome to `requestingFederateId` ([failed image](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1089), [membership mismatch](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1102), [success path](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1131)). | The configured-process two-member case observes success on the requester before its begun/initiate callbacks ([assertion](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1990)). |
+| `federationRestoreBegun` | Every member in the active federation membership, including the requester; the registry plans one notification per member ([member loop](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1142)). | The embedded two-member case checks the requester and peer ([requester](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L747), [peer](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L748)); the configured-process polling case checks both ([requester](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1992), [peer](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1996)). |
+| `initiateFederateRestore` | Every member in that same loop, with that member's saved name and post-restore handle in the notification ([planning](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1161)). | The embedded case checks both members' identity payloads ([assertions](../../cpp/tests/ieee1516_2025_restore_member_identity_rebinding_catch2.cpp#L148)); the configured-process test checks both initiation callbacks ([requester](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1994), [peer](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1998)). |
+| `federationRestored` / `federationNotRestored` | Each operation member that remains joined and has a callback route; the completion planner can exclude a departed member ([planner](../../cpp/src/internal/federation/federation_registry.cpp#L545)). | The configured-process polling test observes terminal success for both members after both report completion ([requester](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2095), [peer](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L2097)). |
+
+On the configured-process path, the service resolves each planned
+`receivingFederateId` to its session and carries it into the event
+([routing](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L505));
+the callback bridge dispatches the event kind to that session's ambassador
+([dispatch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L974)).
+The two-member polling case sets `pushReceiveOrderEvents = false` and connects
+both members with `HLA_EVOKED` ([service option](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1720),
+[member connections](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1954));
+it observes request-success on the requester, begun/initiate on both members,
+and terminal success for both. The embedded two-member case also covers both
+callback models. These are implementation and test observations,
+not normative receiver-scope claims. For the distinct implementation question
+of which RTI state source is applied after that protocol, see the
 [restore-source selection inset](#2025-umbra-restore-source-selection) below.
 
 ```mermaid
@@ -1185,6 +1418,42 @@ does not establish every transport/callback-model combination or general
 callback ordering. None of these process tests establishes embedded parity or
 2010 behavior.
 
+#### Pushed notification delivery can fail after Restore admission
+
+The process service calls the registry before it projects the accepted Restore
+notifications. Registry admission has already created `restoreOperation` and
+marked each participant `FEDERATE_RESTORING` by the time pushed-frame delivery
+begins ([operation creation](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1128),
+[request handler](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L344)).
+Only the registry-accepted branch is shown here; durable-image or member-set
+rejection returns before operation creation, as described in the early-rejection
+table above. The notification helper skips recipients with no matching current session, then
+sends the collected pushed frames one at a time. If a send fails, it returns
+false; the request handler returns `internalError` without resetting the
+registry operation ([frame send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L534),
+[failure return](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L348)).
+Frames sent earlier in that loop are not recalled, and this path does not add a
+`requestFederationRestoreFailed` notification or roll back admission. A later
+connection-loss or resignation transition may still change federation state;
+the source observation here is limited to this request handler's failure path.
+
+```mermaid
+flowchart LR
+  ADMIT["Registry admits Restore<br/>creates operation and participant states"] --> PLAN["Plan and stage request-succeeded,<br/>begun, and initiate notifications"]
+  PLAN --> SEND["Send matched pushed frames<br/>one at a time"]
+  SEND --> FAIL{"A staged frame send fails?"}
+  FAIL -->|No| RESPONSE["Return correlated applied response"]
+  FAIL -->|Yes| ERROR["Return internalError<br/>No rollback at this boundary;<br/>earlier successful sends remain"]
+```
+
+The focused public cases cover successful one-member pushed admission and a
+missing-image rejection ([success lifecycle](../../cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp#L561),
+[request rejection](../../cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp#L544)).
+They do not inject a failed notification send or assert partial multi-member
+delivery. This is an implementation observation, not a callback rule from
+IEEE 1516.1-2025.
+
+
 #### Initiate callback identity across the process boundary
 
 The lifecycle charts abbreviate the initiate callback, but its identity fields
@@ -1201,13 +1470,13 @@ buffers or polls that event, then submits it to the callback bridge; for an
 initiate event, the bridge constructs the public handle from the post-restore
 ID and calls `initiateFederateRestore(label, saved name, current handle)`.
 Therefore the process projection forwards the registry's saved-name/current-ID
-pair; it does not remap identity a second time. The [shared registry type](../../cpp/src/internal/federation/process_federation_service.hpp#L816)
+pair; it does not remap identity a second time. The [shared registry type](../../cpp/src/internal/federation/process_federation_service.hpp#L798)
 and [Restore request handoff](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L344),
-[notification projection](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L524),
+[notification projection](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L503),
 [event encoding](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L835)
 and [decoding](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L1595),
-[client dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L222),
-and [public callback projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L948)
+[client dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L225),
+and [public callback projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L992)
 show those boundaries. Push versus polling selects how the event reaches the
 client; `HLA_IMMEDIATE` versus `HLA_EVOKED` selects when the callback task is
 invoked. The [generic process callback flow](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#2-from-a-stream-frame-to-an-official-callback)
@@ -1278,7 +1547,7 @@ sequenceDiagram
   Registry-->>Service: Restore result and lifecycle notifications
 ```
 
-The process [Save client path](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L227)
+The process [Save client path](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L239)
 and [Restore client path](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L426)
 send control requests to the [Save handler](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L11)
 and [Restore handler](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L323),
@@ -1320,17 +1589,21 @@ establishes IEEE 1516.1-2010 behavior.
 
 | Observation | Request rejected before restore begins | Restore begins, then fails |
 | --- | --- | --- |
-| Typical current-profile trigger | Missing/corrupt/mismatched saved image or saved/current participant mismatch | A participant reports not complete, the request owner aborts, a participant resigns, or RTI rehydration fails |
+| Typical current-profile trigger | Saved commit/image is missing, cannot be decoded or fails admission checks, or the current participant set cannot be matched to the saved set | A participant reports not complete, the request owner aborts, a participant resigns, or state application/rehydration fails after admission |
 | Request callback | `requestFederationRestoreFailed(label)` to the requester | Requester's earlier `requestFederationRestoreSucceeded(label)` remains true as a statement that the request was accepted |
 | Federation callbacks | No `federationRestoreBegun`, `initiateFederateRestore`, or final `federationNotRestored` for this rejected request | Participants already entered the restore protocol; `federationNotRestored(reason)` communicates the terminal outcome |
 | Current source evidence | Request validation emits a `request_failed` notification and returns before creating the restore operation | Completion/failure helper fans the failure reason out to the still-joined restore participants |
+| Focused process evidence | HLA_IMMEDIATE request rejection emits only `restore-request-failed` ([assertion](../../cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp#L546)). | After admission, HLA_IMMEDIATE and HLA_EVOKED cases observe `request-succeeded → begun → initiate → not-restored` ([HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L574), [HLA_EVOKED](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1103)); each uses one member. |
 
 This comparison covers restore-specific image and participant validation
-after the public service preconditions pass. Umbra maps a missing, corrupt, or
-mismatched saved image and a saved/current membership mismatch to the normal
-void-service return plus `requestFederationRestoreFailed`. Preconditions such
-as not being a member or having another Save/Restore in progress follow the
-adapter's typed synchronous exception path instead
+after the public service preconditions pass. Umbra queues
+`requestFederationRestoreFailed` before creating a `RestoreOperation` when the
+matching commit/image cannot be loaded, decoded, validated against the saved
+identity, or matched to current membership. If state application or
+rehydration fails after admission, the final failure path selects
+`RTI_UNABLE_TO_RESTORE`. These are current source paths, not normative
+classifications of the reason values. Preconditions such as not being a
+member or having another Save/Restore in progress follow the adapter's typed synchronous exception path instead
 ([shared status mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L93),
 [configured-process request branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L982),
 [embedded request branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1025)).
@@ -1343,9 +1616,12 @@ terminal federation callback is later.
 
 ### Member exit during an active Restore
 
-The registry's common resignation transition plans
-`FEDERATE_RESIGNED_DURING_RESTORE` notifications for eligible remaining
-participants and clears the active Restore. The embedded membership adapter
+The shared registry transition plans
+`FEDERATE_RESIGNED_DURING_RESTORE` from the captured Restore ledger before
+clearing the active operation. It excludes the departing ID and only creates a
+notification for a remaining ID whose member record and callback route still
+exist ([transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L450),
+[recipient filters](../../cpp/src/internal/federation/federation_registry.cpp#L529)). The embedded membership adapter
 submits those notifications: its focused public case observes the survivor's
 `federationNotRestored` callback and confirms the departing member receives no
 Restore callbacks. The Lifecycle guide's [member-exit flow](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#active-federation-save-and-restore-during-member-exit)
@@ -1354,40 +1630,89 @@ Umbra observations, not an independent statement of the standard's failure
 reason for a detected transport loss.
 
 The shared source selects `FEDERATE_RESIGNED_DURING_RESTORE` for both voluntary
-Resign and forced ConnectionLost. Its active-Save branch distinguishes those
-causes: voluntary Resign selects `FEDERATE_RESIGNED_DURING_SAVE`, while forced
-ConnectionLost selects `RTI_DETECTED_FAILURE_DURING_SAVE`. This is an
-implementation comparison only; it does not settle which Restore failure
-reason IEEE requires after detected connection loss.
+Resign and forced ConnectionLost. The active-Save reason mapping and its
+profile-specific notification paths are covered separately in
+[Member exit during an active Save](#member-exit-during-an-active-save).
+Neither source mapping establishes which failure reason IEEE requires after
+detected connection loss.
+
+The Restore participant set is captured at admission. The registry creates
+`RestoreOperation.statuses` from the members present when the request is
+accepted, marking each `FEDERATE_RESTORING`; those entries are the completion
+barrier ([operation creation](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1120),
+[completion check](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1206)).
+The common completion helper builds outcomes from that ledger but only for
+members and callback routes that still exist
+([notification construction](../../cpp/src/internal/federation/federation_registry.cpp#L519)).
+
+```mermaid
+flowchart TD
+  A["Restore accepted<br/>Capture current IDs as FEDERATE_RESTORING"] --> B{"Membership event before terminal result?"}
+
+  B -->|Join attempt| J["API lists RestoreInProgress<br/>No phase gate in inspected Join paths<br/>If registry commit occurs, new ID is not in the ledger<br/>Public outcome untested"]
+
+  B -->|Resign or ConnectionLost| L["Build failures from the captured ledger<br/>Exclude departing ID; keep still-routed members<br/>Reason: FEDERATE_RESIGNED_DURING_RESTORE<br/>Clear active Restore"]
+  L --> E["Embedded<br/>Submit notifications<br/>Survivor callback tested"]
+  L --> P["Configured process<br/>Restore vector not enqueued<br/>No focused departure case"]
+```
+
+The Join branch is an unresolved boundary, not permission to Join during
+Restore. The pinned API lists `RestoreInProgress`; the inspected adapter,
+process service, and registry membership paths do not show an active-Restore
+gate ([API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L227),
+[embedded adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364),
+[process Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L302),
+[registry Join transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238)).
+If a Join reaches that registry transaction, it does not update the already
+captured status ledger. A successful process-local restore also replaces the
+live member map from the saved snapshot
+([snapshot application](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L930)).
+These source observations make the interleaving important to resolve, but no
+focused test establishes public Join admission or its effects during active
+Restore. Do not infer the normative rule from the exception list or the
+implementation path.
 
 The configured-process path diverges before its otherwise capable Restore
-event pipeline. Both process [`handleResign`](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136)
-and [connection-loss cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L170)
-pass the registry result to
-[`dispatchConnectionLossResult`](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19).
-That dispatcher enqueues `saveNotifications`, but does not pass
-`result.restoreNotifications` to
-[`enqueueFederationRestoreNotifications`](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L524).
-If the other result projections it handles succeed, the dispatcher returns
-success without examining that Restore vector
-([return](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L167)).
+event pipeline. The process [`handleResign`](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136)
+passes its registry result to `dispatchConnectionLossResult` at the
+[Resign dispatch call](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L160).
+[Connection-loss cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L174)
+passes its result to the same
+[dispatcher](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19).
+The dispatcher does not consume either `result.saveNotifications` or
+`result.restoreNotifications` in the inspected source ([dispatcher](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19),
+[success return](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L161)). If the other result
+projections it handles succeed, it returns success without examining either
+vector. The ordinary Restore service does call
+[`enqueueFederationRestoreNotifications`](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481),
+but the member-exit dispatcher does not. This is a source-level projection
+omission; no focused configured-process case establishes the public callback
+outcome or the normative rule. If an explicit process Resign handler completes,
+it can still return correlated `ok` after the dispatcher succeeds
+([dispatch call](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L160),
+[response](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L175));
+that response does not establish that survivors received `federationNotRestored`.
 Normal process Restore services do use that helper
-([service call](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L576));
+([service call](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L577));
 it builds Restore events that the process event codec serializes and decodes
 ([encode](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L808),
-[decode](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L1594)),
+[decode](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L1595)),
 then the client and callback bridge project to the public Restore callbacks
-([client event queue](../../cpp/src/internal/federation/process_federation_client.cpp#L696),
-[callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L947)).
+([client Restore-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L375),
+[callback mapping](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L992)).
 So this source gap is at membership-exit dispatch, before serialization or
 public callback projection.
 
-The reviewed process Restore cases cover successful completion, explicit
-participant failure, abort, status, and early request rejection; they do not
-exercise an active Restore followed by member Resign or connection loss. The
-embedded [resignation case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L821)
-does not establish process behavior. Record the missing process projection as
-a source-level finding, with no runtime callback or profile-parity claim.
+The reviewed process Restore cases cover successful completion, explicit participant failure,
+abort, status, and early request rejection. The polling failure and abort cases each use one member,
+so multi-member process failure routing is untested. No focused process case exercises an active
+Restore followed by member Resign or connection loss. The process HLA_IMMEDIATE failure case invokes Resign only after it has observed
+the terminal failure ([reason assertion](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L572),
+[cleanup Resign](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L581));
+that is not a member-exit-during-Restore case. The embedded [survivor failure assertion](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L832)
+and [departing-member suppression assertion](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L841)
+do not establish process behavior. Record the missing process projection as a source-level
+finding, with no runtime callback or profile-parity claim.
 
 ### Read the worked cases as HLA questions, not one protocol
 
@@ -2105,6 +2430,28 @@ The RTI image is not an automatic checkpoint of arbitrary application memory.
 | Temporal queues | Selected TSO payload, delivery-phase, and retraction records are represented in the image | Save/restore changes the future event queue; see the focused TSO-phase test and the time-management guide. |
 | Other service-owned ledgers | Current code has typed rehydration helpers for regions, synchronization points, declarations, ownership, and other bounded state | Each ledger has its own supported-state predicates and focused tests; this table is not an exhaustive image schema. |
 
+### Transport resume and Federation Restore have different owners
+
+The companion [Process Endpoint guide's temporary session recovery](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#4-temporary-process-session-recovery)
+describes Umbra's private socket-resume path. It resumes a retained session and
+service-message history on the same live host; it is neither an HLA service nor
+a call to `federateRestoreComplete`. That section labels its recovery source
+and tests as current-worktree evidence and leaves host-process restart
+unverified.
+
+Keep the state boundaries side by side:
+
+| Mechanism | State it carries forward | What success does not establish |
+| --- | --- | --- |
+| Temporary process-session resume | The existing private session identity and the missing suffix of retained service-message frames, provided the host still has that session and enough history | Federation-state restoration, recovery on a newly started host, or an HLA-wide reconnect guarantee |
+| Federation Save/Restore | Supported `FederationStateImage` state and only the receive-order queue records explicitly admitted by the Save path; see [process push and polling queue boundaries](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#process-push-mode-keeps-interaction-frames-outside-the-service-save-queue) | Recreation of the old transport session or sequence history, or serialization of the client-owned `pendingEvents_` FIFO and callback-bridge tasks; see [frames already buffered at a request boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#frames-already-buffered-at-a-saverestore-response-boundary) |
+
+The evidence remains separate: the recovery cases keep a live service host,
+while fresh-registry Restore cases exercise selected image projections. No
+focused case here combines host-process restart, image Restore, and continued
+delivery from the pre-restart transport session. Do not infer that one
+mechanism completes or recovers the other.
+
 ### Interaction declarations in the durable image
 
 Umbra captures publication and subscription declarations separately from
@@ -2341,7 +2688,7 @@ The `HLA_EVOKED` test instead uses polling service mode
 ([poll option](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L148)).
 Polling selects queued Restore events before it reaches the ownership-event
 queue
-([Restore queue selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L133),
+([Restore queue selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L110),
 [ownership queue selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L422)).
 The test observes the Restore callback while the assumption list is empty, then
 observes one assumption after two later Evoke calls
@@ -2512,13 +2859,16 @@ operation exists
 ([builder guard](../../cpp/src/internal/federation/federation_registry.cpp#L527)).
 Thus this post-apply catch does not add a failure notification record. The
 configured-process service enqueues notifications only when the result contains
-records, then returns the correlated control status
+records, then returns the correlated `restore_failed` control status
 ([conditional enqueue](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L392),
-[response](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L506));
-the public adapter maps a non-`applied` status through synchronous failure
-handling
-([status handling](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1087),
-[fallback mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L129)).
+[response](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L509)).
+Both public adapter branches send non-`applied` results through the same status
+mapper ([process](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1089),
+[embedded](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1157));
+`restore_failed` has no dedicated switch case and currently falls through to
+`RTIinternalError`'s unknown-outcome fallback
+([mapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L93),
+[fallback](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L129)).
 The snapshot has already replaced live state, and this path shows no rollback.
 The specific missing-route condition appears guarded in ordinary membership
 transitions: Restore admission checks every current member's callback route
@@ -2551,7 +2901,7 @@ response
 ([push path](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L243)).
 The process client drains buffered pushed events after matching the response
 and before returning to the adapter
-([request dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L919));
+([request-owned event dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L919));
 the bridge submits it to the dispatcher, which projects the public assumption
 callback
 ([bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1859),
@@ -2569,6 +2919,82 @@ tested or proven reachable outcome; no focused public test covers the
 post-copy failure. It is separate from `federationNotRestored`, which this
 catch does not add, and it is not a transactional guarantee or normative HLA
 rule.
+
+#### Configured-process replay can fail after state replacement
+
+This is a later service boundary than the registry catch above. The process
+handler calls `federateRestoreComplete` before it enqueues terminal lifecycle
+notifications and saved receive-order work
+([registry call](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L382),
+[registry state replacement](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1320)).
+Assuming the preceding notification and ownership-work enqueue steps succeed,
+the service then rebuilds saved interaction and attribute-update queues. A
+missing recipient session, a session whose federation no longer matches, or
+a failed pushed attribute-frame send returns transport `internalError` from
+the handler. In the send-failure branch, the pending pushed-update entry has
+already been inserted
+([interaction replay](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L426),
+[attribute replay](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L449),
+[pending insertion and frame send](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L490)).
+These returns happen after registry state replacement; the handler has no
+rollback for the replaced state, already queued notifications, or inserted
+pending update.
+
+The two saved-event families have different process behavior. Restored receive-
+order interactions are appended to `interactionEvents`; this block does not
+send a pushed interaction frame. Restored attribute updates go to the polling
+queue when push mode is off. In push mode, the service preserves or allocates
+a delivery ID, inserts the event into `pendingPushedAttributeUpdates`, and
+then sends a `receive_attribute_update` frame. Do not read the interaction
+queueing branch as evidence of pushed interaction replay.
+
+Terminal Restore notifications are handled before saved-event replay. In push
+mode, notification frames can therefore reach the client while the completion
+request is still in flight. The client request path drains the pushed events
+captured during that request before `federateRestoreComplete` checks the
+transport status; the ambassador then maps `ProcessFederationClientError` to
+`RTIinternalError`
+([notification order](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L392),
+[pushed notification send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L538),
+[pushed-event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L917),
+[default request dispatch and client status check](../../cpp/src/internal/federation/process_federation_client.hpp#L1015),
+[client status check](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L353),
+[public error mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1111)).
+Consequently, that public exception does not prove that no earlier pushed
+Restore callback was submitted. With an enabled `HLA_IMMEDIATE` dispatcher,
+the callback can enter application code inline; under `HLA_EVOKED`, its task
+can remain queued for a later Evoke
+([immediate submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L178),
+[evoked dispatch](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L207)).
+In polling mode, terminal Restore notifications are put in the service's
+`restoreEvents` queue before replay; this failure path does not clear that
+queue
+([polling notification enqueue](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L528)).
+These are source-order observations, not IEEE callback or rollback rules.
+
+```mermaid
+flowchart TD
+  A["Registry replaces restored state"] --> B["Queue terminal Restore notifications<br/>then ownership work"]
+  B --> C["Replay saved receive-order work"]
+  C --> D{Replay admission succeeds}
+  D -->|Yes| E["Return success response"]
+  D -->|No| F["Return transport internalError<br/>No handler rollback"]
+  F --> G["Client drains request-buffered pushed events<br/>before checking response status"]
+  B -. "Push notifications may already be buffered" .-> G
+  G --> H["Adapter maps ProcessFederationClientError<br/>to RTIinternalError"]
+  G --> I["HLA_IMMEDIATE may enter callback inline<br/>HLA_EVOKED may leave the task queued"]
+```
+
+The focused process-service replay cases assert successful interaction and
+attribute replay without a duplicate; the public Restore case asserts the
+successful callback path. Those cases do not exercise a missing recipient or a
+failed pushed attribute-frame send
+([interaction assertion](../../cpp/tests/process_federation_service_catch2.cpp#L2547),
+[no-duplicate assertion](../../cpp/tests/process_federation_service_catch2.cpp#L2555),
+[attribute assertion](../../cpp/tests/process_federation_service_catch2.cpp#L2784),
+[public callback assertion](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L932)).
+The failure branches above are source-derived implementation behavior, not
+test-proven outcomes or additional HLA requirements.
 
 ### In-flight work has protocol-specific restore dispositions
 
@@ -2759,9 +3185,9 @@ not assert a process-endpoint handle remapping result.
 
 The configured-process route is separate evidence. Its Restore request reaches
 the shared registry ([service handler](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L323),
-[registry type](../../cpp/src/internal/federation/process_federation_service.hpp#L816));
+[registry type](../../cpp/src/internal/federation/process_federation_service.hpp#L798));
 the Restore event projects the saved member name and pre-/post-Restore member
-IDs ([event projection](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L524)).
+IDs ([event projection](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L503)).
 Object-instance name lookup separately asks that registry for the current
 member's known-object snapshot and returns its handle
 ([lookup handler](../../cpp/src/internal/federation/process_federation_service_handle_lookup.cpp#L213)).
@@ -2828,7 +3254,7 @@ establish configured-process timing
 | Public save/restore services and embedded/process dispatch | [RTI ambassador save/restore services](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp) |
 | Callback, report, and notification dispatch | [Save/restore notifications](../../cpp/src/internal/runtime/umbra_rti_ambassador_save_restore_notifications.cpp) |
 | Process-boundary service forwarding | [Federation save/restore process service](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp) |
-| Process Restore notification polling | [`enqueueFederationRestoreNotifications`](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L524); [`handleReceiveInteraction`](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L83); [`pumpProcessReceiveOrder`](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L182) |
+| Process Restore notification polling | [`enqueueFederationRestoreNotifications`](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481); [`handleReceiveInteraction`](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L73); [`pumpProcessReceiveOrder`](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L147) |
 | Save participant ledger, time gates, image creation, abort and status | [Federation save control](../../cpp/src/internal/federation/federation_registry_save_control.cpp) |
 | Restore admission, participant barrier, and rehydration | [Federation restore control](../../cpp/src/internal/federation/federation_registry_restore_control.cpp) |
 | Saved live TSO Request Retraction ledger | [TSO payload restore](../../cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp#L45) |
@@ -2839,9 +3265,119 @@ establish configured-process timing
 | Commit abstraction | [Federation save commit store](../../cpp/src/internal/federation/federation_save_commit_store.cpp) and [store interface](../../cpp/src/internal/federation/federation_save_commit_store.hpp) |
 | Encoded federation state image | [Federation state-image codec](../../cpp/src/internal/federation/federation_state_image.cpp) |
 
+### Save failure reason vocabulary and source selectors
+
+The pinned 2025 API declares six values for the `federationNotSaved` callback's
+`SaveFailureReason` ([enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L63)).
+Those names are callback vocabulary; the API header alone does not provide the
+complete trigger-to-reason rule. The checked-in package manifest identifies the
+pinned artifact as the C++ API header tree ([package manifest](../../third_party/ieee1516.1-2025/manifest.json));
+the licensed clause prose is not present in this checkout. This table records
+selectors found in Umbra's current C++ source and the focused evidence available
+for them. It is not a normative mapping.
+
+| API reason | Current source selection | Focused evidence and limit |
+| --- | --- | --- |
+| `RTI_UNABLE_TO_SAVE` | Selected when image materialization or durable storage fails ([coordinator](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1040)). | The internal [commit-failure case](../../cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp#L40) asserts this reason; it is not a public process-endpoint commit-failure case. |
+| `FEDERATE_REPORTED_FAILURE_DURING_SAVE` | Selected when a participant reports `federateSaveNotComplete` ([coordinator](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1087)). | The configured-process [terminal-failure case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp#L560) observes it under `HLA_IMMEDIATE`; this does not establish every callback or transport profile. |
+| `FEDERATE_RESIGNED_DURING_SAVE` | Selected by the common registry resignation transition for Resign and ConnectionLost ([transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L445)). | Embedded public cases assert it after an outstanding Save ([Resign](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L368)) and after Resign from the initiation callback ([callback case](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L66)). No focused ConnectionLost-during-Save case was found; the configured-process member-exit projection gap is described in [Member exit during an active Save](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#member-exit-during-an-active-save). |
+| `RTI_DETECTED_FAILURE_DURING_SAVE` | No Save-path selector was found. The only `cpp/src` hit is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L547), which converts the supplied enum to its Table 5 text. | No focused test references this value. The formatter is not a Save trigger; its normative condition remains unresolved. |
+| `SAVE_TIME_CANNOT_BE_HONORED` | No Save-path selector was found. The only `cpp/src` hit is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L549), which converts the supplied enum to its Table 5 text. | No focused test references this value. The formatter is not a Save trigger; its normative condition remains unresolved. |
+| `SAVE_ABORTED` | Selected by `abortFederationSave` when it ends the active Save ([coordinator](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1121)). | The embedded [Save-control case](../../cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp#L80) asserts the reason for both participants; no equivalent process-profile claim is made. |
+
+The source scan is not a substitute for the licensed standard's reason
+conditions. Keep the exact normative mapping open until the applicable 2025
+clause text can be checked directly. `SaveStatus` values such as
+`FEDERATE_INSTRUCTED_TO_SAVE` describe participant progress and are not
+`SaveFailureReason` values.
+
+### Restore failure reason vocabulary and source selectors
+
+The pinned 2025 API declares five values for the `federationNotRestored`
+callback's `RestoreFailureReason` ([enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L46)).
+The API declaration does not establish each value's normative trigger. This
+table records Umbra's current selectors and the focused evidence found; it is
+not a standard-reason mapping.
+
+| API reason | Current source selection | Focused evidence and limit |
+| --- | --- | --- |
+| `RTI_UNABLE_TO_RESTORE` | The registry supplies this reason for a missing process-local snapshot and for caught restore-stage exceptions ([missing snapshot](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1237), [catch](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1680)). A terminal failure record is produced only while `restoreOperation` still exists; a catch after snapshot application clears it cannot add a notification ([state reset](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L1002), [builder guard](../../cpp/src/internal/federation/federation_registry.cpp#L527)). | No focused assertion selecting this failure reason was found; reusable test-ambassador initial values are defaults, not evidence. A successful completion also carries this placeholder with `successful=true` ([success record](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1703)). The process projection copies the success flag and reason separately ([field copy](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L510), [codec](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L841), [decode](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L1613)); the callback bridge chooses `federationRestored` versus `federationNotRestored` from the success flag ([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L998)). |
+| `FEDERATE_REPORTED_FAILURE_DURING_RESTORE` | Selected by `federateRestoreNotComplete` ([coordinator](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1761)). | Embedded public assertions cover both participants ([failure lifecycle](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L551)); configured-process tests assert the reason under `HLA_IMMEDIATE` ([process test](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L573)) and polling with `HLA_EVOKED` ([reason assertion](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1101)). Each process failure case has one member; multi-member process failure routing and other profile combinations remain untested. |
+| `FEDERATE_RESIGNED_DURING_RESTORE` | Selected by the common registry resignation transition for Resign and forced ConnectionLost ([transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L456)). | Embedded public tests assert the surviving member's reason after Resign ([failure lifecycle](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L566), [callback-queue resignation case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L834)). The configured-process member-exit projection gap and lack of a focused process assertion are described in [Member exit during an active Restore](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#member-exit-during-an-active-restore). |
+| `RTI_DETECTED_FAILURE_DURING_RESTORE` | No direct runtime selector was found in the current `cpp/src` scan. | The pinned 2025 API declares this value ([enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L49)), but exact-value searches found no selector in `cpp/src` and no use in `cpp/tests`. Do not infer its trigger from the enum name. |
+| `RESTORE_ABORTED` | Selected by `abortFederationRestore` ([coordinator](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1794)). | Embedded public assertions cover both participants ([failure lifecycle](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L559)); configured-process tests assert the reason under `HLA_IMMEDIATE` ([process abort](../../cpp/tests/ieee1516_2025_connection_restore_abort_immediate_catch2.cpp#L571)) and polling with `HLA_EVOKED` ([reason assertion](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1270)). Each process abort case has one member; multi-member process abort routing and other profile combinations remain untested. |
+
+The exact normative mapping for Restore failure reasons also remains open
+until the applicable licensed 2025 clause text can be checked directly.
+`RestoreStatus` values such as `FEDERATE_RESTORING` describe participant
+progress and are not `RestoreFailureReason` values.
+
 The public ambassador adapter has both embedded and process-endpoint branches.
 Follow the corresponding branch and test family when making a behavior claim;
 do not assume a result in one transport path automatically proves the other.
+
+## Process polling Restore can append a saved interaction beside a live copy
+
+The saved state-image record and the per-session `interactionEvents` queue are
+separate. In polling mode, the Save handler snapshots supported queued
+interactions before requesting registry Save ([capture](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L59)).
+On successful Restore, the handler appends each saved interaction to the
+receiving session's queue ([replay](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L428));
+this path does not clear `interactionEvents`. A later Receive Interaction poll
+pops the queue front and returns it without comparing event identity
+([poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L113)).
+
+The focused private process service/client test consumes the live event after
+the Save image commits and before Restore. That removes the original queue
+entry, so the saved replay is the only event left; the test observes it once
+and then checks that no second event is returned
+([test](../../cpp/tests/process_federation_service_catch2.cpp#L2426)).
+The public in-process case that discards a later interaction destroys the
+source registry and restores into a new registry; it cannot establish how a
+configured-process session queue is reconciled
+([embedded case](../../cpp/tests/public_save_restore_queued_ro_interaction_catch2.cpp#L204)).
+
+If the saved event remains in `interactionEvents` when process Restore
+completes, the current source path leaves that entry in place and appends the
+saved record. Later polls can therefore return both copies. This is a
+source-derived implementation risk, not a test-observed public callback result
+or an HLA Save/Restore rule.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Producer as Producing federate
+  participant Service as Configured-process service
+  participant Registry as Federation registry and save image
+  actor Receiver as Receiving federate
+
+  Producer->>Service: Send ordinary receive-order interaction E
+  Service->>Service: Queue E in receiver interactionEvents
+  Producer->>Service: Request Save
+  Service->>Registry: Capture supported queued E for Save
+  Note over Registry: Save image commits after required participants complete
+
+  alt Receiver polls E after Save commit and before Restore (focused test)
+    Receiver->>Service: receive_interaction()
+    Service-->>Receiver: Return and remove live E
+    Producer->>Service: Complete successful Restore
+    Service->>Registry: Read saved E from restored state
+    Registry-->>Service: Return saved record E
+    Service->>Service: Append restored E to interactionEvents
+    Receiver->>Service: receive_interaction()
+    Service-->>Receiver: Return restored E once
+  else E remains queued when Restore completes (source-derived, untested)
+    Producer->>Service: Complete successful Restore
+    Service->>Registry: Read saved E from restored state
+    Registry-->>Service: Return saved record E
+    Service->>Service: Append restored E while original remains queued
+    loop Later receive polls
+      Receiver->>Service: receive_interaction()
+      Service-->>Receiver: Pop next FIFO entry, no identity deduplication
+    end
+    Note over Service,Receiver: Both entries are available if the original E survives
+  end
+```
 
 ## Focused test evidence
 
@@ -2852,8 +3388,10 @@ do not assume a result in one transport path automatically proves the other.
 | Committed interaction transportation override | [Committed override Restore](../../cpp/tests/ieee1516_2025_public_committed_interaction_transportation_type_override_restore_catch2.cpp#L7) | After fresh-registry Restore, a query and new Send both report/use `BEST_EFFORT`; the test saves after confirmation and does not cover pending-change replay. |
 | Pending interaction transportation change | [Pending-change Restore](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp#L7) | A combined attribute/interaction case observes the pending interaction confirmation after Restore, then queries and sends with the restored type; it is not an isolated interaction-only case. |
 | Save status query snapshots | [Embedded save-control integration](../../cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp#L4) | Under `HLA_IMMEDIATE`, checks both members as `FEDERATE_INSTRUCTED_TO_SAVE`, then both as `FEDERATE_SAVING`, then both as `NO_SAVE_IN_PROGRESS`; not every status or transition. |
-| Process Save callbacks under `HLA_EVOKED` | [Untimed process Save](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L476) | Uses the process service's polling mode: initiation and completion callbacks remain pending after their inducing service calls and are delivered by explicit `evokeCallback`; not `HLA_IMMEDIATE` or pushed-event evidence. |
-| Process Save terminal failure and status response under `HLA_IMMEDIATE` | [One-member failure/status](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp#L459); [multi-member terminal status](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp#L459) | The one-member pushed-event case observes initiation and `federationNotSaved(FEDERATE_REPORTED_FAILURE_DURING_SAVE)`, then queries `NO_SAVE_IN_PROGRESS`. The multi-member case queries from both members and checks both returned status pairs are terminal. Neither covers an active process Save-status snapshot or successful-commit evidence. |
+| Active process Save status query | [Configured-process case](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L2592); [active status assertions](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L2707) | Polling delivery with `HLA_EVOKED`; one-member snapshots check `FEDERATE_INSTRUCTED_TO_SAVE` and `FEDERATE_SAVING`. The case reports participant failure afterward; it does not query a successful terminal Save. |
+| Member departure during active Save | [Outstanding Save failure reason](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L369); [callback-driven failure reason](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L66), [departing-member suppression](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L70), and [active-callback guard](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L55) | Embedded public cases check survivor failure notification and suppress delivery to the departing member; the callback case also checks the callback reentrancy guard and a later successful Save. Neither covers ConnectionLost or configured-process member departure. |
+| Successful configured-process Save callback profiles | [Polling/`HLA_EVOKED`, one member](../../cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp#L476); [pushed/`HLA_IMMEDIATE`, two members](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L422); [pushed/`HLA_EVOKED`, two members](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L435) | Polling/`HLA_EVOKED` observes `federationSaved` after explicit Evoke; pushed/`HLA_IMMEDIATE` checks both members' callback counts after both Complete calls; pushed/`HLA_EVOKED` later checks the saved callbacks after explicit Evokes. No focused successful process Save combines polling with `HLA_IMMEDIATE`; the pushed/`HLA_EVOKED` case is not a callback-count assertion immediately after each Complete call. |
+| Process terminal Save status after failure | [One-member pushed/`HLA_IMMEDIATE`](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp#L459); [two-member polling/`HLA_EVOKED`](../../cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp#L459) | After `federationNotSaved`, the first queries and checks one `NO_SAVE_IN_PROGRESS` status; the second queries from both members and checks both two-member vectors are idle. These failure cases do not establish a status snapshot after successful process Save completion. |
 | Restore status query snapshots | [Active restoring status](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L468); [terminal no-restore status](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L504) | Under `HLA_IMMEDIATE`, checks two active descriptors and the queried member's `FEDERATE_RESTORING` status, then `NO_RESTORE_IN_PROGRESS` and an invalid post-restore handle after completion; not every descriptor value or callback profile. |
 | Reserved object-name ownership survives a fresh-registry restore in the tested profile | [Two-federate public reservation-restore case](../../cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp#L128); [reservation lifecycle sequence](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#a-saved-reservation-remains-attached-to-its-federate-in-the-tested-profile) | The embedded `HLA_IMMEDIATE` case preserves the name with its original federate identity; a peer cannot release or reserve it until the owner releases it, after which the peer succeeds. The new registry is created within one test process, not an OS process restart. This is a bounded implementation/test observation, not a complete normative rule or process/2010 parity claim. |
 | A completed federation save remains restorable after execution destruction and same-name recreation | [Multi-member save and fresh-filesystem-store restore](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L639) | Runs under both callback models. The image appears only after the final participant completes; after all members resign and Destroy succeeds, a new registry sharing the filesystem store creates the same execution, rejoins the compatible members, explicitly restores, and observes `federationRestored` for both. This is a fresh registry in one OS process, not OS-process restart or arbitrary crash recovery; one tested image, not broad state portability or conformance. |
@@ -2875,7 +3413,8 @@ do not assume a result in one transport path automatically proves the other.
 | Durable commit failure becomes a failed federation save | [Save commit failure](../../cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp#L3) | Injected internal storage failure yields an unsuccessful result and `RTI_UNABLE_TO_SAVE`; it is not a storage-engine crash-consistency test. |
 | Internal restore ledger covers a timestamped object deletion across queued and in-transit recipients | [Filesystem payload restore case](../../cpp/tests/ieee1516_2025_federation_registry_timestamped_object_deletion_payload_filesystem_restart_catch2.cpp#L3) | The recorded 2026-10-10 rerun showed registrations #588 and #1708 passing outside the sandbox. The sandboxed direct validator exposed the cause of earlier failures: `std::filesystem::canonical` returned “Access is denied” for the checked-in standard-MIM path. The standalone [FDD materializer test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L372) also passed in that rerun. These are internal registry and validation results, not evidence of OS-process restart or public process-endpoint parity. CTest numbering varies by build. |
 | TSO queued, in-transit, and delivered phases are restored distinctly | [TSO queue phase restore](../../cpp/tests/ieee1516_2025_federation_registry_restore_tso_queue_phase_state_image_catch2.cpp#L3) | Internal state-image evidence for a bounded queue ledger; not proof that every TSO-related callback ledger is restartable. |
-| Process-endpoint success callback path | [Restore success lifecycle under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp#L459) | In a one-member pushed-event scenario, observes restore success/begun/initiate before `requestFederationRestore` returns and `federationRestored` before `federateRestoreComplete` returns; not an HLA_EVOKED, multi-member, or every-transport proof. |
+| Configured-process queued ordinary receive-order replay | [Save queue capture](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L59); [Restore queue reconciliation](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L411); [pushed delivery-ID insertion](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L490); [polling interaction replay](../../cpp/tests/process_federation_service_catch2.cpp#L2426); [pushed attribute-update replay](../../cpp/tests/process_federation_service_catch2.cpp#L2574); [polling attribute-update replay](../../cpp/tests/process_federation_service_catch2.cpp#L2804); [public process-endpoint attribute case](../../cpp/tests/public_save_restore_queued_ro_attribute_update_catch2.cpp#L210); [public embedded discard case](../../cpp/tests/public_save_restore_queued_ro_interaction_catch2.cpp#L204) | Process Save captures supported queued receive-order interactions and attribute updates into the state image. On successful polling Restore, the service clears each member's live attribute-update queue before adding saved updates; pushed attribute updates use `pushDeliveryId` and are sent only when newly inserted. The focused cases observe one replay without an extra delivery. The polling interaction test consumes its live copy before Restore, while the embedded public case destroys its source registry and restores into a new one. Neither establishes the configured-process outcome when the original interaction remains in the session queue. Source flow appends the restored record and the polling handler later pops FIFO entries without identity deduplication, so both copies are available in that case. This is an untested source-derived risk, not a confirmed public callback result or HLA rule. |
+| Process-endpoint successful Restore callbacks | [One-member pushed/`HLA_IMMEDIATE` lifecycle](../../cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp#L561); [two-member pushed/`HLA_IMMEDIATE` lifecycle](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L440); [two-member pushed/`HLA_EVOKED` lifecycle](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L450) | The one-member case observes restore success/begun/initiate before `requestFederationRestore` returns and `federationRestored` before `federateRestoreComplete` returns. The two-member immediate case checks both terminal callback counts after both completion calls; the two-member evoked case checks each terminal callback after explicit Evokes. Polling/`HLA_EVOKED` evidence is listed separately below; no focused process success case combines polling with `HLA_IMMEDIATE`. |
 | Process-endpoint Restore callbacks under `HLA_EVOKED` polling | [Successful Restore lifecycle](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L795); [early request failure](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L663); [multi-member status and lifecycle](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1641) | Configures polling (`ProcessFederationServiceOptions{false}`) and `HLA_EVOKED`: after `federateRestoreComplete` returns, the successful case observes `federationRestored` still pending until explicit Evoke. It does not query object-instance lookup during that interval. The separate two-member case observes per-member restore statuses and callbacks; no 2010 or embedded parity. |
 | Configured-process object lookup before Restore/discovery callback delivery | [Process lookup round trip](../../cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp#L458); [Restore callback window](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L929); [source-order trace above](#configured-process-lookup-state-precedes-deferred-restore-and-discovery-callbacks) | The lookup case checks one registering member's forward/reverse lookup and unknown inputs under both callback models; it does not Restore or use a peer. The Restore case shows `federationRestored` can remain pending after completion, but performs no lookup then. Service sources commit restored/discovered known-object state before deferred callback delivery, so a lookup result in either window remains source-derived and publicly untested. |
 | Pushed process events with an `HLA_EVOKED` callback model | [Queued ownership callback across Save/Restore](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62) | Configures pushed event frames and `HLA_EVOKED`; selected discovery, ownership, and Restore callbacks remain uninvoked through service-level Save/Restore until explicit Evoke. This is one queue-preservation case, not a full transport/callback-model matrix or a general callback-order rule. |
@@ -2883,8 +3422,8 @@ do not assume a result in one transport path automatically proves the other.
 | Eligibility recheck timing for restored ownership-assumption offers | [Embedded fresh-registry Restore](../../cpp/tests/ieee1516_2025_public_ownership_assumption_search_restore_catch2.cpp#L201); [embedded stale-unpublish case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L197); [process restored offer under `HLA_EVOKED`](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L480); [pushed process queue across Save/Restore](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L416) | Embedded rechecks at callback-task execution; configured process checks during event projection/selection before bridge dispatch. The cited tests cover valid Restore delivery and a separate non-Restore embedded stale-unpublish case, but none mutates eligibility after process projection and before public callback entry. No recipient-departure case is asserted for this Restore interval. |
 | Process-endpoint restore status snapshot | [Restore status under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp#L459) | Queries the single member as `FEDERATE_RESTORING` after request acceptance and then observes `federationRestored` after completion; not every status descriptor or callback profile. |
 | Process-endpoint multi-member Restore status snapshots | [Multi-federate Restore status under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp#L534) | Both querying members observe the two-member descriptor vector while both restore, while one waits and the other remains restoring, and after completion with `NO_RESTORE_IN_PROGRESS` and invalid post-restore handles. This is pushed `HLA_IMMEDIATE` evidence, not a full transport/callback-model matrix. |
-| Process-endpoint early request failure | [Restore request failure under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp#L459) | In the one-member pushed-event case, the public request returns normally with `requestFederationRestoreFailed` observed and no success/begun callbacks; not evidence for `HLA_EVOKED` or multi-member rejection timing. |
-| Process-endpoint terminal restore failure | [Restore failure lifecycle under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L459) | After accepted request callbacks, `federateRestoreNotComplete` returns with `federationNotRestored(FEDERATE_REPORTED_FAILURE_DURING_RESTORE)` observed; one-member test evidence only. |
+| Process-endpoint early request failure | [Restore request failure under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp#L544) | In the one-member pushed-event case, the public request returns normally with `requestFederationRestoreFailed` observed and no success/begun callbacks; not evidence for `HLA_EVOKED` or multi-member rejection timing. |
+| Process-endpoint terminal Restore failure and abort | [failure reason under HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp#L573); [polling failure reason under HLA_EVOKED](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1101); [polling abort reason under HLA_EVOKED](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L1270) | After accepted request callbacks, participant failure and abort each produce the asserted `federationNotRestored` reason after the configured-process event is delivered; each cited process case has one member. These tests do not establish multi-member failure/abort distribution or process member-departure behavior. |
 
 **Recorded focused rerun (2026-10-10):** Public fresh-registry cases #210 and
 #216 and internal filesystem registrations #588 and #1708 were reported passing
@@ -2904,6 +3443,175 @@ The internal `[unit]` registry cases above are explicitly implementation
 evidence. Development-profile integration tests and process-endpoint tests
 have their own narrower scopes. None of these tests establishes full 2025
 conformance.
+
+## Process push mode keeps interaction frames outside the service Save queue
+
+This is a configured-process implementation boundary, not an additional HLA
+Save rule. With pushed receive-order events enabled, the service sends an
+ordinary interaction as a `receive_interaction` frame instead of appending it
+to the per-session `interactionEvents` polling queue
+([send route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L595),
+[session queues](../../cpp/src/internal/federation/process_federation_service.hpp#L188)).
+The client buffers that frame in `pendingEvents_`; its callback dispatcher later
+pops the FIFO entry and submits it to the callback bridge
+([frame buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L715),
+[bridge handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L302)).
+Depending on when Save is requested, the event may therefore be in transport,
+the client FIFO, or the callback bridge. These queues have different owners.
+
+The service's Save capture reflects that split. Polling mode serializes queued
+`interactionEvents`. Push mode instead scans `pendingPushedAttributeUpdates`;
+the current interaction send route has no corresponding pending-interaction
+queue to serialize ([polling capture](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L51),
+[push-mode capture](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L122),
+[snapshot inputs](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L179)).
+The process service does not inspect the receiving client's `pendingEvents_` or
+callback bridge queues while building those Save inputs. On Restore, the saved
+interaction replay block appends a returned record to `interactionEvents`; it
+does not send a `receive_interaction` frame from that block
+([Restore replay](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L426)).
+That replay description belongs to the polling path and should not be projected
+onto pushed delivery.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Producer as Producing federate
+  participant Service as Configured-process service
+  participant Image as Federation Save image
+  participant Client as Receiving process client
+  participant Bridge as Callback bridge
+
+  alt Polling receive-order mode
+    Producer->>Service: Send ordinary receive-order interaction E
+    Service->>Service: Enqueue E in interactionEvents
+    Producer->>Service: Request Save
+    Service->>Image: Copy queued E into Save inputs
+    Note over Image: Image commits after the required participants complete
+    Producer->>Service: Complete successful Restore
+    Image-->>Service: Return saved interaction E
+    Service->>Service: Append E to interactionEvents
+    Client->>Service: Poll Receive Interaction
+    Service-->>Client: Return queued E
+  else Pushed receive-order mode
+    Producer->>Service: Send ordinary receive-order interaction E
+    Service-->>Client: Send receive_interaction frame E
+    Client->>Client: Buffer E in pendingEvents_ FIFO
+    Client->>Bridge: Submit E when callback dispatch runs
+    Producer->>Service: Request Save
+    Service->>Image: Capture pending pushed attribute updates
+    Note over Service,Image: No pushed interaction queue enters these Save inputs
+    Note over Client,Bridge: The service Save path does not inspect these client queues
+  end
+```
+
+The existing private process interaction Save/Restore case configures polling
+mode, consumes the live event before Restore, and checks the restored copy
+([case](../../cpp/tests/process_federation_service_catch2.cpp#L2426),
+[polling option](../../cpp/tests/process_federation_service_catch2.cpp#L2439)).
+The pushed process exactly-once case covers attribute reflection, not an
+interaction frame ([case](../../cpp/tests/process_federation_service_catch2.cpp#L2574),
+[push option and callback assertion](../../cpp/tests/process_federation_service_catch2.cpp#L2601)).
+The public queued-interaction Save/Restore case exercises the embedded path,
+not configured-process push mode
+([embedded case](../../cpp/tests/public_save_restore_queued_ro_interaction_catch2.cpp#L35)).
+The targeted test scan found no focused configured-process test for a pushed
+ordinary interaction buffered during Save and Restore. This is an evidence gap;
+it does not establish loss, duplication, or an HLA-wide persistence obligation.
+
+### Frames already buffered at a Save/Restore response boundary
+
+The configured-process Save and Restore client wrappers use the generic
+`request()` helper with its default `dispatchCallbacks = true`
+([Save wrapper](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L239),
+[Restore wrapper](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L331),
+[default](../../cpp/src/internal/federation/process_federation_client.hpp#L1012)).
+While the correlated request is outstanding, `requestDepth_` keeps the
+background dispatch loop from draining `pendingEvents_`; the stream reader can
+still append incoming frames
+([request start](../../cpp/src/internal/federation/process_federation_client.cpp#L838),
+[frame buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L715),
+[dispatch predicate](../../cpp/src/internal/federation/process_federation_client.cpp#L727)).
+
+After the response is matched, the request path releases the depth gate,
+temporarily suppresses the background drain, and asks the requesting thread to
+submit buffered events to the callback bridge in FIFO order
+([response epilogue](../../cpp/src/internal/federation/process_federation_client.cpp#L903),
+[request-owned drain](../../cpp/src/internal/federation/process_federation_client.cpp#L919),
+[FIFO bridge handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L302)).
+That handoff is conditional: `dispatchPendingPushedEvents` returns immediately
+if another thread already owns the client dispatch lease
+([lease check](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L285)).
+When that happens, releasing request-owned suppression wakes the regular
+dispatch loop, but the Save/Restore wrapper does not wait for that other thread
+to finish handing off every frame. Do not turn the request helper's
+drain-before-return intent into a universal callback-before-return guarantee.
+
+When the request-owned drain submits a receive-order interaction, the callback
+bridge sends its task to the shared dispatcher. `HLA_IMMEDIATE` can run that
+task during submission when the dispatcher is enabled and available; another
+active immediate drainer can leave it queued behind that drainer. Under
+`HLA_EVOKED`, the task waits for explicit Evoke
+([bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1378),
+[dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L135),
+[Evoke path](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156)).
+
+Dispatcher admission is not the last gate for a process receive-order
+interaction. When its task reaches the callback session, the bridge checks its
+separate receive-order timing state. If the receiver is time constrained while
+asynchronous delivery is disabled and no time advance is pending, the bridge
+retains the application callback in its deferred queue; enabling asynchronous
+delivery or starting a time advance can release eligible work
+([gate state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1201),
+[check before callback](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1495),
+[release on enable](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1521),
+[release on a pending advance](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1544)).
+So even an available `HLA_IMMEDIATE` dispatcher can defer public callback entry
+past the Save/Restore request epilogue. The [Time Management guide's
+configured-process receive-order gate](HLA-2025-TIME-MANAGEMENT-GUIDE.md#configured-process-receive-order-interaction-gate)
+traces that independent timing condition.
+
+Any lifecycle frames already read into `pendingEvents_` share its FIFO with the
+interaction. That is process-stream arrival order, not a normative HLA callback
+ordering rule. For the related request-response callback example and its
+exception boundary, see the [Callback and Service Ordering guide's mutating
+Synchronization Point Achieved path](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#mutating-process-wrapper-final-synchronization-point-achieved).
+
+```mermaid
+flowchart TD
+  A[Save or Restore request outstanding: requestDepth blocks background draining] --> B[Frame E arrives before response and enters pendingEvents_]
+  B --> C[Correlated response matched; requestDepth released]
+  C --> D[Background drain suppressed while request thread tries to take the dispatch lease]
+  D --> E{Lease available?}
+  E -->|Yes| F[Request thread drains the FIFO to the callback bridge]
+  E -->|No| G[Request thread returns without draining]
+  G --> H[Suppression ends; regular client dispatch resumes]
+  F --> I{Dispatcher model and state}
+  H --> I
+  I -->|HLA_IMMEDIATE; drainer available| J[Dispatcher task may run in request epilogue]
+  I -->|HLA_IMMEDIATE; another drainer active| K[Task waits behind the active drainer]
+  I -->|HLA_EVOKED| L[Task waits for explicit Evoke]
+  J --> M{Receive-order timing gate open?}
+  K --> M
+  L --> M
+  M -->|Yes| N[Application callback may enter]
+  M -->|No| O[Bridge defers callback until timing eligibility changes]
+```
+
+The nearby pushed receive-order tests exercise the timing and callback-model
+pieces separately from Save/Restore interleaving. With the receiver constrained
+and a time advance pending, the `HLA_IMMEDIATE` case checks the callback count
+after an unrelated class lookup; the `HLA_EVOKED` case performs the lookup,
+then explicitly Evokes before checking the count
+([immediate](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L317),
+[evoked](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L327)).
+Separate Save/Restore tests check pushed lifecycle callbacks under
+`HLA_IMMEDIATE` and polling lifecycle callbacks under `HLA_EVOKED`
+([pushed immediate Restore](../../cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp#L562),
+[polling evoked Restore](../../cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp#L918)).
+None combines an ordinary pushed interaction already buffered at a Save/Restore
+response with lifecycle frames in that same client FIFO. The cross-case remains
+unverified; no callback order or delivery count is inferred.
 
 ## What this guide does not claim
 

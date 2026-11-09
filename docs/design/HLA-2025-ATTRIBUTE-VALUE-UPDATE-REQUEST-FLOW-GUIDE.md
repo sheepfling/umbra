@@ -200,7 +200,7 @@ which traces receiver reflections separately from provider `provideAttributeValu
 callbacks.
 The source/test boundary is visible in the [process Provide callback
 submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1808),
-[process interaction gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1166),
+[process interaction gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1206),
 [regional process RAVU case](../../cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp#L933),
 [timestamped regional RAVU case](../../cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp#L128),
 and [process asynchronous-delivery interaction case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75).
@@ -696,7 +696,7 @@ source boundary: this trace shows no later owner check, but it does not prove
 whether a particular interleaving delivers or suppresses the callback
 ([pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L210),
 [push route](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L458),
-[client pending-event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L393),
+[client pending-event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L389),
 [client callback dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L33),
 [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1471),
 [ownership handlers](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L698)).
@@ -969,7 +969,7 @@ the MOM snapshot or ordinary owner planner ([handler](../../cpp/src/internal/fed
 For ordinary objects, each provider event carries the original request tag;
 the callback bridge reconstructs the public handles and invokes
 `provideAttributeValueUpdate` ([event creation](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L159),
-[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L370)).
+[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L371)).
 The later provider response is a separate update service and carries its own
 tag ([process update handler](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L16)).
 
@@ -980,8 +980,8 @@ falling through to the ordinary object planner
 [ordinary owner planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L393)).
 The callback bridge turns ordinary request events into `provideAttributeValueUpdate`
 and later value events into `reflectAttributeValues`
-([Provide delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L370),
-[reflection delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L261)).
+([Provide delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L397),
+[reflection delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362)).
 The ordinary process test exercises the full selected chain under both
 `HLA_EVOKED` and `HLA_IMMEDIATE`: it observes the request-tagged Provide
 callback, sends a later value-bearing update, and checks the requester's
@@ -1223,7 +1223,7 @@ assumption work, not RAVU.
 Source pointers: [pull receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240),
 [Restore event routing](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481),
 [RAVU event routing](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375),
-[client event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L385),
+[attribute-value-request event enqueue](../../cpp/src/internal/federation/process_federation_client.cpp#L398),
 [client FIFO dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274),
 [callback dispatcher FIFO](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
 and the analogous [pushed `HLA_EVOKED` Save/Restore test](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62).

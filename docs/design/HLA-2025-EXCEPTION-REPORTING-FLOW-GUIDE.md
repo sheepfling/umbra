@@ -271,21 +271,26 @@ back through this same hook call is caught here.
 
 The configured-process exception-report request makes this distinction
 especially important. [`reportServiceException`](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L591)
-sets callback draining off and best-effort reporting on. The client request
-releases its request-depth lease before waiting for the report response
-([request path](../../cpp/src/internal/federation/process_federation_client.cpp#L848));
-it only drains pushed callbacks when that flag is enabled
-([dispatch gate](../../cpp/src/internal/federation/process_federation_client.cpp#L917)).
-A pushed event is buffered by the stream reader and handled by the independent
-[callback dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722).
-The process service sends an eligible pushed event before returning the report
-response in its [exception-report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L94).
+sets callback draining off and best-effort reporting on. The client keeps its
+request-depth lease while waiting for the correlated response, then releases
+the lease and exchange lock after a match
+([request entry](../../cpp/src/internal/federation/process_federation_client.cpp#L547) and [depth increment](../../cpp/src/internal/federation/process_federation_client.cpp#L568),
+[matched-response release](../../cpp/src/internal/federation/process_federation_client.cpp#L610),
+[exchange unlock](../../cpp/src/internal/federation/process_federation_client.cpp#L618)).
+Because this report request disables callback draining, it skips the
+request-owned event drain
+([dispatch flag gate](../../cpp/src/internal/federation/process_federation_client.cpp#L620)).
+The independent [background dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722)
+can process a buffered event after request depth and callback-dispatch
+suppression are clear. The process service sends an eligible pushed event
+before returning the report response in its
+[exception-report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L94).
 If the reporter is also an eligible recipient and its `HLA_IMMEDIATE` callback
 throws, that loop saves the exception in the client's pending-callback slot;
 it does not unwind through `emitExceptionReport`.
 
 The next process request rethrows that pending exception before sending
-([pending-exception rethrow](../../cpp/src/internal/federation/process_federation_client.cpp#L817)).
+([pre-request rethrow check](../../cpp/src/internal/federation/process_federation_client.cpp#L551) and [rethrow implementation](../../cpp/src/internal/federation/process_federation_client.cpp#L755)).
 In the [`Get Object Class Handle` wrapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98),
 that next request can be the catch-body's failed-service-report request. Its
 [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L273)
@@ -549,6 +554,24 @@ invocation writer; its independent Service Reporting switch and sink can
 therefore make a third report attempt (`HLAreportServiceInvocation` or a file
 record). No cited test observes all three routes for one failed call.
 
+These hook calls do not guarantee that every planned observer gets a task.
+Each embedded report hook submits recipients in a loop, and both hook methods
+are `noexcept`. With `HLA_IMMEDIATE`, submission may enter an observer's
+`receiveInteraction` inline. If that callback throws, the dispatcher consumes
+the active task and rethrows; the report hook catches the failure, so the
+recipient loop stops before later planned recipients are submitted. Earlier
+callback effects are not rolled back. The outer `Send Interaction` catch then
+continues to its next report hook and the failed-invocation writer. With
+`HLA_EVOKED`, submission queues the report tasks without entering user code;
+a callback exception can surface later from the Evoke call instead. The focused
+MOM-report tests use non-throwing observers and do not test this partial-fan-out
+boundary. This is source-derived behavior, not a normative callback-order rule.
+See the [embedded catch order](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2395),
+[general report recipient loop](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L61),
+[MOM report recipient loop](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L141),
+[no-throw report hooks](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L185),
+and [dispatcher callback boundaries](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L238).
+
 The configured-process pushed receive-order route exposes two separate
 timelines. In the focused case's push-enabled server, the server plans the
 eligible `HLAreportMOMexception`, pushes its event, and then returns the
@@ -573,8 +596,13 @@ flowchart TD
   A[Send Interaction targets a recognized MOM class] --> B{RTI rejects the request?}
   B -->|No| C[This MOM-rejection reporting path does not run]
   B -->|Yes| D{2025 implementation path}
-  D -->|Embedded| E[Catch attempts HLAreportMOMexception]
-  E --> F[Catch invokes HLAreportException hook separately]
+  D -->|Embedded| E[Catch enters no-throw HLAreportMOMexception hook]
+  E --> E1[Submit one callback task per planned recipient]
+  E1 --> E2{Immediate receiveInteraction callback throws?}
+  E2 -->|Yes| E3[Hook contains the exception;<br/>later MOM recipients are not submitted]
+  E2 -->|No, or HLA_EVOKED| E4[Hook returns;<br/>evoked callbacks remain queued]
+  E3 --> F[Outer catch continues to the separate HLAreportException hook]
+  E4 --> F
   F --> G{Exception Reporting enabled and recipient eligible?}
   G -->|Yes| H[HLAreportException may also be routed]
   G -->|No| I[No general exception report; MOM route remains independent]
@@ -599,7 +627,7 @@ exercise the MOM-report path, not a combined two-report case. The latter uses
 `HLA_EVOKED`, enables pushed receive-order events, asserts `RTIinternalError`,
 then calls `evokeCallback` and checks the single `HLAreportMOMexception`.
 Source links show the [server event-before-response path](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L342),
-[client request-side event dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L808),
+[client request-side event dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L622),
 [non-OK response mapping](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L13),
 and [public adapter boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L124).
 The test does not subscribe to or assert `HLAreportException`; the separate
@@ -696,6 +724,8 @@ interleaving or callback scheduler has identical behavior.
   lifecycle; use its [three-trace comparison](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report).
 - Focused MOM tests do not cover every MOM interaction family, malformed
   encoding, rejection policy, remote failure, or all concurrency schedules.
+  In particular, they do not assert recipient fan-out when an immediate report
+  callback throws.
 - Callback ordering observed in the tests is Umbra behavior for those cases;
   it is not presented here as a universal normative ordering guarantee.
 - The 2010 reference RTI has its own [separate bounded flow guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md).
@@ -703,11 +733,11 @@ interleaving or callback scheduler has identical behavior.
 - No Requirements Lab rows were edited or added for this documentation work.
   This guide neither changes requirement mappings nor establishes conformance.
 
-Before calling this guide visually reviewed, render each Mermaid diagram with
-GitHub's Markdown/Mermaid renderer or an approved local renderer. Static link
-and fence checks alone do not verify diagram layout. Continue the collection
-with the next distinct high-value behavior area in
-[the flow-guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md), without crossing the
-2010/2025 boundary.
+All seven diagrams in this guide have local render and screenshot evidence
+matched to their current bodies in the [visual-review ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json). GitHub file-page hydration
+remains unverified while the candidate is unpublished. Static link and fence
+checks alone do not verify diagram layout. Continue the 2025-only semantic
+review through the active documentation handoff; the configured-process
+ConnectionLost/reconnect audit waits for the in-progress client edits to settle.
 
 [^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.

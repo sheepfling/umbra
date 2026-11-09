@@ -1,14 +1,14 @@
 {
   "title": "IEEE 1516.1-2025 hosted documentation source-link dependencies and migration review",
-  "snapshot_date": "2026-11-07",
+  "snapshot_date": "2026-11-08",
   "hosted_ref": "origin/feature/initial-work",
   "hosted_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
   "local_head_revision": "e6321e842f333427349166df8c5b35350a2ae473",
   "local_commits_ahead_of_hosted": 3,
-  "guide_markdown_sources_checked": 34,
-  "unique_source_line_references": 4192,
+  "guide_markdown_sources_checked": 35,
+  "unique_source_line_references": 4370,
   "worktree": {
-    "resolved_references": 4192,
+    "resolved_references": 5662,
     "unresolved_references": 0,
     "unresolved_targets": 0
   },
@@ -76,19 +76,19 @@
       "2025 process transport message-history bounds, replay gaps, and byte-limit test citations",
       "2025 embedded authorization shared-provider loader"
     ],
-    "note": "The 56 semantic source-target migration reviews remain preserved as historical review evidence. After the docs-only citation cleanup, all 4,192 current Markdown source-line references resolve against both candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180 and source revision e6321e842f333427349166df8c5b35350a2ae473. Current-only evidence with no hosted source equivalent is kept as explicitly labeled plain text; no code or test targets need to be included to close Markdown links."
+    "note": "The 56 source-target migration reviews remain preserved as historical evidence about cross-revision path and line availability; they do not establish claim support for every guide citation. The increment-316 checker resolves 4,332/4,332 unique relative Markdown source-line references in the worktree, candidate base, and primary source revision."
   },
   "failure_target_details": [],
-  "scope_note": "Counts cover relative Markdown source-line links only; immutable external GitHub permalinks are excluded and should be verified separately at their pinned commit and line. Each destination_line is a target source line; guide_lines locate the Markdown links. unresolved_on distinguishes hosted and local HEAD. Preserve unrelated staged and unstaged work.",
-  "refresh": "2026-11-07 latest candidate verification: after removing current-only Markdown source links, 4,192/4,192 source-line references resolve against the candidate worktree, pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and source revision e6321e842f333427349166df8c5b35350a2ae473. The exact docs-only selection is 40 paths (32 guides plus eight support assets); 48 unrelated non-documentation changes remain outside it. Authenticated GitHub GFM returned 34/34 pages with 490/490 Mermaid containers and no API/count mismatch. The earlier 131-reference migration snapshot and its 56 semantic reviews are retained for history. No 2010 or Requirements Lab paths are selected. The candidate branch is unpublished; page rendering and Mermaid hydration remain open.",
+  "scope_note": "Counts cover relative Markdown source-line links across 35 IEEE 1516.1-2025 Markdown files: 5,660 link occurrences and 4,369 unique path/line/guide references. All unique references resolve at the current worktree, pinned candidate base, and primary source revision. Immutable GitHub permalinks are counted and checked separately. These checks establish target path and line existence only, not semantic support for surrounding claims. Preserve unrelated staged and unstaged work.",
+  "refresh": "2026-11-08 increment 319: the source-line checker resolves 4,370/4,370 unique relative path/line/guide references across 35 IEEE 1516.1-2025 Markdown files in the candidate worktree, at pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at source revision e6321e842f333427349166df8c5b35350a2ae473; these represent 5,662 Markdown link occurrences. The immutable permalink audit remains 148 occurrences (102 unique path/line pairs across 40 targets), with zero missing lines. The authenticated GFM pass covers all 35 pages with 498/498 Mermaid containers, 979 headings, 7,663 links, and zero failures. The docs-only selection remains 41 paths (32 guides plus nine support/handoff assets); 48 unrelated non-documentation changes remain excluded. Published GitHub file-page hydration remains unverified; these checks do not establish semantic support.",
   "candidate_assembly": {
-    "status": "committed locally as a 40-path docs-only candidate; not published",
+    "status": "44-path 2025-only documentation candidate with current source-link, diagram-ledger, and GFM audit updates; unpublished.",
     "target_base_ref": "origin/feature/initial-work",
     "target_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
     "candidate_worktree": "C:/Users/peanu/GIT/sheepfling/umbra-hla2025-docs-candidate",
     "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-    "candidate_documentation_path_count": 40,
+    "candidate_documentation_path_count": 44,
     "included_guide_count": 32,
     "documentation_support_assets": [
       "docs/design/HLA-BEHAVIOR-FLOW-GUIDES.md",
@@ -98,10 +98,14 @@
       "docs/design/HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json",
       "docs/design/HLA-2025-THEMATIC-READING-PATHS.md",
       "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ROADMAP-HISTORY-2026-11-07.md",
+      "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+      "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-07.md",
+      "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-08.md",
+      "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-09.md",
       "docs/planning/ROADMAP-INDEX.json (documentation handoff only)"
     ],
-    "source_line_references": 4192,
-    "candidate_link_check": "4,192/4,192 path/line/guide references resolve in the worktree and against the pinned hosted base.",
+    "source_line_references": 5960,
+    "candidate_link_check": "The checker resolves 4,591/4,591 unique relative source-line references (5,960 link occurrences) across 35 IEEE 1516.1-2025 Markdown files at the candidate worktree, pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and source revision e6321e842f333427349166df8c5b35350a2ae473. No line references are unresolved. The separate immutable permalink audit remains historical and is not included in this refreshed count.",
     "selected_current_source_target_count": 0,
     "unrelated_non_documentation_changes_present_but_excluded": 48,
     "selected_non_documentation_paths": 0,
@@ -114,17 +118,10 @@
     ],
     "selected_requirements_lab_paths": 0,
     "selected_2010_paths": 0,
-    "github_markdown_api": {
-      "markdown_pages_checked": 34,
-      "guide_pages_checked": 32,
-      "mermaid_fences": 490,
-      "mermaid_containers": 490,
-      "headings": 930,
-      "rendered_links": 7381,
-      "failures_or_mismatches": 0
-    },
-    "external_publish_status": "Candidate branch is absent remotely. Wait for explicit publication authorization; actual GitHub page rendering remains open.",
-    "next": "After explicit publication authorization, push only the candidate branch to its own remote branch, then inspect all 32 GitHub pages and Mermaid hydration. The local branch tracks origin/feature/initial-work, so use an explicit destination ref."
+    "github_markdown_api": "Authenticated GitHub GFM pass for increment 354 checked all 38 scoped Markdown pages: 32 topic guides and six supporting pages. All 38 returned nonempty HTML; all 507 source Mermaid fences produced Mermaid containers; 1,028 headings and 7,992 links were present, with zero failures or diagram-count mismatches. This verifies GFM parsing and container registration, not visible hydration or link destinations on published GitHub pages. The candidate branch is unpublished. Visible Mermaid hydration and link destinations on the 32 published guide pages remain unverified.",
+    "external_publish_status": "Candidate branch is absent remotely; after publishing, inspect all 32 GitHub guide pages for visible Mermaid hydration and link destinations.",
+    "next": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
+    "documentation_support_asset_count": 12
   },
   "previous_migration_snapshot": {
     "snapshot_date": "2026-11-07 before docs-only citation cleanup",
@@ -188,6 +185,7 @@
         "disposition": "Retargeted both current-worktree catalog citations to the mapped scenario records; the old in-range anchors landed in unrelated scenarios. The scenario IDs exist on HEAD/hosted, but the current clause mappings do not.",
         "evidence_note": "The current additional-module-Join scenario begins at line 81825 and its requirement_mappings begin at line 81858, mapping selected evidence to §§4.1.4, 4.1.4.1, and 4.11. HEAD/hosted contain the same scenario ID near line 56598 but have no standard_sections or requirement_mappings for it. The current closest-ancestor scenario begins at line 98433 and its requirement_mappings begin at line 98475: ordinary receive-order and parameter projection map to §5.10, while closest-ancestor selection maps to §6.1.9. HEAD/hosted only map that scenario to §6.1.9. The previous current anchors 81203 and 97719 landed in unrelated catalog records; both guides now link directly to the intended current mapping fields."
       },
+      "worktree_only_ddm_catalog_records": "The DDM guide identifies current-worktree records without direct catalog line links and marks them with the worktree-source footnote. The records are cpp-tck.regional-object-attribute-dimension-inheritance at L54619, cpp-tck.regional-object-attribute-default-region-fdd-dimensions at L54743, cpp-tck.regional-object-attribute-unspecified-dimension-default-range at L54836, cpp-tck.regional-object-attribute-excluded-dimension-not-realized at L54929, and cpp-tck.regional-interaction-partial-default-range at L57140. These IDs are absent from the hosted base and HEAD; the catalog is excluded from the docs-only publication set.",
       "references": [
         {
           "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
@@ -256,8 +254,8 @@
         "head": 1120,
         "worktree": 1249
       },
-      "hosted_unresolved_references": 2,
-      "head_unresolved_references": 2,
+      "hosted_unresolved_references": 1,
+      "head_unresolved_references": 1,
       "migration_review": {
         "status": "reviewed",
         "disposition": "The committed planner validates the regional request against class-wide dimensions; the current planner resolves dimension context per requested attribute before validating its regions and entering provider planning. Keep the current-source link for this implementation-specific preflight and retain the separate portable TCK evidence for inherited-attribute request admission.",
@@ -275,18 +273,6 @@
             "hosted",
             "HEAD"
           ]
-        },
-        {
-          "path": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
-          "destination_line": 1159,
-          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
-          "guide_lines": [
-            535
-          ],
-          "unresolved_on": [
-            "hosted",
-            "HEAD"
-          ]
         }
       ]
     },
@@ -298,27 +284,14 @@
         "head": 895,
         "worktree": 1061
       },
-      "hosted_unresolved_references": 1,
-      "head_unresolved_references": 1,
+      "hosted_unresolved_references": 0,
+      "head_unresolved_references": 0,
       "migration_review": {
         "status": "reviewed",
-        "disposition": "Kept both attribute-scoped overlap helpers at current-source lines 882 and 929 because they have no committed equivalent. Line 882 is in range at HEAD but points to unrelated code there; line 929 is beyond the committed file.",
-        "evidence_note": "In the worktree, objectAttributeRegionsOverlap at L882 and objectAttributeRegionOverlapsDefault at L929 both obtain availableObjectClassAttributeDimensions for the target attribute, then realize one or both regions before overlap evaluation. These functions and the attribute-dimensions helper are absent from HEAD and hosted source (895 lines). The guide citations are correct for the current source and intentionally remain current-only; the checker cannot detect the L882 semantic mismatch at HEAD because that line number is in range."
+        "disposition": "Classified the current-worktree attribute-scoped realization and overlap helpers as non-linked evidence because they have no committed equivalent. Reanchored class-availability and generic-overlap citations to their committed definitions; the DDM guide footnotes the current-worktree-only behavior.",
+        "evidence_note": "The worktree adds realizeRegionForAvailableDimensions at L631, availableObjectClassAttributeDimensions at L703, objectAttributeRegionsOverlap at L882, and objectAttributeRegionOverlapsDefault at L929. These helpers are absent from HEAD and hosted source (895 lines). The DDM guide no longer links to those current-only locations; it labels their behavior with the worktree-source footnote. Its committed-source citations now target availableObjectClassDimensions at L631, regionsOverlap at L677, regionSnapshotsOverlap at L719, and regionOverlapsDefault at L769. The current-source line L929 previously linked from the guide and was removed."
       },
-      "references": [
-        {
-          "path": "cpp/src/internal/federation/federation_registry_regions.cpp",
-          "destination_line": 929,
-          "guide": "HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
-          "guide_lines": [
-            536
-          ],
-          "unresolved_on": [
-            "hosted",
-            "HEAD"
-          ]
-        }
-      ]
+      "references": []
     },
     {
       "path": "cpp/src/internal/federation/process_federation_client.cpp",
@@ -2652,5 +2625,16 @@
         }
       ]
     }
-  ]
+  ],
+  "external_pinned_permalink_line_check": {
+    "as_of": "2026-11-08 increment 324",
+    "revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "occurrences": 149,
+    "unique_path_line_references": 102,
+    "unique_targets": 40,
+    "missing_targets_or_out_of_range_lines": 0,
+    "result": "passed",
+    "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
+  },
+  "documentation_support_asset_count": 12
 }

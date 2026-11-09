@@ -389,7 +389,7 @@ Connect attaches the process bridge to the shared dispatcher at
 and installs the replacement session at
 [commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L266).
 The old [client close](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L647)
-closes its bridge, whose [cleanup](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2403)
+closes its bridge, whose [cleanup](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415)
 calls [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110),
 which clears pending tasks. The process Connect/Disconnect case has no queued
 callback ([test](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L54));
@@ -480,7 +480,7 @@ Umbra implementation:
 - [Callback-session close and in-flight invocation wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35)
  - Process client teardown: `close()`[^worktree-source] interrupts the active and recovery-attempt
    connections, joins the stream-reader, heartbeat, and callback-dispatch threads,
-   clears the client queues, then closes the bridge. [Bridge cleanup](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2403)
+   clears the client queues, then closes the bridge. [Bridge cleanup](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415)
    cancels pending tasks and resets the shared dispatcher ([dispatcher reset semantics](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110)).
 - [Connect installs a callback session and replaces a retained process client](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L263)
 - [Process transport service-operation enum](../../cpp/src/internal/federation/transport_service_protocol.hpp#L21); it has no public Disconnect request operation.

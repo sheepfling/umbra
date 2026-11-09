@@ -295,8 +295,8 @@ Save/Restore guide's [configured-process ordering chart](HLA-2025-FEDERATION-SAV
 shows the discovery and Restore callback windows together. Sources:
 [process discovery commit](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L54),
 [event queue/send](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L183),
-[client event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L741),
-[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1912),
+[client event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L451),
+[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1924),
 [embedded callback-time commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L274).
 
 ### Restore rebinds object identity but lookups remain member-local
@@ -351,82 +351,92 @@ internal conversion helpers preserve the category at the boundary while using
 a private numeric value in the embedded registry. That representation is an
 implementation detail, not a cross-execution identity contract.
 
-Select the decoder for the handle category. The 2025 handle encoding carries a
-category discriminator, and the selected RTIambassador decoder validates it
-before constructing the requested C++ type. The encoding on a public handle is
-separate from DataElement serialization, FOM XML materialization, and RTI
-transport framing; none of those boundaries should be inferred from the
-handle's private numeric representation. See the [Data Element encoding
-guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#pick-the-representation-boundary-before-reasoning-about-bytes)
+Select the typed decoder whose return class you intend to construct, but do not
+mistake that C++ type for a category tag carried in the bytes. The current 2025
+handle encoding has no category discriminator. In the embedded service path,
+connection and membership checks run first; the selected typed decoder then
+checks the array shape and count and constructs the requested handle class. The
+reviewed source does not validate that the numeric value belongs to that handle
+category, and the focused tests do not cover cross-kind input. This is an
+implementation observation, not a normative rule or a process-endpoint parity
+claim. Public handle encoding is also separate from DataElement serialization,
+FOM XML materialization, and RTI transport framing. See the [Data Element
+encoding guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#pick-the-representation-boundary-before-reasoning-about-bytes)
 for value-codec byte-order rules.
 
 ```mermaid
 flowchart TB
     A["AttributeHandle"] --> B["encode()"]
-    B --> C["VariableLengthData bytes"]
+    B --> C["12 bytes<br/>eight-byte value; no category tag"]
     C --> D["RTIambassador.decodeAttributeHandle(...)"]
     D --> E{"Connected?"}
     E -->|No| F["NotConnected"]
     E -->|Yes| G{"Joined to an execution?"}
     G -->|No| H["FederateNotExecutionMember"]
-    G -->|Yes| I{"Shape and handle kind valid?"}
+    G -->|Yes| I{"Non-null?<br/>Length 12?<br/>Array count is 8?"}
     I -->|No| J["CouldNotDecode"]
-    I -->|Yes| K["AttributeHandle result"]
-    A --> L["hash()"]
-    L --> M["May collide<br/>not portable identity"]
+    I -->|Yes| K["Construct AttributeHandle from value"]
+    K --> L["No category check in byte decoder"]
+    A --> M["hash()"]
+    M --> N["May collide<br/>not portable identity"]
 ```
 
 ### Current Umbra 2025 byte layout (implementation evidence only)
 
 The public API exposes handle `encode()` and typed RTIambassador decoder
-services. It does not make Umbra's private numeric identity layout part of the
-handle class declaration. In Umbra's current 2025 implementation, the separate
-handle classes share an `HLAvariableArray` wrapper containing nine `HLAbyte`
-elements: a stable handle-kind discriminator and the eight-octet identity. For
-an embedded `ObjectClassHandle` identity of `0x0102030405060708`, the focused
-byte-vector test observes:
+services. The handle class declaration does not expose Umbra's private numeric
+identity layout. In the current 2025 implementation, every handle kind uses
+the same 12-byte `HLAvariableArray` shape: a four-octet big-endian count of
+eight `HLAbyte` elements, followed by the eight-octet identity in big-endian
+order. For an embedded `ObjectClassHandle` identity of
+`0x0102030405060708`, the focused byte-vector test observes:
 
 ```text
-00 00 00 09 | 02 | 01 02 03 04 05 06 07 08
-└─ count ───┘  │    └─ eight identity octets ─┘
-  uint32 BE    kind      uint64 BE
+00 00 00 08 | 01 02 03 04 05 06 07 08
+└─ count ───┘  └── eight identity octets ──┘
+  uint32 BE       uint64 BE
 ```
 
 | Bytes | Meaning in this Umbra 2025 implementation |
 | --- | --- |
-| `00 00 00 09` | `HLAinteger32BE` element count: nine `HLAbyte` values follow. |
-| `02` | Stable Umbra discriminator for `ObjectClassHandle`. |
+| `00 00 00 08` | `HLAinteger32BE` element count: eight `HLAbyte` values follow. |
 | `01 02 03 04 05 06 07 08` | Eight-octet identity, big endian in this implementation. |
 
-The typed decoder accepts exactly thirteen octets and requires both the count
-and handle-kind discriminator to match; malformed shape, count, or kind
-produces `CouldNotDecode`. The buffer overload requires a non-null destination
-with at least thirteen writable bytes. The explicit kind-code assignments are
-intended to be shared by Umbra's future language bindings; cross-API
-reconstitution has not yet been tested. These are source-observed Umbra 2025
-rules, not a promise that another RTI or edition uses these exact identity
-bytes. Keep them opaque and call the matching typed decoder. This is handle
-encoding, not serialization of an object-instance name or its string value;
-object-instance visibility remains a separate
+The typed decoder requires non-null data, exactly twelve octets, and a count
+of eight; invalid shape produces `CouldNotDecode`. The buffer encoder requires
+a non-null destination with at least twelve writable bytes.
+There is no handle-kind field to validate. The separate C++ handle classes
+provide compile-time categories once constructed, but the byte sequence is not
+self-describing: the selected typed decoder determines the returned class. A
+zero identity constructs an invalid handle. These are source-observed 2025
+implementation details, not a normative encoding claim or cross-API promise.
+Keep encoded bytes opaque and use the decoder for the intended handle category.
+This is handle encoding, not serialization of an object-instance name or its
+string value; object-instance visibility remains a separate
 [federate-local lookup boundary](#4-object-instance-lookup-is-federate-local-knowledge).
 
 The pinned [2025 handle declaration](../../third_party/ieee1516.1-2025/include/RTI/Handle.h#L16)
-provides the distinct classes and encoding operations. Umbra's [2025 typed
-handle codec](../../cpp/src/internal/handles/handle_variable_array_encoding.hpp)
-spells out the HLAvariableArray count, stable type code, and identity. The
-[2025 handle definition](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
-uses it for the typed classes, while the [2010 handle codec](../../cpp/src/internal/handles/handle_variable_array_encoding_2010.hpp)
-retains its independent legacy wire format. The exact `ObjectClassHandle` vector, output
-buffer checks, and round trip are in its [focused test](../../cpp/tests/object_class_handle_catch2.cpp#L43);
-the [public RTIambassador decode case](../../cpp/tests/ieee1516_2025_federation_management_catch2.cpp#L141)
-round-trips eight handle categories after Join and checks connection and
-membership preconditions. The current worktree's promoted cross-federate
-handle-parameter TCK checks byte preservation, typed reconstitution, and
-rejection by a different handle decoder. Its source,
-`packages/hla-rti-cpp-tck/src/tck_handle_encoding_mim_types.cpp`, is not part
-of the documentation-only candidate. A separate [MessageRetractionHandle vector and wrong-count
-case](../../cpp/tests/message_retraction_handle_catch2.cpp#L19) checks another
-typed handle and a malformed element count.
+provides distinct classes and encoding operations. The [2025 handle adapter](../../cpp/src/internal/handles/handle_variable_array_encoding.hpp)
+and [typed class definition](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
+use the common private [count-and-identity byte helper](../../cpp/src/internal/encoding/handle_variable_array.hpp#L15).
+Umbra's separate [2010 adapter](../../cpp/src/internal/handles/handle_variable_array_encoding_2010.hpp)
+also delegates to this byte helper. This is narrow code reuse at the encoding
+layer, not shared public classes, exception behavior, or RTI-stream behavior. The exact `ObjectClassHandle` vector, output
+buffer checks, and matching-type round trip are in its [focused test](../../cpp/tests/object_class_handle_catch2.cpp#L43).
+The [public RTIambassador decode case](../../cpp/tests/ieee1516_2025_federation_management_catch2.cpp#L141)
+round-trips eight matching handle categories and checks connection and
+membership preconditions. Those tests do not check cross-kind input.
+
+The current worktree contains an untracked helper in
+`packages/hla-rti-cpp-tck/src/tck_handle_encoding_mim_types.cpp` that expects
+wrong-type decoding to raise `CouldNotDecode`. A search of that TCK tree finds
+the helper definition but no caller, so it is not established test evidence and
+is outside this documentation-only candidate. Its expected rejection is also
+not shown by the source-reviewed byte decoder, which has no category field.
+Keep cross-kind decoding unresolved until the scenario is integrated and its
+implementation path is reconciled. A separate [MessageRetractionHandle vector
+and wrong-count case](../../cpp/tests/message_retraction_handle_catch2.cpp#L19)
+checks another typed handle and malformed array shape.
 
 ### FOM handle uniqueness and bounded repeatability
 
@@ -765,8 +775,9 @@ Normative/API references:
 
 Umbra implementation paths:
 
-- [Shared 2025 HLAvariableArray handle codec](../../cpp/src/internal/encoding/handle_variable_array.hpp#L15)
-- [Shared typed 2025 handle implementation](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
+- [2025 handle-value adapter](../../cpp/src/internal/handles/handle_variable_array_encoding.hpp)
+- [Common HLAvariableArray count-and-identity helper](../../cpp/src/internal/encoding/handle_variable_array.hpp#L15)
+- [Typed 2025 handle definitions](../../cpp/src/internal/handles/2025_handle_definition.hpp#L17)
 - [Public handle-decoder service preconditions](../../cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp#L16)
 
 - [Object-class name/handle lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L17)

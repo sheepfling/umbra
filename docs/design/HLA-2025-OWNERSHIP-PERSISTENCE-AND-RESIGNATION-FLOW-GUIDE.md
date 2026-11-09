@@ -246,7 +246,7 @@ process/embedded parity, 2010 behavior, or a normative ordering guarantee.
   Divestiture notifications likewise require a live recipient
   ([lines 794–829](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L794)).
 - **Process callback mapping and restore enqueue boundary:** the
-  [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L501) maps an
+  [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L502) maps an
   ownership-assumption event to the public FederateAmbassador callback. The
   [process restore service](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L398) queues
   federation-restore notifications before enqueueing returned ownership-assumption work; its comment identifies this as

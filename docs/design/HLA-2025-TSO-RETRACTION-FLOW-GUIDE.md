@@ -487,8 +487,8 @@ Two focused 2025 **embedded `HLA_EVOKED`** tests exercise the positive path:
   timestamp order, A as `producingFederate`, and the original valid retraction
   designator. Read these assertions together: authority over the attribute
   changes to B, while the accepted update still identifies A as its producer.
-  The test's current worktree edit was inspected but not run in this docs pass;
-  this is not a claim about every RTI or transfer path.
+  The test was inspected but not run during this documentation pass; this is
+  not a claim about every RTI or transfer path.
 - In [source resignation before delivery](../../cpp/tests/timestamped_attribute_source_resignation_catch2.cpp#L196),
   A resigns after queueing the update; a surviving recipient acquires the
   attribute, then receives the queued update with A still named as producer and
@@ -758,7 +758,7 @@ cross-queue callback outcome remains unverified. Relevant source boundaries:
 [pull ownership gates](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L289),
 [push ownership work enqueue](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12),
 [server Retract queue filtering](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L174),
-[client Retract filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L512), and
+[client Retract filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L522), and
 [callback-bridge ownership admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1825).
 
 The focused [pending-removal/retraction test](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L6)
@@ -910,9 +910,9 @@ Source paths: [attribute coordinator TSO delivery records the route after sendin
 [cached-session frame emission](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L193),
 [the shared recipient ledger](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115),
 [client Resign and joined-identity clearing](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L89),
-[Request Retraction event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
-[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L351),
-and [bridge retraction-state admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1217).
+[Request Retraction event buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L537),
+[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L382),
+and [bridge retraction-state admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1575).
 
 ### Ordinary timestamped interaction comparison
 
@@ -958,9 +958,9 @@ Sources: [ordinary interaction TSO post-send route insertion](https://github.com
 [interaction send-time push-only route insertion](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L608),
 [attribute pull callback reservation](../../cpp/src/internal/federation/process_federation_service.cpp#L160),
 [ordinary interaction pull receive handler](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L37),
-[interaction-versus-attribute client buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
-[interaction bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332),
-[attribute bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612),
+[interaction client decode](../../cpp/src/internal/federation/process_federation_client.cpp#L465) and [attribute client branch](../../cpp/src/internal/federation/process_federation_client.cpp#L474),
+[interaction bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1346),
+[attribute bridge state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1624),
 and the [focused process interaction retraction case](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_regulation_reenable_changed_lookahead_catch2.cpp#L460).
 
 ### Directed timestamped interaction: separate dispatch, shared retraction seam
@@ -1040,8 +1040,8 @@ Sources: [directed service queue admission and recipient routing](../../cpp/src/
 [producer-owned process Retract and pushed-recipient notification](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L77),
 [shared per-recipient retraction state](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L115),
 [recipient callback reservation](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L460),
-[client pending-event removal or retraction dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L771),
-[callback-start-aware bridge handling](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1537),
+[client pending-event filter](../../cpp/src/internal/federation/process_federation_client.cpp#L522) and [retraction-event enqueue](../../cpp/src/internal/federation/process_federation_client.cpp#L537),
+[callback-start-aware bridge handling](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1583),
 [directed pending-NMR process case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L1522),
 [directed pending-NMRA process case](../../cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp#L1554),
 [process attribute Retract and subsequent TAR grant](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp#L712),
@@ -1240,9 +1240,9 @@ Sources: [process delete recipient split](../../cpp/src/internal/federation/proc
 [delete retraction and cached-session notification](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L160),
 [receiver Resign queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
 [Detach route pruning](../../cpp/src/internal/federation/process_federation_service.cpp#L115),
-[client removal-event filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L477),
-[callback-bridge retraction admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1217),
-and [removal callback retraction state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1442).
+[client removal-event queueing](../../cpp/src/internal/federation/process_federation_client.cpp#L427),
+[callback-bridge retraction admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1575),
+and [removal callback retraction state](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2010).
 
 Recipient state remains per-recipient in an additional embedded case: a peer
 receives a directed TSO callback, then Resigns and Disconnects, while another

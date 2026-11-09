@@ -250,13 +250,11 @@ which accepts a numeric value, a range, or the token `Excluded`
 In the current Umbra composer, `Excluded` yields no `defaultRange`
 ([parser](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L248)); class
 availability is collected independently from the class's dimension references
-([availability query](../../cpp/src/internal/federation/federation_registry_regions.cpp#L676)).
-In the current embedded source, routing makes a temporary realization from the
-Region snapshot. It adds an omitted dimension from the service's available set
-only when that dimension has a default range
-([snapshot copy](../../cpp/src/internal/federation/federation_registry_regions.cpp#L635),
-[default-range check](../../cpp/src/internal/federation/federation_registry_regions.cpp#L649),
-[realization helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)).
+([availability query](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)).
+In the current worktree's embedded source, routing makes a temporary
+realization from the Region snapshot. It adds an omitted dimension from the
+service's available set only when that dimension has a default range
+(`realizeRegionForAvailableDimensions`[^worktree-source]).
 This projection does not rewrite the Region handle's stored dimension set
 ([Region query](../../cpp/src/internal/federation/federation_registry_regions.cpp#L363));
 the available set comes from the specific object-attribute or interaction
@@ -285,10 +283,10 @@ while the Y-only receiver gets neither discovery nor a reflection
 (X reflection[^worktree-source],
 Y suppression[^worktree-source]).
 This matches the registry overlap predicate's requirement for a shared
-dimension ([overlap check](../../cpp/src/internal/federation/federation_registry_regions.cpp#L800)).
+dimension ([overlap check](../../cpp/src/internal/federation/federation_registry_regions.cpp#L719)).
 The primary scenario and contract twin have recorded installed-package passes
 under both `HLA_EVOKED` and `HLA_IMMEDIATE` (4/4 executions total;
-[catalog record](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L53277)).
+current-worktree catalog evidence[^worktree-source]).
 This is focused behavior evidence for the fixture, not an independent
 interpretation of the schema token or a conformance claim.
 
@@ -326,13 +324,14 @@ The positive counterpart uses the multi-attribute FOM's `[0..100)` value for
 dimensions X and Y ([X value](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml#L93),
 [Y value](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml#L104)); the composer turns that into runtime default bounds
 `0,100)`.
-The portable TCK covers two distinct paths. First, ordinary object registration
+The current-worktree portable TCK covers two distinct paths. First, ordinary object registration
 has no publisher-supplied Region association; its default source region is
 evaluated in each attribute's FDD dimension context. Second, an explicit
 DerivedValue source Region stores only X, while routing temporarily adds
 omitted Y with its FDD default range. The latter does not mutate the Region's
-stored dimension set ([scenario and stored-set assertion[^worktree-source],
-[default-range routing helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)).
+stored dimension set; the current-worktree
+`realizeRegionForAvailableDimensions` helper applies this completion only to
+the routing snapshot[^worktree-source].
 
 ```mermaid
 flowchart TD
@@ -356,10 +355,10 @@ flowchart TD
   YRECEIVER --> OBSERVED
 ```
 
-The default-region primary scenario and the explicit partial-region primary
-scenario, with their contract twins, have recorded **8/8 passes** across both
-callback models ([default-region catalog record](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L53722),
-[unspecified-dimension catalog record](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L53815)).
+The `cpp-tck.regional-object-attribute-default-region-fdd-dimensions` primary
+scenario and the `cpp-tck.regional-object-attribute-unspecified-dimension-default-range`
+primary scenario, with their contract twins, have recorded **8/8 passes**
+across both callback models (current-worktree catalog evidence[^worktree-source]).
 In the default-region case, the test uses X-only and Y-only receiver Regions
 near the upper bound and verifies each receives only its attribute
 (scenario[^worktree-source],
@@ -441,13 +440,13 @@ CTest selector. It failed 1/1 at the test's
 Object registration and the later discovery/reflection assertions were not
 reached.
 
-The current embedded class-availability helper walks from the selected object
-class through its parents
-([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L663)).
-Regional object-attribute admission instead uses a per-attribute helper, which
-resolves the declaring class before selecting its dimensions
-([declaration-class lookup](../../cpp/src/internal/federation/federation_registry_regions.cpp#L703),
-[subscription validation](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L466)).
+The committed class-availability helper walks from the selected object class
+through its parents
+([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)).
+Regional object-attribute admission in the current worktree instead uses a
+per-attribute helper, which resolves the declaring class before selecting its
+dimensions[^worktree-source]; the subscription validation call site is in the
+[subscription planner](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L466).
 The three-dimensional scenario uses `Flavor` through `Light`, while the pinned
 FDD declares `Flavor` on `Soda` and adds `Sweetener` on `Light`
 ([attribute declaration](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L262),
@@ -517,7 +516,7 @@ flowchart TB
 ```
 
 The [subscription check](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L466)
-uses the [attribute-specific dimension helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L703)
+uses the current-worktree attribute-specific dimension helper[^worktree-source]
 and returns `invalid_region_context` when the Region's dimension set is not
 included in the selected set. The test's `REQUIRE_NOTHROW` subscription call
 comes before registration and later discovery/reflection assertions
@@ -534,8 +533,8 @@ that every regional operation was executed:
 | 2025 path | Source use of attribute context | Focused evidence and limit |
 | --- | --- | --- |
 | Registration, regional subscription, Associate Regions for Updates, and regional class RAVU admission | Each checks every supplied Region's dimensions against `availableObjectClassAttributeDimensions` ([registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L246), [subscription](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L466), [association](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L47), RAVU[^worktree-source]). | The regional-context test expects `InvalidRegionContext` for all four services with `Soda.Flavor`, declared directly on `Soda` ([assertions](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L905)). The `Light`/`Flavor` case fails at subscription before it reaches registration ([assertion](../../cpp/tests/three_dimensional_regional_object_attribute_overlap_catch2.cpp#L214)). |
-| Discovery and attribute-value overlap | Pairwise and default-region overlap realize regions using the same per-attribute context ([overlap functions](../../cpp/src/internal/federation/federation_registry_regions.cpp#L882), default-region function[^worktree-source]); the attribute update planner calls them during recipient selection ([planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L487)). | The positive regional-routing test exercises `Soda.Flavor` with `SodaFlavor` ([test](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L198)). The three-dimensional test's overlap assertions are authored only; its subscription failure prevents reaching them. |
-| Public available-dimensions query | `availableObjectClassDimensions` accumulates dimensions from the selected object class and its parents ([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L663)). | The 2025 dimension lookup test observes the queried class's full set ([assertion](../../cpp/tests/dimension_lookup_catch2.cpp#L161)); this class-wide query does not itself select an attribute's declaration context. |
+| Discovery and attribute-value overlap | The current worktree's pairwise and default-region helpers use the per-attribute context and temporary FDD realization; its recipient planner calls those helpers during selection[^worktree-source]. | The positive regional-routing test exercises `Soda.Flavor` with `SodaFlavor` ([test](../../cpp/tests/regional_object_attribute_routing_catch2.cpp#L198)). The three-dimensional test's overlap assertions are authored only; its subscription failure prevents reaching them. |
+| Public available-dimensions query | `availableObjectClassDimensions` accumulates dimensions from the selected object class and its parents ([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)). | The 2025 dimension lookup test observes the queried class's full set ([assertion](../../cpp/tests/dimension_lookup_catch2.cpp#L161)); this class-wide query does not itself select an attribute's declaration context. |
 
 The failing `Light` Catch2 case is not the only evidence for this boundary. A
 separate portable TCK scenario directly distinguishes an inherited attribute's
@@ -584,7 +583,7 @@ only `DerivedValue`, and a disjoint receiver gets no reflection
 regional subscription setup[^worktree-source],
 update call[^worktree-source],
 per-attribute reflection assertions[^worktree-source],
-[recorded catalog result](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L53598)).
+current-worktree catalog result[^worktree-source]).
 The contract twin repeats the same fixture and is paired evidence, not an
 independent second coverage claim. This result covers these named services and
 fixture; it does not create a public per-attribute dimension query or decide
@@ -666,7 +665,7 @@ This is an embedded-source map, not a normative inheritance rule. The
 for `registerObjectInstanceWithRegions` (§9.5) and
 [`subscribeObjectClassAttributesWithRegions`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1559)
 (§9.8) are navigation pointers, not evidence for the cross-class behavior
-described here. The [dimension helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L663)
+described here. The [dimension helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)
 walks the object-class parents;
 [registration state](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L197)
 keeps the registered class while
@@ -698,9 +697,9 @@ focused test or a normative example.
 
 | Stage | Example state | Current embedded source path |
 | --- | --- | --- |
-| Class context | `Base` declares attribute `A` and dimension `D`; `Child` inherits `D` and adds dimension `E`. Available dimensions are `{D}` for `Base` and `{D, E}` for `Child`. | The dimension query collects associations on the selected class and its parents ([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L663)). |
+| Class context | `Base` declares attribute `A` and dimension `D`; `Child` inherits `D` and adds dimension `E`. Available dimensions are `{D}` for `Base` and `{D, E}` for `Child`. | The dimension query collects associations on the selected class and its parents ([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L631)). |
 | Admission | The receiver subscribes to `Base/A` with a committed region over `{D}`. The publisher registers a `Child` object and associates `A` with a committed source region over `{D, E}`. | Subscription and registration check each region's dimension set against the available set of the class named by that service ([subscription](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L465), [registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L245)). |
-| Discovery | With an active non-producer declaration and overlapping committed ranges on shared dimension `D`, the discovery planner walks from registered class `Child` to `Base` and can consider the `Base/A` declaration. | The active-relevance and per-receiver class walks are in the [discovery resolver](../../cpp/src/internal/federation/federation_registry.cpp#L835); overlap uses committed region snapshots ([overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L792)). |
+| Discovery | With an active non-producer declaration and overlapping committed ranges on shared dimension `D`, the discovery planner walks from registered class `Child` to `Base` and can consider the `Base/A` declaration. | The active-relevance and per-receiver class walks are in the [discovery resolver](../../cpp/src/internal/federation/federation_registry.cpp#L835); overlap uses committed region snapshots ([overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L677)). |
 | Receiver knowledge and later value | If `Base/A` is the closest qualifying receiver declaration, the receiver's known class is `Base`. A later reflection is projected through that saved class, so child-only attributes are not made visible by the publisher's `Child` registration. | The receiver walk saves the qualifying class in the [discovery resolver](../../cpp/src/internal/federation/federation_registry.cpp#L835); later per-recipient filtering starts from that class in the [attribute update planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L121). |
 
 The [child-object/base-subscription test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L297)
@@ -766,7 +765,7 @@ plan. Subscription-triggered discovery is planned only on subscribe,
 and is routed before the returned scope changes and advisories. Association
 changes route discoveries before scope changes and advisories as well. The
 process-specific [discovery router](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11),
-[scope-event router](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L282),
+[scope-event router](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207),
 and [advisory router](../../cpp/src/internal/federation/process_federation_service_attribute_relevance_advisories.cpp#L11)
 are separate from the registry's recipient decision.
 The process scope route has distinct polling-queue and pushed-event stale-work
@@ -1088,9 +1087,8 @@ then swaps the replacement definition and prepared directories together
 application ([region record](../../cpp/src/internal/federation/federation_registry_regions.cpp#L67));
 and a later object update-region association request checks each attribute's
 region dimensions against the set resolved for that attribute's declaring
-class ([declaration-class lookup](../../cpp/src/internal/federation/federation_registry_regions.cpp#L738),
-[dimension selection](../../cpp/src/internal/federation/federation_registry_regions.cpp#L744),
-[association validation](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L66)).
+class by the current-worktree attribute-aware helper[^worktree-source] and the
+[association validation](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L66).
 The Join commit does not itself rewrite regions or rerun that association
 check. Under the source's additive dimension-reference merge, an existing
 region that was compatible before an added class association remains a subset
@@ -1124,9 +1122,8 @@ In the current embedded 2025 implementation, the class-context set depends on
 the service family:
 
 - **Object-attribute services** resolve each supplied attribute to its
-  declaring object class, then use that class's available dimensions
-  ([declaration lookup](../../cpp/src/internal/federation/federation_registry_regions.cpp#L738),
-  [dimension selection](../../cpp/src/internal/federation/federation_registry_regions.cpp#L744)).
+  declaring object class, then use that class's available dimensions in the
+  current-worktree attribute-aware helper[^worktree-source].
   This check is used by regional object registration
   ([check](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L265)),
   update-region association
@@ -1155,11 +1152,53 @@ These are source observations, not a universal normative algorithm. The
 three-dimensional test now records a failed subscription assertion for its
 `Flavor`/`Light`/`Sweetener` input; source inspection explains the failure point,
 but the reported dynamic exception type remains unknown and the §9.1.5 question
-is open. This combined Join-to-delivery path also remains source-only: the additional-module dimension test adds a
-separate class, while the focused regional case tests overlap without a later
-Join. No focused test extends an existing class's dimension set, retains its
-old regions, submits new regional subscription/association state, and observes
-a later update.
+is open. The combined Join-to-delivery path remains source-only: the
+additional-module dimension test adds a separate class, while focused regional
+cases test dimensions and overlap without a later Join. No focused test extends
+an existing class's dimension set, retains its old regions, submits new
+regional subscription/association state, and observes a later update.
+
+#### A later object-attribute overlap can use temporary default ranges
+
+The interaction trace above does not describe the object-attribute overlap
+path. In the current embedded 2025 source, that path resolves an attribute's
+dimension context from the class where the attribute is declared, reads the
+committed source and receiver Region snapshots, and makes temporary copies for
+overlap. If the current FDD makes an omitted dimension available to that
+attribute and defines a default range for it, the overlap check inserts that
+range into each temporary copy. The stored Region handles and their committed
+dimension sets remain unchanged[^worktree-source].
+
+This can change which retained Regions are comparable after Join. For example,
+before Join the attribute-declaring class makes X and Z available, so a source
+Region over X and a receiver Region over Z have no shared dimension. If Join
+adds Y to that same class and Y has an FDD default range, both temporary
+snapshots gain Y. The current generic overlap check then compares Y as a shared
+dimension. It requires at least one shared dimension and rejects disjoint
+ranges in any shared dimension; Umbra's relaxed-DDM option additionally
+accepts exactly touching ranges. If Y has no FDD default range, this helper
+does not add Y. If the attribute is inherited and Y is added only to a more
+derived class, Y is outside that attribute's declaring-class context.
+
+```mermaid
+flowchart TD
+  JOIN["Join commits current FDD<br/>class C gains Y"] --> CONTEXT{"Is Y available to the<br/>attribute's declaring class?"}
+  STORED["Stored Regions stay unchanged<br/>source {X}; receiver {Z}"] --> COPIES["Copy both committed snapshots"] --> CONTEXT
+  CONTEXT -->|"No: Y is only on a derived class"| COMPARE["Compare the copied snapshots"]
+  CONTEXT -->|Yes| DEFAULT{"Does Y have an FDD default range?"}
+  DEFAULT -->|"No: leave Y absent"| COMPARE
+  DEFAULT -->|Yes| PROJECT["Add Y's default bounds<br/>to both copies"] --> COMPARE
+  COMPARE --> OVERLAP{"At least one shared dimension<br/>and no disjoint shared range?"}
+  OVERLAP -->|Yes| CANDIDATE["Candidate continues through<br/>other recipient gates"]
+  OVERLAP -->|No| NO_MATCH["No regional match"]
+```
+
+This is an implementation-derived possibility, not a normative Join or DDM
+claim and not a callback guarantee. Existing default-range object tests and
+the additional-module Join lookup test cover separate paths; none combines a
+same-class dimension addition, retained source and receiver Regions, and a
+later object-attribute match. Keep the source trace distinct from the
+interaction send path and from eventual callback delivery.
 
 ### A queued timestamped default-region interaction when Join adds a dimension
 
@@ -1562,7 +1601,7 @@ observes no discovery while the receiver range is disjoint, then observes
 discovery after that range is edited and committed. Neither case asserts a
 value send between `setRangeBounds` and commit. Continued matching against the
 old committed range during that interval is source-derived from
-[`regionsOverlap`](../../cpp/src/internal/federation/federation_registry_regions.cpp#L775),
+[`regionsOverlap`](../../cpp/src/internal/federation/federation_registry_regions.cpp#L677),
 which constructs matching snapshots from committed bounds; do not promote it
 to a broader standard-level routing guarantee.
 
@@ -1653,7 +1692,7 @@ X=`[9, 12)`, Y=`[10, 14)`. X strictly overlaps, while Y only touches:
   positive gap, so the regions do not overlap in either mode.
 
 This is a source-derived example, not a focused test result. The
-[embedded overlap predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L827)
+[embedded overlap predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L719)
 returns no overlap when the regions share no dimensions. The focused boundary cases above use one shared dimension;
 mixed strict/touch/gap outcomes across multiple dimensions remain untested.
 
@@ -2129,45 +2168,68 @@ application creates. In the current registry it represents the full range for
 every FDD dimension. The separate zero-dimensional case has no shared
 dimension on which that default overlap can be established; see the
 [focused source and test evidence](#focused-source-and-test-evidence). See the
-[default-region overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L850)
+[default-region overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L769)
 and
 [regional interaction subscription services](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp).
 
-### A partial interaction Region uses the restricted FDD default
+### Recorded partial interaction-region result and current-source discrepancy
 
-The portable TCK fixture gives the sent interaction class X and Y, but Y's
-FDD value is `0..5)`, producing runtime default bounds `[0,5)`
-([fixture[^worktree-source]).
-The sender supplies a non-empty Region containing X only; its public dimension
-set remains X. The RTI's routing projection adds omitted Y with `[0,5)` for
-this send. Both receivers overlap source X, so the Y result isolates the
-default-range check: `[1,4)` matches, while `[6,9)` is outside it.
+The portable TCK fixture gives the sent interaction class X and Y, with Y's
+FDD value `0..5)` ([fixture[^worktree-source]). The sender supplies a
+non-empty Region containing X only; its public dimension set remains X. The
+scenario's recorded installed-package result says a receiver at Y `[1,4)` gets
+the interaction while one at Y `[6,9)` does not. The catalog records 4/4
+installed-package executions across `HLA_EVOKED` and `HLA_IMMEDIATE`
+([primary result](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L57182),
+[contract-twin result](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L57225)).
+This is evidence for that installed package run, not a build or test of the
+current worktree source.
+
+The current embedded source trace does not show the same Y-dependent rule. The
+send planner reads the interaction class's available dimensions, validates the
+explicit source Region against that set, and snapshots the Region's committed
+dimensions as supplied ([planner](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L82),
+[snapshot](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L114)).
+Recipient selection sends explicit source/receiver pairs to generic
+[`regionsOverlap`](../../cpp/src/internal/federation/federation_registry.cpp#L1673).
+Its snapshot predicate compares ranges only for dimension handles present in
+both snapshots and requires at least one shared dimension
+([predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L792)).
+For source `{X}` and receiver `{X,Y}`, that path compares X; it does not insert
+omitted Y with its FDD default. The current temporary default-range helper is
+used by the object-attribute overlap path, but not by this interaction
+selector [^worktree-source].
 
 ```mermaid
-flowchart TD
-  FDD["Interaction class uses X and Y;<br/>Y FDD value [0..5) becomes runtime [0,5)"]
-  SOURCE["Sender supplies non-empty Region {X}<br/>with X range [1,4)"]
-  KEEP["Public source Region still stores {X}"]
-  PROJECT["For this send, temporarily add omitted Y<br/>using restricted default range [0,5)"]
-  IN["Receiver A: X overlaps;<br/>Y range [1,4) overlaps default"]
-  OUT["Receiver B: X overlaps;<br/>Y range [6,9) is outside default"]
-  DELIVER["Observed TCK: one interaction callback"]
-  SUPPRESS["Observed TCK: no interaction callback"]
-  FDD --> SOURCE --> KEEP --> PROJECT
-  PROJECT --> IN --> DELIVER
-  PROJECT --> OUT --> SUPPRESS
+flowchart TB
+  subgraph PACKAGE["Recorded installed-package scenario"]
+    FDD["Interaction class has X and Y;<br/>Y FDD value is [0,5)"]
+    SOURCE["Sender submits source Region {X}"]
+    OBSERVED["Recorded result: Y [1,4) receives;<br/>Y [6,9) receives nothing"]
+    FDD --> SOURCE --> OBSERVED
+  end
+
+  subgraph WORKTREE["Current embedded source trace"]
+    AVAILABLE["Planner reads available dimensions {X,Y}"]
+    VALIDATE["Checks source {X} is within that set"]
+    SNAPSHOT["Snapshot preserves the submitted set {X}"]
+    OVERLAP["Recipient selector calls generic region overlap"]
+    SHARED["Generic overlap compares shared dimensions only"]
+    NOY["Y is absent from source snapshot;<br/>no default Y range is added here"]
+    AVAILABLE --> VALIDATE --> SNAPSHOT --> OVERLAP --> SHARED --> NOY
+  end
+
+  OBSERVED --> MISMATCH["Recorded Y-dependent result and<br/>current source trace need reconciliation"]
+  NOY --> MISMATCH
 ```
 
-The primary portable TCK scenario and contract twin passed **4/4 recorded
-executions** across `HLA_EVOKED` and `HLA_IMMEDIATE`
-(scenario source[^worktree-source],
-sender dimension-set assertion[^worktree-source],
-delivery assertion[^worktree-source],
-suppression assertion[^worktree-source],
-[catalog result](../../compliance/catalogs/cpp-tck-scenario-catalog.json#L56119)).
-This is one bounded interaction-send case. It does not imply that every
-regional service uses this projection, nor that an FDD default outside
-`[0,5)` should match.
+Treat these as two distinct evidence tracks. The recorded package result and
+the current source path do not reconcile: the source trace above does not
+explain why the Y-outside receiver is suppressed. Compare the installed
+package's source revision with the current worktree before attributing this
+behavior to current Umbra source. Do not use this discrepancy to infer the
+normative meaning of the FDD default-range rule, or to claim that every
+regional service uses the object-attribute projection.
 
 ### Routing and conveyed sender-region metadata are separate decisions
 
@@ -2850,7 +2912,7 @@ advance and time-frontier rules behind the independent regulator's release.
   [region registry](../../cpp/src/internal/federation/federation_registry_regions.cpp),
   and [region lifecycle tests](../../cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp).
 - Explicit zero-dimensional Region versus the default interaction
-  realization: the current embedded [overlap predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L827)
+  realization: the current embedded [overlap predicate](../../cpp/src/internal/federation/federation_registry_regions.cpp#L719)
   returns true only when at least one dimension is shared; the focused [2025
   interaction test](../../cpp/tests/zero_dimensional_regional_interaction_catch2.cpp#L162)
   observes ordinary default-region delivery, then no callback after committing
@@ -2932,13 +2994,11 @@ evidence support them; do not flatten them into this overview.
 
 The separate [federation save and restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md)
 covers save-state transitions, callback completion and failure, restore
-selection/rejoin, and deferred-work restoration. The current [2025 documentation
-roadmap](HLA-2025-DOCUMENTATION-ROADMAP.md#current-baseline) records successful
-Mermaid CLI 12.2.0 has local render coverage for all 459 current 2025 diagrams.
-The Mermaid version matches the version string found in GitHub's public
-Viewscreen bundle; actual GitHub page rendering remains unverified. The selected
-screenshot review covers 223 charts with none pending; this is not a whole-inventory
-visual audit. Changed charts need fresh local and, after publication, GitHub
-checks.
+selection/rejoin, and deferred-work restoration. For current diagram totals and
+identity-matched local render and screenshot coverage, see the [2025
+documentation roadmap](HLA-2025-DOCUMENTATION-ROADMAP.md#current-baseline) and
+[visual-review ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json). Those local
+checks do not verify visible Mermaid hydration on published GitHub file pages;
+the candidate remains unpublished. Re-render and review any changed diagrams.
 
-[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.
+[^worktree-source]: Source, test, and TCK-catalog evidence marked in this guide refers to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.

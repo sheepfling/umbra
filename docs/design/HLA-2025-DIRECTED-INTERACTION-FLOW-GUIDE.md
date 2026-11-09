@@ -552,9 +552,9 @@ the receive-order branch is not queued for a grant. The retraction branch is a
 process-source observation: dispatch records the pushed recipient after
 sending the frame ([dispatcher](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L161));
 the service emits Request Retraction to that session ([service](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L200)),
-the client removes a matching buffered interaction event ([client](../../cpp/src/internal/federation/process_federation_client.cpp#L512)),
+the client removes a matching buffered interaction event ([client](../../cpp/src/internal/federation/process_federation_client.cpp#L527)),
 and the callback bridge admits the public retraction callback only after the
-original callback has started ([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1509)).
+original callback has started ([bridge marks callback started](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1442)).
 The focused process callback-gating test does not exercise this retraction
 branch. When the timestamped `receiveDirectedInteraction` callback throws,
 the bridge has already marked it started, but skips the post-callback ACK; the

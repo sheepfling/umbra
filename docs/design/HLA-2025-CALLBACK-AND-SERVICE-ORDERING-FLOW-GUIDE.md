@@ -16,9 +16,11 @@ restate the time-management guide's TSO ordering rules.
   dispatcher behavior, while public integration cases establish only their
   named API path.
 - **Normative authority:** the [official IEEE 1516.1-2025 Federate Interface
-  Specification](https://standards.ieee.org/ieee/1516.1/6688/). Use its exact
-  service clauses for callback-model and callback-re-entry requirements. The
-  summaries below distinguish those concepts from current Umbra mechanics.
+  Specification](https://standards.ieee.org/ieee/1516.1/6688/). IEEE lists this
+  edition as active and provides access by subscription. The API-header clause
+  numbers below are locators only, not normative prose. Use the exact service
+  clauses for callback-model and callback-re-entry requirements; the summaries
+  below distinguish those concepts from current Umbra mechanics.
 - **Evidence rule:** no unit or integration scenario here is presented as
   complete conformance evidence.
 
@@ -286,86 +288,89 @@ callback model to a process transport mode. The process poll,
 and [Enable Callbacks adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L171)
 are implementation evidence, not portable transport behavior.
 
-### A pushed interaction can arrive during an Evoke wait
+### A pushed interaction can arrive during a single Evoke wait
 
 In the configured-process push path, a stream-reader thread can buffer an
-unsolicited `receive_interaction` frame while `evokeMultipleCallbacks` is
-inside its dispatcher wait. The client holds that frame in its pending-event
-queue; after the wait returns, the ambassador dispatches the pushed events and
-performs a zero-duration callback drain if dispatcher work is pending. For
-`HLA_EVOKED`, an enabled callback can therefore run before that Evoke call
-returns. The receive-order temporal gate is evaluated when the submitted
-dispatcher task runs: a blocked event moves to the bridge-local deferred queue
-without entering `receiveInteraction` in that drain.
+unsolicited `receive_interaction` frame while the single `evokeCallback` call
+is waiting in the shared dispatcher. A separate client dispatch loop may
+submit that event to the bridge while the wait is active. If the dispatcher
+invokes its task before the wait returns, an enabled `HLA_EVOKED` callback
+enters `receiveInteraction` before this Evoke returns only when the
+receive-order temporal gate is open; otherwise, the bridge defers the event.
+
+The adapter's post-wait path is conditional. It runs only when the initial
+`evokeOne` returns false and its `callbackInvoked` output remains false. That
+output records whether the dispatcher invoked a queued task; a bridge task can
+run and defer an event without entering `FederateAmbassador`. In the
+post-wait branch, the adapter asks the process client to submit any
+still-buffered pushed events, then invokes one zero-duration `evokeOne` if
+dispatcher work is pending. Disabled callbacks stay queued. The client drain
+can also return early when another thread owns its dispatch lease, so this
+follow-up is not an atomic guarantee that every client-FIFO event has reached
+the bridge before the Evoke call returns. This single-Evoke route is separate
+from Evoke Multiple's pre-wait admission path described above.
 
 ```mermaid
 sequenceDiagram
   participant App as Federate application
   participant RTI as RTI ambassador
-  participant Reader as Process stream reader
-  participant Client as Process client event queue
+  participant Client as Process client
   participant Dispatcher as Callback dispatcher
   participant Bridge as Receive-order bridge
   participant FA as FederateAmbassador
 
-  App->>RTI: evokeMultipleCallbacks(min,max) [HLA_EVOKED]
-  RTI->>Dispatcher: wait and drain work already admitted
-  Note over RTI,Reader: Dispatcher wait is active
-  Reader-->>Client: receive_interaction frame
-  Note over Client: Buffer in pendingEvents_, not submitted yet
-  Dispatcher-->>RTI: return from initial wait/drain
-  RTI->>Client: dispatchPendingPushedEvents()
-  Client->>Bridge: submitReceiveOrder(event)
-  Bridge->>Dispatcher: queue callback task
-  alt Callbacks are disabled
-    RTI->>Dispatcher: zero-duration drain leaves task pending
-    RTI-->>App: Evoke returns without this callback
-  else Callbacks are enabled
-    RTI->>Dispatcher: zero-duration callback drain
-    Dispatcher->>Bridge: run submitted task
-    alt Receive-order temporal gate is closed
-      Bridge->>Bridge: defer in bridge-local queue
-      Bridge-->>Dispatcher: no application callback now
-    else Receive-order temporal gate is open
-      Bridge->>FA: receiveInteraction(...)
-      FA-->>Bridge: callback returns
+  App->>RTI: evokeCallback(minimumTime) [HLA_EVOKED]
+  Note over RTI: When empty, the configured-process path may admit one poll result before waiting
+  RTI->>Dispatcher: evokeOne(minimumTime) begins
+  Client-->>Client: Stream reader buffers receive_interaction in pendingEvents_
+  opt Background dispatch submits the event during the wait
+    Client->>Bridge: submitReceiveOrder(event)
+    Bridge->>Dispatcher: queue callback task
+    opt Initial evokeOne invokes a task
+      Dispatcher->>Bridge: run one submitted task
+      alt Receive-order temporal gate is open
+        Bridge->>FA: receiveInteraction(...)
+        FA-->>Bridge: callback returns
+      else Receive-order temporal gate is closed
+        Bridge->>Bridge: defer in bridge-local queue
+        Bridge-->>Dispatcher: no application callback now
+      end
     end
-    RTI-->>App: Evoke returns
   end
+  Dispatcher-->>RTI: initial result and callbackInvoked output
+  alt result is true or a task was invoked
+    Note over RTI: Post-wait client drain is skipped
+  else result is false and no task was invoked
+    RTI->>Client: dispatchPendingPushedEvents()
+    alt Client dispatch lease is available
+      Client->>Bridge: submit still-buffered events
+      Bridge->>Dispatcher: queue callback task(s)
+    else Another thread owns the client dispatch lease
+      Client-->>RTI: return without draining this queue
+    end
+    opt Dispatcher work is pending
+      RTI->>Dispatcher: evokeOne(0ms)
+      Note over Dispatcher: At most one task runs when callbacks are enabled
+      Note over Bridge: A closed temporal gate defers application entry
+    end
+  end
+  RTI-->>App: Evoke returns
 ```
 
-This is a source-derived configured-process interleaving, not a portable
-guarantee about when a pushed transport frame arrives. The adapter's
-[post-wait drain](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L97),
-the client's [unsolicited-event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L702)
-and [pending-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L282),
-and the bridge's [receive-order task](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332)
-and [deferred temporal gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1484)
-form these stages. For the gate's release conditions, see the Time Management
-guide's [configured-process receive-order interaction gate](HLA-2025-TIME-MANAGEMENT-GUIDE.md#configured-process-receive-order-interaction-gate).
-The [Process Endpoint interaction path](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#process-mapping-an-interaction-request-and-its-recipient-stream)
-shows where the pushed frame originates.
+This is a source-derived configured-process interleaving, not a portable HLA guarantee about when a pushed transport frame arrives. The adapter's [single-Evoke path](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32) and [conditional post-wait drain](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L64), the client's [unsolicited-event buffer](../../cpp/src/internal/federation/process_federation_client.cpp#L451), [background dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722), and [pending-event dispatch and lease check](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L282), plus the bridge's [receive-order task](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1346) and [deferred temporal gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1201), form these stages. The `callbackInvoked` output is set by [CallbackDispatcher::evokeOne](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L156) after a queued task runs; application callback entry still depends on the receive-order gate. For gate release conditions, see the [configured-process receive-order interaction gate](HLA-2025-TIME-MANAGEMENT-GUIDE.md#configured-process-receive-order-interaction-gate). The [Process Endpoint interaction path](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#process-mapping-an-interaction-request-and-its-recipient-stream) shows where the pushed frame originates.
 
-The focused [HLA_EVOKED asynchronous-delivery case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L77)
-uses zero-duration Evokes; the [process receive/Evoke case](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457)
-uses polling and sends before Evoke. The generic [dispatcher minimum-wait test](../../cpp/tests/callback_dispatcher_catch2.cpp#L335)
-submits work during a wait but does not include the process reader or bridge.
-Together these are adjacent evidence, not a focused regression for a pushed
-ordinary interaction arriving during an already-active process Evoke wait.
-The `HLA_IMMEDIATE` asynchronous-delivery case exercises its own inline route;
-the [focused case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L76)
-does not have this Evoke wait boundary.
+The focused [HLA_EVOKED asynchronous-delivery case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L77) uses zero-duration Evokes and checks the receive-order temporal gate; it does not hold an Evoke wait open for a pushed interaction. The [process receive/Evoke case](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L458) sends before a zero-duration Evoke and exercises the polling path. The generic [Evoke Multiple dispatcher test](../../cpp/tests/callback_dispatcher_catch2.cpp#L321) queues work before calling Evoke Multiple; it is not evidence for single-Evoke work arriving during a wait. These are adjacent evidence, not a focused regression for a pushed ordinary interaction arriving during an already-active process Evoke wait or for the client-FIFO-to-bridge dispatch-lease race. The `HLA_IMMEDIATE` asynchronous-delivery case exercises its own inline route; the [focused case](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L76) does not have this Evoke wait boundary.
 
 ### Configured-process AttributeUpdate receipt and disabled callback gates
 
-For AttributeUpdate, receipt and application callback entry are separate
-stages. The configured-process stream reader appends a full reflection event or
-a deferred-update readiness marker to the client `pendingEvents_` FIFO without
-checking whether callbacks are enabled. Poll results enter that FIFO too. Once
-client request/dispatch suppression clears, the client removes events in FIFO
-order and submits bridge work to the shared callback dispatcher. A full event
-captures the reflection. A deferred marker queues a task whose private claim
-and eligibility recheck happen only when that task is dispatched.
+For AttributeUpdate, receipt, client-FIFO dispatch, dispatcher admission, and callback
+entry are distinct stages. Push frames and typed non-interaction poll results enter
+`pendingEvents_` before callback enablement is checked. Background dispatch waits for request and
+callback-dispatch suppression depths to clear; a callback-owning request drains after
+its response while explicitly allowed through that suppression gate. If another thread
+owns the client dispatch lease, a drain can return before popping an event. A full event
+carries the captured reflection; a deferred marker queues a task that claims the event
+and rechecks eligibility only when dispatched.
 
 This chart begins after an `AttributeUpdate` event has arrived at the process
 client. It does not describe which state changes produce a Conditional
@@ -373,22 +378,22 @@ client. It does not describe which state changes produce a Conditional
 maps those nine MIM attributes and distinguishes embedded work planning from
 the configured-process enqueue path.
 
-The `callbacks enabled` checks in this chart are not the configured-process
-receive-order interaction time gate. The process client sends AttributeUpdate
-through [`dispatchAttributeUpdate`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L36)
-to [`submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612)
-and the callback dispatcher; it does not consult the bridge's
-`AsynchronousReceiveOrderDeliveryState`. The interaction path does consult that
-state before callback entry ([`submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332),
-[temporal gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1484)).
-The focused process asynchronous-delivery cases exercise receive-order
-interactions ([`HLA_IMMEDIATE`](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75),
-[`HLA_EVOKED`](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L76)), while the ordinary
-[AttributeUpdate reflection case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457)
-does not combine a time-constrained receiver, asynchronous-delivery changes,
-and a pending time advance. This is a source-path observation, not a normative
-interpretation of asynchronous delivery. See the [Time Management comparison](HLA-2025-TIME-MANAGEMENT-GUIDE.md#receive-order-and-asynchronous-delivery)
-for its evidence boundary.
+The `callbacks enabled` checks here describe local process dispatcher gates,
+separate from the receive-order interaction time gate in the process bridge.
+The client routes AttributeUpdate through
+[`dispatchAttributeUpdate`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L36)
+to [`submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1624)
+and the shared dispatcher; that path does not consult
+`AsynchronousReceiveOrderDeliveryState`. Receive-order interactions use that
+state via [`submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1346)
+and the [temporal-gate check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1495).
+Focused asynchronous-delivery tests exercise interaction callbacks in
+[`HLA_IMMEDIATE`](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp#L75)
+and [`HLA_EVOKED`](../../cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp#L76).
+They cover the process interaction gate, not the ordinary [AttributeUpdate reflection case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457).
+That case does not combine a time-constrained receiver, asynchronous-delivery
+changes, and a pending time advance; this is a coverage limit, not a normative
+claim. See the [Time Management comparison](HLA-2025-TIME-MANAGEMENT-GUIDE.md#receive-order-and-asynchronous-delivery) for the separate evidence boundary.
 
 ```mermaid
 flowchart TD
@@ -397,9 +402,9 @@ flowchart TD
   Route -->|Pull| Poll["Receive poll buffers full attributeEvent"]
   Reader --> Client["Client pendingEvents_ FIFO"]
   Poll --> Client
-  Client --> Suppression{"Client dispatch suppression clear?"}
-  Suppression -->|No| Client
-  Suppression -->|Yes| Kind{"Full reflection or deferred marker?"}
+  Client --> CanDrain{"Client FIFO drain permitted?"}
+  CanDrain -->|No: background gate closed or competing owner| Client
+  CanDrain -->|Yes: background gate open or request-owned drain| Kind{"Full reflection or deferred marker?"}
   Kind -->|Full| Full["Bridge submits captured reflection task"]
   Kind -->|Marker| Marker["Bridge queues marker task;<br/>claim waits for task execution"]
   Full --> Queue["Shared callback dispatcher FIFO"]
@@ -423,20 +428,20 @@ flowchart TD
   Claim -->|No longer eligible| NoReflection["Finish without reflection"]
 ```
 
-The [reader loop](../../cpp/src/internal/federation/process_federation_client.cpp#L973)
-buffers events independently of callback state; [pushed-event decoding](../../cpp/src/internal/federation/process_federation_client.cpp#L702)
-and typed [poll-result buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L640)
-feed the same client FIFO. The interaction returned by a `receive_interaction`
-poll bypasses that FIFO and is sent directly to the interaction bridge by the
-[callback-control service](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L274);
-see the [Process Endpoint receiver map](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#cross-family-queue-order-and-test-boundary)
-for the distinction. The [FIFO dispatcher](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L298)
-submits full events through the [reflection bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612)
-and markers through the [deferred bridge task](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1745);
-the marker's later [claim request](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L261)
-resolves the authoritative event. The shared dispatcher [queues submissions](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L164),
-[drains immediate work on enable](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L119),
-and [leaves disabled Evoke work pending](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L186).
+The [stream reader](../../cpp/src/internal/federation/process_federation_client.cpp#L664)
+buffers pushed frames; [`bufferEvent`](../../cpp/src/internal/federation/process_federation_client.cpp#L451)
+and [typed poll-result buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L389) feed the FIFO.
+The [dispatch loop](../../cpp/src/internal/federation/process_federation_client.cpp#L730) waits for request depth and callback-dispatch suppression
+to clear. A callback-owning request raises suppression after its response and drains through it
+([callback-suppression setup](../../cpp/src/internal/federation/process_federation_client.cpp#L613), [request-owned drain](../../cpp/src/internal/federation/process_federation_client.cpp#L622));
+another thread's dispatch lease can make that drain return before it pops an item
+([lease check](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L282)). An interaction returned by a `receive_interaction` poll
+bypasses the FIFO and goes to the interaction [bridge](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L272). The [client FIFO loop](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L298)
+submits full events through the [reflection bridge](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L311) and
+deferred markers through the [deferred task](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L314). It later uses the
+[claim request](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L261) to resolve the authoritative event. The dispatcher
+[appends tasks](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L135), [drains immediate work on enable](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L82),
+and leaves disabled Evoke work pending ([Evoke path](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L176)). These are configured-process mechanics.
 
 If `enableCallbacks` runs before a frame has left the client FIFO, the later
 submission sees the open gate. In the immediate model, already-submitted tasks
@@ -444,24 +449,24 @@ drain during enable; in the evoked model, opening the gate does not invoke a
 task, so a later Evoke is still required. These are current source mechanics,
 not an HLA transport or callback-timing rule.
 
-The focused [immediate delayed-AttributeUpdate case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L829)
-uses Push in its fixture, disables callbacks before the update, re-subscribes,
-enables callbacks, and observes the eventual reflection
-([fixture mode](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L493),
-[disable/update/enable assertions](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L544)).
-With delayed subscription evaluation enabled, the server marks this untimestamped
-event for receive-time recheck and Push sends a deferred marker
-([recheck decision](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L226),
-[marker selection](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L371)).
-This test checks the eventual callback outcome, not the instant the stream reader
-received the marker or either private queue's contents.
+The focused [immediate delayed ordinary-AttributeUpdate case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L824)
+uses Push in its fixture ([mode](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L491)).
+It disables callbacks before the update, unsubscribes, then re-subscribes and
+enables callbacks before observing reflection ([scenario](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L547)).
+With delayed subscription evaluation enabled, the server marks the update for
+callback-time eligibility recheck ([predicate](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L222));
+Push sends a complete event or a deferred marker ([encoding branch](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L357),
+[marker operation](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L369)).
+This end-to-end case asserts only the eventual callback outcome, not the timing of
+stream-reader receipt, the contents of either private queue, or which gate permits
+callback entry.
 
-A separate [HLA_EVOKED delayed ordinary-attribute case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L844)
-uses Pull: the receiver unsubscribes before the update, re-subscribes before
-it pumps the receiver, and observes the deferred-evaluation result at callback
-admission. This supports the ordinary receive-order eligibility decision; it
-does not prove the event was already in either client queue before
-re-subscription, call `disableCallbacks`, or exercise the deferred marker.
+A separate [HLA_EVOKED delayed ordinary-attribute case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L840)
+uses Pull because Push is enabled only for HLA_IMMEDIATE
+([mode](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L491)); it unsubscribes before
+sending and re-subscribes before pumping the receiver. The observed result
+supports deferred evaluation in this scenario, but not prior queue contents,
+`disableCallbacks`, or the pushed deferred-marker path.
 
 The focused [evoked TSO AttributeUpdate case](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1128)
 disables callbacks, sends a timestamped update, and calls Evoke while disabled;
@@ -476,21 +481,23 @@ profile parity.
 
 ### Process Evoke Multiple separates event admission from callback draining
 
-This is the configured-process `HLA_EVOKED` path in Umbra. If the shared
-callback dispatcher already has a task at entry, the adapter skips its initial
-process receive pump. Otherwise it drains buffered process events and polls
-according to callback-enabled state, then runs the shared dispatcher with the
-requested wait bounds.
+This is the configured-process `HLA_EVOKED` path. At entry, the adapter skips
+its process receive pump if the shared callback dispatcher already has work.
+Otherwise it calls `pumpProcessReceiveOrder` with the callback-enabled state.
+The pump first drains buffered process work. When enabled it polls repeatedly
+while each poll yields work; when disabled it stops after one work-yielding
+poll. The adapter then calls the shared `evokeMultiple` dispatcher once with
+the requested wait bounds.
 
-Embedded `FlushQueueRequest` has a separate callback boundary: in the focused
-Save/Restore case, its eligible TSO receive callback runs before
-`flushQueueGrant`, and both are dispatched before the next
-`evokeCallback(0.0)`. The test observes interaction time 8 before FQG(actual=7,
+The embedded `FlushQueueRequest` example nearby is a separate callback
+boundary: in its focused Save/Restore case, the eligible TSO receive callback
+runs before `flushQueueGrant`, and both are dispatched before the next
+`evokeCallback(0.0)`. It observes interaction time 8 before FQG(actual=7,
 optimistic=8). See the Save/Restore guide's [timed Save and later directed TSO
 trace](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-a-timed-save-retains-later-directed-tso-work)
 and the [Time Management FQR delivery-frontier model](HLA-2025-TIME-MANAGEMENT-GUIDE.md#fqr-actual-grant-and-optimistic-floor).
-This is one embedded `HLA_EVOKED` implementation case; it does not establish a
-general callback-order rule or configured-process behavior.
+That is one embedded implementation case, not configured-process evidence or a
+general callback-order rule.
 
 For the timing case where a receiver disables Time Constrained after FQR but
 before Evoke, see the Time Management guide's [FQR/Disable boundary](HLA-2025-TIME-MANAGEMENT-GUIDE.md#disable-time-constrained-between-fqr-acceptance-and-evoke).
@@ -499,141 +506,212 @@ admission; it does not claim a callback order for the untested combined case.
 
 ```mermaid
 flowchart TD
-  Start["evokeMultipleCallbacks(minimum, maximum)"] --> Queued{"Shared callback task already queued?"}
-  Queued -->|Yes| Timed["Run shared dispatcher<br/>within the requested wait window"]
+  Start["evokeMultipleCallbacks(minimum, maximum)"] --> Queued{"Callback task pending at entry?"}
+  Queued -->|Yes| Timed["Call shared evokeMultiple once<br/>with requested wait bounds;<br/>background pushes may arrive"]
   Queued -->|No| Enabled{"Callbacks enabled?"}
-  Enabled -->|Yes| PumpAll["Drain buffered process work;<br/>repeat receive polls while each yields work"]
-  Enabled -->|No| PumpOne["Drain buffered process work;<br/>allow at most one receive poll"]
+  Enabled -->|Yes| PumpAll["Drain buffered process work;<br/>poll again while each poll yields work"]
+  Enabled -->|No| PumpOne["Drain buffered process work;<br/>stop after one work-yielding poll"]
   PumpAll --> Timed
   PumpOne --> Timed
-  Timed --> Push{"Pushed frames still buffered after<br/>the timed pass?"}
-  Push -->|No| Pending{"Shared callback task still pending?"}
-  Push -->|Yes| PostWait["Post-wait pass attempts to submit remaining<br/>buffered frames; arrival may predate Evoke"]
-  PostWait --> Pending
-  Pending -->|No| Return["Return Evoke result or<br/>callback-dispatcher pending state"]
-  Pending -->|Yes| Zero["Run a zero-wait dispatcher pass;<br/>disabled callbacks stay pending"]
-  Zero --> Return
+  Timed --> Return["Return dispatcher result OR<br/>whether dispatcher tasks remain pending"]
 ```
 
-The [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L97)
-passes `callbacks_->isEnabled()` to the [pre-dispatch receive pump](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L126).
-When enabled, that pump continues while each receive poll yields work; when
-disabled, it stops after one poll has yielded work. Pushed frames are buffered
-by the [stream reader](../../cpp/src/internal/federation/process_federation_client.cpp#L702).
-Before polling, the pump also applies its [callback-admission guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L211):
-if a pushed event has left the client FIFO but has not yet reached the callback
-dispatcher, Evoke gets control to receive that task before another blocking
-poll begins.
-The client [background dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722)
-and a correlated [request path](../../cpp/src/internal/federation/process_federation_client.cpp#L905)
-can submit buffered frames while the shared dispatcher is waiting. That
-submission can wake the timed dispatcher and, while callbacks remain enabled,
-let it run the callback within the requested wait. With callbacks disabled,
-the task remains pending. After the timed pass, the adapter's
-[post-wait pass](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L151)
-attempts to submit any frames still in the client FIFO, regardless of whether
-they arrived before or during Evoke; this includes frames left there when a
-callback task was already queued at entry and the initial receive pump was
-skipped. The client [dispatch routine](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L282)
-returns early if a different thread already owns its dispatch lease, so the
-post-wait call does not itself guarantee every frame has reached the callback
-dispatcher before the next check. If callback tasks remain, the adapter invokes
-a [zero-wait follow-up](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L158).
-The [adapter return](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L168)
-reflects the dispatcher result or dispatcher queue count; a client-FIFO item
-not yet submitted by its competing dispatch owner is not included in that
-count. No focused public case exercises this internal handoff window.
-This sequence is source-derived; it is not a portable HLA poll-count or
-cross-service ordering rule.
+The [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L95)
+skips the pre-dispatch receive pump when a callback task is already pending and
+passes `callbacks_->isEnabled()` to the [process receive pump](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L124).
+When enabled, the pump repeats polls while each poll yields work; when disabled,
+it stops after one poll yields work. The pump checks pending callback count
+before another poll, but that is only a queue-count observation.
+
+It does not track the interval after the client removes a pushed event from its
+FIFO and before bridge submission ([client handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L303),
+[pump check](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L264)).
+A concurrent background submission can cross that observation; the committed
+candidate has no separate admission-depth fence. The focused process case cited
+below does not force this handoff race. This is an implementation evidence
+limit, not an HLA-wide polling or callback-order rule.
+
+The adapter invokes `callbacks_->evokeMultiple` once and does not make the
+post-wait client-FIFO drain or zero-wait follow-up used by single
+[`evokeCallback`](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L69).
+While this timed call runs, the client's [background dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722)
+can submit pushed work. Enabled callbacks may run in the same dispatcher pass;
+disabled tasks stay queued. The adapter returns the dispatcher result OR its
+pending-task count ([adapter return](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L133)).
+A client-FIFO item not yet submitted is not counted, and this method has no
+second process drain to account for it.
 
 The focused [process receive/Evoke case](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L743)
-observes one event admitted by `evokeMultipleCallbacks` while callbacks are
-disabled, followed by delivery after re-enable. It does not verify the enabled
-multi-poll drain, a client-FIFO event buffered before entry while an earlier
-callback task skips the pre-pump, or background client-dispatch submission
-during the active timed wait or a competing dispatch lease at the post-wait
-check. The generic [dispatcher minimum-wait case](../../cpp/tests/callback_dispatcher_catch2.cpp#L335)
-does verify that submitted callback work wakes a timed wait, but it does not
-include the process reader, client FIFO, or callback bridge. These process
-interleavings remain source-derived. The separate
-[two-interaction FIFO case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459)
-uses `evokeCallback`, not `evokeMultipleCallbacks`, so it does not cover those
-branches either.
-
+observes one event admitted while callbacks are disabled and its later delivery
+after re-enable. Its scripted server expects one receive for that admission and
+then no extra poll when the queued task is evoked. It does not verify an enabled
+multi-poll drain, the FIFO-to-bridge race above, or pushed submission during the
+timed wait. The generic [dispatcher minimum-wait case](../../cpp/tests/callback_dispatcher_catch2.cpp#L335)
+shows submitted work can wake the dispatcher, but does not include the process
+reader, FIFO, or callback bridge. The separate [two-interaction FIFO case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459)
+uses single `evokeCallback`, so it does not cover the multi-poll drain.
 ### The bounded drain uses elapsed time, not HLA logical time
 
-The 2025 adapter converts the two approximate-second arguments to millisecond
-durations. The dispatcher clamps negative durations to zero and raises the
-maximum to at least the minimum. It then measures the window with
-`std::chrono::steady_clock`; this is a callback-service wait window, not a
-federation logical-time boundary.
+The 2025 adapter converts each approximate-second argument to milliseconds.
+Its conversion maps non-finite and nonpositive values to zero, truncates
+positive fractional milliseconds, and saturates very large finite values at
+`milliseconds::max()`. The dispatcher then clamps durations to zero or above
+and raises the maximum to at least the minimum.
+
+The dispatcher first acquires its shared callback-dispatch lock and checks
+that it is in evoked mode with callbacks enabled. Only then does it start the
+`std::chrono::steady_clock` window. Time spent waiting for that lock and work
+the adapter performs before entering the dispatcher are outside this measured
+window. If callbacks are disabled at entry, the dispatcher returns its
+pending-work status without starting the clock.
+
+With an empty queue, it waits only until the minimum deadline; when that
+deadline arrives with no callback queued, it returns false. When work is
+queued, it invokes callbacks in FIFO order and checks the maximum only after
+each callback returns. A zero maximum therefore still permits one queued
+callback to run. A callback already running is not interrupted when the
+maximum passes, and its completion can extend beyond that deadline. The
+maximum is not a hard bound on the full API-call duration: lock acquisition,
+adapter work outside the dispatcher, and callback execution can all extend
+the observed call time. This clock measures elapsed callback-service time, not
+federation logical time.
 
 ```mermaid
 flowchart TD
-  A["Evoke Multiple Callbacks(minimum, maximum)"] --> B["Convert arguments to durations<br/>Clamp minimum and maximum; maximum is at least minimum"]
-  B --> C["Start steady-clock window<br/>Record minimum and maximum deadlines"]
-  C --> D{"Callbacks enabled?"}
-  D -->|No| P["Return whether callbacks remain pending"]
-  D -->|Yes| E{"Callback queued?"}
-  E -->|Yes| F["Remove next FIFO task<br/>Invoke callback to completion"]
-  F --> G{"Maximum deadline reached<br/>after callback returns?"}
-  G -->|Yes| P
-  G -->|No| D
-  E -->|No| H{"Minimum deadline reached?"}
-  H -->|Yes| I["Return false<br/>No callback remains pending"]
-  H -->|No| J["Wait for callback arrival,<br/>disable, or minimum deadline"]
-  J --> D
+  A["Evoke Multiple Callbacks(minimum, maximum)"] --> B["Convert seconds to milliseconds<br/>Non-finite/nonpositive → 0; truncate fractions; saturate large values"]
+  B --> C["Clamp to zero or above<br/>Raise maximum to at least minimum"]
+  C --> D["Acquire shared dispatcher lock and check entry gates"]
+  D -->|Non-evoked mode| R["Return false"]
+  D -->|Callbacks disabled| P["Return pending-work status"]
+  D -->|Evoked and enabled| E["Start steady-clock window<br/>Record minimum and maximum deadlines"]
+
+  subgraph TimedLoop["Timed dispatcher loop"]
+    direction TD
+    F{"Callbacks still enabled?"}
+    G{"FIFO work queued?"}
+    H["Remove next FIFO task<br/>Invoke callback to completion"]
+    I{"Maximum reached after callback returns?"}
+    J{"Minimum deadline reached?"}
+    K["Wait for callback arrival,<br/>disable, or minimum deadline"]
+    F -->|No| P
+    F -->|Yes| G
+    G -->|Yes| H --> I
+    I -->|Yes| P
+    I -->|No| F
+    G -->|No| J
+    J -->|Yes| M["Return false<br/>Queue is empty"]
+    J -->|No| K --> F
+  end
+  E --> F
+  style TimedLoop fill:#fff,stroke:#999,stroke-width:1px
 ```
 
 This is the current dispatcher path, not a complete statement of IEEE
-1516.1-2025 §10.58. In particular, the dispatcher checks the maximum deadline
-only after a callback invocation returns. A callback already in progress is
-not interrupted when that deadline passes; it can finish beyond the requested
-maximum. If a callback throws, that task has already been removed and is not
-retried; the [callback exception boundary](#if-an-exception-escapes-a-callback-task)
-covers that separate outcome.
+1516.1-2025 §10.58. If a callback throws, its task has already been removed
+and is not retried; the [callback exception boundary](#if-an-exception-escapes-a-callback-task)
+covers that separate outcome. The public adapter's final boolean also includes
+whether dispatcher work remains after its adapter-side processing.
 
 The [focused dispatcher test](../../cpp/tests/callback_dispatcher_catch2.cpp#L321)
 starts with three callbacks already queued, calls `evokeMultiple(1ms, 25ms)`,
-and checks FIFO completion and a false pending-work result. That FIFO case does not test waiting on an initially empty queue, a late callback
-arrival, maximum-deadline overshoot, or the public API adapter. A companion
-[dispatcher case](../../cpp/tests/callback_dispatcher_catch2.cpp#L334) starts with
-an empty queue and observes a callback submitted during the minimum wait; it
-does not test maximum-deadline overshoot or the public API adapter. The [pinned API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2273),
-[2025 adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L97),
-and [dispatcher implementation](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L192)
-bound the explanation to this source path. Use the licensed standard text to
-make claims about the normative meaning of the approximate wait arguments.
+and checks FIFO completion and a false pending-work result. It makes no timing
+assertion, so it does not establish the wait duration. The [disabled-dispatcher
+case](../../cpp/tests/callback_dispatcher_catch2.cpp#L334) exercises
+`evokeOne(0ms)`, not `evokeMultiple`, and supplies no wait-window evidence.
+There is no focused test here for an initially empty queue, callback arrival
+during the wait, argument conversion or normalization, maximum-deadline
+overshoot, time spent waiting for the dispatch lock, or the public API adapter.
+The [pinned API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2273),
+[argument converter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L16),
+[2025 adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L95),
+and [dispatcher implementation](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L200)
+bound the explanation to this source path. The [official IEEE product page](https://standards.ieee.org/ieee/1516.1/6688/)
+identifies 1516.1-2025 as purchase/subscription-access content; keep normative interpretations
+of the approximate wait arguments unresolved until its licensed text is
+available.
 
 ## HLA_IMMEDIATE: callback work can be on the service stack
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor App as Federate application
+  actor Producer as RTI-calling thread
   participant RTI as RTI ambassador
   participant Queue as Callback dispatcher
+  participant Drainer as Already-active drainer thread
   participant FA as FederateAmbassador
 
-  App->>RTI: Invoke service that produces a callback
-  RTI->>Queue: Submit callback task
-  Queue->>FA: Invoke callback before service returns
-  FA->>RTI: Invoke a service permitted from this callback
-  RTI->>Queue: Submit any newly induced callback task
-  opt same-thread immediate re-entry produces nested callback work
-    Queue->>FA: Invoke nested callback synchronously
-    FA-->>Queue: Nested callback returns
+  Producer->>RTI: Call a service that produces a callback task
+  RTI->>Queue: submit(task)
+  alt Callbacks enabled and no immediate drainer is active
+    Queue->>FA: Invoke callback on the submitting/draining thread
+    FA->>RTI: Call a service permitted from this callback
+    RTI->>Queue: submit(nested task)
+    opt Nested task is submitted by the current drainer thread
+      Queue->>FA: Re-enter the drain and invoke nested callback
+      FA-->>Queue: Nested callback returns
+    end
+    FA-->>Queue: Outer callback returns normally
+    Queue-->>RTI: Drain completes, then submit returns
+    RTI-->>Producer: Original service can now return
+  else Another thread owns the immediate drainer and callbacks remain enabled
+    Queue->>Queue: Append task to FIFO and do not start a second drainer
+    Queue-->>RTI: submit returns without invoking this task
+    RTI-->>Producer: Service may return while callback remains queued
+    Note over Drainer,Queue: If its active callback returns normally and delivery stays enabled, the drainer resumes FIFO
+    Drainer->>Queue: Continue the existing drain
+    Queue->>FA: Invoke the queued callback on the drainer thread
+    FA-->>Queue: Callback returns
   end
-  FA-->>Queue: Outer callback returns
-  Queue-->>RTI: Finish dispatch
-  RTI-->>App: Original service returns
 ```
 
-The same-thread nested path is a current implementation capability of the
-recursive dispatcher/session, not permission to call every RTI service from a
-callback. Each service's callback-re-entry rule still applies. The pinned 2025
-C++ API explicitly lists `CallNotAllowedFromWithinCallback` for these
-operations:
+The pinned API's [`CallbackModel` enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L22)
+names `HLA_IMMEDIATE` and `HLA_EVOKED`. The sequence above is the current 2025
+Umbra implementation path, not a claim that every immediate callback must
+run on its producer's thread or finish before every inducing service returns.
+In the [dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
+an enabled immediate submission appends to the FIFO. If no drainer owns the
+queue, the submitting thread becomes the drainer and calls
+[`drainImmediate`](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L253)
+before `submit` returns. If delivery remains enabled, the callback enters
+through [CallbackSession::invoke](../../cpp/src/internal/callbacks/callback_session.cpp#L54).
+A submission from that same thread can re-enter the recursive drain. If a
+different thread already owns the drain, the submitting thread only appends
+the task and returns; the active drainer can invoke it after its current
+callback returns normally and callbacks remain enabled.
+Disabled tasks stay queued; a later
+[`enableCallbacks`](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L82)
+can start the drain. This per-ambassador queue does not establish a global
+order across producers or federates.
+
+If a callback throws while draining inline, the failing task has already been
+removed, later FIFO tasks remain pending, and the exception unwinds through the
+call that owns the active drain. That call can differ from the service that
+submitted the failing task. The
+[callback-exception flow](#if-an-exception-escapes-a-callback-task) traces task
+consumption and the active-call boundary. The recursive dispatcher/session
+permits same-thread nested dispatch in this implementation; it does not permit
+calling every RTI service from a callback. Each service's re-entry rule still
+applies. The pinned 2025 C++ API explicitly lists
+`CallNotAllowedFromWithinCallback` for the operations below:
+
+The [direct dispatcher test](../../cpp/tests/callback_dispatcher_catch2.cpp#L83)
+checks synchronous completion for sequential submissions on one thread. The
+[competing-producer test](../../cpp/tests/callback_dispatcher_catch2.cpp#L100)
+blocks the first callback, joins a second producer after it submits another
+task, and verifies the second callback has not entered until the first is
+released; it then checks FIFO order. These are dispatcher tests, not public
+service tests. The [public integration case](../../cpp/tests/callback_dispatcher_catch2.cpp#L168)
+calls `listFederationExecutions` under `HLA_IMMEDIATE`; its callback attempts
+both Evoke services, catches their re-entry exceptions, and has both flags
+checked after the service returns. The [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2735)
+submits that report callback after releasing its runtime locks. Together these
+show one uncontended public path and the generic competing-producer queue
+behavior. They do not test a competing drainer through a public RTI service,
+an allowed nested service that produces a second public callback, or exception
+attribution in that concurrent schedule. For contrast,
+`HLA_EVOKED` leaves callback invocation to a later Evoke service, as described
+in [the explicit-drain section](#hla_evoked-the-application-owns-the-drain-point).
 
 | API operation | Pinned API declarations | Current 2025 adapter and focused-test evidence |
 | --- | --- | --- |
@@ -660,28 +738,98 @@ guarded against callback re-entry.
 
 ```mermaid
 stateDiagram-v2
-  state "Session open" as Open
-  state "Invocation active" as Active
-  state "Close requested" as Closing
-  state "Recipient detached" as Closed
+  state "Open, borrowed recipient attached" as Open
+  state "One or more callback entries active" as Active
+  state "Closed flag set, accepted entries draining" as Closing
+  state "Closed, recipient pointer detached" as Closed
 
   [*] --> Open
-  Open --> Active: callback begins
-  Active --> Open: callback returns and session remains open
-  Open --> Closed: external close with no invocation active
-  Active --> Closing: close requested by external thread
-  Active --> Closing: callback requests close on its own session
-  Closing --> Closing: stale queued invocation is ignored
-  Closing --> Closed: active invocation returns
-  Closed --> Closed: stale queued invocation is ignored
+  Open --> Active: invoke passes the closed check under the recursive gate
+  Active --> Active: same-thread nested callback entry
+  Active --> Open: final entry exits while session remains open
+  Open --> Closed: close with no accepted entry in flight
+  Active --> Closing: private self-close or external close sets closed
+  Closing --> Closing: waiting or queued entry later sees closed and skips
+  Closing --> Closed: final accepted entry exits and recipient detaches
+  Closed --> Closed: later invocation returns without using recipient
+
+  note right of Active
+    Normal return and exception both finish the entry.
+    Nested same-thread entries count separately.
+  end note
+  note right of Closing
+    External close waits for accepted entries.
+    Private same-thread close returns to its callback.
+  end note
 ```
 
-Umbra borrows the caller-owned FederateAmbassador rather than owning it. The
-session serializes callback entry so two RTI paths do not enter the same
-ambassador concurrently. An external close waits for a callback already in
-flight; same-thread close marks the session closed and lets the active
-invocation release the borrowed pointer on return. This internal lifetime
-protection is separate from what the public HLA service permits.
+Umbra's 2025 `CallbackSession` borrows the caller-owned `FederateAmbassador`; it
+does not own the recipient. `invoke` first obtains a per-session recursive
+gate, then checks the closed flag and recipient pointer. An accepted entry
+increments the in-flight count and snapshots the borrowed pointer before the
+session mutex is released. Different threads serialize at the gate; same-thread
+nested callbacks can re-enter it. An invocation waiting at the gate is not yet
+counted. If close wins first, that invocation later sees the closed flag and
+returns without dereferencing the recipient.
+
+Every accepted entry decrements the count on both normal return and exception.
+If the session is closed and the last entry exits, it clears the borrowed
+pointer and wakes close waiters; an exception is then rethrown to the caller of
+`invoke`. A private same-thread close only sets the closed flag and returns,
+avoiding a wait on itself. An external close waits for accepted callback
+entries, then detaches the pointer. That wait covers FederateAmbassador entry,
+not every task waiting at the gate or the entire dispatcher/service call
+stack.
+
+### Public Disconnect guard and private session close are different paths
+
+```mermaid
+sequenceDiagram
+  participant Session as CallbackSession
+  participant FA as FederateAmbassador callback
+  participant RTI as RTIambassador
+  participant Queue as Shared callback dispatcher
+  participant Caller as Separate Disconnect thread
+
+  Note over Session,FA: The session invokes FA through a borrowed pointer.
+  Session->>FA: Enter callback
+  alt Callback thread calls public Disconnect
+    FA->>RTI: Disconnect()
+    RTI->>Queue: isExecutingCallback()
+    Queue-->>RTI: true on this thread
+    RTI-->>FA: throw CallNotAllowedFromWithinCallback
+    Note over RTI,Session: The rejected call does not transition lifecycle or close the session.
+  else Separate thread disconnects while callback is active
+    Caller->>RTI: Disconnect()
+    RTI->>Queue: isExecutingCallback()
+    Queue-->>RTI: false on this thread
+    RTI->>RTI: Check connected and unjoined state, then mark Not Connected
+    RTI->>Queue: Reset pending callback tasks
+    RTI->>Session: close()
+    Session->>Session: Set closed and wait for accepted entries to finish
+    FA-->>Session: Callback returns or throws
+    Session->>Session: Decrement count and detach pointer at zero
+    Session-->>RTI: close() returns
+    RTI->>RTI: Continue profile-specific teardown
+    RTI-->>Caller: Disconnect returns
+  end
+```
+
+This is Umbra's implementation path, not a complete HLA callback-permission
+matrix. The callback's private self-close branch is not a public way to call
+Disconnect. A successful external Disconnect changes lifecycle state and
+clears pending dispatcher tasks under the ambassador lock, then closes the
+session after releasing that lock. A task already selected but not yet accepted
+by the session is rejected by the closed check. In the configured-process
+profile, client teardown follows the session close.
+
+The focused unit tests exercise private session close directly: an external
+close waits for a blocked callback; concurrent direct entries serialize; and
+self-close returns without deadlocking. The public embedded federation-listing
+scenario separately queues an evoked report, disconnects, then confirms a later
+Evoke does not deliver it. These tests do not establish that public Disconnect
+from a callback throws, nor do they exercise external public Disconnect while
+another thread is inside the callback.
 
 ### Conveyed Region designators follow callback completion
 
@@ -755,9 +903,13 @@ concurrent Connect can therefore commit a new session while old cleanup is
 still outstanding, and the old bridge resets the dispatcher shared by both
 sessions. That reset could remove tasks submitted by the replacement session.
 This is an implementation-derived race possibility, not a tested outcome or a
-claim about the API's concurrent-call contract. The Disconnect sequence and
-the distinction between local return and later host cleanup are diagrammed in
-the [2025 connection guide](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md#3-disconnect-requires-an-unjoined-connection-and-tears-down-in-order).
+claim about the API's concurrent-call contract. The existing public embedded
+test covers queued evoked-report discard and sequential Disconnect/reconnect;
+the configured-process public Connect/Disconnect case does not assert queued
+callback behavior. No focused test covers concurrent Connect with outstanding
+Disconnect cleanup, or configured-process pending callbacks across reconnect.
+The Disconnect sequence and the distinction between local return and later
+host cleanup are diagrammed in the [2025 connection guide](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md#3-disconnect-requires-an-unjoined-connection-and-tears-down-in-order).
 
 ## Ordering and state-commit cautions
 
@@ -934,6 +1086,7 @@ sequenceDiagram
   participant S as Process RTI service
   participant R as Recipient stream reader
   participant B as Callback bridge
+  participant D as Callback dispatcher
 
   F->>C: Request-backed RTI service K
   C->>S: Send correlated request K
@@ -942,17 +1095,28 @@ sequenceDiagram
   S-->>R: Correlated response K
   R->>C: Publish response K
   C->>C: Match K and release exchange lock
-  C->>B: Submit buffered event
-  alt HLA_IMMEDIATE
-    B->>F: Invoke callback inline
-    F--xB: Callback throws
-    B--xC: Exception escapes request drain
-  else HLA_EVOKED
-    B-->>C: Queue callback task
-    C-->>F: Request returns its normal result
-    F->>B: Evoke Callback
-    B->>F: Invoke callback
-    F--xB: Callback exception exits Evoke
+  alt Another process event drain already owns dispatch
+    C->>C: Leave event delivery to its current owner
+    C-->>F: Request returns matched result
+    Note over C: Any callback exception follows the current owner's call path.
+  else This request owns process event drain
+    C->>B: Submit buffered event
+    B->>D: Submit receive-order task
+    alt HLA_IMMEDIATE and this thread becomes or re-enters callback drainer
+      D->>F: Invoke callback inline
+      F--xD: Callback throws
+      D--xC: Exception escapes request drain
+    else HLA_IMMEDIATE and another thread owns callback drainer
+      D-->>C: Append to FIFO and return
+      C-->>F: Request returns matched result
+      Note over D: Later callback failure follows the existing drainer's call path.
+    else HLA_EVOKED
+      D-->>C: Queue callback task
+      C-->>F: Request returns its normal result
+      F->>D: Evoke Callback
+      D->>F: Invoke callback
+      F--xD: Callback exception exits Evoke
+    end
   end
 ```
 
@@ -965,58 +1129,91 @@ sequenceDiagram
   participant R as Recipient stream reader
   participant C as Recipient process client and dispatcher
   participant B as Callback bridge
+  participant D as Callback dispatcher
+  participant O as Existing immediate drainer
   actor F as Receiving federate
 
   S-->>R: Push event frame (requestId=0)
   R->>C: Decode and buffer without callback
   C->>C: dispatchLoop submits buffered event
   C->>B: Submit event
-  alt HLA_IMMEDIATE
-    B->>F: Invoke callback inline
-    F--xB: Callback throws
-    B--xC: Exception returns to dispatchLoop
+  B->>D: Submit receive-order task
+  alt HLA_IMMEDIATE and dispatchLoop thread becomes or re-enters callback drainer
+    D->>F: Invoke callback inline
+    F--xD: Callback throws
+    D--xC: Exception returns to dispatchLoop
     C->>C: Save the first pending exception
     Note over C: The loop resumes, and later exceptions cannot replace the saved first exception.
     F->>C: Next call reaches ProcessFederationClient::request
     C->>C: Take and rethrow before acquiring the request lock or sending
     C-->>F: Exception leaves through the outer API path
+  else HLA_IMMEDIATE and another thread owns callback drainer
+    D-->>C: Append to FIFO and return
+    Note over C: The loop has no exception to store from this submission.
+    O->>D: Existing drainer resumes its FIFO
+    opt This event is reached
+      D->>F: Invoke callback
+      F--xD: Callback throws
+      D--xO: Exception exits the existing drainer's call path
+    end
+    Note over C: This later exception does not reach the dispatchLoop catch.
   else HLA_EVOKED
-    B-->>C: Queue callback task
-    F->>B: Evoke Callback
-    B->>F: Invoke callback
-    F--xB: Callback exception exits Evoke
+    D-->>C: Queue callback task
+    F->>D: Evoke Callback
+    D->>F: Invoke callback
+    F--xD: Callback exception exits Evoke
   end
 ```
 
 The two `HLA_IMMEDIATE` paths are source-derived implementation behavior, not
 a normative HLA exception rule. In the request-drain path,
-[`ProcessFederationClient::request`](../../cpp/src/internal/federation/process_federation_client.cpp#L522)
+`request()` matches the response ([response correlation](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L599)), releases the exchange lock ([exchange unlock](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L618)), then drains pushed events ([request-owned event drain](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L622))
 matches the response, releases the exchange lock, then drains pushed events;
 an escaping callback exception can prevent that client call from returning
-the already-received response to its caller. In the background path,
-[`receiveLoop`](../../cpp/src/internal/federation/process_federation_client.cpp#L961)
-only buffers events, while [`dispatchPendingPushedEvents`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274)
-unlocks around callback-bridge submission. [`submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332)
-passes the task to the callback dispatcher. The background
-[`dispatchLoop`](../../cpp/src/internal/federation/process_federation_client.cpp#L697)
-catches callback-dispatch exceptions and stores one pending exception. The
-first later call to `request()` exchanges and rethrows it before beginning a
-request ([rethrow](../../cpp/src/internal/federation/process_federation_client.cpp#L723)).
+the already-received response to its caller only if this request owns the
+process event drain and the callback submission drains synchronously on this
+same thread. The process drain can return without submitting if another
+thread already owns event dispatch
+([ownership check](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L282));
+in that case the request returns its matched response while the current owner
+continues delivery. When this request owns the process drain, it removes an
+event and unlocks before submitting it through the
+[`callback bridge`](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L305).
+The bridge passes the task to the dispatcher
+([submission](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1378));
+[`CallbackDispatcher::submit`](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/callbacks/callback_dispatcher.cpp#L122)
+drains synchronously in `HLA_IMMEDIATE` mode when this thread becomes the
+drainer or re-enters its own drain. If a different thread owns that immediate
+drain, submission only appends to the FIFO and returns; any later callback
+exception follows the existing drainer's call path
+([ownership rule](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/callbacks/callback_dispatcher.cpp#L144),
+[exception exit](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/callbacks/callback_dispatcher.cpp#L279)).
+The request can then return before that queued callback runs. In the background
+path, [`receiveLoop` buffers the pushed event](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L683);
+the [`dispatchLoop` catch](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L739)
+stores only the first callback-dispatch exception. Before acquiring a request
+lock or sending, the next `request()` calls
+[`rethrowPendingCallbackException`](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L748),
+which exchanges and rethrows the saved exception
+([actual exception rethrow](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L755)).
 Because the background loop resumes after its catch, later buffered events can
 still be dispatched; while the pending slot is occupied, a later exception
 does not replace the first. These precise queue/error details have no focused
-throwing-callback test in the reviewed process cases.
+throwing-callback test in the reviewed process cases. The dispatcher citation
+describes only the mechanism reached by this 2025 process path; this review
+does not establish 2010 parity.
 
-For `HLA_EVOKED`, bridge submission queues a task and user code runs only when
-the recipient invokes Evoke; the generic dispatcher/session exception route
-above then applies. Do not infer from the callback's declared exception type
+For `HLA_EVOKED`, bridge submission queues a task and the recipient's later
+[`evokeOne` call](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/callbacks/callback_dispatcher.cpp#L191)
+invokes user code; the generic dispatcher/session exception route above then
+applies. Do not infer from the callback's declared exception type
 that Evoke translates or reports it. The producer's private response and
 recipient's callback stack remain independent. See the detailed [process
 request/callback flow](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#2-from-a-stream-frame-to-an-official-callback)
 for request correlation and event admission. The focused [process Evoke
-integration case](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457),
-[multi-recipient interaction case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459),
-and [callback-bridge unit cases](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L19)
+integration case](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L458),
+[multi-recipient interaction case](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L460),
+and [callback-bridge unit cases](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/tests/process_federation_callback_bridge_catch2.cpp#L20)
 exercise successful dispatch, not a throwing `FederateAmbassador`; no test was
 run for this documentation review.
 
@@ -1024,14 +1221,14 @@ run for this documentation review.
 
 The previous call-stack map stops at the outer RTI service boundary because
 report behavior is service-wrapper-specific. A concrete request-backed example
-is the configured-process [`getInteractionClassHandle`](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp#L16)
+is the configured-process [`getInteractionClassHandle`](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp#L16)
 path, which is also used as a receiver-side exchange fence in the focused
 multi-recipient case. If its client request drains an `HLA_IMMEDIATE`
 `FederateInternalError`, or the next call rethrows a saved one before sending,
 the process branch's narrower `ProcessFederationClientError` catches do not
 match that callback exception. The outer `catch (Exception const&)` does: it
 attempts `HLAreportException` through the `noexcept`
-[`emitExceptionReport`](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
+[`emitExceptionReport`](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L185)
 hook, then attempts the failed service-invocation report before rethrowing the
 original. The hook swallows failures in its own advisory report request. If
 the later process failed-report request fails, the writer converts that
@@ -1053,10 +1250,10 @@ flowchart TD
   G -->|No, process client report error| I[Convert to RTIinternalError; it can replace the original]
 ```
 
-The catch/report ordering is visible in the [public wrapper](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp#L98),
-the process-client report requests ([exception](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L429),
-[failed invocation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L445)),
-and [failed-report adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L253).
+The catch/report ordering is visible in the [public wrapper](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp#L99),
+the process-client report requests ([exception](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_federation_management.cpp#L492),
+[failed invocation](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_federation_management.cpp#L508)),
+and the [failed-report adapter's error conversion](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L279).
 It is source evidence only: the reviewed process tests do not throw from the
 callback, and no combined exception-report/service-report failure schedule was
 run or tested here. The embedded `Send Interaction` case below remains a
@@ -1142,8 +1339,8 @@ and [erases the completed point](../../cpp/src/internal/federation/federation_re
 [process request handler's registry transition](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L261)
 and [notification enqueue before response](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L288),
 [pushed notification send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L416),
-[response/unlock boundary](../../cpp/src/internal/federation/process_federation_client.cpp#L610)
-and [subsequent callback drain](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L737),
+[request-depth release](../../cpp/src/internal/federation/process_federation_client.cpp#L610) and [exchange unlock](../../cpp/src/internal/federation/process_federation_client.cpp#L618),
+followed by [subsequent callback drain](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L737),
 [public wrapper's success-report append](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1362),
 and [outer exception catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1390).
 The public [HLA_IMMEDIATE process test](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L871)
@@ -1171,11 +1368,11 @@ sequenceDiagram
   Sender->>RTI: Send Interaction
   RTI->>RTI: Pass routing and delivery preflight
   RTI->>RTI: Cross accepted-interaction boundary
-  RTI->>RTI: Append successful service-report record
+  RTI->>RTI: Append successful service-report record if selected
   RTI->>RTI: Record accepted-send counter
 
   alt HLA_IMMEDIATE
-    alt Sender thread is elected drainer
+    alt Sender thread becomes or re-enters the drainer
       RTI->>Receiver: Invoke Receive Interaction
       Receiver-->>RTI: FederateInternalError escapes callback
       Note over Sender,RTI: Task consumed. Queue preserved.
@@ -1316,8 +1513,71 @@ transport failure handoff[^worktree-source],
 [retained-client dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722),
 [deferred failure callback](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L759),
 client close[^worktree-source],
-[bridge close](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2403),
+[bridge close](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415),
 and [callback-session close/wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35).
+
+### A concurrent Connect can wait on an active old-session callback
+
+The adapter rejects `Connect()` called by the callback thread itself. A
+different application thread can still call `Connect()` while a callback from
+the failed process session is active: the callback guard reads thread-local
+execution state, so it does not report a callback running on another thread.
+At Connect commit, the ambassador mutex remains held while the new process
+client replaces the retained old client. Destroying that old client interrupts
+and joins its workers; closing its bridge then closes the old callback session
+and waits for active invocations before resetting the shared dispatcher. These
+steps are visible in the [Connect guard and commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L74),
+[thread-local callback guard](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L11),
+[callback-state query](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L118),
+[Connect commit lock](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L242),
+[old-client replacement](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L284),
+[client close](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L599),
+[stream-reader join](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L624),
+and [callback-dispatch join](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L628),
+[bridge close and shared-dispatcher reset](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415),
+[callback-session wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35),
+and [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L73).
+For example, after the process endpoint is marked inactive,
+[`getFederateName`](../../cpp/src/internal/runtime/umbra_rti_ambassador_federate_identity_lookup.cpp#L153)
+falls through to a path that takes the ambassador mutex before checking the
+local lifecycle state.
+
+```mermaid
+sequenceDiagram
+    participant Callback as Active old callback
+    participant App as Other application thread
+    participant RTI as RTIambassador
+    participant Client as Retained client
+
+    Note over Callback,App: Callback-thread Connect is rejected
+    App->>RTI: Connect()
+    RTI->>RTI: Lock mutex and commit Connect
+    RTI->>Client: Replace old client and start close
+    alt HLA_IMMEDIATE callback is on old worker
+        Client->>Client: Interrupt and join worker
+        Client-->>RTI: Waits for callback thread
+    else HLA_EVOKED callback is active
+        Client->>Client: Close waits on old callback session
+        Client-->>RTI: Waits for callback return
+    end
+    Callback->>RTI: Call a service that needs the mutex
+    Note over RTI,Callback: Possible wait cycle<br/>Connect holds lock and waits<br/>callback waits for the same lock
+```
+
+This is a source-derived possible wait cycle, not an observed deadlock or an
+HLA requirement. It requires the active callback to re-enter a service that
+needs the ambassador mutex while the external Connect is waiting for the old
+client or callback session to close; a callback that returns without that
+re-entry lets cleanup continue. The focused configured-process coordinator-
+stop case delivers `ConnectionLost` under `HLA_EVOKED`, but does not race a
+second-thread Connect or re-enter an RTI service from the active callback. The
+The current worktree also contains a private socket-resume case named
+`Process federation client resumes its joined session after socket loss` in
+`cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp`[^worktree-source].
+Its assertions check that the private client can list the joined member after
+socket reconnection; they do not inspect a public ambassador's Not Connected
+transition. The public same-ambassador Connect-after-loss case covers only the
+embedded profile. None establishes this process-profile schedule.
 
 The focused 2025 connection_lost case injects embedded transport failure. The
 [embedded case](../../cpp/tests/ieee1516_2025_connection_lost_error_path_catch2.cpp#L5)
@@ -1394,7 +1654,7 @@ transition. The gate applies separately at the survivor that may receive
 | Callback path | Effect while callbacks are disabled | Source boundary |
 | --- | --- | --- |
 | Survivor report, embedded | The task waits in that survivor's dispatcher. When it can run, the embedded callback path rechecks the current receive-order route; a changed route can suppress the report after the wait. | [Callback-time route recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L74) |
-| Survivor report, configured process | Push may admit the frame to the client FIFO; a Pull poll may return the report to the bridge. The bridge queues the callback task in the survivor's dispatcher. The report uses the recipient projection captured by the service; no report-specific callback-time route recheck was found. | [Service event projection](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L141), [bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1366), [exception-report-only recheck gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1399) |
+| Survivor report, configured process | Push may admit the frame to the client FIFO; a Pull poll may return the report to the bridge. The bridge queues the callback task in the survivor's dispatcher. The report uses the recipient projection captured by the service; no report-specific callback-time route recheck was found. | [Service event projection](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L141), [bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1378), [exception-report callback-admission gate](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1456) |
 | Failed member's local callback, embedded | Forced loss resets that ambassador's dispatcher, clearing its old pending tasks and setting the enabled state to true before it submits local `connectionLost`. An Evoked ambassador still needs an Evoke call. | [Loss-path reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L358), [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110) |
 | Failed member's local callback, configured process | The ambassador becomes locally Not Connected before the callback task is submitted. This path does not reset or re-enable the dispatcher, so a disabled task remains pending until the gate opens. | [Process loss transition and submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L122) |
 
@@ -1421,10 +1681,10 @@ queue, the client's Push `pendingEvents_` FIFO, or a task already submitted to
 the dispatcher ([client unsubscribe request](../../cpp/src/internal/federation/process_federation_client_declaration_services.cpp#L245),
 [service unsubscribe handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L345),
 [Pull queue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L123),
-[Push FIFO admission](../../cpp/src/internal/federation/process_federation_client.cpp#L702)).
+[Push FIFO admission](../../cpp/src/internal/federation/process_federation_client.cpp#L467)).
 The Federate-Lost event also has no `exceptionReportFederateId`, so it skips the
 bridge's special exception-report projection and callback-admission checks
-([conditional recheck](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1399)).
+([exception-report projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1411) and [callback-admission check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1456)).
 Thus an unsubscribe accepted after report planning does not reproject that
 already planned event in the inspected process path; an unsubscribe before
 planning can affect the initial recipient set.
@@ -1495,35 +1755,64 @@ Save/Restore remains a separate registry transition; see the [lifecycle
 guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#active-federation-save-and-restore-during-member-exit).
 
 ```mermaid
-flowchart TD
-  A["Public process Resign begins"] --> B["Suppress client event admission and wait for active client-side event dispatch to finish"]
-  B --> C["Send correlated Resign request without the generic callback-drain epilogue"]
-  C --> D{"Request outcome"}
-  D -->|Rejected response| R["Release suppression; explicitly dispatch buffered events and flush acknowledgements; report failure"]
-  D -->|Transport exception| X["Release suppression and rethrow; transport-loss handling is a separate path"]
-  D -->|Success| S["Service commits resignation and clears still-queued joined-session events before replying"]
-  S --> E["Client clears joined identity and pendingEvents_"]
-  E --> F["Cancel exception/deferred projections; discard retraction state and reset the shared dispatcher"]
-  F --> G["Reset drops tasks still pending and re-enables dispatcher callbacks"]
-  G --> H{"Was a task already selected for invocation?"}
-  H -->|No| I["No old task remains in the dispatcher queue"]
-  H -->|Yes| J["Reset does not interrupt it; the Resign path keeps the callback session open"]
-  G --> K["Ambassador applies local Resign state and the public call returns"]
-  E --> L["A frame received while no new joined identity exists is ignored by the client"]
-  L -.-> M["A later Join before a late frame arrives is a separate, untested identity-correlation boundary"]
+sequenceDiagram
+  participant App as HLA application
+  participant RTI as RTI ambassador
+  participant Client as Process client
+  participant Service as Process service
+
+  App->>RTI: Resign Federation Execution
+  RTI->>Client: Suppress pushed-event dispatch and wait for active client dispatch
+  Note over RTI,Client: Frames with no joined identity are ignored.<br/>Old-session correlation after a later Join is unverified
+  Client->>Service: Send correlated Resign without generic event-drain epilogue
+  alt Correlated response
+    alt Service rejects before registry transition
+      Service-->>Client: Non-OK response
+      Client->>Client: Release suppression, dispatch buffered events and acknowledgements
+      Client-->>RTI: Throw service failure
+    else Registry resignation applied
+      Service->>Service: Route loss and survivor notifications, then reevaluate grants
+      alt Follow-up routing and grant work succeeds
+        Service->>Service: Clear remaining joined-session queues
+        Note over Client,Service: A push selected before queue clearing may still send.<br/>Send-versus-response order is untested
+        Service-->>Client: Success response
+        Client->>Client: Clear old joined identity and client event FIFO
+        Client->>Client: Cancel projections and retraction state, reset dispatcher
+        Client->>RTI: Release suppression
+        RTI->>RTI: Commit local Resign state
+        RTI-->>App: Return
+      else Follow-up work fails
+        Service-->>Client: Internal error, registry transition may already be committed
+        Client->>Client: Release suppression, dispatch buffered events and acknowledgements
+        Client-->>RTI: Throw service failure
+      end
+    end
+  else Transport exception
+    Client->>Client: Release suppression
+    Client-->>RTI: Rethrow transport failure
+  end
 ```
 
-The client raises callback-dispatch suppression before the request and waits for
-its pushed-event admission depth to reach zero. This drains any client event
-currently being handed to the bridge; it does not wait for an HLA_EVOKED task
-already selected by the shared dispatcher on another thread. On a successful
-response, the service clears its remaining joined-session queues. The client
-then clears its joined identity and pendingEvents_, cancels exception-report
-and deferred-attribute projections, marks retraction states resigned, and calls
-discardPendingCallbacks. CallbackDispatcher::reset clears tasks still in its
-pending queue and sets its enabled state to true. It does not close the
-callback session or withdraw a task already selected for invocation. The
-ambassador then commits its local Resign lifecycle fields before returning.
+Resign crosses several independently owned work queues. The success path clears
+work that remains at each boundary; it is not one atomic drain across the server,
+client, dispatcher, and callback session.
+
+| Work state | Successful process Resign boundary | Evidence and test limit |
+| --- | --- | --- |
+| Server-owned per-session queues | After registry resignation and follow-up loss/grant routing succeed, the service clears the remaining joined-session event queues before returning success. A push already selected for transport send is outside that queue clear. | [Resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [session queue cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29); the selected-send/Resign-response race has no focused public assertion. |
+| Client `pendingEvents_` FIFO | A successful response clears the old joined identity and buffered events. A non-OK response instead releases suppression, dispatches buffered events and deferred acknowledgements, then throws. | [client Resign path](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L119); the public process Resign cases do not assert a pending unrelated event. |
+| Shared dispatcher `pending_` queue | Bridge cleanup marks retained retraction states resigned, then dispatcher reset drops tasks still queued and sets callbacks enabled. | [bridge discard](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1802), [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110). |
+| Task extracted from dispatcher, before user entry | Reset cannot retrieve an extracted task. Its own callback-entry gates still run; exception-report projection cancellation can suppress one that is waiting to enter the callback session. | [task extraction](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L322), [projection admission check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1456), [focused bridge case](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L131). This is not a public Resign race test. |
+| User callback already executing | Dispatcher reset does not stop user code, and process Resign leaves the callback session open. The public adapter rejects Resign called from the active callback thread; another-thread Resign racing callback execution is not covered by a focused public case. | [public Resign guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L772), [callback-session close](../../cpp/src/internal/callbacks/callback_session.cpp#L35), [callback invocation](../../cpp/src/internal/callbacks/callback_session.cpp#L54). |
+
+The client waits for its pushed-event dispatch depth to reach zero before sending
+Resign. That wait covers an event currently being handed from the client FIFO to
+the bridge; it does not wait for a separate HLA_EVOKED task already extracted
+from the shared dispatcher. Reset then clears only the dispatcher's remaining
+pending queue. It neither closes the callback session nor supplies a universal
+entry-time cancellation gate for every task type. The focused bridge test proves
+that an exception-report projection waiting to enter the session can be
+cancelled; it does not prove that every selected callback is suppressed.
 
 The client buffer also checks for an active joined identity. Frames received
 after the successful local clear are ignored while no later Join has installed
@@ -1549,9 +1838,9 @@ Keep this as an untested source boundary, not an observed stale callback or
 transport guarantee. A later Connect after `ConnectionLost` creates a new
 process client, so this same-client question applies to Resign and rejoin.
 
-See the [event admission gate](../../cpp/src/internal/federation/process_federation_client.cpp#L702),
+See the [event admission gate](../../cpp/src/internal/federation/process_federation_client.cpp#L460),
 [new-Join identity installation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L115),
-and [ownership-assumption bridge validation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L488).
+and [ownership-assumption bridge validation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L505).
 
 The process push helper also selects a session pointer under the service mutex,
 then performs registry delivery validation and sends through that pointer after
@@ -1564,13 +1853,16 @@ presence-only admission gate, this leaves an untested same-client rejoin edge;
 it is not evidence that an old ownership-assumption callback actually occurs.
 See [push selection and send](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L232),
 [joined-session cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
-and [serialized frame writes](../../cpp/src/internal/federation/process_transport.cpp#L309).
+and [serialized frame writes](../../cpp/src/internal/federation/process_transport.cpp#L190).
 
-A rejected response follows a different path: the client releases suppression,
+A non-OK response follows a different path: the client releases suppression,
 dispatches the buffered pushed events, flushes deferred acknowledgements, and
-then reports the failure. A transport exception releases suppression and
-rethrows; any resulting ConnectionLost handling is separate. Neither failure
-path is the successful Resign cleanup described above.
+then reports the failure. A service internal error can occur after the registry
+has applied resignation but before joined-session queue cleanup, so non-OK does
+not always prove that no server transition occurred. A transport exception
+releases suppression and rethrows; any resulting ConnectionLost handling is
+separate. None of these failure paths is the successful Resign cleanup shown
+above.
 
 The focused public process [receive/Evoke case](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457)
 asserts interaction delivery before it [resigns the participants](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L649);
@@ -1583,9 +1875,9 @@ No cited public process case asserts a queued unrelated task, a concurrently
 selected task, or an old-session frame crossing a later Join. The
 [client Resign path](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L119),
 [service Resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136),
-[frame admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L702),
+[frame admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L460),
 [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110),
-and [discovery callback task and session invocation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1912)
+and [discovery callback task and session invocation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1924)
 show the implementation boundaries. Keep these behavioral gaps visible without
 treating them as normative uncertainty.
 
@@ -1607,10 +1899,10 @@ It does not arrange for the recipient to resign with discovery pending or
 assert a callback already selected during Resign. The process service's
 [server-side discovery event admission](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11),
 [joined-session Resign cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L29),
-[client event-frame admission](../../cpp/src/internal/federation/process_federation_client.cpp#L702),
-[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L278),
-[bridge callback-task submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1912),
-and [payload validation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L597)
+[client event-frame admission](../../cpp/src/internal/federation/process_federation_client.cpp#L460),
+[client-to-bridge dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L333),
+[bridge callback-task submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1931),
+and [payload validation](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L614)
 show the separate boundaries. The [failed-Join discovery rollback case](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L346)
 discards queued discovery for the failed membership; it is not evidence for
 Resign behavior.
@@ -1792,7 +2084,7 @@ recipient, nor do they assert service-report order. The process guide's
 [stream-frame-to-callback map](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#2-from-a-stream-frame-to-an-official-callback)
 explains the generic buffering/dispatch boundary. Relevant implementation
 points are the [process client registration/achievement requests](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L120),
-[response matching and post-unlock event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L504),
+[request response matching](../../cpp/src/internal/federation/process_federation_client.cpp#L599) and [post-unlock event drain](../../cpp/src/internal/federation/process_federation_client.cpp#L622),
 [process service request handlers](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L217),
 [push-versus-poll recipient queues](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L360),
 [process registration callback-before-report ordering](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1176),
@@ -1800,7 +2092,7 @@ points are the [process client registration/achievement requests](../../cpp/src/
 [process achievement/report adapter path](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1357),
 [embedded achievement report-before-notification path](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1413),
 the [process/embedded service-report routing helper](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L132),
-and the [process callback bridge submissions](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1612).
+and the [process callback bridge submissions](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2212).
 The [polling/evoked process case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457),
 [pushed/immediate process case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L678),
 and [embedded public callback-model scenarios](../../cpp/tests/synchronization_point_catch2.cpp#L339), [immediate model](../../cpp/tests/synchronization_point_catch2.cpp#L350)
@@ -1875,9 +2167,9 @@ Evidence: embedded
 [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110); process
 [server Resign and queue cleanup](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136),
 [client Resign suppression and failure branches](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L119),
-[client event admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L702),
+[client event admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L460),
 [client queue clear and projection cancellation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L162),
-[bridge discard of pending callback tasks](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1790),
+[bridge discard of pending callback tasks](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1802),
 [dispatcher reset semantics](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110),
 [background event-dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722), and
 [client/bridge close](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L647).
@@ -1905,15 +2197,16 @@ implementation-only caveat are in the [2025 TSO retraction guide](HLA-2025-TSO-R
 | --- | --- | --- |
 | Queue, dispatch model, and per-ambassador serialization | [dispatcher submission and drain](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L186), [dispatcher API](../../cpp/src/internal/callbacks/callback_dispatcher.hpp#L41), [borrowed ambassador session](../../cpp/src/internal/callbacks/callback_session.hpp#L17) | [immediate synchronous dispatch and FIFO](../../cpp/tests/callback_dispatcher_catch2.cpp#L83), [concurrent immediate producers](../../cpp/tests/callback_dispatcher_catch2.cpp#L99), [evoked one-at-a-time and serialized entry](../../cpp/tests/callback_dispatcher_catch2.cpp#L210) |
 | Escaping callback-task exceptions | [task extraction and immediate exception cleanup](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L246), [evoked task extraction/invocation](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L155), [session cleanup and rethrow](../../cpp/src/internal/callbacks/callback_session.cpp#L54) | Successful immediate and evoked dispatch are covered above; `callback_dispatcher_catch2.cpp` has no focused throwing-task test for task consumption, backlog retention, or drainer recovery. |
-| Callback exception call-stack/report boundary | [2025 `receiveInteraction` exception declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L264), [`FederateInternalError` derives from `Exception`](../../third_party/ieee1516.1-2025/include/RTI/Exception.h#L52), [embedded Send Interaction accepted/report/fan-out and catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2357), [Evoke entry points](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32), [process request's post-response callback drain](../../cpp/src/internal/federation/process_federation_client.cpp#L553), [buffered event drain](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274), [process callback bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1332) | Existing dispatcher and process delivery tests cover normal completion only; no focused case throws from `receiveInteraction` through embedded `Send Interaction`/Evoke or a process recipient request/Evoke path, and none asserts report-sink or accepted-state effects. Embedded and process exception attribution remain separate. |
+| Callback exception call-stack/report boundary | [2025 `receiveInteraction` exception declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L264), [`FederateInternalError` derives from `Exception`](../../third_party/ieee1516.1-2025/include/RTI/Exception.h#L52), [embedded Send Interaction accepted/report/fan-out and catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2357), [Evoke entry points](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32), [process request's post-response callback drain](../../cpp/src/internal/federation/process_federation_client.cpp#L622), [buffered event drain](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L298), [process callback bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1378) | Existing dispatcher and process delivery tests cover normal completion only; no focused case throws from `receiveInteraction` through embedded `Send Interaction`/Evoke or a process recipient request/Evoke path, and none asserts report-sink or accepted-state effects. Embedded and process exception attribution remain separate. |
 | ConnectionLost producer exception containment | [process local transition and callback catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L122), [embedded forced-loss transition and queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L177), [dispatcher reset semantics](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110) | [embedded ConnectionLost report-before-callback case](../../cpp/tests/ieee1516_2025_service_report_catch2.cpp#L506) encodes the normal callback route; a recorded local run failed during federation creation before those assertions. The cited tests do not throw from `connectionLost` or establish process-profile parity. |
-| Process ConnectionLost and queued work | [loss transition](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L122), client failure handoff[^worktree-source], [buffered-event dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722), later client close[^worktree-source], [bridge/session close](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2403) | No focused configured-process ConnectionLost queue case was found. The [connection-lost error-path case](../../cpp/tests/ieee1516_2025_connection_lost_error_path_catch2.cpp#L5) explicitly injects embedded transport failure at [its fault trigger](../../cpp/tests/ieee1516_2025_connection_lost_error_path_catch2.cpp#L32). |
-| Process Disconnect and reconnect session lifetime | [public Disconnect](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2524), [its dispatcher reset](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2575), [callback-session close/wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35), [client queue clearing](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L638), [bridge resets the shared dispatcher](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2403), [Connect replaces a retained old client](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L284), [client destructor calls close](../../cpp/src/internal/federation/process_federation_client.cpp#L625) | [Configured TCP process Connect/Disconnect without callback-queue assertions](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L54); [same-ambassador Disconnect/reconnect in embedded profile](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L542). No focused configured-process pending-callback or concurrent lifecycle case was found. |
+| Process ConnectionLost and queued work | [loss transition](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L122), client failure handoff[^worktree-source], [buffered-event dispatch loop](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client.cpp#L722), later client close[^worktree-source], [bridge/session close](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415) | No focused configured-process ConnectionLost queue case was found. The [connection-lost error-path case](../../cpp/tests/ieee1516_2025_connection_lost_error_path_catch2.cpp#L5) explicitly injects embedded transport failure at [its fault trigger](../../cpp/tests/ieee1516_2025_connection_lost_error_path_catch2.cpp#L32). |
+| Process Disconnect and reconnect session lifetime | [public Disconnect and callback guard](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2507), [its dispatcher reset](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2558), [callback-session close/wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35), [client queue clearing](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L638), [bridge resets the shared dispatcher](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L2415), [Connect replaces a retained old client](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L284), [client destructor calls close](../../cpp/src/internal/federation/process_federation_client.cpp#L385) | [Configured TCP process Connect/Disconnect without callback-queue assertions](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L54); [same-ambassador Disconnect/reconnect in embedded profile](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L542). No focused configured-process pending-callback or concurrent lifecycle case was found. |
+| Callback-session lifetime and public Disconnect | [borrowed session construction and invocation](../../cpp/src/internal/callbacks/callback_session.cpp#L30), [close and wait](../../cpp/src/internal/callbacks/callback_session.cpp#L35), [normal/exception completion](../../cpp/src/internal/callbacks/callback_session.cpp#L96), [Disconnect guard and teardown](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2507), [dispatcher reset](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L73) | [external close waits and later entry is rejected](../../cpp/tests/callback_dispatcher_catch2.cpp#L345), [concurrent direct entries serialize](../../cpp/tests/callback_dispatcher_catch2.cpp#L394), [private same-thread close](../../cpp/tests/callback_dispatcher_catch2.cpp#L447), [public pending evoked report is discarded on Disconnect](../../cpp/tests/ieee1516_2025_federation_listing_test_support.hpp#L103) through the [embedded federation-management test](../../cpp/tests/ieee1516_2025_federation_management_catch2.cpp#L1034). No focused public test asserts Disconnect-from-callback rejection or waits for another thread's public callback. |
 | Evoke operations and callback controls | [Evoke Callback and Evoke Multiple Callbacks](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32), [enable/disable](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L171) | [FIFO through Evoke Multiple](../../cpp/tests/callback_dispatcher_catch2.cpp#L321), [disabled work remains pending](../../cpp/tests/callback_dispatcher_catch2.cpp#L314), [process interaction delivered through Evoke](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457) |
 | Embedded queue cancellation on lifecycle transitions | [embedded Resign reset and survivor notification ordering](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L985), [Disconnect reset and session close](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2575), [session close/wait behavior](../../cpp/src/internal/callbacks/callback_session.cpp#L35) | [embedded evoked restore callbacks dropped for resigning member](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L486), [close drains an external in-flight invocation](../../cpp/tests/callback_dispatcher_catch2.cpp#L325), [close from the active callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L427). |
-| Process-profile Resign and queued work | [client Resign suppression and outcome branches](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L119), [server Resign transition and queue cleanup](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [client event admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L702), [client pending-event dispatch depth](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L278), [client queue clear and projection cancellation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L162), [bridge pending-task reset](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1790), [dispatcher reset and extraction](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110), [callback-session close/wait behavior](../../cpp/src/internal/callbacks/callback_session.cpp#L35) | [queued exception-report projection cancellation](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L58), [cancellation before callback-session entry](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L131), [process Evoke callbacks delivered before test Resign](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L649), [resigning participant's pending queue not covered by MOM removal-order test](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L38). No focused public case asserts an unrelated pending task or a task already selected concurrently with Resign. |
-| FederationSynchronized after barrier completion | [registry result and point removal](../../cpp/src/internal/federation/federation_registry.cpp#L262), [embedded achievement service submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1373), [process achievement request and notification queue](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L280), [recipient report and callback routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_synchronization_notification_dispatch.cpp#L82), [dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L186) | [embedded public synchronization scenarios under both callback models](../../cpp/tests/synchronization_point_catch2.cpp#L339), [immediate model](../../cpp/tests/synchronization_point_catch2.cpp#L350), [process HLA_EVOKED/poll case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457), [process HLA_IMMEDIATE/push case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L678), [generic immediate/evoked dispatcher tests](../../cpp/tests/callback_dispatcher_catch2.cpp#L83), [HLA_EVOKED report before resignation-triggered callback](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L131). The process cases assert their selected callbacks/outcome but exclude the registrant from the synchronization set, so same-recipient registration-versus-announcement order and service-report ordering remain source-derived; they do not establish service-specific IMMEDIATE-before-return timing across all profiles. |
-| Re-entry restrictions and session close | [callback execution guards](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L34), [Connect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L74), [Disconnect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2527), [Join guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L371), [Resign guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L809) | [Evoke calls rejected inside immediate callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L166), [embedded save callback](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L4), [timed save callback](../../cpp/tests/ieee1516_2025_timed_save_active_callback_resignation_guard_catch2.cpp#L4), [FQR](../../cpp/tests/ieee1516_2025_timed_save_fqr_active_callback_resignation_guard_catch2.cpp#L4), [NMRA](../../cpp/tests/ieee1516_2025_timed_save_nmra_active_callback_resignation_guard_catch2.cpp#L4), [TARA](../../cpp/tests/ieee1516_2025_timed_save_tara_active_callback_resignation_guard_catch2.cpp#L4), [close waits for external in-flight call](../../cpp/tests/callback_dispatcher_catch2.cpp#L325), [close from active callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L427) |
+| Process-profile Resign and queued work | [client Resign suppression and outcome branches](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L119), [server Resign transition and queue cleanup](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [client event admission guard](../../cpp/src/internal/federation/process_federation_client.cpp#L460), [client pending-event dispatch depth](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L286), [client queue clear and projection cancellation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L162), [bridge pending-task reset](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1802), [dispatcher reset and extraction](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L110), [callback-session close/wait behavior](../../cpp/src/internal/callbacks/callback_session.cpp#L35) | [queued exception-report projection cancellation](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L58), [cancellation before callback-session entry](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L131), [process Evoke callbacks delivered before test Resign](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L649), [resigning participant's pending queue not covered by MOM removal-order test](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L38). No focused public case asserts an unrelated pending task or a task already selected concurrently with Resign. |
+| FederationSynchronized after barrier completion | [registry result and point removal](../../cpp/src/internal/federation/federation_registry.cpp#L262), [embedded achievement service submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1373), [process achievement request and notification queue](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L280), [recipient report and callback routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_synchronization_notification_dispatch.cpp#L82), [dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L186) | [embedded public synchronization scenarios under both callback models](../../cpp/tests/synchronization_point_catch2.cpp#L339), [immediate model](../../cpp/tests/synchronization_point_catch2.cpp#L350), [process HLA_EVOKED/poll case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457), [process HLA_IMMEDIATE/push case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L678), [generic immediate/evoked dispatcher tests](../../cpp/tests/callback_dispatcher_catch2.cpp#L83), [development-profile HLA_EVOKED report-before-callback case](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L131). The process cases assert their selected callbacks/outcome but exclude the registrant from the synchronization set, so same-recipient registration-versus-announcement order and service-report ordering remain source-derived; they do not establish service-specific IMMEDIATE-before-return timing across all profiles. |
+| Re-entry restrictions and session close | [callback execution guards](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L34), [Connect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L74), [Disconnect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2509), [Join guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L371), [Resign guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L809) | [Evoke calls rejected inside immediate callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L168), [embedded save callback](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L4), [timed save callback](../../cpp/tests/ieee1516_2025_timed_save_active_callback_resignation_guard_catch2.cpp#L4), [FQR](../../cpp/tests/ieee1516_2025_timed_save_fqr_active_callback_resignation_guard_catch2.cpp#L4), [NMRA](../../cpp/tests/ieee1516_2025_timed_save_nmra_active_callback_resignation_guard_catch2.cpp#L4), [TARA](../../cpp/tests/ieee1516_2025_timed_save_tara_active_callback_resignation_guard_catch2.cpp#L4) |
 | Cross-service ordering evidence | [process callback polling before dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L125) | [per-recipient process interaction FIFO](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459), [TSO callback/evoke scenarios](../../cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp#L457) |
 
 The unit dispatcher tests are implementation evidence. The process-endpoint

@@ -1035,23 +1035,23 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-07",
+      "as_of": "2026-11-09",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "2025 partial ownership transfer/cancellation evidence review, increment 280 (2026-11-07): the candidate Attribute Ownership guide was traced across cancellation reservation creation, Divestiture If Wanted's per-attribute reservation consumption, the queued cancellation gate, and focused callback tests. The single-attribute race confirms that transfer after accepted cancellation suppresses cancellation confirmation and returns an acquisition notification with the If-Wanted tag. Separate negotiated-divestiture tests cover pre-delivery cancellation and a later NoAcquisitionPending result; they exercise a different route. No focused test covers transferring only A from a live {A, B} cancellation, so the remaining-B outcome remains source-derived and no callback order is claimed. The guide's route distinction and evidence limits are accurate. No 2010 or Requirements Lab paths changed. Overall progress remains 90%; published-page inspection is still open.",
-      "next_concrete_review": "Review mixed callback families in the candidate's 2025 Process Endpoint guide against configured-process source and focused tests. Verify which callbacks share or separate routes and which ordering is tested; preserve the embedded/process boundary and do not infer 2010 parity. Keep the 48 unrelated worktree rows outside the documentation commits. Then, after explicit publication authorization, inspect all 32 GitHub pages and visible Mermaid hydration.",
-      "remaining_work": "Complete candidate source/test reviews for configured-process mixed callback families and Join/MOM boundaries, preserving the 48 unrelated worktree rows. After explicit publication authorization, publish only the docs-only candidate branch and inspect all 32 GitHub file pages for links and visible Mermaid hydration. Record the published revision and per-page outcomes.",
+      "latest_increment": "2025 forced ConnectionLost observer-path, citation, archive, and GFM audit, increment 354 (2026-11-09): the embedded adapter queues the conditional HLAfederatesInFederation update after forced loss; the configured-process loss dispatcher has no explicit enqueue for that reflection. The current worktree TCK assertion has no saved runtime result, and focused Catch2 covers Join/Resign rather than forced loss. The guides preserve these limits and do not infer a normative Resign obligation. All 4,591 unique source-line references resolve across the worktree, pinned candidate base, and primary source revision. The archive is split at date boundaries; the 38-page GFM pass registers 507/507 Mermaid containers. No C++ source or tests changed, and no 2010 or Requirements Lab content changed. Overall progress is 80%; formal gates are 3/4 (75%). The 44-path candidate remains unpublished.",
+      "next_concrete_review": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
+      "remaining_work": "Continue semantic citation and cross-guide review; resolve exact Save/Restore failure-reason triggers if authoritative clause text becomes available. Publish the 44-path 2025-only documentation candidate on its dedicated branch and inspect all 32 GitHub pages for visible diagrams and link destinations. Record the published revision and per-page results. Overall progress is 80%; formal gates are 3/4 (75%).",
       "finish_condition": "The requested 2025 HLA guides explain standard concepts, Umbra state transitions and callbacks, edge cases, test evidence, and known gaps; all current diagrams have identity-matched local rendering and screenshot evidence; GitHub rendering is verified or clearly bounded; and 2010 remains separate."
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
-    "latest_verified_progress": "2025 partial ownership transfer/cancellation evidence review, increment 280 (2026-11-07): the candidate Attribute Ownership guide was traced across cancellation reservation creation, Divestiture If Wanted's per-attribute reservation consumption, the queued cancellation gate, and focused callback tests. The single-attribute race confirms that transfer after accepted cancellation suppresses cancellation confirmation and returns an acquisition notification with the If-Wanted tag. Separate negotiated-divestiture tests cover pre-delivery cancellation and a later NoAcquisitionPending result; they exercise a different route. No focused test covers transferring only A from a live {A, B} cancellation, so the remaining-B outcome remains source-derived and no callback order is claimed. The guide's route distinction and evidence limits are accurate. No 2010 or Requirements Lab paths changed. Overall progress remains 90%; published-page inspection is still open.",
-    "next_documentation_handoff": "Review mixed callback families in the candidate's 2025 Process Endpoint guide against configured-process source and focused tests. Verify which callbacks share or separate routes and which ordering is tested; preserve the embedded/process boundary and do not infer 2010 parity. Keep the 48 unrelated worktree rows outside the documentation commits. Then, after explicit publication authorization, inspect all 32 GitHub pages and visible Mermaid hydration.",
-    "latest_reader_review": "2026-11-07: candidate source/test review confirmed the ownership guide's partial If-Wanted transfer/cancellation explanation. The focused transfer race covers one attribute; multi-attribute split outcomes remain source-derived and callback ordering is unclaimed. The separate negotiated-divestiture cancellation tests cover a different route. The all-guide text-presence screen remains a completeness check, not complete semantic review or published-page rendering.",
-    "latest_increment": "2025 partial ownership transfer/cancellation evidence review, increment 280 (2026-11-07): the candidate Attribute Ownership guide was traced across cancellation reservation creation, Divestiture If Wanted's per-attribute reservation consumption, the queued cancellation gate, and focused callback tests. The single-attribute race confirms that transfer after accepted cancellation suppresses cancellation confirmation and returns an acquisition notification with the If-Wanted tag. Separate negotiated-divestiture tests cover pre-delivery cancellation and a later NoAcquisitionPending result; they exercise a different route. No focused test covers transferring only A from a live {A, B} cancellation, so the remaining-B outcome remains source-derived and no callback order is claimed. The guide's route distinction and evidence limits are accurate. No 2010 or Requirements Lab paths changed. Overall progress remains 90%; published-page inspection is still open.",
+    "latest_verified_progress": "2025 forced ConnectionLost observer-path, citation, archive, and GFM audit, increment 354 (2026-11-09): the embedded adapter queues the conditional HLAfederatesInFederation update after forced loss; the configured-process loss dispatcher has no explicit enqueue for that reflection. The current worktree TCK assertion has no saved runtime result, and focused Catch2 covers Join/Resign rather than forced loss. The guides preserve these limits and do not infer a normative Resign obligation. All 4,591 unique source-line references resolve across the worktree, pinned candidate base, and primary source revision. The archive is split at date boundaries; the 38-page GFM pass registers 507/507 Mermaid containers. No C++ source or tests changed, and no 2010 or Requirements Lab content changed. Overall progress is 80%; formal gates are 3/4 (75%). The 44-path candidate remains unpublished.",
+    "next_documentation_handoff": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
+    "latest_reader_review": "2025 forced ConnectionLost observer-path review, increment 354 (2026-11-09): traced the embedded membership reflection, process cleanup/report dispatch, survivor-removal evidence, and focused-test limits. The guides preserve the distinction between observer projections and do not infer a normative Resign obligation. Refreshed candidate citation boundaries, archive organization, diagram ledger, and authenticated GFM audit. All 4,591 source-line references resolve across worktree, candidate base, and primary revision; 38 pages return nonempty GFM with 507/507 Mermaid containers. Candidate is 44 paths; 48 unrelated changes remain excluded. Overall progress 80%; formal gates 3/4 (75%).",
+    "latest_increment": "2025 forced ConnectionLost observer-path, citation, archive, and GFM audit, increment 354 (2026-11-09): the embedded adapter queues the conditional HLAfederatesInFederation update after forced loss; the configured-process loss dispatcher has no explicit enqueue for that reflection. The current worktree TCK assertion has no saved runtime result, and focused Catch2 covers Join/Resign rather than forced loss. The guides preserve these limits and do not infer a normative Resign obligation. All 4,591 unique source-line references resolve across the worktree, pinned candidate base, and primary source revision. The archive is split at date boundaries; the 38-page GFM pass registers 507/507 Mermaid containers. No C++ source or tests changed, and no 2010 or Requirements Lab content changed. Overall progress is 80%; formal gates are 3/4 (75%). The 44-path candidate remains unpublished.",
     "current_diagram_inventory": {
-      "as_of": "2026-11-07: 490 diagrams across 32 IEEE 1516.1-2025 topic guides (286 flowcharts, 180 sequences, 24 state diagrams). All 490 retain identity-matched local render and screenshot review. The final authenticated GFM pass checked 34 pages and emitted all 490 Mermaid containers; published-page hydration remains unverified.",
-      "scope": "2025-only: 32 topic guides and 490 diagrams. All diagram bodies retain local render/screenshot evidence. The current source-line gate resolves 4,192/4,192 links against the worktree and hosted base; authenticated GFM emits 490/490 Mermaid containers. Published page rendering and Mermaid hydration remain unverified. No 2010 or Requirements Lab paths are selected.",
+      "as_of": "2026-11-09 increment 354: 507 current diagrams (295 flowcharts, 187 sequences, 25 state diagrams); all diagram identities align. 4,591 source-line references resolve across worktree, candidate base, and primary revision; current GFM pass covers 38 pages.",
+      "scope": "2025-only: 32 topic guides and 507 diagrams. All 507 ledger entries match current source lines, headings, types, fences, and body hashes and have local render/screenshot evidence. The authenticated increment-354 GFM pass covers 38 pages with 507/507 Mermaid containers, 1,028 headings, 7,992 links, and zero failures. Visible published-page hydration remains unverified; the candidate is unpublished. No 2010-named or Requirements Lab paths changed.",
       "files_with_diagrams": 32,
-      "diagrams": "490",
+      "diagrams": "507",
       "local_link_check": {
         "as_of": "2026-10-16: prior full docs/design link audit and individually checked additions; the reconciled aggregate remains 3,600 destinations and 2,713 line anchors based on that audit plus the checked DSE/time-guide changes. The ownership cancellation/Release Denied sections were separately checked: 72 local links and anchors, all valid; not folded into the aggregate without a common recount. The previous process-report subsection was separately checked: 23 local links and 22 source line anchors; these are not folded into the aggregate. Earlier reporting additions were separately checked: 29/28. The process divestiture subsection's 29 local source/test anchors and the new regional-RAVU failure subsection's nine source/test anchors were separately checked and are not folded into the aggregate. Separate focused checks validated 88/69 in the RAVU guide and 149/129 in the Federation MOM guide.",
         "markdown_files": 43,
@@ -1087,28 +1087,28 @@
         "accepted": 336,
         "previous_accepted_snapshot": 317,
         "runtime_blocked": 0,
-        "runtime_error": "The whole-tree Mermaid core syntax sweep is supplemented by focused syntax/render checks for later and revised charts. All 490 current 2025 bodies have local render and current-body screenshot evidence. GitHub Markdown API GFM returned non-empty HTML for 32/32 guides, but GitHub file-page rendering, relative-link destinations, and Mermaid hydration remain unverified. Increment 116 updated and screenshot-reviewed the current synchronization-query flowchart; all 27 Federation MOM diagrams remain reviewed.",
+        "runtime_error": "Increment 354 GFM API pass: 38 pages, 507/507 Mermaid containers, 1,028 headings, 7,992 links, zero failures. The candidate is unpublished, so visible GitHub page hydration remains unverified.",
         "recent_edit_review": "2026-10-17: Rendered and visually inspected the 2025 bounded HLA_EVOKED Evoke Multiple wait-window flow. Though tall, its elapsed-time loop, callback-enabled gate, queued FIFO invocation path, minimum-deadline empty-queue path, and post-callback maximum check remain traceable and unclipped. The focused test does not cover empty-queue waiting, late arrivals, maximum overshoot, or the public adapter. Five queue items remain; local screenshot review does not establish GitHub rendering.",
         "latest_selected_review": {
-          "date": "2026-11-07",
-          "diagram": "Temporary process-session recovery in the 2025 Process Endpoint guide.",
-          "syntax": "The edited sequence diagram rendered successfully with Mermaid CLI 12.0.0.",
-          "renderer": "Rendered a local PNG with the installed Mermaid CLI and Chrome, then inspected the screenshot. GitHub rendering remains unverified.",
-          "visual_review": "The client FED_TIMEOUT_RECONNECT and host RTI_TIMEOUT_PURGE clocks are distinct. The four outcomes are successful replay, host purge before resume, client budget expiry before host purge, and an invalid session/history gap. The rendered chart is legible and unclipped.",
-          "scope": "One current 2025 diagram. Updated diagram-020 source line and SHA-256 in the visual-review ledger. No tests/builds, Requirements Lab, or 2010 changes."
+          "date": "2026-11-08",
+          "diagram": "Process Endpoint timestamped Delete retraction can expose a stale queue head.",
+          "syntax": "Rendered successfully with Mermaid CLI 12.0.0.",
+          "renderer": "The sequence rendered to PNG and was screenshot-inspected; the retract/cleanup gap, stale-entry rejection, removal retry, and still-pending earlier discovery are visible.",
+          "visual_review": "Four participants and the competing queue heads remain legible without clipping. The sequence is labeled as source-reachable process behavior, not a normative callback-order claim.",
+          "scope": "IEEE 1516.1-2025 configured-process pull implementation behavior; source-derived and not test-observed."
         },
-        "pending_latest_diagram": "The updated process-session recovery chart has a current-body local render and screenshot review. No current 2025 diagram remains pending local rendering or screenshot review; GitHub page rendering remains unverified.",
-        "pending_after_latest_edit": "2025 process-session recovery chart, increment 232 (2026-11-07): locally rendered and inspected after clarifying the independent reconnect and purge timers. The visual-review ledger now records its current source line and body hash. GitHub page rendering remains unverified. No tests/builds, Requirements Lab, or 2010 work.",
+        "pending_latest_diagram": "No current 2025 diagram remains pending local Mermaid CLI rendering or screenshot review. Published GitHub page hydration remains unverified.",
+        "pending_after_latest_edit": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
         "syntax_errors_repaired": 7,
         "other_errors_after_repairs": 0,
-        "status": "All 489 current 2025 diagrams have local Mermaid render evidence and current-body screenshot reviews. The original whole-tree syntax sweep covered 336 diagrams, with later bodies checked by focused syntax/render passes. GitHub page rendering remains unverified.",
-        "focused_accepted_after_sweep": 8,
-        "current_syntax_parsed": 486
+        "status": "All 507 current 2025 diagrams have local Mermaid CLI render evidence and current-body screenshot reviews. The increment-354 GFM API pass registers 507/507 Mermaid containers; visible published-page rendering remains unverified.",
+        "focused_accepted_after_sweep": 9,
+        "current_syntax_parsed": 487
       },
       "by_kind": {
-        "flowcharts": 285,
-        "sequences": 180,
-        "state_diagrams": 24
+        "flowcharts": 295,
+        "sequences": 187,
+        "state_diagrams": 25
       },
       "by_stream": {
         "2010": {
@@ -1117,7 +1117,7 @@
         },
         "2025": {
           "files": 32,
-          "diagrams": 489
+          "diagrams": 507
         },
         "cross_cutting": {
           "files": 1,
@@ -1127,64 +1127,109 @@
           "files": 1,
           "diagrams": 3
         }
-      }
+      },
+      "latest_path_line_check": {
+        "checked_at": "2026-11-09 increment 354",
+        "markdown_files": 35,
+        "unique_relative_path_line_guide_references": 4591,
+        "worktree_resolved": 4591,
+        "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+        "candidate_base_resolved": 4591,
+        "candidate_base_unresolved": 0,
+        "primary_source_revision": "e6321e842f333427349166df8c5b35350a2ae473",
+        "primary_source_resolved": 4591,
+        "primary_source_unresolved": 0,
+        "unresolved": 0,
+        "scope": "All 4,591 unique relative source-line/guide references across 35 scoped IEEE 1516.1-2025 Markdown files resolve in the current worktree, at pinned candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at primary source revision e6321e842f333427349166df8c5b35350a2ae473. This is a source-line check, not a published-page render check."
+      },
+      "latest_selected_review": {
+        "date": "2026-11-09",
+        "diagram": "Save/Restore guide's new embedded timed Save per-constrained-member admission flowchart (#008).",
+        "syntax": "Rendered successfully with Mermaid CLI 12.0.0.",
+        "renderer": "The current Mermaid body was rendered to PNG and screenshot-inspected.",
+        "visual_review": "The chart shows each constrained member's own advance checkpoint, its mode/TSO gate, the first-member queued-advance prerequisite, remaining constrained initiations, and final non-constrained-member initiation. No clipping was found. GitHub page rendering remains unverified.",
+        "scope": "IEEE 1516.1-2025 source-derived documentation. The flowchart records embedded behavior and does not claim a normative callback-order rule or configured-process parity."
+      },
+      "pending_after_latest_edit": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded."
     },
     "goal": "Focus this documentation phase exclusively on IEEE 1516.1-2025. Translate durable HLA logic and infrastructure concepts discovered while implementing Umbra into reader-centered diagrams and guides. Lead with the HLA mental model and explain what federates can do, what state changes, who becomes eligible, and when effects become observable. Use Umbra source and existing focused-test results as bounded case-study evidence, not as the subject; include internals only when they explain an HLA invariant, observable consequence, or important implementation limit. Survey for real reader gaps, synthesize cross-service concepts where useful, tie normative claims to the exact standard, and label profile boundaries and evidence limits. Distinguish embedded and configured-process behavior where evidence differs. There is no diagram-count target. Reuse existing runtime evidence. Documentation work must not compete with the main implementation worker for build capacity: do not compile, rerun tests, or start CI by default. The HLA Requirements Lab is a later, separately authorized goal and remains out of scope.",
-    "verified_progress": "2025 partial ownership transfer/cancellation evidence review, increment 280 (2026-11-07): the candidate Attribute Ownership guide was traced across cancellation reservation creation, Divestiture If Wanted's per-attribute reservation consumption, the queued cancellation gate, and focused callback tests. The single-attribute race confirms that transfer after accepted cancellation suppresses cancellation confirmation and returns an acquisition notification with the If-Wanted tag. Separate negotiated-divestiture tests cover pre-delivery cancellation and a later NoAcquisitionPending result; they exercise a different route. No focused test covers transferring only A from a live {A, B} cancellation, so the remaining-B outcome remains source-derived and no callback order is claimed. The guide's route distinction and evidence limits are accurate. No 2010 or Requirements Lab paths changed. Overall progress remains 90%; published-page inspection is still open.",
+    "verified_progress": "2025 forced ConnectionLost observer-path, citation, archive, and GFM audit, increment 354 (2026-11-09): the embedded adapter queues the conditional HLAfederatesInFederation update after forced loss; the configured-process loss dispatcher has no explicit enqueue for that reflection. The current worktree TCK assertion has no saved runtime result, and focused Catch2 covers Join/Resign rather than forced loss. The guides preserve these limits and do not infer a normative Resign obligation. All 4,591 unique source-line references resolve across the worktree, pinned candidate base, and primary source revision. The archive is split at date boundaries; the 38-page GFM pass registers 507/507 Mermaid containers. No C++ source or tests changed, and no 2010 or Requirements Lab content changed. Overall progress is 80%; formal gates are 3/4 (75%). The 44-path candidate remains unpublished.",
     "candidate_final_validation": {
-      "as_of": "2026-11-07",
+      "as_of": "2026-11-09 increment 354",
       "branch": "feature/hla-2025-docs-candidate-20261107",
       "worktree": "C:/Users/peanu/GIT/sheepfling/umbra-hla2025-docs-candidate",
       "base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-      "changed_paths": 40,
+      "changed_paths": 44,
       "topic_guides": 32,
       "source_test_catalog_targets": 0,
       "fom_fixture_targets": 0,
-      "documentation_validation_assets": 8,
+      "documentation_validation_assets": 12,
       "source_path_line_references": {
-        "checked": 4192,
+        "checked": 4591,
         "unresolved": 0,
         "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-        "also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473"
+        "also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473",
+        "external_pinned_permalink_occurrences": 153,
+        "external_pinned_unique_path_line_references": 106,
+        "external_pinned_targets": 41,
+        "external_pinned_failures": 0,
+        "worktree_resolved": 4591,
+        "worktree_unresolved": 0,
+        "candidate_base_resolved": 4591,
+        "candidate_base_unresolved": 0,
+        "primary_source_resolved": 4591,
+        "primary_source_unresolved": 0,
+        "worktree_only_reference": "The private current-worktree test case “Process federation client resumes its joined session after socket loss” remains prose-only evidence: it checks that the private client can list the joined member after socket reconnection, not a public ambassador’s Not Connected transition, and it has no Markdown source-line link.",
+        "scope_note": "Increment 354 checked 4,591 unique relative path/line/guide references (5,960 link occurrences) across 35 IEEE 1516.1-2025 Markdown files; all resolve at the current worktree, pinned candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and primary source revision e6321e842f333427349166df8c5b35350a2ae473. The candidate remains unpublished.",
+        "relative_link_occurrences": 5960
       },
       "markdown_local_destinations": {
         "files": 35,
         "previously_checked": 6997,
         "previously_unresolved": 0,
-        "scope_note": "The full destination/heading scan predates the final citation removals. Current source-line links were rerun against worktree, candidate base, and source revision; all resolve. The roadmap update added file links without heading fragments."
+        "scope_note": "The broad destination/heading scan predates its final citation removals and increment-293 prose additions. Current source-line links were checked against the worktree, candidate base, and source revision; the new FOM-guide heading link was checked against its target heading. The stored destination totals are historical, not a recount of increment 293."
       },
       "mermaid_ledger": {
-        "diagrams": 490,
-        "body_hash_and_type_matches": 490,
-        "source_lines_refreshed": 3
+        "diagrams": 507,
+        "body_hash_and_type_matches": 507,
+        "source_lines_refreshed": 26,
+        "body_hashes_refreshed": 1,
+        "local_render_and_screenshot_reviewed_this_increment": 1,
+        "heading_breadcrumbs_refreshed": 0,
+        "heading_matches": 507,
+        "note": "Increment 354 reconciled 26 Federation MOM diagram line positions and refreshed the Callback guide diagram 19 body hash after a local Mermaid CLI render and screenshot review. All 507 ledger identities match current source headings, types, fences, lines, and body hashes."
       },
-      "github_markdown_api": "Authenticated final-text GFM check: 34/34 pages returned; 490/490 Mermaid fences emitted render containers; 930 headings and 7,381 links; zero API or count mismatches. Published-page hydration remains unverified.",
+      "github_markdown_api": "Authenticated increment-354 GFM pass: 38/38 pages returned nonempty HTML; 507/507 Mermaid containers, 1,028 headings, 7,992 links, and zero failures. Published-page hydration remains unverified.",
       "changed_2010_paths": 0,
       "changed_requirements_lab_paths": 0,
       "remote_branch_present": false,
-      "next": "The local docs-only commit is ready. After explicit publication authorization, push only this candidate branch to its own remote branch and inspect all 32 actual GitHub file pages. Use an explicit destination ref because the local branch currently tracks origin/feature/initial-work.",
+      "next": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
       "authenticated_gfm_mermaid_check": {
-        "checked_at": "2026-11-07",
-        "markdown_pages_checked": 34,
+        "checked_at": "2026-11-09 increment 354",
+        "markdown_pages_checked": 38,
         "guide_pages_checked": 32,
-        "source_mermaid_fences": 490,
-        "github_mermaid_render_containers": 490,
-        "heading_elements": 930,
-        "rendered_links": 7381,
+        "supporting_pages_checked": 6,
+        "source_mermaid_fences": 507,
+        "github_mermaid_render_containers": 507,
+        "heading_elements": 1028,
+        "rendered_links": 7992,
         "api_failures_or_diagram_count_mismatches": 0,
-        "scope_note": "All current guide fences and both supporting Markdown pages returned non-empty GFM; all 490 Mermaid fences emitted containers. This confirms parsing and container registration, not visible hydration on published file pages."
+        "scope_note": "Authenticated increment-354 GFM pass checked 32 topic guides plus six supporting pages. This verifies Markdown parsing and Mermaid container registration, not visible published-page hydration.",
+        "limitations": "The candidate branch is unpublished; inspect all 32 GitHub guide pages for visible diagrams and link destinations after publication."
       },
       "candidate_scope_review": {
-        "reviewed_at": "2026-11-07",
-        "candidate_documentation_paths": 40,
+        "reviewed_at": "2026-11-09 increment 354",
+        "candidate_documentation_paths": 44,
         "candidate_non_documentation_paths_present_but_excluded": 48,
         "selected_non_documentation_paths": 0,
         "requirements_lab_paths_in_selected_candidate": 0,
         "changed_2010_paths": 0,
         "current_only_test_source_hyperlinks": 0,
-        "source_line_references_checked": 4192,
+        "source_line_references_checked": 4591,
         "source_line_references_unresolved_at_candidate_base": 0,
-        "status": "reconciled; a local commit contains exactly 40 documentation paths. Preserve 48 unrelated non-documentation changes outside the commit. Candidate branch remains unpublished."
+        "status": "The 44-path candidate contains only the 2025 documentation selection: 32 guides and 12 support/handoff assets. No 2010 or Requirements Lab paths are selected. The candidate remains unpublished; 48 unrelated non-documentation changes remain excluded.",
+        "candidate_branch_present_remotely": false,
+        "finding": "The docs-only selection is 44 documentation paths: 32 topic guides and 12 support/handoff assets. All 4,591 unique relative path/line/guide references (5,960 occurrences) resolve at the worktree, pinned candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and primary source revision e6321e842f333427349166df8c5b35350a2ae473. The increment-354 GFM pass covers 38 pages and 507/507 Mermaid containers. The 48 unrelated non-documentation changes remain excluded."
       },
       "guide_content_coverage_screen": {
         "checked_at": "2026-11-07",
@@ -1201,7 +1246,8 @@
       "remote_and_primary_check": {
         "remote_state": {
           "feature_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-          "candidate_remote_present": false
+          "candidate_remote_present": false,
+          "candidate_branch": "feature/hla-2025-docs-candidate-20261107"
         },
         "primary_worktree_comparison": {
           "compared_non_documentation_paths": 48,
@@ -1212,18 +1258,31 @@
         }
       },
       "docs_only_citation_cleanup": {
-        "checked_at": "2026-11-07",
-        "guide_set_checked": 34,
+        "checked_at": "2026-11-09 increment 354",
+        "guide_set_checked": 35,
         "current_only_test_sources": 5,
         "markdown_links_to_current_only_test_sources": 0,
-        "remaining_source_path_line_references": 4192,
+        "remaining_source_path_line_references": 4591,
         "unresolved_against_worktree": 0,
         "unresolved_against_candidate_base": 0,
-        "gfm_api_pages_checked": 34,
-        "gfm_mermaid_fences_and_github_containers": "490/490",
-        "evidence_note": "Current-only source/test assertions remain labeled as worktree-only prose. No source, test, catalog, fixture, or Requirements Lab paths were added to the docs-only selection."
+        "gfm_api_pages_checked": 38,
+        "gfm_mermaid_fences_and_github_containers": "507/507",
+        "evidence_note": "Increment 354 resolves all 4,591 unique relative path/line/guide references (5,960 occurrences) in the worktree, pinned candidate base, and primary source revision. The authenticated GFM pass covers 38 pages, 507 Mermaid containers, 1,028 headings, 7,992 links, and zero failures. Published-page hydration remains unverified.",
+        "source_line_link_occurrences": 5960
+      },
+      "latest_worktree_source_line_check": {
+        "checked_at": "2026-11-09 increment 354",
+        "markdown_files": 35,
+        "references": 4591,
+        "resolved": 4591,
+        "unresolved": 0,
+        "command": "quality_gates/bin/check_hla_2025_documentation_links.py --worktree",
+        "scope": "All 4,591 unique relative path/line/guide references across the 35 scoped Markdown files resolve at the worktree, pinned candidate base, and primary source revision."
       }
-    }
+    },
+    "next_concrete_review": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
+    "remaining_work": "Continue semantic citation and cross-guide review; resolve exact Save/Restore failure-reason triggers if authoritative clause text becomes available. Publish the 44-path 2025-only documentation candidate on its dedicated branch and inspect all 32 GitHub pages for visible diagrams and link destinations. Record the published revision and per-page results. Overall progress is 80%; formal gates are 3/4 (75%).",
+    "as_of": "2026-11-09"
   },
   "queue_action_note": "The query tool derives action_state for each open family: implementation, mapping, source-reconciliation, external-review, new-case-needed, or evidence-complete. Evidence-complete rows remain visible for traceability but are not selected as the next runnable handoff.",
   "deferred_slices": [

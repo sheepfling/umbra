@@ -83,9 +83,34 @@ and the corresponding [`FederateAmbassador` callbacks](../../third_party/ieee151
 ([Unavailable](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L440)).
 For the distinct logical-time and TSO eligibility gates, see the Time
 Management guide's [temporal-eligibility and callback-observation flow](HLA-2025-TIME-MANAGEMENT-GUIDE.md#temporal-eligibility-and-callback-observation-are-separate-gates).
-Its TSO-before-grant sequence does not establish where these ownership
-notifications fall relative to a grant; no focused cross-service case is
-documented.
+The timing guide's general TSO-before-grant path does not order ownership
+callbacks. A focused embedded case does establish one staged sequence: after an
+accepted timestamped update and ownership transfer, the test observes the
+acquisition-assumption and acquisition-notification callbacks before either
+federate issues `timeAdvanceRequest` ([transfer and notification checks](../../cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp#L278),
+[acquisition checks](../../cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp#L294));
+after both requests, it observes one grant for each federate and the retained
+timestamped reflection ([requests and grant checks](../../cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp#L312)).
+The test records callback labels but does not assert its callback-order vector.
+This is evidence for that staged embedded case only; it does not define
+precedence when ownership work and a grant are eligible in the same callback
+drain, or establish configured-process behavior.
+
+Configured-process evidence is separate. Ownership assumption and acquisition
+work is queued or emitted through the process ownership event path
+([per-session queue](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L142),
+[assumption event send](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L243));
+the time-grant factory sends a distinct `time_advance_grant` event
+([factory](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L345),
+[event send](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L630)).
+The focused process ownership test verifies an evoked assumption callback
+([assertion](../../cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp#L311));
+a separate private process-service test checks timestamped reflection before a
+constrained grant ([test](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L78),
+[grant assertion](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L457)).
+The combined ownership/time callback cases found in the test tree are embedded;
+no configured-process test establishes their relative callback order. These
+separate server paths alone do not establish one.
 
 ### Compare the call, per-attribute outcome, and observed ownership
 
@@ -786,10 +811,10 @@ flowchart TD
 
 Push-path evidence: [server commit-before-send](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L435),
 [unsolicited frame send](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L449),
-[client frame buffering](../../cpp/src/internal/federation/process_federation_client.cpp#L427),
-[request dispatch before return](../../cpp/src/internal/federation/process_federation_client.cpp#L504),
+[client event-frame intake](../../cpp/src/internal/federation/process_federation_client.cpp#L451),
+[request-owned event drain before return](../../cpp/src/internal/federation/process_federation_client.cpp#L622),
 [callback-queue handoff](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274),
-[callback bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1390),
+[ownership confirmation bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1854),
 [immediate/evoked dispatcher behavior](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
 and [process Resign branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L785).
 The focused public process cancellation evidence includes the
@@ -1051,7 +1076,7 @@ push mode resolves the request before sending its event frame, while pull mode
 queues its request ID and resolves it during a later `receive_interaction`
 ([handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L211),
 [poll path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L536)).
-The [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L452)
+The [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L453)
 converts the disjoint result sets to the corresponding public callbacks. These
 are implementation scheduling details; callback model and event transport are
 separate, and this diagram makes no portable callback-before-return claim.
@@ -1218,7 +1243,7 @@ Evidence locators: pinned [§7.12 service](../../third_party/ieee1516.1-2025/inc
 and [§7.10 callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L438);
 process [owner handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L314),
 [pull unavailable-event recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L397),
-and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L603);
+and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L604);
 registry [unavailable recipient revalidation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L220)
 and [denial planning](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L492).
 
@@ -1862,7 +1887,7 @@ ordering for immediate callbacks ([discovery hook](../../cpp/src/internal/runtim
 The inspected configured-process handlers have different explicit work
 boundaries. Join commits membership through the registry and continues its
 report-file transaction; no assumption-planner or assumption-recipient enqueue
-call appears in that handler ([Join commit](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L648)).
+call appears in that handler ([Join commit](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L650)).
 Publication updates the declaration and responds ([publication handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L163)).
 Subscription and registration plan and enqueue object-discovery events
 ([subscription](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L226),
