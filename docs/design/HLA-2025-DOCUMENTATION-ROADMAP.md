@@ -385,6 +385,28 @@ source-line checker resolves 4,591/4,591 references across 38 2025 Markdown
 files against HEAD `7134145e`. No C++ source or tests changed; no builds or
 tests were run. Overall progress remains 80%; formal gates remain 4/4 (100%).
 
+Increment 358 audited a non-timing synchronization edge against committed
+2025 source and focused tests. Late-join expansion on an omitted-set point
+adds a new federate ID to its participant and announcement sets; achievement
+results are keyed by ID, so a same-name rejoin receives no inherited result.
+Resignation removes the departing ID from participant, announcement, and
+result state, then reevaluates completion from the remaining participants and
+builds the failed-to-synchronize set from their recorded false results. The
+focused registry case compares explicit-set and omitted-set expansion; a
+separate public service-report case covers an achieved survivor and an
+unachieved departing member, whose departure closes the point with an empty
+failed set. No focused test combines resignation with same-name rejoin or a
+departing false result. The existing Synchronization guide already diagrams
+these source-derived branches and states the test limits; no diagram change was
+needed. A bounded inventory confirmed that all 32 current 2025 topic guides
+map the principal public service/callback families, so no additional guide is
+justified by API count alone. The prior Save timing handoff is already covered
+by its admission diagram and focused TSO/FQR boundary cases; the two
+unselected SaveFailureReason values remain explicit evidence gaps. No C++
+source or tests changed; no builds or tests were run. No 2010 or Requirements
+Lab content changed. Overall progress remains 80%; formal gates remain 4/4
+(100%).
+
 The authenticated increment-355 GFM pass confirms parsing and 507/507 Mermaid
 container registration, with 1,029 headings and 7,994 links. The 4,591 source-line
 references still resolve across the worktree, pinned candidate base, and primary
@@ -393,12 +415,19 @@ run. The 2025 and 2010 streams remain separate, and no Requirements Lab content
 changed. Overall progress remains 80%; formal gates are now 4/4 (100%). The 48
 unrelated non-documentation changes remain outside the candidate.
 
-**Next handoff:** Trace the timestamped 2025 Save request from admission
-through its pending-time scheduler and initiation callback. Compare focused
-cases to determine what is observed when the requested time cannot be reached.
-Keep `SAVE_TIME_CANNOT_BE_HONORED` as an unselected API value in current
-source; do not infer its normative trigger without authoritative clause text.
-Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
+**Next handoff:** Continue beyond timing with the 2025 Attribute Value Update
+Request flow. Reconcile the currently uncommitted shared-worktree edits in
+`federation_registry_attribute_update_recipients.cpp` and
+`federation_registry_attribute_value_update_requests.cpp`; preserve them and
+keep durable source claims tied to the committed snapshot actually reviewed.
+Then review the HLA-facing separation between provider solicitation, a later
+Update, and receiver reflection, and trace class-request ownership from
+provider planning through per-group persistence and callback entry. Compare
+focused evidence for ownership changes in those windows, multi-provider fan-out,
+and requester receiver eligibility. Keep source-derived suppression or
+partial-persistence behavior distinct from normative HLA requirements. Do not
+infer direct response entitlement or callback ordering without authoritative
+clause text. Keep 2010 and Requirements Lab paths excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
