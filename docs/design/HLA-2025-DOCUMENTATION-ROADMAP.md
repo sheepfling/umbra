@@ -89,6 +89,24 @@ references across 38 IEEE 1516.1-2025 Markdown files. No builds, tests, or CI;
 no 2010 or Requirements Lab edits. Overall progress remains 80%; all four
 formal gates remain complete (4/4).
 
+Increment 370 (2026-11-09) traced the 2025 same-object provider split through
+configured-process class requests. The planner groups each object's requested
+attributes by current owner. For each group, the service registers the request
+and immediately consumes/rechecks it before constructing the event. Pull adds
+the event to the provider queue during the loop; Push stages the event and
+sends after group preparation. The later Pull poll and callback bridge do not
+consult current ownership. A transfer after the recheck can therefore leave an
+event for the former provider in the delivery path; this is source-derived,
+not a proven callback outcome or HLA guarantee. The embedded path retains its
+separate callback-entry recheck. Existing focused cases cover one provider
+across two objects and one regional provider/object/attribute, but no
+same-object multi-provider split or ownership-transfer window. The RAVU guide
+now records that distinction and the test gap; no diagram change was needed.
+The worktree checker resolved 4,638/4,638 references across 38 IEEE
+1516.1-2025 Markdown files. No C++ source/tests, builds, or CI; no 2010 or
+Requirements Lab edits. Overall progress remains 80%; all four formal gates
+remain complete (4/4).
+
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
 FOM guide source/test anchors and distinguished queued observer notifications
@@ -545,13 +563,13 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Continue the 2025 RAVU review with the same-object,
-multi-provider class-update case. Trace class expansion, per-owner request
-groups, regional preflight, pre-enqueue persistence, and callback-time
-ownership revalidation. Compare the focused tests and document which split and
-ownership-change seams remain source-only. Keep normative §6.21 claims bounded
-by the available clause text. Documentation-only: do not build, rerun tests, or
-start CI. Keep 2010 and Requirements Lab excluded.
+**Next handoff:** Compare the pinned IEEE 1516.1-2025
+`requestAttributeValueUpdate` API documentation and any accessible normative
+text with the open direct-requester-eligibility and callback-timing questions.
+Separate API-defined behavior, source observations, and focused-test evidence.
+If the exact §6.21 text remains unavailable, preserve that limit without
+inferring entitlement or callback ordering. Documentation-only: do not build,
+rerun tests, or start CI. Keep 2010 and Requirements Lab excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;

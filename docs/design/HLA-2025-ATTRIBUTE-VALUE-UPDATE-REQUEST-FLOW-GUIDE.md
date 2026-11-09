@@ -396,6 +396,35 @@ a demonstrated failure-recovery guarantee or an HLA rule.
   per-attribute authority model, see the
   [attribute-ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md).
 
+### Configured-process owner recheck precedes callback delivery
+
+For an ordinary class request, the configured-process handler walks the
+planned object/provider groups one at a time. It registers a group, then calls
+the registry's `begin...` operation, which consumes that pending record and
+recomputes the attributes still owned by that provider. A transfer before
+registration can make the full planned group fail registration; a transfer
+between registration and `begin...` can shrink or suppress that group. After
+`begin...` returns, the service creates an event from the resulting subset.
+Pull mode appends it to the provider's session queue during the loop; Push
+mode stages it and sends the batch after group preparation
+([ordinary class handler](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L207),
+[committed registry consume/recheck](https://github.com/sheepfling/umbra/blob/ffeaa4ddffc3b2a59bfdb9c3b85f13479898be1a/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L812)).
+
+Once queued or sent, the inspected process path does not check ownership again:
+Pull polling removes the queued event, and the callback bridge passes its
+attributes and tag to `provideAttributeValueUpdate`
+([Pull poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L217),
+[callback delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L371)).
+An ownership transfer after the registry recheck can therefore leave an event
+for the former provider in the delivery path. This is a source-derived race
+window, not a demonstrated callback outcome or an HLA guarantee. It differs
+from the embedded path above, which keeps a request identity until callback
+entry and rechecks the original provider there. The focused process class case
+covers one provider across two objects; no focused case covers one object's
+attributes split across providers or an ownership transfer before or after
+the process recheck
+([process assertions](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L526)).
+
 The diagrams omit API exception details and per-overload validation matrices.
 They also omit automatic `provideAttributeValueUpdate` behavior: an explicit
 request is not discovery-triggered Auto Provide, and the Auto Provide switch
