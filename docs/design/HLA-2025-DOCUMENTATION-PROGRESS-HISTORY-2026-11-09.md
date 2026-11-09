@@ -546,3 +546,29 @@ hydrates the Mermaid containers and inspect the resulting diagrams. Keep the
 current headless limitation explicit; continue the source-coupled Save/Restore
 semantic review and do not infer normative failure triggers without the
 authoritative clause text.
+
+## 2025 published GitHub Mermaid hydration review, increment 356 — 2026-11-09
+
+After increment 355's headless page inspection reported GitHub `Loading`
+placeholders, a Puppeteer-controlled Chromium pass scrolled each published
+Mermaid container into view to trigger GitHub's lazy hydration. On
+`feature/hla-2025-docs-candidate-20261107` at
+[`83958e45`](https://github.com/sheepfling/umbra/commit/83958e45037b57f3f9b9561fd054f4795d9e2b88),
+all 32 guide pages loaded and matched their expected diagram counts: 507/507
+containers produced SVGs, all 507 Mermaid render requests returned HTTP 200,
+and no render requests failed. The earlier placeholder observation was caused
+by not scrolling the containers into view.
+
+A representative hydrated diagram on the Attribute Scope Advisory guide was
+visually inspected in the GitHub page viewport; labels, connectors, and branches
+were legible. This is not an individual screenshot review of all hosted diagrams.
+Existing GFM parsing and 4,591 source-line reference checks remain current;
+click-through HTTP status for every link was not checked. No C++ source or tests
+changed, and no builds or tests were run. No 2010 or Requirements Lab content
+changed. Overall progress remains 80%; all four formal gates are now complete
+(4/4, 100%).
+
+**Next handoff:** Continue the 2025 source-coupled Save/Restore semantic review.
+Keep normative trigger and failure claims tied to authoritative IEEE
+1516.1-2025 text; record any unavailable clause mapping as an explicit gap.
+Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.

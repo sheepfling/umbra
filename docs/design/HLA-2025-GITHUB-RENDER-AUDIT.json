@@ -1,7 +1,7 @@
 {
   "title": "IEEE 1516.1-2025 GitHub Mermaid Render Audit",
   "schema_version": 1,
-  "audit_date": "2026-11-08",
+  "audit_date": "2026-11-09",
   "hosted_branch": "feature/initial-work",
   "hosted_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
   "scope": "Historical Chromium inspection of the previously published feature/initial-work pages. Current-candidate source links and GFM parsing are recorded separately; the unpublished candidate still needs browser inspection after publication.",
@@ -1305,6 +1305,318 @@
         "browser_exit_code": 0
       }
     ],
-    "branch_url": "https://github.com/sheepfling/umbra/tree/feature/hla-2025-docs-candidate-20261107"
+    "branch_url": "https://github.com/sheepfling/umbra/tree/feature/hla-2025-docs-candidate-20261107",
+    "superseded_by": "interactive_published_mermaid_audit (increment 356): viewport scrolling triggered visible Mermaid hydration on all 32 pages."
+  },
+  "interactive_published_mermaid_audit": {
+    "as_of": "2026-11-09 increment 356",
+    "branch": "feature/hla-2025-docs-candidate-20261107",
+    "revision": "83958e45037b57f3f9b9561fd054f4795d9e2b88",
+    "browser": "Headless Chromium controlled with Puppeteer; GitHub page rendered output was activated by scrolling each Mermaid container into the viewport.",
+    "pages_checked": 32,
+    "pages_loaded": 32,
+    "expected_diagrams": 507,
+    "observed_mermaid_containers": 507,
+    "hydrated_svg_diagrams": 507,
+    "loading_placeholders_after_scroll": 0,
+    "mermaid_render_http_200": 507,
+    "mermaid_render_non_200": 0,
+    "request_failures": 0,
+    "pages_with_count_mismatch": 0,
+    "representative_visual_inspection": {
+      "page": "docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md",
+      "result": "A hydrated diagram was visually inspected in the GitHub page viewport; labels, connectors, and branches were legible."
+    },
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
+        "expected_diagrams": 36,
+        "observed_containers": 36,
+        "hydrated_svg_diagrams": 36,
+        "render_http_200": 36,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md",
+        "expected_diagrams": 4,
+        "observed_containers": 4,
+        "hydrated_svg_diagrams": 4,
+        "render_http_200": 4,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md",
+        "expected_diagrams": 4,
+        "observed_containers": 4,
+        "hydrated_svg_diagrams": 4,
+        "render_http_200": 4,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
+        "expected_diagrams": 15,
+        "observed_containers": 15,
+        "hydrated_svg_diagrams": 15,
+        "render_http_200": 15,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+        "expected_diagrams": 8,
+        "observed_containers": 8,
+        "hydrated_svg_diagrams": 8,
+        "render_http_200": 8,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md",
+        "expected_diagrams": 5,
+        "observed_containers": 5,
+        "hydrated_svg_diagrams": 5,
+        "render_http_200": 5,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+        "expected_diagrams": 26,
+        "observed_containers": 26,
+        "hydrated_svg_diagrams": 26,
+        "render_http_200": 26,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+        "expected_diagrams": 6,
+        "observed_containers": 6,
+        "hydrated_svg_diagrams": 6,
+        "render_http_200": 6,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md",
+        "expected_diagrams": 14,
+        "observed_containers": 14,
+        "hydrated_svg_diagrams": 14,
+        "render_http_200": 14,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+        "expected_diagrams": 36,
+        "observed_containers": 36,
+        "hydrated_svg_diagrams": 36,
+        "render_http_200": 36,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+        "expected_diagrams": 9,
+        "observed_containers": 9,
+        "hydrated_svg_diagrams": 9,
+        "render_http_200": 9,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
+        "expected_diagrams": 4,
+        "observed_containers": 4,
+        "hydrated_svg_diagrams": 4,
+        "render_http_200": 4,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md",
+        "expected_diagrams": 9,
+        "observed_containers": 9,
+        "hydrated_svg_diagrams": 9,
+        "render_http_200": 9,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md",
+        "expected_diagrams": 7,
+        "observed_containers": 7,
+        "hydrated_svg_diagrams": 7,
+        "render_http_200": 7,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md",
+        "expected_diagrams": 32,
+        "observed_containers": 32,
+        "hydrated_svg_diagrams": 32,
+        "render_http_200": 32,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md",
+        "expected_diagrams": 27,
+        "observed_containers": 27,
+        "hydrated_svg_diagrams": 27,
+        "render_http_200": 27,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+        "expected_diagrams": 42,
+        "observed_containers": 42,
+        "hydrated_svg_diagrams": 42,
+        "render_http_200": 42,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md",
+        "expected_diagrams": 21,
+        "observed_containers": 21,
+        "hydrated_svg_diagrams": 21,
+        "render_http_200": 21,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+        "expected_diagrams": 12,
+        "observed_containers": 12,
+        "hydrated_svg_diagrams": 12,
+        "render_http_200": 12,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md",
+        "expected_diagrams": 15,
+        "observed_containers": 15,
+        "hydrated_svg_diagrams": 15,
+        "render_http_200": 15,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md",
+        "expected_diagrams": 11,
+        "observed_containers": 11,
+        "hydrated_svg_diagrams": 11,
+        "render_http_200": 11,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
+        "expected_diagrams": 10,
+        "observed_containers": 10,
+        "hydrated_svg_diagrams": 10,
+        "render_http_200": 10,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md",
+        "expected_diagrams": 32,
+        "observed_containers": 32,
+        "hydrated_svg_diagrams": 32,
+        "render_http_200": 32,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md",
+        "expected_diagrams": 12,
+        "observed_containers": 12,
+        "hydrated_svg_diagrams": 12,
+        "render_http_200": 12,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md",
+        "expected_diagrams": 9,
+        "observed_containers": 9,
+        "hydrated_svg_diagrams": 9,
+        "render_http_200": 9,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md",
+        "expected_diagrams": 11,
+        "observed_containers": 11,
+        "hydrated_svg_diagrams": 11,
+        "render_http_200": 11,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md",
+        "expected_diagrams": 4,
+        "observed_containers": 4,
+        "hydrated_svg_diagrams": 4,
+        "render_http_200": 4,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md",
+        "expected_diagrams": 23,
+        "observed_containers": 23,
+        "hydrated_svg_diagrams": 23,
+        "render_http_200": 23,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md",
+        "expected_diagrams": 4,
+        "observed_containers": 4,
+        "hydrated_svg_diagrams": 4,
+        "render_http_200": 4,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+        "expected_diagrams": 12,
+        "observed_containers": 12,
+        "hydrated_svg_diagrams": 12,
+        "render_http_200": 12,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md",
+        "expected_diagrams": 31,
+        "observed_containers": 31,
+        "hydrated_svg_diagrams": 31,
+        "render_http_200": 31,
+        "render_non_200": 0,
+        "request_failures": 0
+      },
+      {
+        "path": "docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md",
+        "expected_diagrams": 16,
+        "observed_containers": 16,
+        "hydrated_svg_diagrams": 16,
+        "render_http_200": 16,
+        "render_non_200": 0,
+        "request_failures": 0
+      }
+    ],
+    "scope_note": "The increment-355 headless pass did not scroll the lazy-rendered containers and therefore observed Loading placeholders. Increment 356 scrolled all containers into view and confirmed one SVG per expected diagram after hydration, plus a successful Mermaid rendering response for every diagram. A representative rendered diagram was visually inspected; the audit does not claim individual screenshot review of all 507 hosted diagrams or click-through HTTP checks for every link."
   }
 }

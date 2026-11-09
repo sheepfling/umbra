@@ -11,7 +11,9 @@ As of 2026-11-09, the 2025 topic set contains 32 guides (the timing guide and
 31 other behavior areas) with 507 Mermaid diagrams: 295 flowcharts, 187
 sequences, and 25 state diagrams. The five-needs content audit is complete for
 32/32 guides. All 507 diagram identities have local render and screenshot
-evidence; the ledger is [available here](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json).
+evidence. Increment 356 verified GitHub-page hydration for 507/507 diagrams
+after viewport scrolling; the [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
+and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) record the results.
 
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
@@ -358,41 +360,46 @@ Increment 355 published the 44-path candidate on `feature/hla-2025-docs-candidat
 [adafb10c](https://github.com/sheepfling/umbra/commit/adafb10c37b6aad8f798e49ca7007abeaaeb66fc) and inspected all 32 guide page DOMs with headless
 Chromium. Every page loaded with its expected title and branch, and all 507
 Mermaid container counts matched the visual-review ledger. All containers
-retained GitHub's `Loading` placeholder, so visible diagram hydration was not
-observed. The pages exposed 11,305 anchor elements, including 7,239 links to
-the candidate branch and 6,080 source-line anchors; no rendered href began
-with `./` or `../`. This checks link markup and local source-line existence,
-not click-through status for every target. The authenticated increment-355 GFM pass confirms parsing and 507/507 Mermaid container registration, with 1,029 headings and 7,994 links; it does not confirm visible hydration.
+retained GitHub's `Loading` placeholder because the pass did not scroll them
+into view.
 
-No C++ source or test files changed; no builds or tests were run. The 2025 and
-2010 streams remain separate, and no Requirements Lab content changed. Overall
-progress remains 80%; formal gates remain 3/4 (75%) because visible
-published-page rendering is not verified. The 48 unrelated non-documentation
-changes remain outside the candidate.
+Increment 356 scrolled every Mermaid container into the viewport to trigger
+GitHub's lazy rendering. All 32 guide pages loaded; all 507 expected diagrams
+produced SVGs, with 507/507 Mermaid render responses returning HTTP 200 and no
+request failures. A representative Attribute Scope Advisory diagram was
+visually inspected in the GitHub page viewport and was legible. This resolves
+the increment-355 hydration uncertainty; it does not claim screenshot review
+of every hosted diagram or click-through verification of every link.
 
-**Next handoff:** Check whether an interactive GitHub browser session hydrates
-the Mermaid containers, then inspect the diagrams. Keep the headless limitation
-explicit and continue the source-coupled Save/Restore semantic review. Do not
+The authenticated increment-355 GFM pass confirms parsing and 507/507 Mermaid
+container registration, with 1,029 headings and 7,994 links. The 4,591 source-line
+references still resolve across the worktree, pinned candidate base, and primary
+source revision. No C++ source or test files changed; no builds or tests were
+run. The 2025 and 2010 streams remain separate, and no Requirements Lab content
+changed. Overall progress remains 80%; formal gates are now 4/4 (100%). The 48
+unrelated non-documentation changes remain outside the candidate.
+
+**Next handoff:** Continue the source-coupled 2025 Save/Restore semantic review.
+Keep normative trigger and failure claims tied to authoritative IEEE
+1516.1-2025 clause text and record unavailable mappings as explicit gaps. Do not
 infer normative Save/Restore failure triggers without authoritative clause
-text. Preserve the 48 unrelated changes and keep 2010 and Requirements Lab
-paths excluded.
+text. Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
 
 The older hosted-page audit records 31 available pages and one missing guide;
 339 of the 340 hosted diagrams rendered, while one timing-guide diagram failed
-the GitHub Mermaid parser. That remains evidence about the old snapshot. The
-current branch is published; its page-level DOM review confirms all 32 pages
-and all expected Mermaid containers, but observed hydration remains zero of
-507. The candidate includes no Requirements Lab or 2010 changes.
+the GitHub Mermaid parser. Those results belong to the old `feature/initial-work`
+snapshot. For the current published branch, increment 356 confirms that all 32
+pages and all 507 diagrams hydrate after viewport scrolling. The candidate
+contains no Requirements Lab or 2010 changes.
 
-The four-gate score remains **3/4 (75%)**: survey and backlog, guide content,
-and local/GFM/source-link verification are complete; visible published-page
-rendering is the remaining gate. All 507 diagrams have local render and
-screenshot evidence. Overall progress is **80%**: broader semantic
-source-citation review and visible page rendering remain open, and the
-licensed 2025 Save-failure mapping is unresolved. The configured-process
-Join/MOM, process Evoke Multiple, and single-Evoke reviews are complete. The
-goal remains active until published diagrams render visibly or the rendering
-limitation has a verified, acceptable resolution.
+The four-gate score is **4/4 (100%)**: survey and backlog, guide content,
+local/GFM/source-link verification, and visible published-page rendering are
+complete. Overall progress remains **80%** because the broader semantic and
+source-citation review is still underway, especially the licensed 2025
+Save-failure mapping. The configured-process Join/MOM, process Evoke Multiple,
+and single-Evoke reviews are complete. The goal remains active while the
+remaining 2025 semantic gaps are reviewed and either resolved from authoritative
+text or explicitly bounded.
 Continue recording cross-guide gaps as concrete backlog items; keep diagram
 count a quality check rather than a growth target. The 2025 and 2010
 implementation streams remain separate.
@@ -407,8 +414,8 @@ documentation hard limit is reached.
 
 ## Open documentation backlog, prioritized
 
-These items are the remaining work. The formal score is 75% (three of four
-gates); the broader overall estimate is 80%, including the semantic review work
+These items are the remaining work. All four formal gates are complete (4/4,
+100%); the broader overall estimate remains 80% because semantic review is
 still underway.
 
 1. **Publish the docs-only candidate and inspect its pages — complete:** The
@@ -424,15 +431,13 @@ still underway.
    **Done when:** the candidate is published and the 32 page outcomes are
    recorded in the render audit. Complete in increment 355.
 
-2. **Visible Mermaid rendering gate:** The authenticated GFM pass confirms
-   parsing and container registration. Increment 355 loaded all 32 published
-   guide pages and matched all 507 expected Mermaid containers, but every
-   container retained GitHub's `Loading` placeholder in headless Chromium; no
-   visible hydration was observed. The actual diagram render on a normal
-   interactive GitHub session remains unverified.
+2. **Visible Mermaid rendering gate — complete:** Increment 356 scrolled all
+507 Mermaid containers on the 32 published guide pages into view. Every
+container produced an SVG, each Mermaid render request returned HTTP 200, and
+no requests failed. A representative hosted diagram was visually inspected.
+
    **Done when:** the 507 diagrams render visibly on the published guide pages
-   and the audit records the result, or a verified and accepted platform limit
-   has a durable workaround.
+   and the audit records the result. Complete in increment 356.
 
 3. **Source-coupled review:** Recheck evidence limits at three
    high-interaction seams: [partial ownership transfer/cancellation](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md),

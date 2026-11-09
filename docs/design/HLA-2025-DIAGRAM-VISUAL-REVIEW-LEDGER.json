@@ -18,8 +18,8 @@
       "inventory": 463,
       "identities_enumerated": false
     },
-    "github_page_rendering": "unverified",
-    "note": "All 507 current 2025 diagram identities have explicit screenshot evidence matched to current Mermaid body hashes and source lines. GitHub page rendering remains unverified."
+    "github_page_rendering": "hydration-verified-2026-11-09-increment-356",
+    "note": "All 507 current 2025 diagram identities have explicit screenshot evidence matched to current Mermaid body hashes and source lines. Increment 356 also verified visible GitHub-page hydration for all 507 diagrams after viewport scrolling, with 507 successful render responses; one representative hosted diagram was visually inspected. This does not claim individual screenshot review of every hosted diagram or click-through verification of every link."
   },
   "entries": [
     {
