@@ -26,15 +26,21 @@ checker resolved 4,633/4,633 unique references across 38 Markdown files.
 
 Increment 366 (2026-11-09) checked the forced-ConnectionLost membership
 reflection against saved run artifacts and reviewed configured-process
-Save/Restore departure projection. No matching JSON/XML result was found under
-`out/mgw` for the current worktree TCK scenario `cpp-tck.federate-lost-mom-report`;
-the October 22 `cpp-tck.connection-loss-cleanup` result covers a different
-scenario. The configured-process departure dispatcher omits the registry Save and
-Restore notification vectors, as the existing guide documents. These are
-source-derived, untested profile gaps, not runtime or normative conclusions.
-No change to the existing guide or diagrams was warranted. The active handoff
-keeps these claims bounded until a matching run result or licensed 1516.1-2025
-clause text is available.
+Save/Restore departure projection. The initial search in the documentation
+candidate found no matching result for `cpp-tck.federate-lost-mom-report`. A
+later search in the primary checkout found saved JSON/XML for the primary and
+contract scenario IDs, each marked passed under `HLA_EVOKED` and
+`HLA_IMMEDIATE` with provider `current-process`. Those November 7 artifacts do
+not record a source revision or executable identity, and the current source
+copies have since changed and differ between worktrees. Record them as
+historical scenario-ID evidence only; they do not verify the newer
+cutoff-TSO, membership-reflection, or survivor-synchronization assertions in
+the current source. The October 22 `cpp-tck.connection-loss-cleanup` result
+still covers a different scenario. The configured-process departure
+dispatcher omits the registry Save and Restore notification vectors, as the
+existing guide documents. These remain source-derived profile gaps, not
+runtime or normative conclusions. No guide or diagram change was warranted;
+the source and artifact limits remain explicit.
 
 Increment 366 was published at commit 2259a89a with progress tag
 hla-2025-docs-progress-2026-11-09-increment-366. All four formal gates remain
@@ -44,6 +50,22 @@ No builds, tests, CI, 2010, or Requirements Lab changes were made.
 Increment 367 reconciles this current baseline with the active handoff in
 `ROADMAP-INDEX.json` and labels the increment-354 handoff snapshot as
 historical. No service-guide prose or diagram changed.
+
+Increment 368 (2026-11-09) re-audited class-scope RAVU fan-out against the live
+registry diff, configured-process handlers, and focused embedded/process test
+assertions. The shared planner expands the class to live objects and groups
+each object's requested attributes by current owner; the configured-process
+service handles those object/provider groups separately. The existing guide
+already records that one object can split across providers in source, while
+the focused tests cover one provider across multiple objects and single-group
+regional cases. No focused case covers a same-object multi-provider split or
+ownership changes during pre-enqueue persistence or before callback entry.
+The current source's per-attribute regional-dimension preflight and overlap
+checks are already marked as worktree-specific in the guide. No guide or
+diagram edit was warranted. The handoff is complete; no builds, test runs, CI,
+2010, or Requirements Lab work were performed. Overall progress remains 80%;
+all four formal gates remain complete (4/4). The worktree link checker resolved
+4,633/4,633 references across 38 IEEE 1516.1-2025 Markdown files.
 
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
@@ -501,18 +523,13 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Audit the 2025 Attribute Value Update Request's same-object
-provider fan-out when ownership changes between request planning and callback
-delivery. Trace requested-attribute grouping by current provider, how the
-configured-process route delivers each group, and what the existing focused
-cases assert about selected subsets. First inspect the live worktree diff for
-`federation_registry_attribute_update_recipients.cpp` and
-`federation_registry_attribute_value_update_requests.cpp`; preserve those
-uncommitted edits and distinguish them from the committed source snapshot used
-by older guide citations. Update the existing RAVU flow only where source and
-test evidence warrant it. Keep direct §6.21 requester entitlement and callback
-order unresolved without authoritative clause text. Do not build or rerun
-tests. Keep 2010 and Requirements Lab excluded.
+**Next handoff:** Audit the 2025 timed Save state machine around
+`SAVE_TIME_CANNOT_BE_HONORED`. Trace embedded and configured-process source
+paths, existing Save/Restore diagrams, and focused tests. Separate source and
+test evidence from the normative failure trigger; if the authoritative clause
+text remains unavailable, document that limit without inferring a requirement.
+Do not build, rerun tests, or start CI. Keep 2010 and Requirements Lab
+excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
