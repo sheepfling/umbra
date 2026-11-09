@@ -721,14 +721,14 @@
     {
       "id": "HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#diagram-015",
       "source": "docs/design/HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md",
-      "line": 1163,
+      "line": 1142,
       "ordinal_in_source": 15,
       "heading": "HLA 1516.1-2025 attribute-value update request flow guide / 3. Save/restore depends on which lifecycle stage was reached / Process request metadata is separate from notification delivery",
       "fence": "backtick",
       "type": "flowchart",
-      "body_sha256": "34b3e246ae6d7a7c10efef1f84e2357dabb316056f24d6fcc44f3a3f687942c8",
+      "body_sha256": "9d496940f31e7cd47fecf173e2b8df1014b63b311bf7cb47bd6a138e0e601d63",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-07"
+      "screenshot_review": "confirmed-2026-11-09"
     },
     {
       "id": "HLA-2025-AUTHORIZATION-FLOW-GUIDE.md#diagram-001",

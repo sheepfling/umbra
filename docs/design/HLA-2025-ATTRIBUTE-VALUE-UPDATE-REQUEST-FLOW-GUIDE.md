@@ -1128,79 +1128,98 @@ Do not infer that every overload or execution profile has identical save/restore
 coverage from these selected cases. For the broader save/restore state machine,
 see the [federation save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md).
 
-The embedded public regional-class Restore test is stronger than registry-only
-evidence: after restoring into a fresh registry in the same test process, it
-observes one provider callback after `federationRestored` under both
-`HLA_EVOKED` and `HLA_IMMEDIATE`. That result is specific to the embedded
-endpoint; it is not configured-process or RTI-host-restart evidence.
-
-Do not transfer that callback result to configured-process Save/Restore. For
-each planned provider group, the process request handler registers a regional
-request record and immediately passes it to
-`beginAttributeValueUpdateRegionalProvideRecipientFor`, which consumes and
-erases that record before returning the provider projection used to create the
-notification. The registry state image can capture still-pending regional
-request records in general, but that ledger is not the process provider-event
-queue and is not the representation of a notification already produced by
-this path. Pull mode queues a
-`ProcessFederationAttributeValueUpdateRequestEvent` in the live session;
-push mode sends it as an event frame. The inspected pull snapshot serializer
-does not serialize that RAVU queue, and the push snapshot path covers pending
-attribute updates rather than RAVU event frames. On successful pull restore,
-the service clears `attributeUpdateEvents` but not
-`attributeValueUpdateRequestEvents`; Restore completion does not explicitly
-create or resend a RAVU notification. These are source observations only: no
-focused configured-process test establishes the fate or callback count of a
-queued or already-sent RAVU notification across Save/Restore. Do not infer
-process replay, exactly-once delivery, or host-restart recovery.
+The embedded public class and regional-class Restore tests observe provider
+callbacks after `federationRestored` under both `HLA_EVOKED` and
+`HLA_IMMEDIATE`. Those results are specific to the embedded endpoint; they do
+not establish configured-process behavior or RTI-host-restart recovery.
 
 ### Process request metadata is separate from notification delivery
 
-This source map separates the per-provider registry record from the provider's
-RAVU notification. It is an Umbra process-path diagram, not a callback or
+This source map separates a per-provider registry record from its RAVU
+notification. It describes inspected Umbra process paths, not a callback or
 Save/Restore guarantee:
 
 ```mermaid
 flowchart TB
-  subgraph Request["Configured-process regional class request"]
-    Plan["Provider/object group is planned"] --> Register["Register regional request record"]
-    Register --> Consume["Consume record and project provider work"]
-    Register -. "if still pending at capture" .-> Pending
-    Consume --> Mode{"Receive mode"}
-    Mode --> Pull["Pull: queue a RAVU event in the live session"]
-    Mode --> Push["Push: send a RAVU event frame"]
+  subgraph Request["Configured-process object-class request"]
+    Plan["Plan object/provider groups"] --> Register["Register one group<br/>class: attributes and tag<br/>regional: attribute-region pairs and tag"]
+    Register --> Consume["Begin matching provider offer<br/>consume record and project work"]
+    Register -. "only if capture lands before begin consumes it" .-> Pending
+    Consume --> Mode{"Process event mode"}
+    Mode --> Pull["Pull: enqueue provider RAVU event"]
+    Mode --> Push["Push: send provider RAVU frame"]
   end
 
   subgraph Image["Registry state image"]
-    Pending["Request metadata remains pending"] --> Capture["Capture request, region, and tag metadata"]
-    Capture --> Restored["Restore may reinstate the pending registry record"]
+    Pending["Class or regional request remains pending"] --> Capture["Capture request metadata<br/>regional record includes attribute-region pairs"]
+    Capture --> Restored["Restore returns class/regional Provide work items"]
+  end
+
+  subgraph Adapters["Restore adapters"]
+    Restored --> Embedded["Embedded adapter queues provider callback<br/>after Federation Restored"]
+    Restored --> Process["Configured-process handler does not route<br/>these RAVU work items to service queues"]
   end
 
   subgraph Delivery["Separate process notification state"]
-    Pull --> PullQueue["RAVU pull queue is outside the saved image"]
-    PullQueue --> PullRestore["Successful Restore clears ordinary attribute-update events,<br/>not the RAVU queue; no RAVU re-enqueue is shown"]
-    Push --> PushFrame["RAVU frame is not represented in the inspected image"]
-    PushFrame --> PushRestore["No RAVU frame resend path is shown"]
+    Pull --> PullQueue["Session pull queue is outside the registry image"]
+    PullQueue --> PullRestore["Successful process Restore does not explicitly<br/>clear or rebuild the RAVU queue"]
+    Push --> PushFrame["Sent RAVU frame is outside the registry image"]
+    PushFrame --> PushRestore["No process Restore RAVU resend path is shown"]
   end
 
-  Restored -. "does not establish notification replay" .-> Unknown["Delivery and callback count across Restore remain untested"]
+  Process --> Unknown["Process callback fate and count across Restore remain untested"]
   PullRestore --> Unknown
   PushRestore --> Unknown
 ```
 
-The configured-process handler registers each planned provider group and then
-consumes that record to produce a projection before it queues or pushes the
-notification ([request path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395),
-[record consumption](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L870)).
-The registry image can retain request metadata that is pending at capture
-([capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L993)); that fact alone does not capture the separate
-session queue or prove a restored request will regenerate a provider event.
-Successful process Restore clears a different queue, `attributeUpdateEvents`,
-while the inspected code does not clear the regional RAVU queue or enqueue a
-replacement notification ([Save queue scope](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L45),
+The ordinary class handler registers each planned object/provider group and
+then calls `beginAttributeValueUpdateClassProvideRecipientFor` before creating
+the provider event ([ordinary class path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L263),
+[ordinary begin call](https://github.com/sheepfling/umbra/blob/1fa9fdec8c3ca9e0820c29259321282d579a540a/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L812)).
+The regional class handler follows the same order and stores only that
+provider's attribute-region pairs with the request ([regional class path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L407),
+[regional begin call](https://github.com/sheepfling/umbra/blob/1fa9fdec8c3ca9e0820c29259321282d579a540a/cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L945)).
+Each begin call consumes the pending record before returning a current provider
+projection. A process-generated record can therefore be present in a registry
+snapshot only if a concurrent capture lands between registration and begin;
+that brief registry state is separate from an event already queued or sent.
+The image code captures both class and regional records
+([class capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L979),
+[regional capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L996)),
+and Restore can return their corresponding Provide work items
+([class work item](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1555),
+[regional work item](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1580)).
+The embedded adapter turns those items into provider callbacks after
+`Federation Restored` ([class callback queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1337),
+[regional callback queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1351)).
+The configured-process restore handler does not route those RAVU work-item
+vectors into its service queues; it handles ownership-assumption work and
+saved receive-order events in separate paths
+([restore completion](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L382),
+[other restore work](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L402)).
+
+In pull mode, class and regional provider events enter the live session's
+`attributeValueUpdateRequestEvents` queue ([session queue](../../cpp/src/internal/federation/process_federation_service.hpp#L224),
+[pull selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L217)).
+The process Save snapshot serializes interaction events and ordinary
+attribute-update events, not this RAVU queue; successful pull Restore clears
+`attributeUpdateEvents` but has no explicit RAVU queue clear or rebuild
+([Save snapshot](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L51),
+[attribute-update snapshot](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L84),
 [Restore cleanup](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L411)).
-The exact fate of queued or already-sent provider notifications remains
-unobserved.
+In push mode, the service sends the RAVU frame directly and the inspected
+process Restore path has no RAVU resend step. These source observations do not
+establish the fate or callback count of queued or already-sent notifications.
+
+The internal registry test restores one pending class request and its Provide
+work item ([registry test](../../cpp/tests/federation_registry_catch2.cpp#L214),
+[restored work item assertion](../../cpp/tests/federation_registry_catch2.cpp#L342));
+the public embedded test observes the callback after Restore
+([embedded class Restore test](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6)).
+The configured-process class test covers a live request, without Save/Restore
+([process class request test](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L52)).
+No focused configured-process test combines RAVU with Save/Restore, so do not
+infer process replay, exactly-once delivery, or host-restart recovery.
 
 The receive mechanics make the source boundary more precise, but do not close
 that test gap. In pull mode, the process receive selector checks queued Restore
@@ -1220,7 +1239,7 @@ whether a pre-save RAVU callback is replayed or delivered exactly once. The
 focused pushed `HLA_EVOKED` Save/Restore case covers discovery and ownership-
 assumption work, not RAVU.
 
-Source pointers: [pull receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240),
+Source pointers: [pull receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L217),
 [Restore event routing](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L481),
 [RAVU event routing](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L375),
 [attribute-value-request event enqueue](../../cpp/src/internal/federation/process_federation_client.cpp#L398),
@@ -1259,7 +1278,7 @@ clause-by-clause review of IEEE 1516.1-2025.
 | Pending class record capture, route-free admission, and restore | [State-image capture:1050](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1050), [route-free class-request predicate:78](../../cpp/src/internal/federation/federation_registry_state_image_validation.cpp#L78), [image admission:1136](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1136), [identity/class/owner validation:418](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L418), [provider-work reconstruction:1719](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1719), [callback queue after restore:1337](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1337), [focused one-group restore test:6](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6) | Source serializes pending class-request records, but image restartability requires a route-free ledger; restore then checks member/object/class/attribute identity and unchanged current ownership before rebuilding provider work. The public test confirms one successful object/provider group through both callback models; no test covers a failed later group followed by Save/Restore. The combined chain remains conditional source evidence, not a demonstrated failure-recovery outcome. |
 | Embedded public regional class request restored | [Public fresh-registry restore test:7](../../cpp/tests/ieee1516_2025_public_regional_class_pending_attribute_value_update_restore_catch2.cpp#L7) | Restores the request's attribute-to-region map and tag, then observes one provider callback after `federationRestored` under `HLA_EVOKED` and `HLA_IMMEDIATE`. The fresh registry is created within one test process; this is not configured-process or RTI-host-restart evidence. |
 | Regional class request restored and requalified | [Internal regional-request state-image test:3](../../cpp/tests/ieee1516_2025_federation_registry_pending_regional_object_class_attribute_value_update_catch2.cpp#L3) | Restores class/attribute/region request metadata and tag, consumes the eligible provider route once, suppresses it after committed region bounds become disjoint, and retires provider work on provider departure. The requester-departure path is not isolated because provider departure occurs first; this internal registry test is not public callback or process-endpoint evidence. |
-| Configured-process regional class request across Save/Restore | [Per-provider registration and event creation:395](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L395), [registry record consumption before projection:1075](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1075), [regional pending-record capture:1067](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1067), [RAVU session queue:250](../../cpp/src/internal/federation/process_federation_service.hpp#L250), [RAVU pull dequeue:240](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L240), [Save queue snapshot boundary:51](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L51), [Restore cleanup:411](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L411) | The process route consumes each per-provider registry request record before creating a queued event or push frame. Capture of still-pending regional registry records does not show that provider notifications are snapshotted or replayed. The inspected Save/Restore code snapshots ordinary pull interaction and attribute-update queues, omits the separate RAVU request-event queue, and does not explicitly clear, recreate, or resend RAVU notifications at restore completion. This is source-only; no focused configured-process callback-count or replay test exists. Do not infer replay, exactly-once delivery, or host-restart recovery. |
+| Configured-process ordinary/regional class request across Save/Restore | [Ordinary per-provider registration:263](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L263), [regional per-provider registration:407](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L407), [class pending capture:979](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L979), [regional pending capture:996](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L996), [class restore work:1555](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1555), [regional restore work:1580](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1580), [embedded class/regional callback requeue:1337](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1337), [process session queue:224](../../cpp/src/internal/federation/process_federation_service.hpp#L224), [pull selection:217](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L217), [process Restore handler:382](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L382), [registry test:214](../../cpp/tests/federation_registry_catch2.cpp#L214), [embedded public test:6](../../cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp#L6), [process live-request test:52](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L52) | Ordinary and regional class handlers register each provider group then begin its Provide projection before queuing or sending the event. Only a concurrent snapshot in that interval could capture the transient registry record. Registry Restore returns class/regional work items, which the embedded adapter routes after Federation Restored; the configured-process handler does not route those work items into its queues. Its pull snapshot excludes the RAVU session queue, and successful Restore clears ordinary attribute-update events without explicitly clearing or rebuilding the RAVU queue. Push mode has no inspected RAVU resend path. Registry and embedded tests cover pending class restoration; the process test covers a live class request only. No process RAVU Save/Restore callback-count or replay case was found. These are source/test boundaries, not a claim about normative Save/Restore or delivery outcome. |
 | Delivered RO response not replayed | [No-replay restore test:6](../../cpp/tests/ieee1516_2025_public_regional_provider_response_no_replay_restore_catch2.cpp#L6) | A delivered receive-order response is not re-reflected after fresh-registry restore |
 | Queued regional TSO response restored | [Retraction restore test:7](../../cpp/tests/ieee1516_2025_public_regional_provider_response_retraction_restore_catch2.cpp#L7) | Queued payload, sent-region snapshot, recipient grant ordering, and retraction terminalization |
 
