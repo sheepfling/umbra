@@ -11,14 +11,16 @@ As of 2026-11-09, the 2025 topic set contains 32 guides (the timing guide and
 31 other behavior areas) with 508 Mermaid diagrams: 296 flowcharts, 187
 sequences, and 25 state diagrams. The five-needs content audit is complete for
 32/32 guides. All 508 diagram identities have local render and screenshot
-evidence. Increment 356 verified GitHub-page hydration for the 507 diagrams
-in that published audit after viewport scrolling; the [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
-and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) record those
-results. Increment 360 refreshed the changed Save/Restore page at its published
-revision: all 42/42 Mermaid containers hydrated and returned HTTP 200, and
-diagram #008 was visually inspected. The new connection-recovery diagram has
-local render and screenshot review only; it has not been included in a hosted
-GitHub render audit.
+evidence. Increment 374 refreshed the full published candidate branch at
+revision `270f302536ddb2f2bd56a35b565d2251a45f03e2`: all 32/32 guide pages
+loaded, and every one of the 508/508 hosted frames contained a rendered
+`.mermaid-view svg#diagram`. All render responses returned HTTP 200, with zero
+request failures. Two callback-ordering frames needed an additional wait and
+then rendered successfully. The new process-recovery
+diagram (#007) was visually inspected in GitHub after scrolling. The [visual
+ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json) and [GitHub render
+audit](HLA-2025-GITHUB-RENDER-AUDIT.json) hold the identity and hosted evidence;
+older increment-356 and increment-360 results remain as historical records.
 
 Increment 365 (2026-11-09) linked the timed Save guide's embedded test for all
 five advance modes and the TARA equality/strict-boundary case. The worktree
@@ -150,11 +152,22 @@ standard requirement. Linked the current candidate source and test assertions,
 explicitly labeling them dirty and unexecuted; no fresh runtime evidence is
 claimed. Mermaid CLI 12.0.0 rendered the chart, and screenshot inspection found
 it readable while scrolling. The visual ledger now records 508 locally
-rendered and reviewed charts; GitHub hydration remains verified for the prior
-published audit only. The worktree checker resolved 4,657/4,657 references
-across 38 IEEE 1516.1-2025 Markdown files. No C++ changes, builds, tests, or CI;
-no 2010 or Requirements Lab changes. Overall progress remains 80%; all four
-formal gates remain complete (4/4).
+rendered and reviewed charts. The worktree checker resolved 4,657/4,657
+references across 38 IEEE 1516.1-2025 Markdown files. No C++ changes, builds,
+tests, or CI; no 2010 or Requirements Lab changes. Overall progress remains
+80%; all four formal gates remain complete (4/4).
+
+Increment 374 (2026-11-09) reran the published GitHub Mermaid audit against the
+current candidate branch. All 32 guides exposed the expected 508 Mermaid
+containers, and every frame contained an actual `.mermaid-view svg#diagram`;
+every renderer returned HTTP 200, with no failed requests or page/count
+mismatches. Two Callback and Service Ordering diagrams rendered after a longer
+wait and were explicitly rechecked. The new Connection and
+Configuration diagram #007 was scrolled into view and visually reviewed on
+GitHub. The audit and ledger now record the full current result. No normative
+claims were added, and source/test runtime evidence remains unchanged. No C++
+edits, builds, tests, or CI; no 2010 or Requirements Lab changes. Overall
+progress remains 80%; all four formal gates remain complete (4/4).
 
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected

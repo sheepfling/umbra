@@ -18,8 +18,8 @@
       "inventory": 463,
       "identities_enumerated": false
     },
-    "github_page_rendering": "all-pages-hydration-verified-increment-356-plus-focused-save-page-refresh-increment-360",
-    "note": "All 508 current 2025 diagram identities have explicit local screenshot evidence matched to current Mermaid body hashes and source lines. Increment 356 verified visible GitHub-page hydration for the 507 diagrams in that published audit after viewport scrolling, with 507 successful render responses. Increment 360 refreshed the changed Save/Restore page at the published revision: all 42 containers hydrated and returned HTTP 200, and diagram #008 was visually inspected. The new connection-recovery diagram has local render and screenshot review only; GitHub hydration and click-through status have not been checked for it."
+    "github_page_rendering": "full-current-branch-hydration-verified-increment-374 (508/508)",
+    "note": "All 508 current IEEE 1516.1-2025 diagram identities have explicit local screenshot evidence matched to current Mermaid body hashes and source lines. Increment 374 audited the current published candidate branch: 508/508 hosted containers hydrated and returned HTTP 200 across 32/32 guide pages, with zero request failures. The process-recovery diagram #007 was visually inspected in GitHub after scrolling; two callback-ordering frames required a longer wait and then rendered."
   },
   "entries": [
     {
@@ -1280,7 +1280,15 @@
       "type": "flowchart",
       "body_sha256": "e31fab51dfadd89f4c0a9552f6919a7c6fec9c3fe47adb26f8a7acfc2fecc42d",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-09"
+      "screenshot_review": "confirmed-2026-11-09",
+      "hosted_render_review": {
+        "as_of": "2026-11-09 increment 374",
+        "branch": "feature/hla-2025-docs-candidate-20261107",
+        "revision": "270f302536ddb2f2bd56a35b565d2251a45f03e2",
+        "hydrated_hosted_iframe_observed": true,
+        "render_http_status": 200,
+        "representative_screenshot_visually_inspected": true
+      }
     },
     {
       "id": "HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#diagram-001",
