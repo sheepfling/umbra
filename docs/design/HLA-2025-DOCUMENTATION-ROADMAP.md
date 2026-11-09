@@ -14,6 +14,11 @@ sequences, and 25 state diagrams. The five-needs content audit is complete for
 evidence. Increment 356 verified GitHub-page hydration for 507/507 diagrams
 after viewport scrolling; the [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
 and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) record the results.
+Increment 360 refreshed the changed Save/Restore page at its published revision:
+all 42/42 Mermaid containers hydrated and returned HTTP 200, and diagram #008
+was visually inspected. Together, the increment-356 full audit and this focused
+refresh cover the current 507-diagram set; the audit does not claim a new
+32-page reload at increment 360.
 
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
@@ -446,6 +451,12 @@ checker resolves 4,600/4,600 references across 38 2025 Markdown files. No C++
 source or tests changed; no builds or tests were run. No 2010 or Requirements
 Lab content changed. Overall progress remains 80%; all formal gates remain
 complete (4/4).
+
+After publication, a focused hosted refresh loaded the Save/Restore guide at
+revision `8add4f2931c65c6835778697887090be96d4907f`: all 42 expected Mermaid
+containers hydrated, all 42 render requests returned HTTP 200, and the updated
+diagram #008 was visually inspected. This refresh complements increment 356's
+507/507 all-page audit; it is not a new all-page pass.
 
 **Next handoff:** Audit the non-timing 2025 attribute-ownership edge for a
 multi-attribute partial If-Wanted transfer followed by cancellation. Compare

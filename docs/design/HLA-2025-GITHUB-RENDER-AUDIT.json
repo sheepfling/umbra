@@ -1618,5 +1618,27 @@
       }
     ],
     "scope_note": "The increment-355 headless pass did not scroll the lazy-rendered containers and therefore observed Loading placeholders. Increment 356 scrolled all containers into view and confirmed one SVG per expected diagram after hydration, plus a successful Mermaid rendering response for every diagram. A representative rendered diagram was visually inspected; the audit does not claim individual screenshot review of all 507 hosted diagrams or click-through HTTP checks for every link."
-  }
+  },
+  "focused_hosted_page_refreshes": [
+    {
+      "as_of": "2026-11-09 increment 360",
+      "branch": "feature/hla-2025-docs-candidate-20261107",
+      "revision": "8add4f2931c65c6835778697887090be96d4907f",
+      "page": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+      "url": "https://github.com/sheepfling/umbra/blob/feature/hla-2025-docs-candidate-20261107/docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+      "expected_mermaid_containers": 42,
+      "observed_mermaid_containers": 42,
+      "mermaid_render_http_200": 42,
+      "mermaid_render_non_200": 0,
+      "request_failures": 0,
+      "target_diagram": {
+        "id": "HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#diagram-008",
+        "source_line": 602,
+        "body_sha256": "ab39c4704e9a171f785beb4de4b36c6a0c4f5920893c8d4424ad2da5a3757743",
+        "hydrated_hosted_iframe_observed": true,
+        "representative_screenshot_visually_inspected": true
+      },
+      "scope_note": "Focused refresh of the changed Save/Restore page at the published increment-360 revision. Combined with the unchanged 507/507 all-page hydration audit at increment 356, this verifies the current 507-diagram set without claiming that all 32 pages were reloaded at increment 360."
+    }
+  ]
 }

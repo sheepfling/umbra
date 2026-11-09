@@ -630,6 +630,11 @@ trigger, which remains open without the authoritative clause text.
 The Save guide's existing admission flowchart now shows request retention,
 replacement, and no failure selection at an ineligible checkpoint. Mermaid
 CLI 12.0.0 rendered the revised chart and its screenshot was visually reviewed.
+After publication, a focused refresh loaded the Save/Restore guide at revision
+`8add4f2931c65c6835778697887090be96d4907f`: all 42 expected Mermaid containers
+hydrated and returned HTTP 200, and diagram #008 was visually inspected. This
+refresh complements increment 356's 507/507 all-page hydration audit; it was
+not a new all-page reload.
 The visual ledger now matches all 42 Save/Restore guide diagram source lines
 and body hashes, including the changed chart. The worktree source-line checker
 resolves 4,600/4,600 references across 38 IEEE 1516.1-2025 Markdown files. No
