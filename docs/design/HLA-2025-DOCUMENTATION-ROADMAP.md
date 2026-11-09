@@ -458,13 +458,35 @@ containers hydrated, all 42 render requests returned HTTP 200, and the updated
 diagram #008 was visually inspected. This refresh complements increment 356's
 507/507 all-page audit; it is not a new all-page pass.
 
-**Next handoff:** Audit the non-timing 2025 attribute-ownership edge for a
-multi-attribute partial If-Wanted transfer followed by cancellation. Compare
-the registry's retained and removed attribute subsets and planned callbacks
-with the focused one-attribute transfer case. Update the existing ownership
-flow only if it obscures that state boundary; label source-derived behavior and
-the missing multi-attribute test without inferring a normative callback order.
-Keep 2010 and Requirements Lab paths excluded.
+**2025 If-Wanted cancellation reply partition, increment 361:** The existing
+ownership flow now explains that the cancellation gate snapshots only the live
+reservation remaining after an If-Wanted transfer. The configured-process
+cancellation handler calls the same planner and gate and projects the returned
+subset into its event; this source evidence does not establish end-to-end
+profile parity or callback order. The embedded race test covers one attribute.
+A registered HLA_EVOKED TCK scenario source asserts a three-way result across
+If-Wanted transfer, Release Denied, and cancellation confirmation, with the
+three subsets covering the request exactly. It waits for all reply forms but
+does not assert their order, and no runtime TCK result was reviewed. The simpler
+two-attribute case where one attribute transfers and the remaining attribute
+is cancellation-confirmed remains source-derived. No C++ source or tests
+changed; no builds or tests were run. No 2010 or Requirements Lab content
+changed. Overall progress remains 80%; all four formal gates remain complete
+(4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
+for the state flow and source/test links.
+
+**Next handoff:** Audit the 2025 Attribute Value Update Request's same-object
+provider fan-out when ownership changes between request planning and callback
+delivery. Trace requested-attribute grouping by current provider, how the
+configured-process route delivers each group, and what the existing focused
+cases assert about selected subsets. First inspect the live worktree diff for
+`federation_registry_attribute_update_recipients.cpp` and
+`federation_registry_attribute_value_update_requests.cpp`; preserve those
+uncommitted edits and distinguish them from the committed source snapshot used
+by older guide citations. Update the existing RAVU flow only where source and
+test evidence warrant it. Keep direct §6.21 requester entitlement and callback
+order unresolved without authoritative clause text. Do not build or rerun
+tests. Keep 2010 and Requirements Lab excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
@@ -547,10 +569,15 @@ no requests failed. A representative hosted diagram was visually inspected.
    bounded connection-loss test review found no forced-loss HLAfederate object
    removal assertion. The guide labels this behavior implementation-derived
    and untested. Candidate review of partial If-Wanted transfer versus
-   cancellation also confirms that the transferred attribute leaves the live
-   cancellation reservation while the callback gate resolves any remaining
-   attributes. The focused transfer race covers one attribute; the multi-
-   attribute split remains source-derived, with no callback order asserted.
+   cancellation confirms that each transferred attribute leaves the live
+   cancellation reservation and the callback gate snapshots the remaining set.
+   The embedded transfer race covers one attribute. A registered HLA_EVOKED
+   TCK scenario asserts a three-way split across If-Wanted transfer, Release
+   Denied, and cancellation confirmation; it checks exact subset coverage but
+   does not assert callback order. The simpler two-attribute path where one
+   attribute transfers and the other is cancellation-confirmed remains
+   source-derived; no runtime TCK result or configured-process callback order
+   is claimed.
     **Remaining:** The active Restore and Save participant-exit seams were audited
     in increments 296–297, and increment 315 added implementation selector maps
     for both Save and Restore reasons. The exact 2025 normative failure-reason mapping remains

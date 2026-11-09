@@ -649,3 +649,66 @@ with the focused one-attribute transfer case. Update the existing ownership
 flow only if it obscures that state boundary; label source-derived behavior and
 the missing multi-attribute test without inferring a normative callback order.
 Keep 2010 and Requirements Lab paths excluded.
+
+## 2025 If-Wanted cancellation reply partition, increment 361 — 2026-11-09
+
+The ownership review confirmed that Cancel Attribute Ownership Acquisition
+copies the requested set into a live reservation. Divestiture If Wanted erases
+each transferred attribute from matching reservations
+([reservation creation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L105),
+[per-attribute consumption](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L254)).
+At the cancellation gate, the originally scheduled set must still cover the
+live reservation; the gate snapshots and returns only that current remainder
+([coverage check](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L161),
+[current-set snapshot](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L169)).
+Therefore, when the callback was queued for `{A, B}` and If-Wanted transfers
+`A` first, the callback confirms only `B`.
+
+The configured-process service calls the same cancellation planner and gate,
+then projects the returned subset into push and pull events
+([planner](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L396),
+[push projection](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L446),
+[pull projection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L448)).
+This establishes shared cancellation-subset logic in source, not an end-to-end
+configured-process result for the combined If-Wanted race.
+
+The focused [embedded race test](../../cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp#L168)
+uses one requested attribute and asserts that transfer produces an acquisition
+notification without a cancellation confirmation. The registered TCK scenario
+[`cpp-tck.ownership-acquisition-cancellation-mixed-replies`](../../packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp#L288)
+requires `HLA_EVOKED` and cancels three attributes while the owner's release
+callback is in user code. It transfers one through If-Wanted, release-denies
+a second, and leaves the third for cancellation confirmation. The scenario
+asserts the three exact subsets and their union
+([reply assertions](../../packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp#L475),
+[coverage assertion](../../packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp#L499),
+[runner registration](../../packages/hla-rti-cpp-tck/src/main.cpp#L19433)).
+It waits for all three callback forms but does not assert their order. This is
+TCK source evidence; no runtime TCK result was reviewed. The exact two-attribute
+no-denial case remains source-derived. The similarly named
+[multi-attribute negotiated-divestiture test](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L139)
+remains a separate route.
+
+The [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) now
+explains the live-set callback gate, shared process cancellation gate, and the
+TCK's three-way partition, while keeping callback order and profile limits
+explicit. The repository query helper could not read the missing
+`.compliance/corpus-bundle.json` in this candidate worktree; the committed
+roadmap handoff identified this bounded review. No C++ source or tests changed;
+no build or test run was performed. No 2010 or Requirements Lab content changed.
+Overall progress remains 80%; all four formal gates remain complete (4/4).
+The worktree source-link check resolves 4,619/4,619 unique path/line/guide
+references across 38 IEEE 1516.1-2025 Markdown files.
+
+**Next handoff:** Audit the 2025 Attribute Value Update Request's same-object
+provider fan-out when ownership changes between request planning and callback
+delivery. Trace requested-attribute grouping by current provider, how the
+configured-process route delivers each group, and what the existing focused
+cases assert about selected subsets. First inspect the live worktree diff for
+`federation_registry_attribute_update_recipients.cpp` and
+`federation_registry_attribute_value_update_requests.cpp`; preserve those
+uncommitted edits and distinguish them from the committed source snapshot used
+by older guide citations. Update the existing RAVU flow only where source and
+test evidence warrant it. Keep direct §6.21 requester entitlement and callback
+order unresolved without authoritative clause text. Do not build or rerun
+tests. Keep 2010 and Requirements Lab excluded.

@@ -2206,21 +2206,51 @@ flowchart TD
   GATE --> BOUT[Cancellation confirmation is B's terminal reply]
 ```
 
-The cancellation service stores the accepted set in a live reservation
-([reservation creation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L16));
+The cancellation service copies the accepted set into a live reservation
+([reservation creation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L105));
 Divestiture If Wanted consumes each transferred attribute from matching
 reservations ([per-attribute consumption](../../cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp#L254)).
-At delivery, the cancellation gate reads the current remaining set and removes
-only those attributes from the pending regular request
-([cancellation callback gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L137)).
-The focused [transfer/cancellation race](../../cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp#L168)
+The queued cancellation callback retains its original scheduled set, while the
+registry gate accepts it when that set still covers the live reservation
+([coverage check](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L161)).
+The gate snapshots the current reservation and removes only those attributes
+from the pending regular request
+([current-set snapshot](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L169)).
+Thus, if the callback was queued for `{A, B}` and If-Wanted transfers `A`
+first, the callback confirms only the still-reserved `B`.
+
+The configured-process cancellation handler calls the same registry planner
+and gate, then projects the returned set into its cancellation event
+([planner](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L396),
+[push projection](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L446),
+[pull projection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L448)).
+This establishes shared cancellation-subset logic in source; it does not
+establish end-to-end If-Wanted race behavior or callback ordering for that
+profile.
+
+The focused [embedded transfer/cancellation race](../../cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp#L168)
 forces the owner release callback to enter before cancellation, then transfers
-the sole requested attribute through Divestiture If Wanted. It observes no
-cancellation-confirmation callback and exactly one acquisition notification
-with the If-Wanted tag. No focused test covers cancellation of `{A, B}` with
-only `A` transferred, so the split terminal outcomes above remain
-source-derived; no callback total-order guarantee is claimed. A similarly
-named [multi-attribute partial-cancellation test](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L139)
+the sole requested attribute through Divestiture If Wanted. Its assertions
+expect no cancellation-confirmation callback and one acquisition notification
+with the If-Wanted tag.
+
+The registered TCK scenario
+[`cpp-tck.ownership-acquisition-cancellation-mixed-replies`](../../packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp#L288)
+requires `HLA_EVOKED` and exercises three requested attributes: `A` is
+transferred with If-Wanted, `B` is release-denied, and `C` remains for
+cancellation confirmation. After the requester cancels all three while the
+owner release callback is in user code, the scenario performs the transfer
+and denial, then asserts one callback for each exact subset and that their
+union equals the request
+([mixed-reply assertions](../../packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp#L475),
+[scenario registration](../../packages/hla-rti-cpp-tck/src/main.cpp#L19433)).
+It waits for all three callback forms and does not assert their order. This is
+TCK scenario source evidence; no runtime result was reviewed here. It covers a
+three-way partition, but not the simpler `{A, B}` case where only `A` transfers
+and the cancellation gate confirms `B`; that exact residual-cancellation
+outcome remains source-derived. No callback total-order guarantee is claimed.
+
+A similarly named [multi-attribute partial-cancellation test](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L139)
 is a different route: it cancels `A` before the owner's negotiated-divestiture
 confirmation callback, then confirms transfer of `B`
 ([cancellation](../../cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp#L231),
