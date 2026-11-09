@@ -20,6 +20,31 @@ was visually inspected. Together, the increment-356 full audit and this focused
 refresh cover the current 507-diagram set; the audit does not claim a new
 32-page reload at increment 360.
 
+Increment 365 (2026-11-09) linked the timed Save guide's embedded test for all
+five advance modes and the TARA equality/strict-boundary case. The worktree
+checker resolved 4,633/4,633 unique references across 38 Markdown files.
+
+Increment 366 (2026-11-09) checked the forced-ConnectionLost membership
+reflection against saved run artifacts and reviewed configured-process
+Save/Restore departure projection. No matching JSON/XML result was found under
+`out/mgw` for the current worktree TCK scenario `cpp-tck.federate-lost-mom-report`;
+the October 22 `cpp-tck.connection-loss-cleanup` result covers a different
+scenario. The configured-process departure dispatcher omits the registry Save and
+Restore notification vectors, as the existing guide documents. These are
+source-derived, untested profile gaps, not runtime or normative conclusions.
+No change to the existing guide or diagrams was warranted. The active handoff
+keeps these claims bounded until a matching run result or licensed 1516.1-2025
+clause text is available.
+
+Increment 366 was published at commit 2259a89a with progress tag
+hla-2025-docs-progress-2026-11-09-increment-366. All four formal gates remain
+complete (4/4); overall progress remains 80% while semantic review continues.
+No builds, tests, CI, 2010, or Requirements Lab changes were made.
+
+Increment 367 reconciles this current baseline with the active handoff in
+`ROADMAP-INDEX.json` and labels the increment-354 handoff snapshot as
+historical. No service-guide prose or diagram changed.
+
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
 FOM guide source/test anchors and distinguished queued observer notifications
@@ -330,7 +355,8 @@ occurrences), with zero unresolved. No C++ tests/builds, CI, source changes,
 gates remain 3/4 (75%). The authenticated GFM pass remains increment 319; local
 edits are unpublished and unchecked on GitHub.
 
-**Current handoff after increment 354:** The ConnectionLost observer-path
+**Handoff snapshot recorded after increment 354 (historical; superseded by increment 367):**
+The ConnectionLost observer-path
 review confirmed that the Lifecycle, Federation MOM, and Joined-Federate MOM
 guides already distinguish the Federation membership-list reflection,
 survivor HLAfederate object removal, Federate-Lost interaction, local
