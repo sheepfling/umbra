@@ -107,6 +107,22 @@ The worktree checker resolved 4,638/4,638 references across 38 IEEE
 Requirements Lab edits. Overall progress remains 80%; all four formal gates
 remain complete (4/4).
 
+Increment 371 (2026-11-09) compared the pinned IEEE 1516.1-2025 C++ API
+headers with the accessible official standard record for the open RAVU
+requester-eligibility and callback-timing questions. The imported
+`RTIambassador.h` labels both request overloads §6.21 and provides signatures
+and exception annotations; `FederateAmbassador.h` labels
+`provideAttributeValueUpdate` §6.22 and provides only the callback declaration
+and `FederateInternalError` annotation. Neither contains clause prose about
+requester entitlement, callback trigger, or order. The IEEE SA product page
+identifies the active 2025 standard and provides product metadata/access
+routes, but not §6.21 text; the checkout contains the API import, not the
+normative standard. The guide records this evidence boundary and does not
+infer semantics from an exception-list omission. Direct requester entitlement
+and normative callback timing remain unresolved. No diagram change was
+needed. No C++ source/tests, builds, or CI; no 2010 or Requirements Lab edits.
+Overall progress remains 80%; all four formal gates remain complete (4/4).
+
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
 FOM guide source/test anchors and distinguished queued observer notifications
@@ -563,13 +579,15 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Compare the pinned IEEE 1516.1-2025
-`requestAttributeValueUpdate` API documentation and any accessible normative
-text with the open direct-requester-eligibility and callback-timing questions.
-Separate API-defined behavior, source observations, and focused-test evidence.
-If the exact §6.21 text remains unavailable, preserve that limit without
-inferring entitlement or callback ordering. Documentation-only: do not build,
-rerun tests, or start CI. Keep 2010 and Requirements Lab excluded.
+**Next handoff:** Review the 2025 federation-loss and resignation lifecycle
+across the existing federation-lifecycle and connection/configuration guides.
+Compare planned resignation, connection loss, Federate Lost notification,
+member/object cleanup, and survivor callbacks against the pinned 2025 API,
+current source, and focused tests. Replace the November 7 scenario-ID-only
+Federate-Lost evidence where current-source test evidence is available; keep
+normative rules, source observations, and test results distinct. Documentation-
+only: do not build, rerun tests, or start CI. Keep 2010 and Requirements Lab
+excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;

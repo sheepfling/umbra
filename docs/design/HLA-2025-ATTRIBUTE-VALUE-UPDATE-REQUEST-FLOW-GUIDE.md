@@ -70,17 +70,26 @@ settle whether an explicit request creates direct response entitlement for an
 otherwise ineligible requester; verify the full §6.21 text before making that
 normative claim. Do not conflate that open question with Delay Subscription
 Evaluation: the latter changes when ordinary receiver eligibility is evaluated,
-not whether an earlier RAVU creates a special receiver right. The vendored
-[`RTIambassador.h`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L876)
-contains the §6.21 signature and exception list, not the clause prose. Its
-object-instance and object-class overloads do not list a subscription exception;
-that omission alone does not establish a provider duty to answer or a
-requester's right to observe the later update. The
+not whether an earlier RAVU creates a special receiver right. The pinned,
+unmodified API import (see its [provenance note](../../third_party/ieee1516.1-2025/README.md))
+contains the §6.21 request signatures and exception lists, not the clause prose
+([object-instance overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L866),
+[class overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L881)).
+The object-instance and object-class overloads do not list a subscription
+exception; that omission alone does not establish a provider duty to answer or
+a requester's right to observe the later update. The corresponding
+[`provideAttributeValueUpdate` callback declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L347)
+is labeled §6.22 and carries only its interface and `FederateInternalError`
+annotation; it supplies no callback trigger or ordering rule. The
 [official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/) offers
 purchase or subscription access; IEEE also advertises free account-based read
 access to selected standards through its [Standards Reading Room](https://standards.ieee.org/access-standards/),
-but public pages do not confirm whether 1516.1-2025 is included. For receiver
-selection, see the
+but public pages do not confirm whether 1516.1-2025 is included, and the
+accessible product page does not expose §6.21 wording. The local checkout has
+the API headers, not the normative standard text. Direct requester entitlement
+and normative callback timing therefore remain unresolved here; signatures,
+exception lists, and source behavior are not substitutes for the clause. For
+receiver selection, see the
 [object and interaction information guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
 and [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md).
 For timestamped update ordering, grants, and retraction, see the
