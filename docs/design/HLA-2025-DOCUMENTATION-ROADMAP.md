@@ -371,6 +371,20 @@ visually inspected in the GitHub page viewport and was legible. This resolves
 the increment-355 hydration uncertainty; it does not claim screenshot review
 of every hosted diagram or click-through verification of every link.
 
+Increment 357 refreshed the 2025 Save failure-reason audit. The official IEEE
+record lists purchase and subscription access; its public download ZIP contains
+one nested API XML archive with 284 files (44 C++ headers, 230 Java files, four
+XML files, three protobuf files, and three XSDs), but no standard text. The
+pinned enum and source scan confirm four SaveFailureReason values have current
+selectors. `RTI_DETECTED_FAILURE_DURING_SAVE` and
+`SAVE_TIME_CANNOT_BE_HONORED` appear only in the source MOM formatter and have
+no direct test references. The guide records this as implementation evidence,
+not a normative mapping. Its new 2025 access and selector note is in the
+[Save and Restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md). The
+source-line checker resolves 4,591/4,591 references across 38 2025 Markdown
+files against HEAD `7134145e`. No C++ source or tests changed; no builds or
+tests were run. Overall progress remains 80%; formal gates remain 4/4 (100%).
+
 The authenticated increment-355 GFM pass confirms parsing and 507/507 Mermaid
 container registration, with 1,029 headings and 7,994 links. The 4,591 source-line
 references still resolve across the worktree, pinned candidate base, and primary
@@ -379,11 +393,13 @@ run. The 2025 and 2010 streams remain separate, and no Requirements Lab content
 changed. Overall progress remains 80%; formal gates are now 4/4 (100%). The 48
 unrelated non-documentation changes remain outside the candidate.
 
-**Next handoff:** Continue the source-coupled 2025 Save/Restore semantic review.
-Keep normative trigger and failure claims tied to authoritative IEEE
-1516.1-2025 clause text and record unavailable mappings as explicit gaps. Do not
-infer normative Save/Restore failure triggers without authoritative clause
-text. Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
+**Next handoff:** Trace the timestamped 2025 Save request from admission
+through its pending-time scheduler and initiation callback. Compare focused
+cases to determine what is observed when the requested time cannot be reached.
+Keep `SAVE_TIME_CANNOT_BE_HONORED` as an unselected API value in current
+source; do not infer its normative trigger without authoritative clause text.
+Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
+
 
 The older hosted-page audit records 31 available pages and one missing guide;
 339 of the 340 hosted diagrams rendered, while one timing-guide diagram failed

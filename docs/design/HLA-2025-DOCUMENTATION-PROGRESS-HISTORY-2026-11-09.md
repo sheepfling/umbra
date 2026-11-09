@@ -572,3 +572,11 @@ changed. Overall progress remains 80%; all four formal gates are now complete
 Keep normative trigger and failure claims tied to authoritative IEEE
 1516.1-2025 text; record any unavailable clause mapping as an explicit gap.
 Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
+
+## 2025 Save failure-reason source and standards-access audit, increment 357 — 2026-11-09
+
+Refreshed the `SaveFailureReason` source table against the pinned API enum, current tracked selector files, and focused test references. Four of the six API values have current Save-path selectors. Exact-value search found no Save-path selector or direct `cpp/tests` reference for `RTI_DETECTED_FAILURE_DURING_SAVE` and `SAVE_TIME_CANNOT_BE_HONORED`; their only `cpp/src` occurrences are MOM reason-formatting cases. The guide now states that this is current Umbra evidence and does not prove those normative conditions impossible.
+
+The official IEEE record lists purchase and subscription access. Inspection of its public download ZIP found one nested API XML archive containing 284 files: 44 C++ headers, 230 Java API files, four XML files, three protobuf files, and three XSDs; no PDF, DOC/DOCX, RTF, HTML, or plain-text standard was present. The full clause text therefore remains unavailable in this checkout, so the exact Save/Restore failure-reason mapping stays open. The link checker resolves all 4,591 unique source-line references across 38 2025 Markdown files against HEAD `7134145e`. No C++ source or tests changed; no builds or tests were run. No 2010 or Requirements Lab content changed. Overall progress remains 80%; all four formal gates remain complete (4/4, 100%).
+
+**Next handoff:** Trace the timestamped 2025 Save request from admission through its pending-time scheduler and initiation callback, then compare the focused cases for what happens when the requested time cannot be reached. Keep `SAVE_TIME_CANNOT_BE_HONORED` as an unselected API value in current source; do not infer its normative trigger without authoritative clause text. Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.

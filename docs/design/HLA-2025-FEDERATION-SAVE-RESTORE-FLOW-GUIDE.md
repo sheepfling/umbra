@@ -20,6 +20,14 @@ source of requirements, or a claim of conformance.
   are in the §4.19–§4.35 range; §4.19.6 is a useful timed-save pointer. Confirm
   exact text and applicability in the official standard. The repository's
   pinned traceability mappings are navigation aids, not normative authority.
+- **Public text availability, checked 2026-11-09:** the IEEE record lists
+  purchase and subscription access. Its linked [public download
+  archive](https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip)
+  contains one nested API XML archive. That archive has 284 files: 44 C++
+  headers, 230 Java API files, four XML files, three protobuf files, and three
+  XML schemas. It contains no PDF, DOC/DOCX, RTF, HTML, or plain-text copy of
+  the standard. The downloadable API vocabulary cannot establish normative
+  Save/Restore failure triggers.
 - **Evidence boundary:** source files show Umbra's present control flow; tests
   prove only their named scenarios. Internal registry tests are implementation
   evidence, not public-API or conformance evidence.
@@ -159,16 +167,11 @@ paths or `@throws` list alone. The official standard is the authority for
 resolving this boundary; this table records where the code review currently
 stops.
 
-An official-page recheck on 2026-10-14 found that the [IEEE product page and
-its downloads](https://standards.ieee.org/ieee/1516.1/6688/) expose purchase
-and subscription access plus a downloads ZIP, but not the §4.11 clause text.
-The earlier archive inspection found a nested, machine-readable API package
-(C++/Java interfaces, protobuf service shapes, schemas, MIM, and sample
-models), but no normative standard text. The pinned
-`third_party/ieee1516.1-2025` package likewise contains API headers, not a
-specification PDF. The exact Join precondition and participant effects
-therefore remain open pending an authorized copy; the exception annotations
-are not being promoted into a complete normative rule.
+The official access recheck was refreshed on 2026-11-09; see the
+[Scope and authority](#scope-and-authority) note for the public archive contents.
+That archive does not include the §4.11 clause text. The exact Join precondition
+and participant effects therefore remain open pending an authorized copy; the
+exception annotations are not being promoted into a complete normative rule.
 
 An accepted save request can also wait for a time-management boundary before
 initiation. In this implementation, constrained members and timestamped
@@ -3272,9 +3275,10 @@ The pinned 2025 API declares six values for the `federationNotSaved` callback's
 Those names are callback vocabulary; the API header alone does not provide the
 complete trigger-to-reason rule. The checked-in package manifest identifies the
 pinned artifact as the C++ API header tree ([package manifest](../../third_party/ieee1516.1-2025/manifest.json));
-the licensed clause prose is not present in this checkout. This table records
-selectors found in Umbra's current C++ source and the focused evidence available
-for them. It is not a normative mapping.
+the licensed clause prose is not present in this checkout. The public API
+archive contents and access check are summarized in [Scope and authority](#scope-and-authority).
+This table records selectors found in Umbra's current C++ source and the focused
+evidence available for them. It is not a normative mapping.
 
 | API reason | Current source selection | Focused evidence and limit |
 | --- | --- | --- |
@@ -3284,6 +3288,12 @@ for them. It is not a normative mapping.
 | `RTI_DETECTED_FAILURE_DURING_SAVE` | No Save-path selector was found. The only `cpp/src` hit is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L547), which converts the supplied enum to its Table 5 text. | No focused test references this value. The formatter is not a Save trigger; its normative condition remains unresolved. |
 | `SAVE_TIME_CANNOT_BE_HONORED` | No Save-path selector was found. The only `cpp/src` hit is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L549), which converts the supplied enum to its Table 5 text. | No focused test references this value. The formatter is not a Save trigger; its normative condition remains unresolved. |
 | `SAVE_ABORTED` | Selected by `abortFederationSave` when it ends the active Save ([coordinator](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L1121)). | The embedded [Save-control case](../../cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp#L80) asserts the reason for both participants; no equivalent process-profile claim is made. |
+
+An exact-value recheck on 2026-11-09 found that
+`RTI_DETECTED_FAILURE_DURING_SAVE` and `SAVE_TIME_CANNOT_BE_HONORED` have no
+Save-path selector in `cpp/src`; their only source occurrences are the MOM
+reason formatter, and neither name appears in `cpp/tests`. This is current
+Umbra evidence, not a claim that either normative condition is impossible.
 
 The source scan is not a substitute for the licensed standard's reason
 conditions. Keep the exact normative mapping open until the applicable 2025
