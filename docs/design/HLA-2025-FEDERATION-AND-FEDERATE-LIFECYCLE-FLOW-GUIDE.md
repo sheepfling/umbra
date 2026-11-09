@@ -1753,10 +1753,27 @@ not forced loss. No focused case asserts `HLAfederate` object removal after
 callback-order guarantee ([report/removal case](../../cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp#L92),
 [explicit-Resign MOM case](../../cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp#L287)).
 
-The hosted portable TCK scenario verifies the reliable report's four
-parameters, federate identity and name, a decodable logical timestamp, and
-eventual local `connectionLost`
-([hosted scenario at the reviewed snapshot](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/portable_tck.cpp#L2463)).
+The hosted portable TCK scenario at the reviewed `c9c5a9e` snapshot verifies
+the reliable report's four parameters, federate identity and name, a decodable
+logical timestamp, and eventual local `connectionLost`
+([historical hosted scenario](https://github.com/sheepfling/umbra/blob/c9c5a9e410539b039cd8bba35b53d0ef2b24d180/packages/hla-rti-cpp-tck/src/portable_tck.cpp#L2463));
+that run does not establish current-source behavior. The checked-in focused
+2025 Catch2 sources now provide directly inspectable embedded assertions:
+[the HLA_EVOKED report case](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_interaction_catch2.cpp#L5)
+decodes all four report parameters and checks that an unsubscribed member gets
+no interaction;
+[the HLA_IMMEDIATE case](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_immediate_catch2.cpp#L5)
+checks the local `connectionLost` callback and subscribed report before the
+fault fixture returns;
+[the regional cases](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_catch2.cpp#L5)
+and [their HLA_IMMEDIATE counterpart](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_immediate_catch2.cpp#L5)
+check matching versus disjoint report regions; and the
+[two-survivor ordering case](../../cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp#L5)
+checks report-before-`DELETE_OBJECTS` removal for each survivor's application
+object. These links describe checked-in test assertions; this documentation
+review did not rerun them or claim a fresh execution result. They do not
+establish equivalent configured-process runtime behavior or a public
+callback-order rule.
 The current worktree 2025 process TCK source[^worktree-source] contains
 assertions for exact timestamp equality with the loss cutoff, TSO-before-grant
 ordering, post-loss federation-member reflection, and a public member-list query
@@ -2270,6 +2287,7 @@ left but the federation name still exists.”
 
 | Topic | Current implementation entry points | Focused test evidence |
 | --- | --- | --- |
+| Federate-Lost report planning and delivery | [embedded report plan](../../cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp#L84), [recipient routing](../../cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp#L157), [configured-process dispatch](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19) | Tracked embedded tests assert four-parameter payload and subscriber filtering ([HLA_EVOKED](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_interaction_catch2.cpp#L5), [HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_immediate_catch2.cpp#L5)), matching/disjoint region selection ([HLA_EVOKED](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_catch2.cpp#L5), [HLA_IMMEDIATE](../../cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_immediate_catch2.cpp#L5)), and report-before-application-object-removal order for two survivors ([ordering case](../../cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp#L5)). These links identify test assertions, not a fresh execution result; they do not prove configured-process parity or the order of removal for the RTI-owned `HLAfederate` object. |
 | Local ambassador lifecycle | [FederateLifecycle transitions](../../cpp/src/internal/federation/federate_lifecycle.cpp#L11), [public lifecycle adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L147) | [federation create/join/resign/destroy scenario](../../cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp#L4) |
 | Execution and membership registry | [create/destroy/join](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L66), [process service handlers](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L130) | [federation create/join/resign/destroy scenario](../../cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp#L4) |
 | Federation member-list snapshot and callback | Embedded [ambassador query](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2781) and [callback dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L173); configured process [service handler](../../cpp/src/internal/federation/process_federation_service_federation_listing.cpp#L7), [registry snapshot copy](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L42), [client request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L49), and [service dispatch](../../cpp/src/internal/federation/process_federation_service_dispatch.cpp#L17). | [embedded listing test entry](../../cpp/tests/federation_listing_catch2.cpp#L394), [EVOKED member snapshot](../../cpp/tests/ieee1516_2025_federation_listing_test_support.hpp#L85), and [missing-execution callback](../../cpp/tests/ieee1516_2025_federation_listing_test_support.hpp#L94); its HLA_IMMEDIATE assertion covers the sibling execution-list service. The separate [process member-list test](../../cpp/tests/federation_listing_catch2.cpp#L416) covers both callback models and the post-loss snapshot; it does not mutate membership between response and callback or launch a separate coordinator process. |

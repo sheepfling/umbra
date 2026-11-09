@@ -123,6 +123,23 @@ and normative callback timing remain unresolved. No diagram change was
 needed. No C++ source/tests, builds, or CI; no 2010 or Requirements Lab edits.
 Overall progress remains 80%; all four formal gates remain complete (4/4).
 
+Increment 372 (2026-11-09) reviewed the 2025 federation/federate lifecycle and
+connection/configuration guides against the pinned API declarations, current
+registry/service source, and focused test sources. The connection guide
+already distinguishes public Disconnect (which requires an unjoined
+connection) from server-side transport loss and forced resignation, so it did
+not need a content change. In the lifecycle guide, the hosted portable TCK
+result at commit `c9c5a9e` is now explicitly historical. Added a focused
+evidence-map row and linked the tracked Catch2 assertions for report payload
+and subscription filtering, HLA_IMMEDIATE delivery, matching/disjoint region
+selection under both callback models, and report-before-application-object
+removal for two survivors. These are checked-in test assertions, not a fresh
+test result; they do not establish configured-process runtime parity or the
+removal order of the RTI-owned `HLAfederate` object. The current process TCK
+source remains worktree-only evidence. No diagram change or C++/test edit;
+no builds or CI; no 2010 or Requirements Lab edits. Overall progress remains
+80%; all four formal gates remain complete (4/4).
+
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
 FOM guide source/test anchors and distinguished queued observer notifications
@@ -579,15 +596,14 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Review the 2025 federation-loss and resignation lifecycle
-across the existing federation-lifecycle and connection/configuration guides.
-Compare planned resignation, connection loss, Federate Lost notification,
-member/object cleanup, and survivor callbacks against the pinned 2025 API,
-current source, and focused tests. Replace the November 7 scenario-ID-only
-Federate-Lost evidence where current-source test evidence is available; keep
-normative rules, source observations, and test results distinct. Documentation-
-only: do not build, rerun tests, or start CI. Keep 2010 and Requirements Lab
-excluded.
+**Next handoff:** Audit the configured-process host outage lifecycle in the
+2025 connection/configuration guide. Trace recoverable heartbeat interruption
+and session resumption separately from purge-driven terminal `ConnectionLost`
+through the current host source and focused test assertions. The host and new
+test changes are currently dirty worktree content; label them candidate-only,
+and do not turn Umbra timeout values into HLA requirements. Update the guide
+only where the distinction improves the reader's state model. Documentation-
+only: no builds, test reruns, or CI. Keep 2010 and Requirements Lab excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
