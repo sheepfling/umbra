@@ -67,6 +67,28 @@ diagram edit was warranted. The handoff is complete; no builds, test runs, CI,
 all four formal gates remain complete (4/4). The worktree link checker resolved
 4,633/4,633 references across 38 IEEE 1516.1-2025 Markdown files.
 
+Increment 369 (2026-11-09) audited the 2025 timed Save acceptance and pending
+state across embedded and configured-process paths. The embedded public
+adapter checks GALT/current-time bounds before the registry stores the request;
+the registry repeats its representation and constrained-member checks. A later
+ineligible advance checkpoint returns without selecting a Save failure reason
+and keeps the pending request. The configured-process request handler calls
+the same registry request path, and its pre-grant lifecycle calls the same
+per-member admission method; when no initiation label is returned, it emits no
+Save event and continues to the grant. Embedded focused tests cover the five
+advance-mode boundaries, TSO blockers, and replacement. The configured-process
+test covers replacement only. Neither profile has a focused case where the
+requested time becomes unreachable or asserts a terminal
+`SAVE_TIME_CANNOT_BE_HONORED` notification. The only implementation use found
+is the MOM reason formatter; the normative trigger remains unresolved because
+the normative 2025 clause text is unavailable in the checkout. The Save guide
+now distinguishes request-time rejection from post-acceptance pending state
+and records the shared source boundary without claiming full profile parity.
+No diagram change was needed. The worktree checker resolved 4,637/4,637
+references across 38 IEEE 1516.1-2025 Markdown files. No builds, tests, or CI;
+no 2010 or Requirements Lab edits. Overall progress remains 80%; all four
+formal gates remain complete (4/4).
+
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
 FOM guide source/test anchors and distinguished queued observer notifications
@@ -523,13 +545,13 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Audit the 2025 timed Save state machine around
-`SAVE_TIME_CANNOT_BE_HONORED`. Trace embedded and configured-process source
-paths, existing Save/Restore diagrams, and focused tests. Separate source and
-test evidence from the normative failure trigger; if the authoritative clause
-text remains unavailable, document that limit without inferring a requirement.
-Do not build, rerun tests, or start CI. Keep 2010 and Requirements Lab
-excluded.
+**Next handoff:** Continue the 2025 RAVU review with the same-object,
+multi-provider class-update case. Trace class expansion, per-owner request
+groups, regional preflight, pre-enqueue persistence, and callback-time
+ownership revalidation. Compare the focused tests and document which split and
+ownership-change seams remain source-only. Keep normative §6.21 claims bounded
+by the available clause text. Documentation-only: do not build, rerun tests, or
+start CI. Keep 2010 and Requirements Lab excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;

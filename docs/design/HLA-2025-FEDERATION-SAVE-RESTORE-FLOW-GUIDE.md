@@ -596,8 +596,11 @@ In the current embedded predicate, TAR and NMR can qualify when the requested
 time is greater than or equal to the Save time; TARA and NMRA require it to be
 strictly greater; FQR uses an actual grant strictly greater than the Save time.
 These are source observations, not a claim about the normative Save rule or
-configured-process parity. The full FQR actual/optimistic-time interaction is
-in the [Time Management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#fqr-actual-grant-and-optimistic-floor).
+complete configured-process parity. The configured-process time-advance path
+calls the same registry admission method at its pre-grant boundary; that is
+source evidence for a shared eligibility check, not proof that every callback
+and failure path is behaviorally identical. The full FQR actual/optimistic-time
+interaction is in the [Time Management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#fqr-actual-grant-and-optimistic-floor).
 
 ```mermaid
 flowchart TD
@@ -619,11 +622,30 @@ flowchart TD
 
 The source path is in the [timed-request validation and replacement](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L485), [mode-specific advance predicate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L600), [queued/in-transit TSO check](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L630), [all-constrained scheduled-advance gate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L729), and [per-member and final-participant admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L783). The ordinary and FQR dispatch checkpoints are in [time advance](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L794) and [Flush Queue dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L884).
 
+Request rejection and later inability to admit the Save are separate. In the
+embedded public service, an invalid timestamp, undefined GALT for a
+non-regulating requester, or a timestamp that is not later than the requester
+and every constrained member is rejected before the registry stores it
+([public time-bound checks](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L385),
+[registry validation and pending slot](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L459)).
+After a request is pending, a nonqualifying checkpoint returns an applied
+admission result with no initiation for that member; it does not select
+`SAVE_TIME_CANNOT_BE_HONORED`. The configured-process request handler forwards
+the timestamp to the same registry request path
+([registry call](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L183)),
+and its time-advance lifecycle calls the same admission method before
+publishing the grant
+([process pre-grant boundary](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L561)).
+If that boundary returns no initiation label, the process path emits no Save
+event and proceeds to publish the grant. This establishes shared source
+boundaries only; the selected process test does not cover all advance modes or
+a request that becomes unreachable.
+
 Focused embedded tests cover the mode comparison and callback boundary. The [all-mode case](../../cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp#L71) requests time 5, uses TAR/NMR at 5 and TARA/NMRA/FQR at 6, then checks that each constrained member receives Initiate Federate Save before its grant; the first TAR callback starts only after the other constrained advances are dispatchable ([callback assertions](../../cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp#L88)). A separate [TARA boundary case](../../cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp#L47) observes only a grant at time 5, then Initiate Federate Save before the grant at time 6 ([later boundary assertions](../../cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp#L62)). These are selected embedded development-profile tests; they do not establish the normative rule or configured-process parity.
 
 The embedded `HLA_EVOKED` [in-transit TSO case](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L53) requests Save inside a timestamped-interaction callback. It asserts that initiation has not happened before that callback returns ([assertion](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L86)) and then checks the later per-recipient callback orders ([receiver](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L109), [regulating owner](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L113)). A separate [FQR boundary case](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L54) delivers a TSO at time 5 but leaves the Save pending at actual grant 5; actual grant 6 subsequently admits it ([later boundary](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L88)). These are selected embedded development-profile tests, not normative callback-order rules or proof of configured-process parity.
 
-The focused [embedded replacement case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L65) requests time 5 and then time 7 before any Initiate Federate Save callback, advances to 7, and observes only the final label and time. The configured-process [replacement case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp#L703) covers the same replacement boundary in that profile. Neither test leaves the requested time unreachable or asserts a terminal failure notification. The current-source selector scan found no `SAVE_TIME_CANNOT_BE_HONORED` selection; the [failure-reason table](#save-failure-reason-vocabulary-and-source-selectors) records the formatter-only occurrence and unresolved normative trigger. This evidence supports pending replacement, not a normative failure rule.
+The focused [embedded replacement case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L65) requests time 5 and then time 7 before any Initiate Federate Save callback, advances to 7, and observes only the final label and time. The configured-process [replacement case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp#L703) covers the same replacement boundary in that profile. Neither test leaves the requested time unreachable or asserts a terminal failure notification. The current-source scan found no Save-path or test selection of `SAVE_TIME_CANNOT_BE_HONORED`; its only implementation use is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L549). The [failure-reason table](#save-failure-reason-vocabulary-and-source-selectors) records that formatter-only occurrence and the unresolved normative trigger. The reviewed request/checkpoint paths therefore establish how Umbra currently retains and admits a request, but they do not establish when the standard requires a terminal failure notification.
 
 ### Member exit during an active Save
 
