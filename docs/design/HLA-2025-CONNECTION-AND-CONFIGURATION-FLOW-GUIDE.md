@@ -421,6 +421,96 @@ process/embedded parity evidence.
 Connection loss remains a separate forced-resignation path; see the lifecycle
 guide rather than inferring it from this voluntary Disconnect sequence.
 
+## 4. Process recovery and host retention use independent clocks
+
+An interrupted process connection has two owners and two separate recovery
+windows. The client detects a missing RTI heartbeat or a socket failure and
+tries to resume its transport session. Independently, the host marks its
+session inactive and retains it for possible resumption. A client reconnect
+deadline does not extend the host's retention period, and host purge does not
+wait for the client's deadline.
+
+```mermaid
+flowchart TB
+  subgraph client["Client-side process session"]
+    direction TB
+    C0["Transport active"] --> C1{"Socket loss or no RTI peer activity\npast FED_TIMEOUT_HEART?"}
+    C1 -- "no" --> C0
+    C1 -- "yes" --> C2["Begin Resume attempts\nstart FED_TIMEOUT_RECONNECT window"]
+    C2 --> C3["Reconnect with retained session state\nsend Resume Request and sequence state"]
+    C3 --> C4{"Host accepts and both\nsequence histories can replay?"}
+    C4 -- "yes" --> C0
+    C4 -- "retryable transport error;\nrecovery window remains" --> C2
+    C4 -- "refusal, history gap, or deadline" --> C5["Local transport failure\nadapter marks Not Connected\nqueues FederateAmbassador connectionLost"]
+  end
+
+  subgraph host["Host-side process session"]
+    direction TB
+    H0["Session active"] --> H1{"Socket ends or peer idle\nreaches RTI_TIMEOUT_HEART?"}
+    H1 -- "no" --> H0
+    H1 -- "yes" --> H2["Mark session inactive\nclose old socket; start purge clock"]
+    H2 -- "valid resume before purge" --> H0
+    H2 -- "purge expires or host rejects Resume" --> H3["Remove retained session"]
+    H3 --> H4{"Session is joined?"}
+    H4 -- "yes" --> H5["Process service applies connectionLost\nforced membership transition"]
+    H4 -- "no" --> H6["No joined membership to remove"]
+    H5 --> H7["Detach server session and routes"]
+    H6 --> H7
+  end
+
+  C3 -. "Resume exchange and retained-message replay" .-> H2
+```
+
+The clocks start at different events. On the client, FED_TIMEOUT_HEART bounds
+how long the process client waits without RTI peer activity; FED_TIMEOUT_RECONNECT
+bounds its recovery attempts. On the host, RTI_TIMEOUT_HEART is the liveness
+threshold. The host starts its RTI_TIMEOUT_PURGE interval when it marks the
+session inactive, either after observing socket closure or after its own
+heartbeat threshold. In this implementation, purge time is therefore measured
+from the host's inactive transition, not from the client's timeout callback.
+The RID parser accepts the host timeout settings; the [host options](../../cpp/src/internal/federation/process_federation_service_host.hpp#L21)
+identify them as the IEEE 1516.1-2025 §12.13.4.5 Table 31 RTI protocol
+settings. That identification does not make Umbra's resume protocol or exact
+state transitions a requirement of Table 31.
+
+Resume keeps the same logical session and message sequence history. Both
+directions must be recoverable: the client replays federate messages the host
+has not received, and the host replays RTI messages the client has not received.
+If an exchange fails transiently, the client retries while its recovery window
+remains. A rejected Resume or a client-side history gap can end local recovery
+before that window expires. A host-side rejection can remove the retained host
+session immediately; otherwise, the host can independently reach its purge
+deadline while the client is still retrying. When the host applies connection
+loss to a joined session, it takes the forced-resignation path described in the
+[federate lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#connection-loss-forced-resignation-is-a-different-entry-path).
+The adapter's local connectionLost callback and the host's membership cleanup
+are independent outcomes; their relative order is not established here.
+
+The host only accepts a replacement connection as a resume after the prior
+connection is inactive. A retry arriving while the host still regards the old
+connection as active is treated as a duplicate and closed, so another client
+attempt may be needed. This is an Umbra process-host detail, not an HLA callback
+ordering rule.
+
+The current candidate test sources contain cases for successful host-side
+resume, purge-driven removal of joined membership, client resume without a
+reported transient failure, public heartbeat-timeout recovery, client failure
+after its recovery window, and a retained-history gap. These files are dirty
+worktree changes and were not run during this documentation increment; they
+are scenario assertions, not fresh passing results. In particular, the
+recovery-window failure case invokes a ProcessFederationClient failure handler
+directly and does not assert the public ambassador's local callback.
+
+Implementation anchors are the client's [heartbeat and recovery loops](../../cpp/src/internal/federation/process_federation_client.cpp#L377)[^worktree-source],
+the host's [resume and retention paths](../../cpp/src/internal/federation/process_federation_service_host.cpp#L357)[^worktree-source],
+the [RID timeout settings](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L241)[^worktree-source],
+and the [local adapter ConnectionLost handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L104)[^worktree-source].
+Candidate test anchors: [host resume](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520)[^worktree-source],
+[host purge](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616)[^worktree-source],
+[public heartbeat recovery](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019)[^worktree-source],
+[client recovery expiry](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948)[^worktree-source],
+and [history-gap handling](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127)[^worktree-source].
+
 ## What Umbra currently demonstrates
 
 - Tests exercise all four official overload combinations and verify that an

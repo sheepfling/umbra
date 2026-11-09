@@ -3,15 +3,15 @@
   "schema_version": 1,
   "inventory_date": "2026-11-09",
   "edition_scope": "IEEE 1516.1-2025 guides only; 2010 excluded",
-  "current_diagram_count": 507,
+  "current_diagram_count": 508,
   "diagram_types": {
-    "flowchart": 295,
+    "flowchart": 296,
     "sequenceDiagram": 187,
     "stateDiagram-v2": 25
   },
-  "local_render_status": "All 507 current IEEE 1516.1-2025 Mermaid bodies have local Mermaid CLI render evidence. Each ledger entry is identity-matched to its current body and source line.",
+  "local_render_status": "All 508 current IEEE 1516.1-2025 Mermaid bodies have local Mermaid CLI render evidence. Each ledger entry is identity-matched to its current body and source line.",
   "screenshot_review_status": {
-    "confirmed_current_body_reviews": 507,
+    "confirmed_current_body_reviews": 508,
     "historical_status_unreconciled": 0,
     "historical_checkpoint": {
       "reviewed": 236,
@@ -19,7 +19,7 @@
       "identities_enumerated": false
     },
     "github_page_rendering": "all-pages-hydration-verified-increment-356-plus-focused-save-page-refresh-increment-360",
-    "note": "All 507 current 2025 diagram identities have explicit screenshot evidence matched to current Mermaid body hashes and source lines. Increment 356 verified visible GitHub-page hydration for all 507 diagrams after viewport scrolling, with 507 successful render responses. Increment 360 refreshed the changed Save/Restore page at the published revision: all 42 containers hydrated and returned HTTP 200, and diagram #008 was visually inspected. This does not claim that all 32 pages were reloaded at increment 360, individual screenshot review of every hosted diagram, or click-through verification of every link."
+    "note": "All 508 current 2025 diagram identities have explicit local screenshot evidence matched to current Mermaid body hashes and source lines. Increment 356 verified visible GitHub-page hydration for the 507 diagrams in that published audit after viewport scrolling, with 507 successful render responses. Increment 360 refreshed the changed Save/Restore page at the published revision: all 42 containers hydrated and returned HTTP 200, and diagram #008 was visually inspected. The new connection-recovery diagram has local render and screenshot review only; GitHub hydration and click-through status have not been checked for it."
   },
   "entries": [
     {
@@ -1269,6 +1269,18 @@
       "body_sha256": "c178057caffea38a6f7974042c004863c7548e51305ef44199e2e511787020cb",
       "local_render": "verified-current-body",
       "screenshot_review": "confirmed-2026-11-07"
+    },
+    {
+      "id": "HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md#diagram-007",
+      "source": "docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+      "line": 434,
+      "ordinal_in_source": 7,
+      "heading": "HLA 1516.1-2025 Connect, Disconnect, and Configuration / 4. Process recovery and host retention use independent clocks",
+      "fence": "backtick",
+      "type": "flowchart",
+      "body_sha256": "e31fab51dfadd89f4c0a9552f6919a7c6fec9c3fe47adb26f8a7acfc2fecc42d",
+      "local_render": "verified-current-body",
+      "screenshot_review": "confirmed-2026-11-09"
     },
     {
       "id": "HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#diagram-001",

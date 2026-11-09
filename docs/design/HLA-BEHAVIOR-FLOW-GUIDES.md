@@ -876,10 +876,14 @@ on their own; this family map does not infer 2010 behavior or parity.
   boundary and its evidence.
 - **Connection, membership, and execution are separate:**
   [Connect, Disconnect, and configuration](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md) explains the local RTI
-  session gates; [authorization and credentials](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md) follows the 2025 authorizer from
-  Connect through Create/Destroy/Join and distinguishes the typed credential envelope from authorizer-specific policy;
-  [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md) distinguishes Connect/Disconnect,
-  Join/Resign, and Create/Destroy, including rejoining on the same connected ambassador in one focused embedded case.
+  session gates and separates client recovery from host retention. Continue to
+  [federation lifecycle](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md)
+  for terminal forced ConnectionLost and survivor effects, then distinguish
+  Connect/Disconnect, Join/Resign, and Create/Destroy. [Authorization and
+  credentials](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md) follows the 2025 authorizer
+  from Connect through Create/Destroy/Join and separates the typed credential
+  envelope from authorizer-specific policy. The lifecycle guide also covers
+  rejoining on the same connected ambassador in one focused embedded case.
 - **Why an attribute update reached a federate:** start with the cross-cutting
   [attribute-value concept map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#an-object-attribute-value-touches-several-independent-boundaries),
   then use the

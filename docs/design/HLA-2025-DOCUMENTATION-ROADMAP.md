@@ -8,17 +8,17 @@ to show what the current evidence does—and does not—establish.
 ## Current baseline
 
 As of 2026-11-09, the 2025 topic set contains 32 guides (the timing guide and
-31 other behavior areas) with 507 Mermaid diagrams: 295 flowcharts, 187
+31 other behavior areas) with 508 Mermaid diagrams: 296 flowcharts, 187
 sequences, and 25 state diagrams. The five-needs content audit is complete for
-32/32 guides. All 507 diagram identities have local render and screenshot
-evidence. Increment 356 verified GitHub-page hydration for 507/507 diagrams
-after viewport scrolling; the [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
-and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) record the results.
-Increment 360 refreshed the changed Save/Restore page at its published revision:
-all 42/42 Mermaid containers hydrated and returned HTTP 200, and diagram #008
-was visually inspected. Together, the increment-356 full audit and this focused
-refresh cover the current 507-diagram set; the audit does not claim a new
-32-page reload at increment 360.
+32/32 guides. All 508 diagram identities have local render and screenshot
+evidence. Increment 356 verified GitHub-page hydration for the 507 diagrams
+in that published audit after viewport scrolling; the [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
+and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) record those
+results. Increment 360 refreshed the changed Save/Restore page at its published
+revision: all 42/42 Mermaid containers hydrated and returned HTTP 200, and
+diagram #008 was visually inspected. The new connection-recovery diagram has
+local render and screenshot review only; it has not been included in a hosted
+GitHub render audit.
 
 Increment 365 (2026-11-09) linked the timed Save guide's embedded test for all
 five advance modes and the TARA equality/strict-boundary case. The worktree
@@ -139,6 +139,22 @@ removal order of the RTI-owned `HLAfederate` object. The current process TCK
 source remains worktree-only evidence. No diagram change or C++/test edit;
 no builds or CI; no 2010 or Requirements Lab edits. Overall progress remains
 80%; all four formal gates remain complete (4/4).
+
+Increment 373 (2026-11-09) audited the configured-process host outage lifecycle
+in the 2025 connection/configuration guide. Added a two-clock flowchart that
+separates client heartbeat/reconnect behavior from host inactivity retention
+and purge, including sequence-history replay and the two independent terminal
+effects. The source identifies the host fields as §12.13.4.5 Table 31 RTI
+protocol settings; the diagram does not present Umbra's resume mechanics as a
+standard requirement. Linked the current candidate source and test assertions,
+explicitly labeling them dirty and unexecuted; no fresh runtime evidence is
+claimed. Mermaid CLI 12.0.0 rendered the chart, and screenshot inspection found
+it readable while scrolling. The visual ledger now records 508 locally
+rendered and reviewed charts; GitHub hydration remains verified for the prior
+published audit only. The worktree checker resolved 4,657/4,657 references
+across 38 IEEE 1516.1-2025 Markdown files. No C++ changes, builds, tests, or CI;
+no 2010 or Requirements Lab changes. Overall progress remains 80%; all four
+formal gates remain complete (4/4).
 
 Increment 343 audited additional-module Join preparation, commit, process
 setup, and rollback against candidate source and focused tests. It corrected
