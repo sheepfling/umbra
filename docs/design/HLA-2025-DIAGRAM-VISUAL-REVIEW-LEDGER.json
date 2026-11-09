@@ -6108,7 +6108,7 @@
     }
   ],
   "github_gfm_api_render": {
-    "as_of": "2026-11-09 increment 354",
+    "as_of": "2026-11-09 increment 355",
     "service": "GitHub Markdown API POST /markdown",
     "mode": "gfm",
     "context": "sheepfling/umbra",
@@ -6149,8 +6149,8 @@
     "guide_count": 32,
     "http_200_responses": 38,
     "nonempty_html_responses": 38,
-    "scope": "Authenticated GitHub GFM pass for increment 354 checked all 38 scoped Markdown pages: 32 topic guides and six supporting pages. All 38 returned nonempty HTML; all 507 source Mermaid fences produced Mermaid containers; 1,028 headings and 7,992 links were present, with zero failures or diagram-count mismatches. This verifies GFM parsing and container registration, not visible hydration or link destinations on published GitHub pages.",
-    "limitations": "The candidate branch is unpublished. Visible Mermaid hydration and link destinations on the 32 published guide pages remain unverified.",
+    "scope": "Authenticated GitHub Markdown API POST /markdown with mode=gfm and context=sheepfling/umbra. The increment-355 full pass checked all 38 scoped Markdown pages: 32 topic guides and six supporting pages. All 38 returned nonempty HTML; all 507 source Mermaid fences produced Mermaid containers; 1,029 headings and 7,994 links were present, with zero failures or diagram-count mismatches. This verifies GFM parsing and container registration, not visible hydration or click-through status on published GitHub pages.",
+    "limitations": "The candidate branch is published. Increment 355 inspected all 32 page DOMs: all 507 expected Mermaid containers were present, but all retained GitHub Loading placeholders in headless Chromium. Visible hydration and click-through status of every link remain unverified.",
     "markdown_pages_checked": 38,
     "supporting_markdown_pages": [
       "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
@@ -6162,8 +6162,8 @@
     ],
     "source_mermaid_fences": 507,
     "github_mermaid_render_containers": 507,
-    "heading_elements": 1028,
-    "rendered_links": 7992,
+    "heading_elements": 1029,
+    "rendered_links": 7994,
     "api_failures_or_diagram_count_mismatches": 0,
     "latest_refresh": {
       "as_of": "2026-11-08 increment 319",

@@ -82,7 +82,7 @@
   "scope_note": "Counts cover relative Markdown source-line links across 35 IEEE 1516.1-2025 Markdown files: 5,660 link occurrences and 4,369 unique path/line/guide references. All unique references resolve at the current worktree, pinned candidate base, and primary source revision. Immutable GitHub permalinks are counted and checked separately. These checks establish target path and line existence only, not semantic support for surrounding claims. Preserve unrelated staged and unstaged work.",
   "refresh": "2026-11-08 increment 319: the source-line checker resolves 4,370/4,370 unique relative path/line/guide references across 35 IEEE 1516.1-2025 Markdown files in the candidate worktree, at pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at source revision e6321e842f333427349166df8c5b35350a2ae473; these represent 5,662 Markdown link occurrences. The immutable permalink audit remains 148 occurrences (102 unique path/line pairs across 40 targets), with zero missing lines. The authenticated GFM pass covers all 35 pages with 498/498 Mermaid containers, 979 headings, 7,663 links, and zero failures. The docs-only selection remains 41 paths (32 guides plus nine support/handoff assets); 48 unrelated non-documentation changes remain excluded. Published GitHub file-page hydration remains unverified; these checks do not establish semantic support.",
   "candidate_assembly": {
-    "status": "44-path 2025-only documentation candidate with current source-link, diagram-ledger, and GFM audit updates; unpublished.",
+    "status": "44-path 2025-only documentation candidate published; page-level audit complete, visible Mermaid hydration unverified.",
     "target_base_ref": "origin/feature/initial-work",
     "target_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
@@ -105,7 +105,7 @@
       "docs/planning/ROADMAP-INDEX.json (documentation handoff only)"
     ],
     "source_line_references": 5960,
-    "candidate_link_check": "The checker resolves 4,591/4,591 unique relative source-line references (5,960 link occurrences) across 35 IEEE 1516.1-2025 Markdown files at the candidate worktree, pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and source revision e6321e842f333427349166df8c5b35350a2ae473. No line references are unresolved. The separate immutable permalink audit remains historical and is not included in this refreshed count.",
+    "candidate_link_check": "The checker resolves 4,591/4,591 unique relative source-line references (5,960 link occurrences) across 38 IEEE 1516.1-2025 Markdown files at the candidate worktree, pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and source revision e6321e842f333427349166df8c5b35350a2ae473. No line references are unresolved. The separate immutable permalink audit remains historical and is not included in this refreshed count.",
     "selected_current_source_target_count": 0,
     "unrelated_non_documentation_changes_present_but_excluded": 48,
     "selected_non_documentation_paths": 0,
@@ -118,9 +118,9 @@
     ],
     "selected_requirements_lab_paths": 0,
     "selected_2010_paths": 0,
-    "github_markdown_api": "Authenticated GitHub GFM pass for increment 354 checked all 38 scoped Markdown pages: 32 topic guides and six supporting pages. All 38 returned nonempty HTML; all 507 source Mermaid fences produced Mermaid containers; 1,028 headings and 7,992 links were present, with zero failures or diagram-count mismatches. This verifies GFM parsing and container registration, not visible hydration or link destinations on published GitHub pages. The candidate branch is unpublished. Visible Mermaid hydration and link destinations on the 32 published guide pages remain unverified.",
-    "external_publish_status": "Candidate branch is absent remotely; after publishing, inspect all 32 GitHub guide pages for visible Mermaid hydration and link destinations.",
-    "next": "Publish the 44-path 2025 documentation candidate on its dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams and link destinations. Record the published revision and per-page outcomes in the render audit. Preserve unrelated non-documentation work and keep 2010 and Requirements Lab paths excluded.",
+    "github_markdown_api": "Authenticated GitHub Markdown API POST /markdown with mode=gfm and context=sheepfling/umbra. The increment-355 full pass checked all 38 scoped Markdown pages: 32 topic guides and six supporting pages. All 38 returned nonempty HTML; all 507 source Mermaid fences produced Mermaid containers; 1,029 headings and 7,994 links were present, with zero failures or diagram-count mismatches. This verifies GFM parsing and container registration, not visible hydration or click-through status on published GitHub pages. The candidate branch is published. Increment 355 inspected all 32 page DOMs: all 507 expected Mermaid containers were present, but all retained GitHub Loading placeholders in headless Chromium. Visible hydration and click-through status of every link remain unverified.",
+    "external_publish_status": "Published on feature/hla-2025-docs-candidate-20261107 at adafb10c37b6aad8f798e49ca7007abeaaeb66fc. All 32 page DOMs load and match 507 Mermaid containers, but headless Chromium retained 507 Loading placeholders; visible hydration remains unverified.",
+    "next": "Investigate Mermaid hydration in an interactive GitHub browser session; continue the semantic source-citation review and keep the unresolved licensed Save-failure mapping explicit.",
     "documentation_support_asset_count": 12
   },
   "previous_migration_snapshot": {

@@ -520,3 +520,29 @@ dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams
 and link destinations. Record the published revision and per-page outcomes in
 the render audit. Preserve unrelated non-documentation work and keep 2010 and
 Requirements Lab paths excluded.
+
+## 2025 published GitHub page review, increment 355 — 2026-11-09
+
+Published the 44-path 2025 documentation candidate on `feature/hla-2025-docs-candidate-20261107` at
+[adafb10c](https://github.com/sheepfling/umbra/commit/adafb10c37b6aad8f798e49ca7007abeaaeb66fc). Headless Chromium inspected all 32 guide page
+DOMs: every page title and branch matched, and the page-level Mermaid
+container counts matched all 507 ledger entries. All 507 containers retained
+GitHub's `Loading` placeholders, so no visible Mermaid hydration was observed
+in this headless review. The pages exposed 11,305 anchor elements, including
+7,239 links to the candidate branch and 6,080 source-line anchors; no rendered
+`href` began with `./` or `../`. This checked rendered link markup, not the
+click-through HTTP status of every destination.
+
+The increment-355 authenticated GFM pass returned 38/38 nonempty responses, 507/507 Mermaid containers, 1,029 headings, and 7,994 links with zero failures. It establishes parsing and container registration, not visible hydration. The 4,591
+source-line references resolve at the worktree, pinned candidate base, and
+primary revision. The unrelated 48 non-documentation changes remain outside
+the published candidate. No C++ source or tests changed, and no builds or tests
+were run. No 2010 or Requirements Lab content changed. Overall progress remains
+80%; formal gates remain 3/4 (75%) because visible published-page rendering is
+not verified.
+
+**Next handoff:** Determine whether an interactive GitHub browser session
+hydrates the Mermaid containers and inspect the resulting diagrams. Keep the
+current headless limitation explicit; continue the source-coupled Save/Restore
+semantic review and do not infer normative failure triggers without the
+authoritative clause text.

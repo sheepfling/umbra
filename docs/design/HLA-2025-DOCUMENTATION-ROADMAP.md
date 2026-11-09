@@ -354,36 +354,45 @@ resolves all 4,591 references across the worktree, pinned candidate base, and
 primary source revision, with zero unresolved. GFM parsing and container
 registration do not verify visible browser hydration or published-page links.
 
+Increment 355 published the 44-path candidate on `feature/hla-2025-docs-candidate-20261107` at
+[adafb10c](https://github.com/sheepfling/umbra/commit/adafb10c37b6aad8f798e49ca7007abeaaeb66fc) and inspected all 32 guide page DOMs with headless
+Chromium. Every page loaded with its expected title and branch, and all 507
+Mermaid container counts matched the visual-review ledger. All containers
+retained GitHub's `Loading` placeholder, so visible diagram hydration was not
+observed. The pages exposed 11,305 anchor elements, including 7,239 links to
+the candidate branch and 6,080 source-line anchors; no rendered href began
+with `./` or `../`. This checks link markup and local source-line existence,
+not click-through status for every target. The authenticated increment-355 GFM pass confirms parsing and 507/507 Mermaid container registration, with 1,029 headings and 7,994 links; it does not confirm visible hydration.
+
 No C++ source or test files changed; no builds or tests were run. The 2025 and
 2010 streams remain separate, and no Requirements Lab content changed. Overall
-progress remains 80%; formal gates remain 3/4 (75%). The 44-path documentation
-candidate remains unpublished; the 48 unrelated non-documentation changes
-remain outside it.
+progress remains 80%; formal gates remain 3/4 (75%) because visible
+published-page rendering is not verified. The 48 unrelated non-documentation
+changes remain outside the candidate.
 
-**Next handoff:** Publish the 44-path 2025 documentation candidate on its
-dedicated branch, then inspect all 32 GitHub guide pages for visible diagrams
-and link destinations. Record the published revision and per-page outcomes in
-the render audit. Preserve the 48 unrelated non-documentation changes and keep
-2010 and Requirements Lab paths excluded.
+**Next handoff:** Check whether an interactive GitHub browser session hydrates
+the Mermaid containers, then inspect the diagrams. Keep the headless limitation
+explicit and continue the source-coupled Save/Restore semantic review. Do not
+infer normative Save/Restore failure triggers without authoritative clause
+text. Preserve the 48 unrelated changes and keep 2010 and Requirements Lab
+paths excluded.
 
 The older hosted-page audit records 31 available pages and one missing guide;
 339 of the 340 hosted diagrams rendered, while one timing-guide diagram failed
-the GitHub Mermaid parser. That is evidence about the old hosted snapshot, not
-the current candidate. The candidate branch is not published, so visible
-GitHub file-page rendering and Mermaid hydration remain unverified. The
-candidate worktree also contains 48 non-documentation changes; they are
-preserved outside the 44-path documentation selection. The selected paths
-contain no Requirements Lab or 2010 changes.
+the GitHub Mermaid parser. That remains evidence about the old snapshot. The
+current branch is published; its page-level DOM review confirms all 32 pages
+and all expected Mermaid containers, but observed hydration remains zero of
+507. The candidate includes no Requirements Lab or 2010 changes.
 
 The four-gate score remains **3/4 (75%)**: survey and backlog, guide content,
-and local/GFM/source-link verification are complete; published-page review is
-the remaining gate. All 507 diagrams have local render and screenshot evidence.
-Overall progress is **80%**: the broader semantic
-source-citation review and published-page inspection remain open, and the
+and local/GFM/source-link verification are complete; visible published-page
+rendering is the remaining gate. All 507 diagrams have local render and
+screenshot evidence. Overall progress is **80%**: broader semantic
+source-citation review and visible page rendering remain open, and the
 licensed 2025 Save-failure mapping is unresolved. The configured-process
 Join/MOM, process Evoke Multiple, and single-Evoke reviews are complete. The
-goal remains active until the candidate is available on GitHub and all 32 pages
-are checked.
+goal remains active until published diagrams render visibly or the rendering
+limitation has a verified, acceptable resolution.
 Continue recording cross-guide gaps as concrete backlog items; keep diagram
 count a quality check rather than a growth target. The 2025 and 2010
 implementation streams remain separate.
@@ -402,39 +411,28 @@ These items are the remaining work. The formal score is 75% (three of four
 gates); the broader overall estimate is 80%, including the semantic review work
 still underway.
 
-1. **Publish and inspect the docs-only candidate:** The isolated
-   feature/hla-2025-docs-candidate-20261107 branch is based on the pinned
-   hosted revision c9c5a9e410539b039cd8bba35b53d0ef2b24d180. The exact
-   documentation selection is 44 paths: 32 guides and twelve documentation
-   assets. The increment-346 worktree check resolves 4,566 unique relative
-   source-line/guide references across 35 Markdown files. An earlier
-   cross-revision check resolved 4,430 unique references (5,743 occurrences)
-   at its checked snapshots; that result is historical and must be refreshed
-   after future citation edits. The former three worktree-only anchors have been removed or
-   replaced by stable published source citations; the private resume-test
-   observation remains plain text with an explicit worktree-only label. These
-   checks establish line existence, not semantic support. The separately
-   audited 151 immutable GitHub source permalinks also resolve at their pinned
-   revision. The 151 permalinks cover 104 unique path/line pairs across 41 targets; all resolve at the pinned revision. The process-client semantic audit corrected labels beyond line-existence checks. Refresh both checks after future citation edits.
-   The 48 non-documentation changes in the candidate worktree are preserved
-   outside the selected set; none of the selected paths is under the
-   Requirements Lab or the 2010 stream. Five wholly current-worktree-only test
-   sources remain accurately described as non-linked evidence notes; the
-   modified process-host test's new private resume case is likewise labeled
-   worktree-only prose and has no Markdown source-line link.
-   **Done when:** after explicit publication authorization, the local docs-only
-   commit is published and all 32 GitHub file pages are inspected for link
-   destinations and visible Mermaid diagrams. Record the published revision and per-page
-   outcomes in the render audit.
+1. **Publish the docs-only candidate and inspect its pages — complete:** The
+   44-path candidate (32 guides and twelve supporting assets) is published on
+   `feature/hla-2025-docs-candidate-20261107` at [adafb10c](https://github.com/sheepfling/umbra/commit/adafb10c37b6aad8f798e49ca7007abeaaeb66fc). All 32 guide DOMs load with
+   matching titles and branch refs; their 507 Mermaid container counts match
+   the ledger. The pages expose 11,305 links, including 7,239 candidate-branch
+   links and 6,080 source-line anchors, with no `./` or `../` href forms. The
+   source-line checker resolves all 4,591 unique references across the worktree,
+   pinned candidate base, and primary revision. Link markup was inspected, but
+   click-through status for every link was not. The 48 non-documentation changes
+   remain excluded, and no 2010 or Requirements Lab paths were selected.
+   **Done when:** the candidate is published and the 32 page outcomes are
+   recorded in the render audit. Complete in increment 355.
 
-2. **Published-page rendering gate:** The increment-319 authenticated GFM pass,
-   together with the local
-   screenshot ledger, do not prove browser hydration on published file pages.
-   The old hosted snapshot had one unavailable guide and one Mermaid parse
-   failure; inspect the current candidate on published file pages and repair any
-   remaining issue.
-   **Done when:** all 32 current pages load, all 507 current diagrams render,
-   and the audit records the result.
+2. **Visible Mermaid rendering gate:** The authenticated GFM pass confirms
+   parsing and container registration. Increment 355 loaded all 32 published
+   guide pages and matched all 507 expected Mermaid containers, but every
+   container retained GitHub's `Loading` placeholder in headless Chromium; no
+   visible hydration was observed. The actual diagram render on a normal
+   interactive GitHub session remains unverified.
+   **Done when:** the 507 diagrams render visibly on the published guide pages
+   and the audit records the result, or a verified and accepted platform limit
+   has a durable workaround.
 
 3. **Source-coupled review:** Recheck evidence limits at three
    high-interaction seams: [partial ownership transfer/cancellation](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md),
