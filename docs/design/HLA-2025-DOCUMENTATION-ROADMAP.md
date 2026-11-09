@@ -415,19 +415,24 @@ run. The 2025 and 2010 streams remain separate, and no Requirements Lab content
 changed. Overall progress remains 80%; formal gates are now 4/4 (100%). The 48
 unrelated non-documentation changes remain outside the candidate.
 
-**Next handoff:** Continue beyond timing with the 2025 Attribute Value Update
-Request flow. Reconcile the currently uncommitted shared-worktree edits in
-`federation_registry_attribute_update_recipients.cpp` and
-`federation_registry_attribute_value_update_requests.cpp`; preserve them and
-keep durable source claims tied to the committed snapshot actually reviewed.
-Then review the HLA-facing separation between provider solicitation, a later
-Update, and receiver reflection, and trace class-request ownership from
-provider planning through per-group persistence and callback entry. Compare
-focused evidence for ownership changes in those windows, multi-provider fan-out,
-and requester receiver eligibility. Keep source-derived suppression or
-partial-persistence behavior distinct from normative HLA requirements. Do not
-infer direct response entitlement or callback ordering without authoritative
-clause text. Keep 2010 and Requirements Lab paths excluded.
+**2025 RAVU review, increment 359:** The guide already explains provider
+solicitation, a later Update, receiver eligibility, class-request ownership
+checks, and the limits of focused tests. The current worktree's regional
+preflight resolves dimension context per requested attribute; the committed
+candidate remains class-wide, and the hosted source-dependency audit marks the
+current-only citations. A portable inherited-attribute regional-request case
+records `InvalidRegionContext` under both callback models (4/4), but does not
+test multi-provider fan-out or ownership changes across request phases. Direct
+§6.21 requester entitlement remains open without the normative clause text.
+No guide edit or diagram was warranted.
+
+**Next handoff:** Trace the 2025 timestamped Save request from admission through
+pending-time scheduling and the Initiate Save callback. Compare source with the
+existing focused results to establish what happens when the requested time is
+not reached and whether Umbra selects `SAVE_TIME_CANNOT_BE_HONORED`. Keep the
+normative trigger unresolved without the authoritative clause text; do not
+build or rerun tests. Preserve unrelated work and keep 2010 and Requirements
+Lab paths excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
