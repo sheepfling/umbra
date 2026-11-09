@@ -600,3 +600,47 @@ The focused class-request cases still cover one provider across multiple objects
 The source-line checker resolves 4,591/4,591 references across 38 IEEE 1516.1-2025 Markdown files against HEAD `ab6e9bc7`. This documentation increment changed no C++ source or test files; no build, test, or CI was run. No 2010 or Requirements Lab paths were edited in this increment. Overall progress remains 80%; all four formal gates remain complete (4/4, 100%).
 
 **Next handoff:** Trace the 2025 timestamped Save request from admission through pending-time scheduling and the Initiate Save callback. Compare source with the existing focused results to establish what happens when the requested time is not reached and whether Umbra selects `SAVE_TIME_CANNOT_BE_HONORED`. Keep the normative trigger unresolved without the authoritative clause text; do not build or rerun tests. Preserve unrelated work and keep 2010 and Requirements Lab paths excluded.
+
+## 2025 timed Save pending-state review, increment 360 — 2026-11-09
+
+Traced the 2025 timestamped Save request from registry admission to the
+constrained-member callback boundary. The registry stores one pending label
+and time. If the Save time has not been reached at an eligible member boundary,
+or a qualifying advance/TSO condition is absent, it leaves that request pending
+without opening the `SaveOperation`. A later timed request replaces the pending
+label and time. When the constrained members reach qualifying checkpoints and
+the admission gates pass, the dispatcher delivers `initiateFederateSave` after
+eligible TSO payloads and before that member's grant
+([pending slot](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L525),
+[checkpoint admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L715),
+[pending clear after admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L778),
+[callback before grant](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L800)).
+
+The focused [embedded case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L65)
+requests time 5 and then 7 before either request reaches initiation; it later
+observes only the final label/time. The configured-process
+[replacement case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp#L703)
+checks the same boundary separately. Neither test leaves the Save time
+unreachable or asserts a terminal failure. The current-source search found no
+`SAVE_TIME_CANNOT_BE_HONORED` Save-path selector or test reference; the only
+`cpp/src` occurrence is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L549).
+This pending-state observation does not establish the normative failure
+trigger, which remains open without the authoritative clause text.
+
+The Save guide's existing admission flowchart now shows request retention,
+replacement, and no failure selection at an ineligible checkpoint. Mermaid
+CLI 12.0.0 rendered the revised chart and its screenshot was visually reviewed.
+The visual ledger now matches all 42 Save/Restore guide diagram source lines
+and body hashes, including the changed chart. The worktree source-line checker
+resolves 4,600/4,600 references across 38 IEEE 1516.1-2025 Markdown files. No
+C++ source or test files changed; no builds, tests, or CI were run. No 2010 or
+Requirements Lab content changed. Overall progress remains 80%; all four
+formal gates remain complete (4/4, 100%).
+
+**Next handoff:** Audit the non-timing 2025 attribute-ownership edge for a
+multi-attribute partial If-Wanted transfer followed by cancellation. Compare
+the registry's retained and removed attribute subsets and planned callbacks
+with the focused one-attribute transfer case. Update the existing ownership
+flow only if it obscures that state boundary; label source-derived behavior and
+the missing multi-attribute test without inferring a normative callback order.
+Keep 2010 and Requirements Lab paths excluded.

@@ -601,13 +601,15 @@ in the [Time Management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md#fqr-actual-gran
 
 ```mermaid
 flowchart TD
-  A["Timed request accepted<br/>One pending label and time T"] --> B["Evaluate a constrained member at its own advance checkpoint"]
+  A["Store or replace the pending timed request<br/>Current label and time T"] --> B["Evaluate a constrained member at its own advance checkpoint"]
   B --> C{"Does this member's mode qualify at T, with no queued/in-transit TSO at or before T?"}
-  C -->|No| A
+  C -->|No| P["Keep the request pending<br/>This checkpoint selects no failure reason"]
+  P -->|Wait for a later qualifying checkpoint| B
+  N["Another timed request before admission"] -->|Replace pending label and time| A
   C -->|Yes| D{"Is this the first constrained member admitted?"}
   D -->|No| G["Instruct this constrained member"]
   D -->|Yes| E{"Do all other constrained members have a qualifying advance queued for dispatch?"}
-  E -->|No| A
+  E -->|No| P
   E -->|Yes| F["Open SaveOperation and instruct this member"]
   F --> H{"Are other constrained initiations still pending?"}
   G --> H
@@ -618,6 +620,8 @@ flowchart TD
 The source path is in the [timed-request validation and replacement](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L485), [mode-specific advance predicate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L600), [queued/in-transit TSO check](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L630), [all-constrained scheduled-advance gate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L729), and [per-member and final-participant admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L783). The ordinary and FQR dispatch checkpoints are in [time advance](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L794) and [Flush Queue dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L884).
 
 The embedded `HLA_EVOKED` [in-transit TSO case](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L53) requests Save inside a timestamped-interaction callback. It asserts that initiation has not happened before that callback returns ([assertion](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L86)) and then checks the later per-recipient callback orders ([receiver](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L109), [regulating owner](../../cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp#L113)). A separate [FQR boundary case](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L54) delivers a TSO at time 5 but leaves the Save pending at actual grant 5; actual grant 6 subsequently admits it ([later boundary](../../cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp#L88)). These are selected embedded development-profile tests, not normative callback-order rules or proof of configured-process parity.
+
+The focused [embedded replacement case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L65) requests time 5 and then time 7 before any Initiate Federate Save callback, advances to 7, and observes only the final label and time. The configured-process [replacement case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp#L703) covers the same replacement boundary in that profile. Neither test leaves the requested time unreachable or asserts a terminal failure notification. The current-source selector scan found no `SAVE_TIME_CANNOT_BE_HONORED` selection; the [failure-reason table](#save-failure-reason-vocabulary-and-source-selectors) records the formatter-only occurrence and unresolved normative trigger. This evidence supports pending replacement, not a normative failure rule.
 
 ### Member exit during an active Save
 

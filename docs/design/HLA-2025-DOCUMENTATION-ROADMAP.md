@@ -426,13 +426,34 @@ test multi-provider fan-out or ownership changes across request phases. Direct
 §6.21 requester entitlement remains open without the normative clause text.
 No guide edit or diagram was warranted.
 
-**Next handoff:** Trace the 2025 timestamped Save request from admission through
-pending-time scheduling and the Initiate Save callback. Compare source with the
-existing focused results to establish what happens when the requested time is
-not reached and whether Umbra selects `SAVE_TIME_CANNOT_BE_HONORED`. Keep the
-normative trigger unresolved without the authoritative clause text; do not
-build or rerun tests. Preserve unrelated work and keep 2010 and Requirements
-Lab paths excluded.
+**2025 timed Save pending-state review, increment 360:** The registry keeps an
+accepted timestamped Save in one replaceable pending slot until a qualifying
+constrained-member advance checkpoint opens the SaveOperation. The admission
+predicate checks the member's advance mode and undelivered TSO boundary, and
+the dispatcher invokes `initiateFederateSave` before that member's grant. The
+embedded and configured-process replacement cases both request time 5 and then
+7 before initiation, then observe only the replacement label/time at the later
+boundary. Neither test leaves the requested time unreachable or asserts a
+terminal failure notification. The source search found no
+`SAVE_TIME_CANNOT_BE_HONORED` selector; its current occurrence is the MOM
+formatter, and the normative trigger remains unresolved without the clause
+text. The Save guide's flowchart now shows pending retention, replacement, and
+the absence of a failure selection at an ineligible checkpoint. Mermaid CLI
+12.0.0 rendered the changed chart and its screenshot was reviewed. The visual
+ledger now matches all 42 Save/Restore guide diagram source lines and body
+hashes; the 507-diagram inventory remains unchanged. The worktree source-line
+checker resolves 4,600/4,600 references across 38 2025 Markdown files. No C++
+source or tests changed; no builds or tests were run. No 2010 or Requirements
+Lab content changed. Overall progress remains 80%; all formal gates remain
+complete (4/4).
+
+**Next handoff:** Audit the non-timing 2025 attribute-ownership edge for a
+multi-attribute partial If-Wanted transfer followed by cancellation. Compare
+the registry's retained and removed attribute subsets and planned callbacks
+with the focused one-attribute transfer case. Update the existing ownership
+flow only if it obscures that state boundary; label source-derived behavior and
+the missing multi-attribute test without inferring a normative callback order.
+Keep 2010 and Requirements Lab paths excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
