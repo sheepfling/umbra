@@ -545,9 +545,9 @@ the public adapter converts handle values and checks membership before sending
 the request; a malformed handle is rejected locally. Then the registry checks
 each supplied pair against federation state before recipient expansion. Each
 pair must name a requested attribute and a requester-owned region with
-committed, complete bounds. In the current source, dimension validity is
+committed, complete bounds. In the current-worktree source, dimension validity is
 resolved per requested attribute: the registry's
-[attribute-context helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L703)
+[attribute-context helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L703)[^worktree-source]
 walks the requested class's inheritance chain to the class that declares that
 attribute, then checks the region against dimensions available there. This is
 source-derived behavior, not a settled IEEE interpretation. A separate focused

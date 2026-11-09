@@ -712,3 +712,38 @@ by older guide citations. Update the existing RAVU flow only where source and
 test evidence warrant it. Keep direct §6.21 requester entitlement and callback
 order unresolved without authoritative clause text. Do not build or rerun
 tests. Keep 2010 and Requirements Lab excluded.
+
+
+## 2025 RAVU provider fan-out and ownership recheck review, increment 362 — 2026-11-09
+
+Reviewed the existing Attribute Value Update Request guide against the live
+planner, per-provider registration, callback-entry recheck, configured-process
+group delivery, and focused test sources. The guide already explains that
+class-scope planning partitions each object by current provider; embedded
+delivery rechecks the originally selected provider and may deliver a smaller
+attribute subset or suppress the callback without selecting a replacement
+provider. Configured-process Pull queues each prepared group during the loop,
+while Push stages groups and sends after preparation; the guide labels their
+distinct partial-progress points as source-derived and untested.
+
+The focused process class test observes two callbacks to one provider for two
+different objects. The regional process case observes one provider, object,
+and attribute. Neither tests one object's attributes split across providers,
+nor ownership changing between planning, registration, and callback entry.
+Those remain source-derived paths, not demonstrated runtime outcomes or HLA
+requirements. The direct §6.21 requester-entitlement question and callback
+ordering remain unresolved. Added the missing worktree-only marker to the
+current-source attribute-context helper citation; no diagram body changed.
+
+The worktree source-link checker resolves 4,619/4,619 unique references across
+38 IEEE 1516.1-2025 Markdown files. No C++ source or tests changed; no builds,
+tests, or CI were run. No 2010 or Requirements Lab content changed. Overall
+progress remains 80%; all four formal gates remain complete (4/4).
+
+**Next handoff:** Audit configured-process Save/Restore continuation for
+pending object-class Attribute Value Update Request groups. Trace state-image
+capture, restored provider-route rebinding, process event-queue reconstruction
+and delivery, then compare the focused process and embedded tests. Keep
+registry records, service-side event queues, and client callback delivery
+distinct. Do not infer process/embedded parity or normative Save/Restore
+behavior; do not build or run tests. Keep 2010 and Requirements Lab excluded.
