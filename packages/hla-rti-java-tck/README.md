@@ -3653,6 +3653,16 @@ installed-package builds. The Java enum cannot represent the invalid integer
 cast tested by C++; that negative boundary remains explicitly C++-only, while
 the shared parity slice covers the standard enumerator values.
 
+The opt-in, adapter-backed `java-tck.federate-lost-mom-report` scenario follows
+the C++ loss case. It selects `NO_ACTION`, checks the lost-federate report and
+cutoff timestamp, confirms the queued TSO arrives before the survivor grant,
+verifies the post-loss `HLAfederatesInFederation` roster and public member list,
+then completes a synchronization point with the single survivor. The roster
+update maps directly to §4.1.6; synchronization completion is supplemental and
+has no separate direct mapping. Current-source Umbra JNI runs passed in both
+callback models with the `public-server-loss` fixture, `p0-tck.xml`, and the
+standard MIM. Independent-provider behavior is not claimed.
+
 The default `java-tck.advisory-switch-value-round-trips` scenario toggles each
 of the four standard relevance/scope advisory switches away from its current
 value and restores it, checking both getter results. It passes with evoked and

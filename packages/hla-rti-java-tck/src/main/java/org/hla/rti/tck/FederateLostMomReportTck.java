@@ -1,11 +1,20 @@
 package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.AttributeHandle;
+import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
+import hla.rti1516_2025.FederateHandleFactory;
+import hla.rti1516_2025.FederateHandleSet;
+import hla.rti1516_2025.FederationExecutionMemberInformation;
+import hla.rti1516_2025.FederationExecutionMemberInformationSet;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.MessageRetractionReturn;
+import hla.rti1516_2025.ObjectClassHandle;
+import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
@@ -16,7 +25,9 @@ import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAbyte;
 import hla.rti1516_2025.encoding.HLAunicodeString;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
@@ -26,7 +37,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,6 +48,8 @@ import java.util.concurrent.atomic.AtomicReference;
 final class FederateLostMomReportTck {
    private static final String REPORT_NAME =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost";
+   private static final String FEDERATION_MOM_CLASS =
+      "HLAobjectRoot.HLAmanager.HLAfederation";
 
    private FederateLostMomReportTck() { }
 
@@ -70,10 +85,32 @@ final class FederateLostMomReportTck {
          observer.createFederationExecutionWithMIM(federation, new String[] {fom}, mim,
             timeImplementation);
          created = true;
-         observer.joinFederationExecution(observerName, "java-tck", federation);
+         FederateHandle observerFederate = observer.joinFederationExecution(
+            observerName, "java-tck", federation);
          observerJoined = true;
          FederateHandle lostFederate = lost.joinFederationExecution(
             lostName, "java-tck", federation);
+
+         ObjectClassHandle federationMomClass =
+            observer.getObjectClassHandle(FEDERATION_MOM_CLASS);
+         AttributeHandle rosterAttribute = observer.getAttributeHandle(
+            federationMomClass, "HLAfederatesInFederation");
+         JavaTckSupport.check(federationMomClass != null && rosterAttribute != null,
+            "standard HLAfederation roster lookup failed");
+         AttributeHandleSet rosterAttributes =
+            JavaTckSupport.attributeSet(observer, rosterAttribute);
+         FederateHandleFactory federateHandleFactory = observer.getFederateHandleFactory();
+         JavaTckSupport.check(federateHandleFactory != null,
+            "standard federate-handle factory was null");
+         observerRecorder.watchFederationRoster(federationMomClass, rosterAttribute);
+         observer.subscribeObjectClassAttributes(federationMomClass, rosterAttributes);
+         await(observer, callbackModel, interactionClassName,
+            () -> observerRecorder.federationMomObject != null,
+            "federation MOM object discovery", timeoutMillis);
+         JavaTckSupport.check(federationMomClass.equals(
+               observerRecorder.federationMomObjectClass)
+               && "HLAfederation".equals(observerRecorder.federationMomObjectName),
+            "federation MOM discovery did not preserve the HLAfederation identity");
 
          reportClass = observer.getInteractionClassHandle(REPORT_NAME);
          ParameterHandle federateParameter = observer.getParameterHandle(reportClass, "HLAfederate");
@@ -116,6 +153,7 @@ final class FederateLostMomReportTck {
          await(lost, callbackModel, interactionClassName,
             () -> lostRecorder.timeRegulationEnabled,
             "lost member time-regulation role callback", timeoutMillis);
+         lost.setAutomaticResignDirective(ResignAction.NO_ACTION);
          observer.enableAsynchronousDelivery();
 
          byte[] tag = {0x43, 0x55, 0x54};
@@ -134,17 +172,24 @@ final class FederateLostMomReportTck {
                && Arrays.equals(encode(cutoff), encode(lostRecorder.timeAdvanceGrants.get(0).time)),
             "lost member did not reach the timestamped cutoff before fault injection");
 
+         int membershipReflectionsBeforeLoss = observerRecorder.rosterReflectionCount.get();
          writeMarker(Path.of(readyMarkerPath), "ready\n");
          long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
          while (System.nanoTime() < deadline && (connectionLostDescription.get() == null
                || observerRecorder.reports.size() < 1
                || observerRecorder.timestamped.size() < 1
-               || observerRecorder.timeAdvanceGrants.size() < 1)) {
+               || observerRecorder.timeAdvanceGrants.size() < 1
+               || observerRecorder.rosterReflectionCount.get() <= membershipReflectionsBeforeLoss
+               || !Set.of(observerFederate).equals(observerRecorder.currentRoster(
+                  encoder, federateHandleFactory, rosterAttribute)))) {
             service(lost, callbackModel, interactionClassName, true);
             service(observer, callbackModel, interactionClassName, false);
             if (connectionLostDescription.get() == null || observerRecorder.reports.size() < 1
                   || observerRecorder.timestamped.size() < 1
-                  || observerRecorder.timeAdvanceGrants.size() < 1) {
+                  || observerRecorder.timeAdvanceGrants.size() < 1
+                  || observerRecorder.rosterReflectionCount.get() <= membershipReflectionsBeforeLoss
+                  || !Set.of(observerFederate).equals(observerRecorder.currentRoster(
+                     encoder, federateHandleFactory, rosterAttribute))) {
                Thread.sleep(1L);
             }
          }
@@ -206,6 +251,43 @@ final class FederateLostMomReportTck {
             "federate loss granted the survivor at the wrong cutoff time");
          JavaTckSupport.check(timed.callbackSequence < survivorGrant.callbackSequence,
             "survivor received its cutoff grant before the lost member's TSO message");
+
+         JavaTckSupport.check(observerRecorder.rosterReflectionCount.get()
+               > membershipReflectionsBeforeLoss
+               && Set.of(observerFederate).equals(observerRecorder.currentRoster(
+                  encoder, federateHandleFactory, rosterAttribute)),
+            "HLAfederatesInFederation did not remove the automatically resigned member");
+         observer.listFederationExecutionMembers(federation);
+         await(observer, callbackModel, interactionClassName,
+            () -> federation.equals(observerRecorder.memberReportFederation)
+               && observerRecorder.memberReport != null,
+            "post-loss federation member listing", timeoutMillis);
+         Set<String> memberNames = new LinkedHashSet<>();
+         for (FederationExecutionMemberInformation member : observerRecorder.memberReport) {
+            memberNames.add(member.federateName);
+         }
+         JavaTckSupport.check(memberNames.equals(Set.of(observerName)),
+            "post-loss federation membership query retained the automatically resigned member");
+
+         String synchronizationLabel = federation + "-post-loss-survivor-synchronization";
+         byte[] synchronizationTag = {0x53, 0x59, 0x4E};
+         observer.registerFederationSynchronizationPoint(
+            synchronizationLabel, synchronizationTag);
+         await(observer, callbackModel, interactionClassName,
+            () -> synchronizationLabel.equals(observerRecorder.synchronizationRegistrationLabel)
+               && synchronizationLabel.equals(observerRecorder.synchronizationAnnouncementLabel),
+            "single-survivor synchronization registration and announcement", timeoutMillis);
+         JavaTckSupport.check(!synchronizationLabel.equals(
+               observerRecorder.synchronizationRegistrationFailureLabel)
+               && Arrays.equals(synchronizationTag, observerRecorder.synchronizationTag),
+            "single-survivor synchronization registration failed or changed its tag");
+         observer.synchronizationPointAchieved(synchronizationLabel);
+         await(observer, callbackModel, interactionClassName,
+            () -> synchronizationLabel.equals(observerRecorder.federationSynchronizedLabel)
+               && observerRecorder.failedToSynchronize != null,
+            "single-survivor Federation Synchronized callback", timeoutMillis);
+         JavaTckSupport.check(observerRecorder.failedToSynchronize.isEmpty(),
+            "single-survivor synchronization returned an unexpected failed set");
 
          writeMarker(Path.of(completionMarkerPath), "callback-ok\n");
       } finally {
@@ -346,8 +428,39 @@ final class FederateLostMomReportTck {
          new CopyOnWriteArrayList<>();
       private final CopyOnWriteArrayList<Grant> timeAdvanceGrants = new CopyOnWriteArrayList<>();
       private final AtomicInteger callbackSequence = new AtomicInteger();
+      private final AtomicInteger rosterReflectionCount = new AtomicInteger();
       private volatile boolean timeConstrainedEnabled;
       private volatile boolean timeRegulationEnabled;
+      private volatile ObjectClassHandle federationMomObjectClass;
+      private volatile ObjectInstanceHandle federationMomObject;
+      private volatile String federationMomObjectName;
+      private volatile AttributeHandle rosterAttribute;
+      private volatile Map<AttributeHandle, byte[]> rosterValues;
+      private volatile String memberReportFederation;
+      private volatile Set<FederationExecutionMemberInformation> memberReport;
+      private volatile String synchronizationRegistrationLabel;
+      private volatile String synchronizationRegistrationFailureLabel;
+      private volatile String synchronizationAnnouncementLabel;
+      private volatile byte[] synchronizationTag;
+      private volatile String federationSynchronizedLabel;
+      private volatile Set<FederateHandle> failedToSynchronize;
+
+      private void watchFederationRoster(ObjectClassHandle objectClass,
+            AttributeHandle attribute) {
+         federationMomObjectClass = objectClass;
+         rosterAttribute = attribute;
+      }
+
+      private Set<FederateHandle> currentRoster(EncoderFactory encoder,
+            FederateHandleFactory handleFactory, AttributeHandle attribute) {
+         Map<AttributeHandle, byte[]> values = rosterValues;
+         if (values == null || !values.containsKey(attribute)) return null;
+         try {
+            return decodeRoster(encoder, handleFactory, values.get(attribute));
+         } catch (Exception error) {
+            throw new AssertionError("could not decode HLAfederatesInFederation", error);
+         }
+      }
 
       private FederateAmbassador proxy(AtomicReference<String> connectionLostDescription) {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -361,6 +474,28 @@ final class FederateLostMomReportTck {
                   timeConstrainedEnabled = true;
                } else if ("timeRegulationEnabled".equals(name)) {
                   timeRegulationEnabled = true;
+               } else if ("discoverObjectInstance".equals(name) && arguments != null
+                     && arguments.length >= 3
+                     && federationMomObjectClass != null
+                     && federationMomObjectClass.equals(arguments[1])
+                     && "HLAfederation".equals(arguments[2])) {
+                  federationMomObject = (ObjectInstanceHandle) arguments[0];
+                  federationMomObjectName = (String) arguments[2];
+               } else if ("reflectAttributeValues".equals(name) && arguments != null
+                     && arguments.length == 6
+                     && arguments[1] instanceof AttributeHandleValueMap
+                     && federationMomObject != null
+                     && federationMomObject.equals(arguments[0])) {
+                  AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
+                  AttributeHandle attribute = rosterAttribute;
+                  if (attribute != null && source.containsKey(attribute)) {
+                     Map<AttributeHandle, byte[]> copy = new LinkedHashMap<>();
+                     for (AttributeHandle handle : source.keySet()) {
+                        copy.put(handle, source.get(handle).clone());
+                     }
+                     rosterValues = copy;
+                     rosterReflectionCount.incrementAndGet();
+                  }
                } else if ("receiveInteraction".equals(name) && arguments != null) {
                   if (arguments.length == 10) {
                      timestamped.add(new TimedInteraction(arguments,
@@ -368,6 +503,28 @@ final class FederateLostMomReportTck {
                   } else if (arguments.length == 6) {
                      reports.add(new Interaction(arguments));
                   }
+               } else if ("reportFederationExecutionMembers".equals(name)
+                     && arguments != null && arguments.length == 2
+                     && arguments[1] instanceof FederationExecutionMemberInformationSet) {
+                  memberReportFederation = (String) arguments[0];
+                  memberReport = new LinkedHashSet<>(
+                     (FederationExecutionMemberInformationSet) arguments[1]);
+               } else if ("synchronizationPointRegistrationSucceeded".equals(name)
+                     && arguments != null && arguments.length == 1) {
+                  synchronizationRegistrationLabel = (String) arguments[0];
+               } else if ("synchronizationPointRegistrationFailed".equals(name)
+                     && arguments != null && arguments.length == 2) {
+                  synchronizationRegistrationFailureLabel = (String) arguments[0];
+               } else if ("announceSynchronizationPoint".equals(name)
+                     && arguments != null && arguments.length == 2) {
+                  synchronizationAnnouncementLabel = (String) arguments[0];
+                  synchronizationTag = ((byte[]) arguments[1]).clone();
+               } else if ("federationSynchronized".equals(name)
+                     && arguments != null && arguments.length == 2
+                     && arguments[1] instanceof FederateHandleSet) {
+                  federationSynchronizedLabel = (String) arguments[0];
+                  failedToSynchronize = new LinkedHashSet<>(
+                     (FederateHandleSet) arguments[1]);
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
                   timeAdvanceGrants.add(new Grant((LogicalTime<?, ?>) arguments[0],
@@ -375,6 +532,23 @@ final class FederateLostMomReportTck {
                }
                return objectMethod(proxy, name, arguments);
             });
+      }
+
+      private static Set<FederateHandle> decodeRoster(EncoderFactory encoder,
+            FederateHandleFactory handleFactory, byte[] encoded) throws Exception {
+         HLAvariableArray<HLAvariableArray<HLAbyte>> references =
+            encoder.createHLAvariableArray(
+               outer -> encoder.createHLAvariableArray(inner -> encoder.createHLAbyte()));
+         references.decode(encoded);
+         Set<FederateHandle> result = new LinkedHashSet<>();
+         for (HLAvariableArray<HLAbyte> reference : references) {
+            FederateHandle decoded = handleFactory.decode(reference.toByteArray(), 0);
+            JavaTckSupport.check(decoded != null,
+               "HLAfederatesInFederation contained a null handle");
+            JavaTckSupport.check(result.add(decoded),
+               "HLAfederatesInFederation contained a duplicate handle");
+         }
+         return result;
       }
    }
 }

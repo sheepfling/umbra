@@ -121,10 +121,14 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
         (markers / "federate-lost-mom-report.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
-    if arguments.scenario == "java-tck.connection-loss-cleanup":
-        (markers / "save-failure-during-connection-loss.mode").write_text(
-            "enabled\n", encoding="utf-8"
-        )
+    if arguments.scenario in {
+        "java-tck.connection-loss-cleanup",
+        "java-tck.federate-lost-mom-report",
+    }:
+        if arguments.scenario == "java-tck.connection-loss-cleanup":
+            (markers / "save-failure-during-connection-loss.mode").write_text(
+                "enabled\n", encoding="utf-8"
+            )
         service_report_directory = markers / "service-reports"
         service_report_directory.mkdir()
         (markers / "service-report-directory.txt").write_text(

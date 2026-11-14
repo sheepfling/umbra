@@ -35947,6 +35947,13 @@
         "evidence": "Official Java API compilation passed. Current-source Java Umbra JNI runs passed java-tck.federation-mom-change-interaction-order-type under HLA_EVOKED and HLA_IMMEDIATE using HLAinteger64Time and the Restaurant FOM/MIM (out/java-tck/federation-mom-change-target-20261114/{evoked,immediate}.{results.json,junit.xml}). Paired installed-package MinGW C++ primary and contract runs passed 4/4 focused CTests and 4/4 direct executions (.build/cpp-tck-service-report-regional-interaction-failure-20261114/federation-mom-order-type-java-parity.{results.json,junit.xml}).",
         "boundary": "Direct mapping remains limited to the one IEEE 1516.1-2025 section 11.4.1 Table 7 S-leaf requirement. The application delivery assertion is supplemental. Local JNI evidence only; no independent-provider or conformance claim."
       },
+      "latest_verified_federate_lost_mom_report_2026_11_14": {
+        "status": "verified-2026-11-14",
+        "scope": "Java now mirrors the C++ lost-report identity/time and TSO-before-survivor-grant assertions, post-loss Federation MOM roster reflection and member query, and one-survivor synchronization continuation.",
+        "evidence": "Compiled against the pinned IEEE 1516.1-2025 API and passed the current-source Umbra JNI provider in HLA_EVOKED and HLA_IMMEDIATE through the public-server-loss process fixture using p0-tck.xml and the standard MIM. Results: out/java-tck/federate-lost-mom-roster-sync-20261114/results/{evoked,immediate}.results.json and .junit.xml.",
+        "mapping_and_validation": "The roster update maps directly through requirement-candidate-content-clauses-04-federation-management-page-050-l45-14 -> hla-1516.1-2025:clause-4.1.6; synchronization is supplemental and unmapped. Java catalog validation, scoped C++ result validation, and the parity audit passed; audit reports 0 unpaired and 5 explicit N/A.",
+        "boundary": "Current-provider and adapter-fixture evidence only; not independent-provider interoperability, exhaustive connection-loss criteria, or conformance."
+      },
       "latest_verified_time_role_pending_enable_slice": {
         "status": "verified-2026-10-22",
         "scope": "Pure Java standard-API parity for evoked pending time-role enablement.",
@@ -35955,7 +35962,7 @@
       },
       "roadmap_anchor": "Portable Java TCK (2025)",
       "query_tags": [],
-      "next_action": "Next review java-tck.service-report-federate-object-class-lookups: replace its synthetic invalid Java handle proxies with standard API handle objects obtained from a separate federation, if they provoke the same two invalid-handle failures. Preserve the report sequence and assert the exact foreign handle values in the failure reports; verify the existing direct mapping before editing, then run focused HLA_EVOKED and HLA_IMMEDIATE Java cases."
+      "next_action": "Next audit java-tck.service-report-federate-object-class-lookups for exact invalid-handle report-value parity. Keep the existing standard-interface proxies: a federate handle from another federation triggers FederateHandleNotKnown rather than the C++ case's InvalidFederateHandle. Determine whether the proxy can assert the exact serialized invalid value without changing that failure path; if Java has no standard invalid-handle value, record the limitation and continue with another identified assertion gap. Verify the direct mapping before editing and run focused HLA_EVOKED and HLA_IMMEDIATE Java cases."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",

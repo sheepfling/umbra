@@ -4198,25 +4198,64 @@
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getFederateHandleFactory",
+        "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getTransportationTypeHandle",
-        "RTIambassador.getFederateHandleFactory",
         "RTIambassador.getTimeFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.listFederationExecutionMembers",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
         "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.connectionLost",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.reportFederationExecutionMembers",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized",
         "LogicalTimeFactory.decodeTime",
-        "HLAunicodeString.decode"
+        "HLAunicodeString.decode",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAbyte",
+        "HLAvariableArray.decode",
+        "HLAbyte.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.2-mim-federate-lost-report"
+        "cpp-1516.2-mim-federate-lost-report",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l45-14"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l45-14",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6"
+        }
+      ],
+      "mapping_note": "Direct mapping for the post-loss HLAfederatesInFederation roster update: requirement-candidate-content-clauses-04-federation-management-page-050-l45-14 -> IEEE 1516.1-2025 §4.1.6. The scenario subscribes before connection loss and verifies that the reflected roster contains only the survivor. The report payload/time and TSO-before-grant checks retain their existing behavioral IDs; the survivor synchronization continuation is supplemental and has no separate direct requirement mapping.",
+      "parity_scope_note": "Mirrors the C++ report identity/time and TSO-before-grant assertions, the post-loss roster reflection and public membership query, and the one-survivor synchronization continuation. Runtime evidence is current-source Umbra JNI with the adapter process fixture; independent-provider behavior and exhaustive connection-loss criteria are not claimed.",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed through the current-source Umbra JNI provider in HLA_EVOKED and HLA_IMMEDIATE using run_connection_loss.py, p0-tck.xml, the standard MIM, and the public-server-loss fixture. Results: out/java-tck/federate-lost-mom-roster-sync-20261114/results/{evoked,immediate}.results.json and .junit.xml. Provider-local evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-connection-loss-cleanup-contract.json",
         "federate-lost-mom-report-requirements-contract.json",
@@ -4225,7 +4264,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federateLostMomReport",
       "parity": "cpp-tck.federate-lost-mom-report",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied provider JAR, endpoint, FOM, standard MIM, callback model, readiness/completion markers, and an adapter-managed server-side connection-loss fixture. The Java test uses only the IEEE 1516.1-2025 API; no provider-specific API or fault injection is in the test source. Runtime delivery remains unverified."
+      "exclusion": "Opt-in because the default runner does not own this external process fixture. The connection-loss adapter must supply the provider JAR and endpoint, p0-tck.xml, the standard MIM, callback model, readiness/completion markers, and the public-server-loss fixture. The Java test uses only the IEEE 1516.1-2025 API; no provider-specific API or fault injection appears in the test source."
     },
     {
       "id": "java-tck.asynchronous-delivery",
