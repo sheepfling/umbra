@@ -78921,6 +78921,7 @@
     {
       "id": "cpp-tck.federation-save-restore-interlocks",
       "category": "federation-save-restore-interlocks",
+      "focus_lane": "federation-save-restore-phase-state-guards",
       "title": "Reject declaration, object, interaction, ownership, time, DDM, synchronization, and advisory services during active save and restore",
       "api_methods": [
         "RTIambassador.publishObjectClassAttributes",
@@ -79012,7 +79013,7 @@
         }
       ],
       "mapping_note": "The scenario's successful setup publication is the Active baseline. It then requires Publish Object Class Attributes to fail with SaveInProgress in Instructed-to-Save, Saving, and Waiting-for-Federation-to-Save phases; under HLA_EVOKED it also probes Waiting-for-Restore-to-Begin and Prepared-to-Restore between the restore-begun and restore-initiation callbacks; both callback models cover Restoring and Waiting-for-Federation-to-Restore. This is an observable public-API witness for the §4.1.1 restore guard and selected parallel-state constraints, but it does not expose the internal Normal Activity state directly or exhaust every state transition/service family; not conformance evidence.",
-      "parity_scope_note": "The Java parity scenario covers the existing save/restore interlock matrix; the phase-specific §4.1.1 state-guard checkpoints are a C++ TCK extension and are not claimed as Java parity.",
+      "parity_scope_note": "The Java mirror now checks the same phase-specific §4.1.1 state-guard checkpoints as this C++ primary: save initiation, one-federate-save-complete pending state, evoked-only waiting/prepared restore checkpoints, and one-federate-restore-complete pending state. The broader interlock matrix remains as previously scoped.",
       "contract_refs": [
         "federation-restored-success-callback-requirements-contract.json",
         "save-restore-interlock-api-contract.json",

@@ -6192,6 +6192,8 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-04-federation-management-page-076-l156-41",
                "requirement-candidate-content-clauses-04-federation-management-page-076-l159-42",
+               "requirement-source-refinement-guard-and-cross-machine-state-constraints",
+               "requirement-source-refinement-parallel-state-constraints",
                "cpp-1516.1-federation-save-lifecycle",
                "cpp-1516.1-federation-save-status",
                "cpp-1516.1-federation-restore-lifecycle",

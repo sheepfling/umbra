@@ -58942,6 +58942,7 @@
     {
       "id": "java-tck.federation-save-restore-interlocks",
       "category": "federation-save-restore-interlocks",
+      "focus_lane": "federation-save-restore-phase-state-guards",
       "title": "Reject declaration, object, interaction, ownership, time, order, transportation, DDM, advisory, and synchronization services during active save and restore",
       "api_methods": [
         "RTIambassador.publishObjectClassAttributes",
@@ -59017,11 +59018,32 @@
         "FederateAmbassador.federationNotRestored"
       ],
       "requirement_ids": [
+        "requirement-source-refinement-guard-and-cross-machine-state-constraints",
+        "requirement-source-refinement-parallel-state-constraints",
         "requirement-candidate-content-clauses-04-federation-management-page-076-l156-41",
         "requirement-candidate-content-clauses-04-federation-management-page-076-l159-42",
         "cpp-1516.1-federation-save-service-interlocks",
         "cpp-1516.1-federation-restore-service-interlocks"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-source-refinement-guard-and-cross-machine-state-constraints",
+        "requirement-source-refinement-parallel-state-constraints"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-source-refinement-guard-and-cross-machine-state-constraints",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        },
+        {
+          "requirement_id": "requirement-source-refinement-parallel-state-constraints",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        }
+      ],
+      "mapping_note": "The direct §4.1.1 mapping is limited to Publish Object Class Attributes failing with SaveInProgress after save initiation and while the peer remains in save, and RestoreInProgress while the peer remains in restore. Under HLA_EVOKED, the same public service also checks the waiting-for-restore-begin and prepared-to-restore checkpoints around Federation Restore Begun and Initiate Federate Restore. These are observable public-API state guards; the case does not inspect internal state or exhaust other phases/services, and is not conformance evidence.",
+      "parity_scope_note": "The Java mirror now checks the same phase-specific §4.1.1 state-guard checkpoints as the C++ primary: save initiation, one-federate-save-complete pending state, evoked-only waiting/prepared restore checkpoints, and one-federate-restore-complete pending state. The broader interlock matrix remains as previously scoped.",
       "contract_refs": [
         "federation-restored-success-callback-requirements-contract.json",
         "save-restore-interlock-api-contract.json",
@@ -59031,7 +59053,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federationSaveRestoreInterlocks",
       "parity": "cpp-tck.federation-save-restore-interlocks",
       "default_status": "unsupported",
-      "evidence_note": "Focused --run-unverified runs passed against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE using the bundled two-dimensional save/restore FOM and HLAinteger64Time. All ordinary and directed declarations, object and interaction data, order/transportation, ownership, time, advisory, synchronization, and regional services from the selected C++ primary are asserted during active save and restore. Results: out/java-tck/save-restore-interlocks-time-services-20261104/{evoked,immediate}.results.json and .junit.xml. These local-provider runs do not establish independent-provider interoperability or overall conformance.",
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE using the bundled two-dimensional save/restore FOM and HLAinteger64Time. The C++ phase-specific §4.1.1 guard sequence is now asserted: save-instructed, saving, save-pending, restore-pending after one completion, plus evoked-only restore-begun/prepared checkpoints. Results: out/java-tck/federation-save-restore-phase-guards-20261114/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; no independent-provider interoperability or overall conformance claim.",
       "exclusion": "Default-disabled until the adapter supplies a two-dimensional IEEE 1516.1-2025 FOM with the configured object/attribute, interaction/parameter, and dimension names. The bundled federation-save-restore-interlocks-tck.xml fixture provides the required declarations. Also requires a logical-time implementation, live multi-federate provider, and callback model."
     },
     {

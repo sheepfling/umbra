@@ -132,6 +132,8 @@ final class FederationSaveRestoreInterlocksTck {
          JavaTckSupport.check(saveLabel.equals(ownerRecorder.saveInitiations.get(0))
                && saveLabel.equals(peerRecorder.saveInitiations.get(0)),
             "save interlock setup received the wrong save label");
+         assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes, "SaveInProgress",
+            "federate instructed to save");
          owner.federateSaveBegun();
          peer.federateSaveBegun();
          assertInterlocks(owner, peer, ownerObjectClass, peerObjectClass, ownerAttributes,
@@ -141,6 +143,8 @@ final class FederationSaveRestoreInterlocksTck {
             parameters, interlockTime,
             interlockLookahead, saveLabel, "SaveInProgress");
          owner.federateSaveComplete();
+         assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes, "SaveInProgress",
+            "federate waiting for federation to save");
          peer.federateSaveComplete();
          await(owner, peer, callbackModel, objectClassName,
             () -> ownerRecorder.savedCount == 1 && peerRecorder.savedCount == 1,
@@ -150,6 +154,16 @@ final class FederationSaveRestoreInterlocksTck {
             "successful save reported a failure");
 
          owner.requestFederationRestore(saveLabel);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes,
+               "RestoreInProgress", "federate waiting for restore to begin");
+            await(owner, peer, callbackModel, objectClassName,
+               () -> ownerRecorder.restoreBegunCount == 1
+                  && peerRecorder.restoreBegunCount == 1,
+               "restore-begun callbacks");
+            assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes,
+               "RestoreInProgress", "federate prepared to restore");
+         }
          await(owner, peer, callbackModel, objectClassName,
             () -> ownerRecorder.restoreSuccessCount == 1
                && ownerRecorder.restoreInitiationCount == 1
@@ -164,6 +178,8 @@ final class FederationSaveRestoreInterlocksTck {
             parameters, interlockTime,
             interlockLookahead, saveLabel, "RestoreInProgress");
          owner.federateRestoreComplete();
+         assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes,
+            "RestoreInProgress", "federate waiting for federation to restore");
          peer.federateRestoreComplete();
          await(owner, peer, callbackModel, objectClassName,
             () -> ownerRecorder.restoredCount == 1 && peerRecorder.restoredCount == 1,
@@ -183,6 +199,14 @@ final class FederationSaveRestoreInterlocksTck {
       }
    }
 
+   private static void assertNormalActivityGuard(RTIambassador owner,
+         ObjectClassHandle ownerObjectClass, AttributeHandleSet ownerAttributes,
+         String expected, String phase) throws Exception {
+      JavaTckSupport.expectFailure(
+         () -> owner.publishObjectClassAttributes(ownerObjectClass, ownerAttributes), expected,
+         "publishing object attributes during " + phase);
+   }
+
    private static void assertInterlocks(RTIambassador owner, RTIambassador peer,
          ObjectClassHandle ownerObjectClass, ObjectClassHandle peerObjectClass,
          AttributeHandleSet ownerAttributes, AttributeHandleSet peerAttributes,
@@ -200,9 +224,7 @@ final class FederationSaveRestoreInterlocksTck {
          throws Exception {
       JavaTckSupport.expectFailure(() -> owner.requestFederationRestore(saveLabel), expected,
          "requesting another federation restore during " + expected);
-      JavaTckSupport.expectFailure(
-         () -> owner.publishObjectClassAttributes(ownerObjectClass, ownerAttributes), expected,
-         "publishing object attributes during " + expected);
+      assertNormalActivityGuard(owner, ownerObjectClass, ownerAttributes, expected, expected);
       JavaTckSupport.expectFailure(() -> owner.unpublishObjectClass(ownerObjectClass), expected,
          "unpublishing an object class during " + expected);
       JavaTckSupport.expectFailure(
